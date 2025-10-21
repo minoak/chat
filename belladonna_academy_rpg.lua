@@ -1814,14 +1814,10 @@ onOutput = async(function(triggerId)
         return
     end
 
-    -- 이미 태그가 추가된 메시지는 스킵 (중복 처리 방지)
-    if message:find("<Panel>■") then
-        return
-    end
-
     local currentTurnId = generateTurnId(triggerId)
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
+    -- 리롤 감지 (스냅샷 복원이 먼저!)
     if currentTurnId == lastTurnId then
         for _, char in ipairs(characters) do
             restoreSnapshot(triggerId, char)
@@ -1832,6 +1828,11 @@ onOutput = async(function(triggerId)
         restoreRpgSnapshot(triggerId)
         clearRpgChanges(triggerId)
 
+        return
+    end
+
+    -- 이미 태그가 추가된 메시지는 스킵 (setChat() 재트리거 방지)
+    if message:find("<Panel>■") then
         return
     end
 
