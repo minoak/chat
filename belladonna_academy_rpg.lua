@@ -1630,111 +1630,6 @@ function parseStatusWindow(triggerId, message)
     end
 end
 
--- 스테이터스 패널 HTML 생성
-function buildStatusPanel(triggerId)
-    local parts = {}
-    local hasChanges = false
-
-    -- 플레이어 기본 정보
-    local level = getChatVar(triggerId, "player_level") or "1"
-    local exp = getChatVar(triggerId, "player_exp") or "0"
-    local expToNext = getChatVar(triggerId, "player_exp_to_next") or "100"
-    local gold = getChatVar(triggerId, "player_gold") or "0"
-
-    -- 변경사항
-    local goldChange = tonumber(getChatVar(triggerId, "player_gold_change")) or 0
-    local expChange = tonumber(getChatVar(triggerId, "player_exp_change")) or 0
-
-    -- 스탯 변경사항
-    local statChanges = {}
-    for _, stat in ipairs(playerStats) do
-        local change = tonumber(getChatVar(triggerId, "player_" .. stat .. "_change")) or 0
-        if change ~= 0 then
-            statChanges[stat] = change
-            hasChanges = true
-        end
-    end
-
-    -- 호감도 변경사항
-    local affinityChangesText = {}
-    for _, char in ipairs(characters) do
-        local change = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
-        if change ~= 0 then
-            local currentAffinity = tonumber(getChatVar(triggerId, char.storage .. "_affinity")) or 0
-            table.insert(affinityChangesText, string.format("%s %s: %+d (현재: %d)",
-                char.icon, char.display, change, currentAffinity))
-            hasChanges = true
-        end
-    end
-
-    -- 변경사항이 있거나 골드/EXP 변경이 있으면 패널 생성
-    if goldChange ~= 0 or expChange ~= 0 or hasChanges then
-        table.insert(parts, "<div class='rpg-status-panel' style='border: 2px solid #8B4513; padding: 12px; margin: 10px 0; background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%); border-radius: 8px; font-family: serif;'>")
-
-        -- 헤더
-        table.insert(parts, "<div style='text-align: center; font-size: 1.2em; font-weight: bold; color: #FFD700; margin-bottom: 10px; border-bottom: 1px solid #8B4513; padding-bottom: 8px;'>")
-        table.insert(parts, "⚔️ 스테이터스 변화 ⚔️")
-        table.insert(parts, "</div>")
-
-        -- 레벨 & EXP
-        if expChange ~= 0 then
-            table.insert(parts, string.format("<div style='color: #87CEEB; margin: 4px 0;'>📊 레벨: %s | EXP: %s/%s <span style='color: #90EE90;'>(%+d)</span></div>",
-                level, exp, expToNext, expChange))
-        end
-
-        -- 골드
-        if goldChange ~= 0 then
-            local changeColor = goldChange > 0 and "#FFD700" or "#FF6B6B"
-            table.insert(parts, string.format("<div style='color: #FFD700; margin: 4px 0;'>💰 골드: %s <span style='color: %s;'>(%+d)</span></div>",
-                gold, changeColor, goldChange))
-        end
-
-        -- 스탯 변경
-        if next(statChanges) then
-            table.insert(parts, "<div style='margin-top: 8px; color: #DDA0DD;'>")
-            table.insert(parts, "<strong>📈 스탯 변화:</strong>")
-            for _, stat in ipairs(playerStats) do
-                if statChanges[stat] then
-                    local currentValue = getChatVar(triggerId, "player_" .. stat) or "50"
-                    local changeColor = statChanges[stat] > 0 and "#90EE90" or "#FF6B6B"
-                    table.insert(parts, string.format("<div style='margin-left: 10px; color: #FFDAB9;'>%s: %s <span style='color: %s;'>(%+d)</span></div>",
-                        stat:upper(), currentValue, changeColor, statChanges[stat]))
-                end
-            end
-            table.insert(parts, "</div>")
-        end
-
-        -- 호감도 변경
-        if #affinityChangesText > 0 then
-            table.insert(parts, "<div style='margin-top: 8px; color: #FFB6C1;'>")
-            table.insert(parts, "<strong>💕 호감도 변화:</strong>")
-            for _, text in ipairs(affinityChangesText) do
-                table.insert(parts, string.format("<div style='margin-left: 10px;'>%s</div>", text))
-            end
-            table.insert(parts, "</div>")
-        end
-
-        -- 시간 & 위치
-        local time = getChatVar(triggerId, "current_time")
-        local location = getChatVar(triggerId, "current_location")
-        if time or location then
-            table.insert(parts, "<div style='margin-top: 8px; padding-top: 8px; border-top: 1px solid #8B4513; color: #B0C4DE;'>")
-            if time then
-                table.insert(parts, string.format("<div>🕐 시간: %s</div>", time))
-            end
-            if location then
-                table.insert(parts, string.format("<div>📍 위치: %s</div>", location))
-            end
-            table.insert(parts, "</div>")
-        end
-
-        table.insert(parts, "</div>")
-
-        return table.concat(parts, "\n")
-    end
-
-    return ""
-end
 
 -- ============================================
 -- 시나리오 트리거 (18개)
@@ -2002,19 +1897,11 @@ onOutput = async(function(triggerId)
     parseTraits(triggerId, auxiliaryMessage)
     print("[DEBUG] RPG 파싱 함수 호출 완료")
 
-    -- 스테이터스 패널을 채팅에 추가 (LightBoard 패턴)
-    print("[DEBUG] 스테이터스 패널 생성 시작")
-    local statusPanel = buildStatusPanel(triggerId)
-
-    if statusPanel and statusPanel ~= "" then
-        print("[DEBUG] setChat 호출하여 패널 추가")
-        -- 마지막 캐릭터 메시지에 스테이터스 패널 추가
-        local finalMessage = message .. "\n\n<!-- RPG Status Panel -->\n" .. statusPanel .. "\n<!-- End RPG Status Panel -->\n"
-        setChat(triggerId, -1, finalMessage)
-        print("[DEBUG] 패널 추가 완료")
-    else
-        print("[DEBUG] 스테이터스 패널이 비어있음")
-    end
+    -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■ 등을 처리)
+    print("[DEBUG] 보조모델 태그를 채팅에 추가")
+    local finalMessage = message .. "\n\n" .. auxiliaryMessage
+    setChat(triggerId, -1, finalMessage)
+    print("[DEBUG] 태그 추가 완료")
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
     log(string.format("✅ 턴 %s 처리 완료", currentTurnId))
