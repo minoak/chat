@@ -756,8 +756,28 @@ end
 -- 스냅샷 시스템
 -- ============================================
 
-function generateTurnId()
-    return tostring(os.time() * 1000 + math.random(1, 999))
+function generateTurnId(triggerId)
+    -- 메시지 내용 기반 해시로 턴 ID 생성 (같은 메시지 = 같은 ID)
+    local message = getCharacterLastMessage(triggerId)
+    if not message or message == "" then
+        return "0"
+    end
+
+    -- 간단한 해시: 메시지 길이 + 앞/중간/끝 문자 조합
+    local len = #message
+    local hash = len
+
+    if len > 0 then
+        hash = hash * 31 + string.byte(message, 1)
+    end
+    if len > 10 then
+        hash = hash * 31 + string.byte(message, math.floor(len / 2))
+    end
+    if len > 20 then
+        hash = hash * 31 + string.byte(message, len)
+    end
+
+    return tostring(hash % 1000000000)
 end
 
 function takeSnapshot(triggerId, char)
@@ -1794,7 +1814,7 @@ onOutput = async(function(triggerId)
         return
     end
 
-    local currentTurnId = generateTurnId()
+    local currentTurnId = generateTurnId(triggerId)
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
     if currentTurnId == lastTurnId then
