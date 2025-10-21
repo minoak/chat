@@ -251,9 +251,7 @@ end
 
 -- 골드 파싱
 function parseGoldChanges(triggerId, message)
-    print("[DEBUG] parseGoldChanges 호출됨")
     for changeStr in message:gmatch("%[Gold:([%+%-]%d+)%]") do
-        print("[DEBUG] 골드 태그 발견: " .. changeStr)
         local change = tonumber(changeStr) or 0
         local current = tonumber(getChatVar(triggerId, "player_gold")) or 0
         local new = math.max(0, current + change)
@@ -266,7 +264,6 @@ function parseGoldChanges(triggerId, message)
 
         log(string.format("💰 골드 %+d | 현재: %d", change, new))
     end
-    print("[DEBUG] parseGoldChanges 완료")
 end
 
 -- 경험치 파싱 및 레벨업 체크
@@ -444,14 +441,11 @@ end
 
 -- 아이템 태그 파싱
 function parseItems(triggerId, message)
-    print("[DEBUG] parseItems 호출됨")
     -- 형식: [Item:Add:name:qty:effect] 또는 [Item:Use:name:qty:effect] 또는 [Item:Remove:name:qty]
     for itemTag in message:gmatch("%[Item:[^%]]+%]") do
-        print("[DEBUG] 아이템 태그 발견: " .. itemTag)
         local action, name, qty, effect = itemTag:match("%[Item:([^:]+):([^:]+):(%d+):?([^%]]*)%]")
 
         if action and name and qty then
-            print("[DEBUG] 아이템 파싱 성공: " .. action .. " / " .. name .. " / " .. qty)
             qty = tonumber(qty) or 1
 
             if action == "Add" then
@@ -461,11 +455,8 @@ function parseItems(triggerId, message)
             elseif action == "Remove" then
                 removeItem(triggerId, name, qty)
             end
-        else
-            print("[DEBUG] 아이템 파싱 실패")
         end
     end
-    print("[DEBUG] parseItems 완료")
 end
 
 -- Trait ID 목록 파싱
@@ -660,10 +651,7 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    print("[DEBUG] callAuxiliaryModel 시작")
-
     local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
-    print("[DEBUG] 프롬프트 길이: " .. string.len(promptText))
 
     -- axLLM()은 메시지 배열 형식을 요구함
     local messages = {
@@ -673,36 +661,24 @@ function callAuxiliaryModel(triggerId, mainResponse)
         }
     }
 
-    print("[DEBUG] axLLM 호출 직전")
-
     -- axLLM() 함수로 보조모델 호출
     local response = axLLM(triggerId, messages)
 
-    print("[DEBUG] axLLM 호출 완료")
-    print("[DEBUG] response type: " .. type(response))
-
     -- 에러 체크
     if not response then
-        print("[DEBUG] response가 nil입니다")
         return ""
     end
 
-    print("[DEBUG] response.success: " .. tostring(response.success))
-
     if response.success == false then
-        print("[DEBUG] 보조모델 호출 실패")
         return ""
     end
 
     -- 응답 추출
     local result = response.result or ""
-    print("[DEBUG] result 길이: " .. string.len(result))
 
     if result ~= "" then
-        print("[DEBUG] 보조모델 응답 수신 성공")
         return result
     else
-        print("[DEBUG] result가 빈 문자열")
         return ""
     end
 end
@@ -1744,22 +1720,15 @@ function onStart(triggerId)
 end
 
 onOutput = async(function(triggerId)
-    print("[DEBUG] onOutput 시작")
-
     local message = getCharacterLastMessage(triggerId)
     if not message then
-        print("[DEBUG] 메시지 없음")
         return
     end
-
-    print("[DEBUG] 메시지 받음: " .. string.sub(message, 1, 50))
 
     local currentTurnId = generateTurnId()
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
     if currentTurnId == lastTurnId then
-        print("[DEBUG] 리롤 감지")
-
         for _, char in ipairs(characters) do
             restoreSnapshot(triggerId, char)
             clearChanges(triggerId, char)
@@ -1783,12 +1752,8 @@ onOutput = async(function(triggerId)
     takeRpgSnapshot(triggerId)
     clearRpgChanges(triggerId)
 
-    print("[DEBUG] 보조모델 호출 시작")
-
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
-
-    print("[DEBUG] 보조모델 응답: " .. (auxiliaryMessage or "nil"))
 
     -- 보조모델이 생성한 태그 파싱
     parseStatusWindow(triggerId, auxiliaryMessage)
@@ -1815,12 +1780,9 @@ onOutput = async(function(triggerId)
     end
 
     -- 호감도 파싱
-    print("[DEBUG] 호감도 파싱 시작")
     for charName, feeling in auxiliaryMessage:gmatch("%[Affinity:(%w+):(%w+)%]") do
-        print("[DEBUG] 호감도 태그 발견: " .. charName .. " / " .. feeling)
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
-                print("[DEBUG] 캐릭터 매칭 성공: " .. charName)
                 local key = char.storage .. "_affinity"
                 local current = tonumber(getChatVar(triggerId, key)) or 0
                 local change = affinityChanges[feeling]
@@ -1843,7 +1805,6 @@ onOutput = async(function(triggerId)
             end
         end
     end
-    print("[DEBUG] 호감도 파싱 완료")
 
     -- 죄악도 파싱
     for charName, level in auxiliaryMessage:gmatch("%[Sin:(%w+):(%w+)%]") do
@@ -1889,19 +1850,15 @@ onOutput = async(function(triggerId)
     end
 
     -- RPG 시스템 파싱 (보조모델 응답에서)
-    print("[DEBUG] RPG 파싱 함수 호출 시작")
     parseStatChanges(triggerId, auxiliaryMessage)
     parseGoldChanges(triggerId, auxiliaryMessage)
     parseExpChanges(triggerId, auxiliaryMessage)
     parseItems(triggerId, auxiliaryMessage)
     parseTraits(triggerId, auxiliaryMessage)
-    print("[DEBUG] RPG 파싱 함수 호출 완료")
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■ 등을 처리)
-    print("[DEBUG] 보조모델 태그를 채팅에 추가")
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
     setChat(triggerId, -1, finalMessage)
-    print("[DEBUG] 태그 추가 완료")
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
     log(string.format("✅ 턴 %s 처리 완료", currentTurnId))
