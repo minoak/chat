@@ -651,14 +651,32 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    local prompt = buildAuxiliaryPrompt(triggerId, mainResponse)
+    local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
+
+    -- axLLM()은 메시지 배열 형식을 요구함
+    local messages = {
+        {
+            content = promptText,
+            role = "user"
+        }
+    }
 
     -- axLLM() 함수로 보조모델 호출
-    local auxiliaryResponse = axLLM(triggerId, prompt)
+    local response = axLLM(triggerId, messages)
 
-    if auxiliaryResponse then
+    -- 에러 체크
+    if not response or response.success == false then
+        log("⚠️ 보조모델 호출 실패")
+        return ""
+    end
+
+    -- 응답 추출
+    local result = response.result or ""
+
+    if result ~= "" then
         log("🤖 보조모델 응답 수신")
-        return auxiliaryResponse
+        log("📋 응답 내용: " .. result)
+        return result
     else
         log("⚠️ 보조모델 응답 없음")
         return ""
