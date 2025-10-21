@@ -651,7 +651,10 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
+    print("[DEBUG] callAuxiliaryModel 시작")
+
     local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
+    print("[DEBUG] 프롬프트 길이: " .. string.len(promptText))
 
     -- axLLM()은 메시지 배열 형식을 요구함
     local messages = {
@@ -661,24 +664,36 @@ function callAuxiliaryModel(triggerId, mainResponse)
         }
     }
 
+    print("[DEBUG] axLLM 호출 직전")
+
     -- axLLM() 함수로 보조모델 호출
     local response = axLLM(triggerId, messages)
 
+    print("[DEBUG] axLLM 호출 완료")
+    print("[DEBUG] response type: " .. type(response))
+
     -- 에러 체크
-    if not response or response.success == false then
-        log("⚠️ 보조모델 호출 실패")
+    if not response then
+        print("[DEBUG] response가 nil입니다")
+        return ""
+    end
+
+    print("[DEBUG] response.success: " .. tostring(response.success))
+
+    if response.success == false then
+        print("[DEBUG] 보조모델 호출 실패")
         return ""
     end
 
     -- 응답 추출
     local result = response.result or ""
+    print("[DEBUG] result 길이: " .. string.len(result))
 
     if result ~= "" then
-        log("🤖 보조모델 응답 수신")
-        log("📋 응답 내용: " .. result)
+        print("[DEBUG] 보조모델 응답 수신 성공")
         return result
     else
-        log("⚠️ 보조모델 응답 없음")
+        print("[DEBUG] result가 빈 문자열")
         return ""
     end
 end
@@ -1719,17 +1734,21 @@ function onStart(triggerId)
 end
 
 onOutput = async(function(triggerId)
+    print("[DEBUG] onOutput 시작")
+
     local message = getCharacterLastMessage(triggerId)
     if not message then
-        log("❌ 메시지 없음")
+        print("[DEBUG] 메시지 없음")
         return
     end
+
+    print("[DEBUG] 메시지 받음: " .. string.sub(message, 1, 50))
 
     local currentTurnId = generateTurnId()
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
     if currentTurnId == lastTurnId then
-        log("⏭️ 리롤 감지! 스냅샷 복원")
+        print("[DEBUG] 리롤 감지")
 
         for _, char in ipairs(characters) do
             restoreSnapshot(triggerId, char)
@@ -1754,8 +1773,12 @@ onOutput = async(function(triggerId)
     takeRpgSnapshot(triggerId)
     clearRpgChanges(triggerId)
 
+    print("[DEBUG] 보조모델 호출 시작")
+
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+
+    print("[DEBUG] 보조모델 응답: " .. (auxiliaryMessage or "nil"))
 
     -- 보조모델이 생성한 태그 파싱
     parseStatusWindow(triggerId, auxiliaryMessage)
