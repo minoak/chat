@@ -1814,6 +1814,11 @@ onOutput = async(function(triggerId)
         return
     end
 
+    -- 이미 태그가 추가된 메시지는 스킵 (중복 처리 방지)
+    if message:find("<Panel>■") then
+        return
+    end
+
     local currentTurnId = generateTurnId(triggerId)
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
