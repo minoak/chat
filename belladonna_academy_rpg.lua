@@ -121,6 +121,63 @@ local expTable = {
 }
 
 -- ============================================
+-- 보조모델 프롬프트
+-- ============================================
+
+local AUXILIARY_BASE_PROMPT = [[
+You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's output and generate status tags for events that CLEARLY occurred.
+
+## Tag Format:
+[Affinity:Name:level][Sin:Name:level]
+[Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
+[Trait:Name:Category:Effect:Value:Condition]
+[Season:계절][Week:주차][Time:시간][Location:장소]
+<Panel>■
+
+## Rules:
+- ONLY output tags for changed status (don't repeat unchanged)
+- Be conservative: only tag events you're confident happened
+- MUST end with <Panel>■
+
+## Affinity Tags: [Affinity:Name:level]
+Levels: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
+Characters: Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
+
+## Sin Tags: [Sin:Name:level] (Main characters only)
+Pressure: corrupt(+10), tempt(+5)
+Relief: resist(+5), purify(+10)
+
+## Player Stats: [Stat:stat_id:±value] (0-100 range)
+Stats: str(strength), int(intelligence), dex(dexterity), cha(charisma), luk(luck), vit(vitality/HP)
+Initial assignment: Analyze {{user}} persona, assign 40-70 (default 50)
+
+## Gold: [Gold:±value]
+Quest rewards, purchases, trading
+
+## Items: [Item:Action:Name:Qty:Effect]
+Actions: Add (acquire), Use (consume), Remove (discard)
+Effects: hp+20, str+5, gold+100 (or empty for key items)
+
+## EXP: [EXP:±value]
+Quest completion, combat victory, skill success
+
+## Traits: [Trait:Name:Category:Effect:Value:Condition]
+Format: Name:Category:Effect:NumericValue:Condition
+Conditions: always, vs_X (vs_dragons), low_hp, high_hp, in_combat, night_time, day_time
+
+## Environment: (ONLY if changed!)
+Season: 봄, 여름, 가을, 겨울
+Week: 1-12
+Time: 오전, 오후, 저녁, 밤
+Location: Use exact names (Lily Valley House, Rose House, Scarlet Street, Library, etc.)
+
+## Examples:
+Combat: [Affinity:Mirabel:like][Stat:str:+3][Gold:+500][EXP:+100][Trait:Dragon_Slayer:Combat:damage_bonus:20:vs_dragons]<Panel>■
+Social: [Affinity:Celestia:like][Stat:int:+2][Time:저녁][Location:Central Plaza]<Panel>■
+Item use: [Item:Use:회복포션:1:hp+20]<Panel>■
+]]
+
+-- ============================================
 -- 유틸리티 함수
 -- ============================================
 
@@ -563,6 +620,48 @@ end
 function parseTraits(triggerId, message)
     for traitTag in message:gmatch("%[Trait:[^%]]+%]") do
         parseTrait(triggerId, traitTag)
+    end
+end
+
+-- ============================================
+-- 보조모델 호출
+-- ============================================
+
+-- 보조모델 프롬프트 생성
+function buildAuxiliaryPrompt(triggerId, mainResponse)
+    local prompt = AUXILIARY_BASE_PROMPT
+
+    -- 현재 컨텍스트 추가
+    local location = getChatVar(triggerId, "current_location") or "Unknown"
+    local time = getChatVar(triggerId, "current_time") or "Unknown"
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = getChatVar(triggerId, "week_of_season") or "1"
+
+    prompt = prompt .. "\n\n## Current Context:\n"
+    prompt = prompt .. string.format("Season: %s Week %s | Time: %s | Location: %s\n", season, week, time, location)
+
+    -- 메인 AI 응답 추가
+    prompt = prompt .. "\n## Main AI Response to Analyze:\n"
+    prompt = prompt .. mainResponse
+
+    prompt = prompt .. "\n\n## Your Output (tags only):\n"
+
+    return prompt
+end
+
+-- 보조모델 호출 및 태그 반환
+function callAuxiliaryModel(triggerId, mainResponse)
+    local prompt = buildAuxiliaryPrompt(triggerId, mainResponse)
+
+    -- axLLM() 함수로 보조모델 호출
+    local auxiliaryResponse = axLLM(triggerId, prompt)
+
+    if auxiliaryResponse then
+        log("🤖 보조모델 응답 수신")
+        return auxiliaryResponse
+    else
+        log("⚠️ 보조모델 응답 없음")
+        return ""
     end
 end
 
@@ -1637,10 +1736,14 @@ function onOutput(triggerId)
     takeRpgSnapshot(triggerId)
     clearRpgChanges(triggerId)
 
-    parseStatusWindow(triggerId, message)
+    -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
+    local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+
+    -- 보조모델이 생성한 태그 파싱
+    parseStatusWindow(triggerId, auxiliaryMessage)
 
     -- SIN RESET 처리
-    for charStorage, sinType in message:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
+    for charStorage, sinType in auxiliaryMessage:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
         local countKey = charStorage .. "_sin_" .. sinType .. "_count"
         local gaugeKey = charStorage .. "_sin_" .. sinType
 
@@ -1661,7 +1764,7 @@ function onOutput(triggerId)
     end
 
     -- 호감도 파싱
-    for charName, feeling in message:gmatch("%[Affinity:(%w+):(%w+)%]") do
+    for charName, feeling in auxiliaryMessage:gmatch("%[Affinity:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
                 local key = char.storage .. "_affinity"
@@ -1688,7 +1791,7 @@ function onOutput(triggerId)
     end
 
     -- 죄악도 파싱
-    for charName, level in message:gmatch("%[Sin:(%w+):(%w+)%]") do
+    for charName, level in auxiliaryMessage:gmatch("%[Sin:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.is_main and char.display == charName then
                 if sinPosChanges[level] then
@@ -1730,12 +1833,12 @@ function onOutput(triggerId)
         end
     end
 
-    -- RPG 시스템 파싱
-    parseStatChanges(triggerId, message)
-    parseGoldChanges(triggerId, message)
-    parseExpChanges(triggerId, message)
-    parseItems(triggerId, message)
-    parseTraits(triggerId, message)
+    -- RPG 시스템 파싱 (보조모델 응답에서)
+    parseStatChanges(triggerId, auxiliaryMessage)
+    parseGoldChanges(triggerId, auxiliaryMessage)
+    parseExpChanges(triggerId, auxiliaryMessage)
+    parseItems(triggerId, auxiliaryMessage)
+    parseTraits(triggerId, auxiliaryMessage)
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
     log(string.format("✅ 턴 %s 처리 완료", currentTurnId))
