@@ -1718,7 +1718,7 @@ function onStart(triggerId)
     log("✅ 초기화 완료 (로어북 기준 + RPG 시스템)")
 end
 
-function onOutput(triggerId)
+onOutput = async(function(triggerId)
     local message = getCharacterLastMessage(triggerId)
     if not message then
         log("❌ 메시지 없음")
@@ -1860,7 +1860,7 @@ function onOutput(triggerId)
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
     log(string.format("✅ 턴 %s 처리 완료", currentTurnId))
-end
+end)
 
 -- ============================================
 -- 치트 명령어
