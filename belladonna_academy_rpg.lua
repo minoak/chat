@@ -2025,13 +2025,6 @@ onOutput = async(function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
-    -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
-    -- [InitComplete] 태그 감지 → RPG 초기화 완료 처리
-    if message:find("%[InitComplete%]") then
-        setChatVar(triggerId, "rpg_initialized", "true")
-        log("✅ RPG 초기화 완료 (로어북 이벤트)")
-    end
-
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
     setChat(triggerId, -1, finalMessage)
@@ -2232,21 +2225,13 @@ listenEdit("editInput", function(triggerId, data)
         elseif args == "off" then
             setChatVar(triggerId, "rpg_system_enabled", "false")
             log("⏸️ RPG 시스템 비활성화")
-        elseif args == "reset" then
-            setChatVar(triggerId, "rpg_initialized", "false")
-            log("🔄 RPG 초기화 상태로 리셋 (로어북 이벤트가 다시 시작됩니다)")
         elseif args == "status" then
             local enabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
-            local initialized = getChatVar(triggerId, "rpg_initialized") == "true"
             local msg = "🎮 RPG 시스템 상태\n"
-            msg = msg .. string.format("활성화: %s\n", enabled and "✅ ON" or "❌ OFF")
-            msg = msg .. string.format("초기화: %s\n", initialized and "✅ 완료" or "⏳ 미완료")
-            if enabled and not initialized then
-                msg = msg .. "\n💡 로어북 초기화 이벤트가 진행될 예정입니다."
-            end
+            msg = msg .. string.format("활성화: %s", enabled and "✅ ON" or "❌ OFF")
             log(msg)
         else
-            log("사용법: /rpg [on|off|reset|status]")
+            log("사용법: /rpg [on|off|status]")
         end
     end
 end)
