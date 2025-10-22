@@ -247,6 +247,16 @@ No character interaction this turn, but new semester started
 ]]
 
 -- ============================================
+-- RPG 스테이터스 패널 생성
+-- ============================================
+
+function buildRpgStatsPanel(triggerId)
+    -- RisuAI 정규식 디스플레이 변환이 <Panel>★를 HTML로 치환
+    -- HTML 템플릿이 {{player_level}}, {{player_gold}} 등의 변수를 자동으로 채움
+    return "<Panel>★"
+end
+
+-- ============================================
 -- 유틸리티 함수
 -- ============================================
 
@@ -1832,7 +1842,7 @@ onOutput = async(function(triggerId)
     end
 
     -- 이미 태그가 추가된 메시지는 스킵 (setChat() 재트리거 방지)
-    if message:find("<Panel>■") then
+    if message:find("<Panel>") then
         return
     end
 
@@ -1951,8 +1961,11 @@ onOutput = async(function(triggerId)
     parseItems(triggerId, auxiliaryMessage)
     parseTraits(triggerId, auxiliaryMessage)
 
-    -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■ 등을 처리)
-    local finalMessage = message .. "\n\n" .. auxiliaryMessage
+    -- 보조모델 태그와 RPG 스테이터스 패널을 채팅에 추가
+    -- <Panel>■: 캐릭터 호감도/죄악도 태그 (RisuAI 정규식 처리)
+    -- <Panel>★: RPG 스테이터스 패널 (RisuAI 정규식이 HTML로 치환)
+    local rpgStatsPanel = buildRpgStatsPanel(triggerId)
+    local finalMessage = message .. "\n\n" .. auxiliaryMessage .. "\n" .. rpgStatsPanel
     setChat(triggerId, -1, finalMessage)
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
