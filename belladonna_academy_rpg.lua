@@ -270,6 +270,69 @@ function getRouteText(ending)
 end
 
 -- ============================================
+-- RPG 디스플레이 변수 업데이트
+-- ============================================
+
+function updateRpgDisplayVars(triggerId)
+    -- 경험치 퍼센트 계산
+    local exp = tonumber(getChatVar(triggerId, "player_exp")) or 0
+    local expToNext = getChatVar(triggerId, "player_exp_to_next") or "100"
+    local expPercent = 0
+
+    if expToNext ~= "MAX" then
+        local expToNextNum = tonumber(expToNext) or 100
+        if expToNextNum > 0 then
+            expPercent = (exp / (exp + expToNextNum)) * 100
+            expPercent = clampValue(expPercent, 0, 100)
+        end
+    else
+        expPercent = 100
+    end
+
+    setChatVar(triggerId, "player_exp_percent", tostring(math.floor(expPercent)))
+
+    -- 아이템 HTML 생성
+    local itemsStr = getChatVar(triggerId, "player_items") or ""
+    local items = parseItemList(itemsStr)
+    local itemsHtml = ""
+    local hasItems = false
+
+    for name, count in pairs(items) do
+        if count > 0 then
+            hasItems = true
+            itemsHtml = itemsHtml .. string.format(
+                '<span style="padding:4px 8px;background:#f9f6f0;border:1px solid #d4c4a8;border-radius:3px;color:#5d4e37;font-size:11px;">%s x%d</span>',
+                name, count
+            )
+        end
+    end
+
+    setChatVar(triggerId, "player_items_html", itemsHtml)
+    setChatVar(triggerId, "player_items_display", hasItems and "block" or "none")
+
+    -- 특성 HTML 생성
+    local traitsStr = getChatVar(triggerId, "player_traits") or ""
+    local traitIds = parseTraitIdList(traitsStr)
+    local traitsHtml = ""
+    local hasTraits = #traitIds > 0
+
+    for _, traitId in ipairs(traitIds) do
+        local traitName = getChatVar(triggerId, "trait_" .. traitId .. "_name") or "Unknown"
+        local category = getChatVar(triggerId, "trait_" .. traitId .. "_category") or ""
+        local effect = getChatVar(triggerId, "trait_" .. traitId .. "_effect") or ""
+        local value = getChatVar(triggerId, "trait_" .. traitId .. "_value") or ""
+
+        traitsHtml = traitsHtml .. string.format(
+            '<div style="padding:4px 8px;background:#f9f6f0;border:1px solid #d4c4a8;border-radius:3px;color:#5d4e37;font-size:11px;"><strong>%s</strong> [%s] %s +%s</div>',
+            traitName, category, effect, value
+        )
+    end
+
+    setChatVar(triggerId, "player_traits_html", traitsHtml)
+    setChatVar(triggerId, "player_traits_display", hasTraits and "block" or "none")
+end
+
+-- ============================================
 -- 퍼센트 계산
 -- ============================================
 
@@ -1950,6 +2013,9 @@ onOutput = async(function(triggerId)
     parseExpChanges(triggerId, auxiliaryMessage)
     parseItems(triggerId, auxiliaryMessage)
     parseTraits(triggerId, auxiliaryMessage)
+
+    -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
+    updateRpgDisplayVars(triggerId)
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage

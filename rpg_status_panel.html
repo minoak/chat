@@ -1,5 +1,5 @@
 <!-- RPG Status Panel Template -->
-<!-- RisuAI 정규식 디스플레이 변환에서 <Panel>★를 이 HTML로 치환하세요 -->
+<!-- RisuAI 정규식 디스플레이 변환에서 <Panel>■★를 이 HTML로 치환하세요 -->
 
 <div class="rpg-status-panel" style="
     border: 2px solid #8B4513;
@@ -36,15 +36,15 @@
         border-radius: 5px;
     ">
         <div style="color: #87CEEB;">
-            <strong>📊 레벨:</strong> <span style="color: #FFD700;">{{player_level}}</span>
+            <strong>📊 레벨:</strong> <span style="color: #FFD700;">{{getvar::player_level}}</span>
         </div>
         <div style="color: #90EE90;">
-            <strong>💰 골드:</strong> <span style="color: #FFD700;">{{player_gold}}G</span>
+            <strong>💰 골드:</strong> <span style="color: #FFD700;">{{getvar::player_gold}}G</span>
         </div>
         <div style="color: #DDA0DD; grid-column: 1 / -1;">
             <strong>✨ 경험치:</strong>
-            <span style="color: #FFD700;">{{player_exp}}</span> /
-            <span style="color: #B0C4DE;">{{player_exp_to_next}}</span>
+            <span style="color: #FFD700;">{{getvar::player_exp}}</span> /
+            <span style="color: #B0C4DE;">{{getvar::player_exp_to_next}}</span>
             <div style="
                 width: 100%;
                 height: 8px;
@@ -54,7 +54,7 @@
                 overflow: hidden;
             ">
                 <div style="
-                    width: {{exp_percent}}%;
+                    width: {{getvar::player_exp_percent}}%;
                     height: 100%;
                     background: linear-gradient(90deg, #4CAF50, #8BC34A);
                     transition: width 0.3s;
@@ -82,22 +82,22 @@
             gap: 8px;
         ">
             <div style="color: #FFB6C1;">
-                <strong style="color: #FF6B6B;">STR:</strong> <span style="color: #FFDAB9;">{{player_str}}</span>
+                <strong style="color: #FF6B6B;">STR:</strong> <span style="color: #FFDAB9;">{{getvar::player_str}}</span>
             </div>
             <div style="color: #87CEEB;">
-                <strong style="color: #4FC3F7;">INT:</strong> <span style="color: #FFDAB9;">{{player_int}}</span>
+                <strong style="color: #4FC3F7;">INT:</strong> <span style="color: #FFDAB9;">{{getvar::player_int}}</span>
             </div>
             <div style="color: #90EE90;">
-                <strong style="color: #66BB6A;">DEX:</strong> <span style="color: #FFDAB9;">{{player_dex}}</span>
+                <strong style="color: #66BB6A;">DEX:</strong> <span style="color: #FFDAB9;">{{getvar::player_dex}}</span>
             </div>
             <div style="color: #FFD700;">
-                <strong style="color: #FDD835;">CHA:</strong> <span style="color: #FFDAB9;">{{player_cha}}</span>
+                <strong style="color: #FDD835;">CHA:</strong> <span style="color: #FFDAB9;">{{getvar::player_cha}}</span>
             </div>
             <div style="color: #DDA0DD;">
-                <strong style="color: #BA68C8;">LUK:</strong> <span style="color: #FFDAB9;">{{player_luk}}</span>
+                <strong style="color: #BA68C8;">LUK:</strong> <span style="color: #FFDAB9;">{{getvar::player_luk}}</span>
             </div>
             <div style="color: #FF6B6B;">
-                <strong style="color: #E53935;">VIT:</strong> <span style="color: #FFDAB9;">{{player_vit}}</span>
+                <strong style="color: #E53935;">VIT:</strong> <span style="color: #FFDAB9;">{{getvar::player_vit}}</span>
             </div>
         </div>
     </div>
@@ -108,7 +108,7 @@
         padding: 10px;
         background: rgba(139, 69, 19, 0.2);
         border-radius: 5px;
-        {{#if_has_items}}{{/if_has_items}}
+        display: {{getvar::player_items_display}};
     ">
         <div style="
             font-weight: bold;
@@ -121,7 +121,7 @@
             flex-wrap: wrap;
             gap: 6px;
         ">
-            {{items_list}}
+            {{getvar::player_items_html}}
         </div>
     </div>
 
@@ -130,7 +130,7 @@
         padding: 10px;
         background: rgba(139, 69, 19, 0.2);
         border-radius: 5px;
-        {{#if_has_traits}}{{/if_has_traits}}
+        display: {{getvar::player_traits_display}};
     ">
         <div style="
             font-weight: bold;
@@ -143,24 +143,7 @@
             flex-direction: column;
             gap: 4px;
         ">
-            {{traits_list}}
+            {{getvar::player_traits_html}}
         </div>
     </div>
 </div>
-
-<!-- 간소화된 미니 버전 (선택사항) -->
-<!--
-<div class="rpg-status-mini" style="
-    display: inline-block;
-    padding: 8px 12px;
-    background: rgba(139, 69, 19, 0.3);
-    border: 1px solid #8B4513;
-    border-radius: 5px;
-    font-size: 0.9em;
-    color: #f0e6d2;
-">
-    <span style="color: #FFD700;">⚔️ Lv.{{player_level}}</span> |
-    <span style="color: #90EE90;">💰 {{player_gold}}G</span> |
-    <span style="color: #87CEEB;">✨ {{player_exp}}/{{player_exp_to_next}}</span>
-</div>
--->
