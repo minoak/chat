@@ -1887,9 +1887,12 @@ onOutput = async(function(triggerId)
             clearChanges(triggerId, char)
         end
 
-        -- RPG 스냅샷 복원
-        restoreRpgSnapshot(triggerId)
-        clearRpgChanges(triggerId)
+        -- RPG 스냅샷 복원 (RPG 활성화 시에만)
+        local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+        if rpgEnabled then
+            restoreRpgSnapshot(triggerId)
+            clearRpgChanges(triggerId)
+        end
 
         return
     end
@@ -1906,9 +1909,12 @@ onOutput = async(function(triggerId)
         clearChanges(triggerId, char)
     end
 
-    -- RPG 스냅샷 및 변경량 초기화
-    takeRpgSnapshot(triggerId)
-    clearRpgChanges(triggerId)
+    -- RPG 스냅샷 및 변경량 초기화 (RPG 활성화 시에만)
+    local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+    if rpgEnabled then
+        takeRpgSnapshot(triggerId)
+        clearRpgChanges(triggerId)
+    end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
@@ -2008,14 +2014,16 @@ onOutput = async(function(triggerId)
     end
 
     -- RPG 시스템 파싱 (보조모델 응답에서)
-    parseStatChanges(triggerId, auxiliaryMessage)
-    parseGoldChanges(triggerId, auxiliaryMessage)
-    parseExpChanges(triggerId, auxiliaryMessage)
-    parseItems(triggerId, auxiliaryMessage)
-    parseTraits(triggerId, auxiliaryMessage)
+    if rpgEnabled then
+        parseStatChanges(triggerId, auxiliaryMessage)
+        parseGoldChanges(triggerId, auxiliaryMessage)
+        parseExpChanges(triggerId, auxiliaryMessage)
+        parseItems(triggerId, auxiliaryMessage)
+        parseTraits(triggerId, auxiliaryMessage)
 
-    -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
-    updateRpgDisplayVars(triggerId)
+        -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
+        updateRpgDisplayVars(triggerId)
+    end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
@@ -2205,6 +2213,34 @@ listenEdit("editInput", function(triggerId, data)
         checkScheduleMatch(triggerId)
 
         log("✅ 테스트 값 설정 (Week 5, 스칼렛 스트리트)")
+    end
+
+    -- RPG 시스템 온/오프
+    if data:match("^/rpg") then
+        local args = data:match("^/rpg%s+(.+)")
+
+        if args == "on" then
+            setChatVar(triggerId, "rpg_system_enabled", "true")
+            log("✅ RPG 시스템 활성화")
+        elseif args == "off" then
+            setChatVar(triggerId, "rpg_system_enabled", "false")
+            log("⏸️ RPG 시스템 비활성화")
+        elseif args == "reset" then
+            setChatVar(triggerId, "rpg_initialized", "false")
+            log("🔄 RPG 초기화 상태로 리셋 (로어북 이벤트가 다시 시작됩니다)")
+        elseif args == "status" then
+            local enabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+            local initialized = getChatVar(triggerId, "rpg_initialized") == "true"
+            local msg = "🎮 RPG 시스템 상태\n"
+            msg = msg .. string.format("활성화: %s\n", enabled and "✅ ON" or "❌ OFF")
+            msg = msg .. string.format("초기화: %s\n", initialized and "✅ 완료" or "⏳ 미완료")
+            if enabled and not initialized then
+                msg = msg .. "\n💡 로어북 초기화 이벤트가 진행될 예정입니다."
+            end
+            log(msg)
+        else
+            log("사용법: /rpg [on|off|reset|status]")
+        end
     end
 end)
 
