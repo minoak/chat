@@ -28,7 +28,7 @@
   [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
   [Trait:Name:Category:Effect:Value:Condition]
   [Season:계절][Week:주차][Time:시간][Location:장소]
-  <Panel>■
+  <Panel>■★
 
 자세한 사용법은 STATUS_OUTPUT_INSTRUCTIONS_v2.0.md 파일 참조
 ==============================================
@@ -132,7 +132,7 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Trait:Name:Category:Effect:Value:Condition]
 [Season:계절][Week:주차][Time:시간][Location:장소]
-<Panel>■
+<Panel>■★★
 
 ## Output Rules
 ### Character State
@@ -157,7 +157,7 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 
 ## Critical
 - Use character's first name from list below
-- <Panel>■ must be absolute last line
+- <Panel>■★★ must be absolute last line
 
 ---
 ## Characters in This Story
@@ -218,43 +218,33 @@ Conditions: always, vs_X (vs_dragons), low_hp, high_hp, in_combat, night_time, d
 
 ### First output or season/week change
 [Affinity:Mirabel:like][Sin:Mirabel:neutral][Season:봄][Week:1][Time:오전][Location:중앙 광장]
-<Panel>■
+<Panel>■★
 
 ### Combat with rewards
 [Affinity:Mirabel:like][Sin:Mirabel:resist][Stat:str:+3][Gold:+500][EXP:+100][Trait:Dragon_Slayer:Combat:damage_bonus:20:vs_dragons]
-<Panel>■
+<Panel>■★
 
 ### Normal interaction (environment unchanged)
 [Affinity:Celestia:hate][Sin:Celestia:tempt]
-<Panel>■
+<Panel>■★
 
 ### Shopping
 [Affinity:Clover:neutral][Sin:Clover:neutral][Gold:-500][Item:Add:회복포션:1:hp+20]
-<Panel>■
+<Panel>■★
 
 ### Week change only
 [Affinity:Cassandra:like][Sin:Cassandra:resist][Week:5]
-<Panel>■
+<Panel>■★
 
 ### Multiple characters with time change
 [Affinity:Evangeline:love][Sin:Evangeline:corrupt][Affinity:Amelia:neutral][Sin:Amelia:neutral][Time:밤][Location:Club Moonlight]
-<Panel>■
+<Panel>■★
 
 ### Season transition (new semester)
 [Season:여름][Week:1][Time:오전]
-<Panel>■
+<Panel>■★
 No character interaction this turn, but new semester started
 ]]
-
--- ============================================
--- RPG 스테이터스 패널 생성
--- ============================================
-
-function buildRpgStatsPanel(triggerId)
-    -- RisuAI 정규식 디스플레이 변환이 <Panel>★를 HTML로 치환
-    -- HTML 템플릿이 {{player_level}}, {{player_gold}} 등의 변수를 자동으로 채움
-    return "<Panel>★"
-end
 
 -- ============================================
 -- 유틸리티 함수
@@ -1961,11 +1951,8 @@ onOutput = async(function(triggerId)
     parseItems(triggerId, auxiliaryMessage)
     parseTraits(triggerId, auxiliaryMessage)
 
-    -- 보조모델 태그와 RPG 스테이터스 패널을 채팅에 추가
-    -- <Panel>■: 캐릭터 호감도/죄악도 태그 (RisuAI 정규식 처리)
-    -- <Panel>★: RPG 스테이터스 패널 (RisuAI 정규식이 HTML로 치환)
-    local rpgStatsPanel = buildRpgStatsPanel(triggerId)
-    local finalMessage = message .. "\n\n" .. auxiliaryMessage .. "\n" .. rpgStatsPanel
+    -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
+    local finalMessage = message .. "\n\n" .. auxiliaryMessage
     setChat(triggerId, -1, finalMessage)
 
     setChatVar(triggerId, "last_processed_turn_id", currentTurnId)
