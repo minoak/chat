@@ -1859,6 +1859,9 @@ function onStart(triggerId)
         -- 플레이어 Trait
         setChatVar(triggerId, "player_traits", "")
 
+        -- 능력평가 완료 플래그 (로어북용)
+        setChatVar(triggerId, "rpg_stats_evaluated", "false")
+
         log("🎮 RPG 시스템 초기화 완료")
     end
 
