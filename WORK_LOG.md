@@ -225,12 +225,59 @@ setChat(triggerId, -1, finalMessage)
 
 ---
 
+### 5. 듀얼 패널 시스템 구현 (커밋: 0842fa8)
+
+**사용자 요청**:
+> "우선 추가된 시스템의 값들을 추적할수있는 html코드를 만들어줄래? ★이 기호값으로 정규식을 통해 디스플레이변환기능을 써서 창이 출력되도록 할거야."
+> "잠시만 ■★ 동시에 출력하는거야"
+
+**문제점 발견**:
+- 초기에 `<Panel>■`을 모두 `<Panel>★`로 변경했으나, 사용자가 **두 마커 모두** 필요함을 명확히 함
+
+**최종 구현**:
+1. **보조 모델 마커 복원**: `<Panel>■` 유지 (캐릭터 호감도/죄악도 태그용)
+2. **RPG 스테이터스 패널 추가**: `buildRpgStatsPanel()` 함수 생성
+3. **HTML 템플릿 생성**: `rpg_status_panel.html` 파일 작성
+4. **듀얼 출력 구현**:
+   ```lua
+   local rpgStatsPanel = buildRpgStatsPanel(triggerId)
+   local finalMessage = message .. "\n\n" .. auxiliaryMessage .. "\n" .. rpgStatsPanel
+   ```
+
+**출력 형식**:
+```
+[메인 스토리]
+
+[Affinity:Clover:neutral][Gold:-500][Item:Add:회복포션:1:hp+20]<Panel>■
+<Panel>★
+```
+
+**HTML 템플릿 구조**:
+- 레벨, 골드, 경험치 (진행 바 포함)
+- 6가지 스탯 (STR, INT, DEX, CHA, LUK, VIT)
+- 아이템 목록 (조건부 표시)
+- 특성 목록 (조건부 표시)
+- RisuAI 정규식이 `<Panel>★`를 HTML로 치환
+- 템플릿 변수 (예: `{{player_level}}`)는 RisuAI가 자동으로 채움
+
+**장점**:
+- ✅ 캐릭터 시스템과 RPG 시스템 분리
+- ✅ 각 시스템의 독립적인 표시 방식 유지
+- ✅ RisuAI 정규식 시스템 활용
+- ✅ 확장 가능한 구조
+
+---
+
 ## 결론
 
 보조 모델 통합이 성공적으로 완료되었습니다. 태그 기반 시스템으로 토큰 효율성을 확보하고, RisuAI의 기존 정규식 시스템과 완벽하게 통합되었습니다.
 
+**듀얼 패널 시스템**:
+- `<Panel>■`: 캐릭터 호감도/죄악도 태그 (기존 시스템)
+- `<Panel>★`: RPG 스테이터스 HTML 패널 (신규 시스템)
+
 **다음 세션 시작 시 확인 사항**:
 1. 현재 브랜치: `claude/status-panel-refactor-011CULHEMzJabhP38ZzPyx98`
-2. 최신 커밋: `4dbaf99` (Remove all debug logging)
-3. 테스트 상태: 기본 기능 정상 작동 확인됨
-4. 추가 테스트 필요: 스탯/EXP/Trait 시스템
+2. 최신 커밋: `0842fa8` (Implement dual panel system)
+3. 테스트 상태: 듀얼 패널 출력 구조 구현 완료
+4. 추가 작업 필요: RisuAI 정규식 설정, HTML 템플릿 테스트
