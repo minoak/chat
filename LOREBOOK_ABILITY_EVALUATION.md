@@ -1,4 +1,4 @@
-# 능력평가 로어북 - 단순화 버전
+# 능력평가 로어북 - 레벨 기반 버전
 
 ## ⚙️ 로어북 설정
 
@@ -14,20 +14,26 @@
 ### Script 조건
 
 ```javascript
-// RPG 시스템이 켜져있고, 아직 능력평가를 받지 않았을 때만 활성화
+// RPG 시스템이 켜져있고, 레벨이 1 이하일 때만 활성화
 const enabled = risuChatVar.rpg_system_enabled === "true";
-const evaluated = risuChatVar.rpg_stats_evaluated === "true";
-return enabled && !evaluated;
+const level = parseInt(risuChatVar.player_level) || 0;
+return enabled && level <= 0;
 ```
+
+**설명:**
+- `player_level = 0` → 능력평가 미완료 → 로어북 활성화
+- `player_level >= 1` → 능력평가 완료 → 로어북 비활성화
 
 ---
 
 ## 📝 Content (로어북 내용)
 
-```
+```handlebars
+{{#if {{getvar::player_level}}}}
+  {{#ifCond {{getvar::player_level}} "==" "0"}}
 ## 🎯 능력평가 이벤트
 
-{{user}}는 아직 필수 능력평가를 받지 않았습니다.
+{{user}}는 아직 필수 능력평가를 받지 않았습니다. (현재 레벨: 0)
 
 대화 흐름 중 **자연스러운 타이밍**에 능력평가 이벤트를 진행하세요.
 (예: {{user}}가 자신의 능력에 대해 물어보거나, NPC가 화제를 전환할 때)
@@ -133,7 +139,19 @@ VIT: 50 → [최종값]
 
 ---
 
-**6단계: 태그 출력 (필수!)**
+**6단계: 레벨 업 연출**
+
+```
+✨ 능력평가 완료! ✨
+
+레벨 0 → 레벨 1
+
+{{user}}는 이제 정식 학생으로 등록되었습니다!
+```
+
+---
+
+**7단계: 태그 출력 (필수!)**
 
 **[AI: 반드시 다음 형식으로 태그를 출력하세요]**
 
@@ -147,6 +165,8 @@ VIT: 50 → [최종값]
 [Stat:str:+15][Stat:int:+20][Stat:dex:+10][Stat:cha:+5][Stat:luk:+8][Stat:vit:+12]
 [StatsEvaluated]
 ```
+
+**중요**: `[StatsEvaluated]` 태그가 출력되면 자동으로 레벨이 0 → 1로 상승합니다!
 
 ---
 
@@ -164,6 +184,12 @@ VIT: 50 → [최종값]
 [Trait:Noble_Blood:Social:persuasion_bonus:10:vs_nobles]
 [Trait:Arcane_Prodigy:Magic:spell_power:20:always]
 ```
+
+  {{/ifCond}}
+{{else}}
+  <!-- player_level 변수가 없는 경우 (초기화 안 됨) -->
+  레벨 정보를 불러오는 중...
+{{/if}}
 ```
 
 ---
@@ -173,83 +199,89 @@ VIT: 50 → [최종값]
 ### 간단한 플로우
 
 ```
-1. RPG 시스템 ON (기본값)
+1. 새 채팅 시작
    ↓
-2. rpg_stats_evaluated = "false"
+2. player_level = 0 (능력평가 미완료)
    ↓
-3. 로어북 자동 활성화
+3. 로어북 자동 활성화 (level <= 0)
    ↓
 4. 대화 중 자연스러운 타이밍에 능력평가 진행
    ↓
 5. AI가 능력치 결정 → 태그 출력
    [Stat:...][StatsEvaluated]
    ↓
-6. rpg_stats_evaluated = "true"
+6. Lua가 태그 감지 → player_level = 1
    ↓
-7. 로어북 자동 비활성화
+7. 로어북 자동 비활성화 (level >= 1)
 ```
 
 ---
 
 ## 🔧 핵심 포인트
 
-### 이전 버전 vs 새 버전
+### 레벨 기반 시스템
 
-**이전 (복잡)**:
-- ❌ at_council_room 변수 체크
-- ❌ 위치 기반 이벤트 트리거
-- ❌ 학생회실 방문 필요
-- ❌ 2단계 if 구문
+**장점:**
+- ✅ 추가 변수 불필요 (`rpg_stats_evaluated` 제거)
+- ✅ 직관적 (레벨 0 = 미평가, 레벨 1+ = 평가 완료)
+- ✅ 자동으로 레벨업 연출 가능
+- ✅ RPG 시스템과 자연스럽게 통합
 
-**새 버전 (단순)**:
-- ✅ 변수 체크 없음
-- ✅ 어디서든 진행 가능
-- ✅ AI가 자연스러운 타이밍 선택
-- ✅ 단일 이벤트만 진행
+**동작:**
+- 초기 레벨: 0
+- 능력평가 완료 시: 레벨 0 → 1 자동 상승
+- 로어북: `level <= 0` 체크로 자동 활성화/비활성화
 
 ---
 
 ## 🛠️ 테스트 방법
 
 1. **새 채팅 시작**
-   - RPG 시스템이 자동으로 ON 상태
+   - RPG 시스템 자동 ON
+   - player_level = 0
 
-2. **대화 시작**
+2. **레벨 확인**
+   ```
+   /stat
+   ```
+   → 레벨: 0 (능력평가 미완료)
+
+3. **대화 시작**
    ```
    {{user}}: "안녕"
    ```
-
-3. **AI가 자연스럽게 능력평가 언급**
-   - Mirabel: "아 참! 능력평가 해야 하는데..."
-   - 또는 대화 중 적절한 타이밍에
+   → AI가 자연스럽게 능력평가 언급
 
 4. **능력치 측정 진행**
    - 숫자들이 떠오르는 연출
    - 태그 출력: `[Stat:...][StatsEvaluated]`
 
-5. **완료**
-   - 이후 로어북 비활성화
-   - 다시 활성화 안 됨
+5. **레벨 업 확인**
+   ```
+   /stat
+   ```
+   → 레벨: 1 (능력평가 완료)
+
+6. **로어북 비활성화 확인**
+   - 이후 대화에서 능력평가 언급 없음
 
 ---
 
 ## 📝 요약
 
-**장점:**
-- 🎯 단순하고 확실한 작동
-- 🎭 AI가 자연스러운 타이밍 선택
-- 🚫 위치 변수 의존 없음
-- ⚡ 즉시 진행 가능
-
 **Activation 조건:**
 ```javascript
 const enabled = risuChatVar.rpg_system_enabled === "true";
-const evaluated = risuChatVar.rpg_stats_evaluated === "true";
-return enabled && !evaluated;
+const level = parseInt(risuChatVar.player_level) || 0;
+return enabled && level <= 0;
 ```
 
-**태그 출력 필수:**
+**핵심 태그:**
 ```
 [Stat:str:±X][Stat:int:±X][Stat:dex:±X][Stat:cha:±X][Stat:luk:±X][Stat:vit:±X]
 [StatsEvaluated]
 ```
+
+**결과:**
+- `[StatsEvaluated]` 태그 → 레벨 0 → 1 자동 상승
+- 레벨 1 달성 → 로어북 자동 비활성화

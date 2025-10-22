@@ -1840,8 +1840,8 @@ function onStart(triggerId)
 
     -- RPG 시스템 초기화
     if not getChatVar(triggerId, "player_level") then
-        -- 플레이어 레벨/경험치
-        setChatVar(triggerId, "player_level", "1")
+        -- 플레이어 레벨/경험치 (초기 레벨 0 = 능력평가 미완료)
+        setChatVar(triggerId, "player_level", "0")
         setChatVar(triggerId, "player_exp", "0")
         setChatVar(triggerId, "player_exp_to_next", "100")
 
@@ -2034,8 +2034,15 @@ onOutput = async(function(triggerId)
     -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
     -- [StatsEvaluated] 태그 감지 → 능력평가 완료 처리
     if message:find("%[StatsEvaluated%]") then
-        setChatVar(triggerId, "rpg_stats_evaluated", "true")
-        log("✅ 능력평가 완료")
+        local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+
+        if currentLevel == 0 then
+            -- 레벨 0 → 1로 상승 (능력평가 완료)
+            setChatVar(triggerId, "player_level", "1")
+            setChatVar(triggerId, "player_exp", "0")
+            setChatVar(triggerId, "player_exp_to_next", "100")
+            log("✅ 능력평가 완료 - 레벨 1 달성!")
+        end
     end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
