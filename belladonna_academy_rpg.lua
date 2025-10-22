@@ -1862,6 +1862,9 @@ function onStart(triggerId)
         -- 능력평가 완료 플래그 (로어북용)
         setChatVar(triggerId, "rpg_stats_evaluated", "false")
 
+        -- RPG 시스템 기본 활성화
+        setChatVar(triggerId, "rpg_system_enabled", "true")
+
         log("🎮 RPG 시스템 초기화 완료")
     end
 
