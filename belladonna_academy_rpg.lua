@@ -132,7 +132,7 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Trait:Name:Category:Effect:Value:Condition]
 [Season:계절][Week:주차][Time:시간][Location:장소]
-<Panel>■★★
+<Panel>■★
 
 ## Output Rules
 ### Character State
@@ -157,7 +157,7 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 
 ## Critical
 - Use character's first name from list below
-- <Panel>■★★ must be absolute last line
+- <Panel>■★ must be absolute last line
 
 ---
 ## Characters in This Story
