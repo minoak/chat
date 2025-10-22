@@ -2025,6 +2025,13 @@ onOutput = async(function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
+    -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
+    -- [InitComplete] 태그 감지 → RPG 초기화 완료 처리
+    if message:find("%[InitComplete%]") then
+        setChatVar(triggerId, "rpg_initialized", "true")
+        log("✅ RPG 초기화 완료 (로어북 이벤트)")
+    end
+
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
     setChat(triggerId, -1, finalMessage)
