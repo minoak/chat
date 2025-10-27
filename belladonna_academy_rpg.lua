@@ -3019,20 +3019,38 @@ function onStart(triggerId)
 
     initScheduleVars(triggerId)
 
-    setChatVar(triggerId, "current_season", "봄")
-    setChatVar(triggerId, "week_of_season", "1")
-    setChatVar(triggerId, "current_day", "1")
-    setChatVar(triggerId, "current_time", "오전")
-    setChatVar(triggerId, "current_location", "중앙 광장")
-    setChatVar(triggerId, "current_weather", "맑음")
-    setChatVar(triggerId, "active_event", "none")
-
-    for _, flag in pairs(locationFlags) do
-        setChatVar(triggerId, flag, "false")
+    -- 환경 변수 초기화 (최초 1회만)
+    if not getChatVar(triggerId, "current_season") then
+        setChatVar(triggerId, "current_season", "봄")
     end
-    setChatVar(triggerId, "at_plaza", "true")
+    if not getChatVar(triggerId, "week_of_season") then
+        setChatVar(triggerId, "week_of_season", "1")
+    end
+    if not getChatVar(triggerId, "current_day") then
+        setChatVar(triggerId, "current_day", "1")
+    end
+    if not getChatVar(triggerId, "current_time") then
+        setChatVar(triggerId, "current_time", "오전")
+    end
+    if not getChatVar(triggerId, "current_location") then
+        setChatVar(triggerId, "current_location", "중앙 광장")
 
-    setChatVar(triggerId, "last_processed_turn_id", "0")
+        -- 초기 위치 플래그 설정
+        for _, flag in pairs(locationFlags) do
+            setChatVar(triggerId, flag, "false")
+        end
+        setChatVar(triggerId, "at_plaza", "true")
+    end
+    if not getChatVar(triggerId, "current_weather") then
+        setChatVar(triggerId, "current_weather", "맑음")
+    end
+    if not getChatVar(triggerId, "active_event") then
+        setChatVar(triggerId, "active_event", "none")
+    end
+
+    if not getChatVar(triggerId, "last_processed_turn_id") then
+        setChatVar(triggerId, "last_processed_turn_id", "0")
+    end
 
     -- RPG 시스템 초기화
     if getState(triggerId, "player_level") == nil then
