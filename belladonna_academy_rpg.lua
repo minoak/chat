@@ -417,51 +417,6 @@ CRITICAL RULES:
 - <CombatChoice> present = Do NOT output [Combat:End]
 - These are MUTUALLY EXCLUSIVE - never both in same turn
 
----
-## Activity Selection System
-
-WHEN TO OUTPUT <ActivityChoice>:
-- When {{user}} asks about or wants to choose daily activities
-- When {{user}} expresses intent to select what to do (e.g., "오늘 뭐하지?", "활동을 선택하고 싶어")
-- At the START of a new time period IF {{user}} is free and unoccupied
-- When Main AI narrative suggests {{user}} should choose an activity
-
-WHEN NOT TO OUTPUT <ActivityChoice>:
-- {{user}} is already engaged in an activity or event
-- During ongoing combat, dialogue, or story scenes
-- {{user}} gave specific action or dialogue (honor their choice)
-- Time period already has planned activity
-
-### Format
-Choose ONE marker based on current time:
-
-**Weekday Morning:**
-```
-<ActivityChoice:Morning>
-```
-
-**Weekday Afternoon:**
-```
-<ActivityChoice:Afternoon>
-```
-
-**Weekend:**
-```
-<ActivityChoice:Weekend>
-```
-
-### Selection Criteria
-Check environment variables:
-- If is_weekend == "false" AND current_time == "오전" → <ActivityChoice:Morning>
-- If is_weekend == "false" AND current_time == "오후" → <ActivityChoice:Afternoon>
-- If is_weekend == "true" → <ActivityChoice:Weekend>
-
-### Important Notes
-- Output ONLY the marker, no additional text
-- The marker will be converted to clickable buttons automatically
-- After {{user}} selects activity, DO NOT output marker again
-- Wait for Main AI to describe the chosen activity
-- Provide appropriate rewards (Stat/EXP/Gold) based on activity outcome
 ]]
 
 -- ============================================
@@ -3884,11 +3839,6 @@ listenEdit("editRequest", function(triggerId, data)
     -- <CombatChoice> 블록 제거
     data = data:gsub("<CombatChoice>.-</CombatChoice>", "")
 
-    -- <ActivityChoice> 마커 제거
-    data = data:gsub("<ActivityChoice:Morning>", "")
-    data = data:gsub("<ActivityChoice:Afternoon>", "")
-    data = data:gsub("<ActivityChoice:Weekend>", "")
-
     -- 보조모델의 모든 시스템 태그 제거
     data = data:gsub("%[Affinity:[^%]]+%]", "")
     data = data:gsub("%[Sin:[^%]]+%]", "")
@@ -3964,80 +3914,6 @@ listenEdit("editDisplay", function(triggerId, data)
         return html
     end)
 
-    -- 활동 선택지 변환 (두근두근 메모리얼 스타일)
-    -- <ActivityChoice:Morning> - 평일 오전
-    data = data:gsub("<ActivityChoice:Morning>", function()
-        local activities = {
-            {emoji="🗡️", name="전투 훈련", desc="Combat Training", send="전투 훈련을 듣는다", gradient="linear-gradient(135deg, #2196F3 0%, #42A5F5 100%)", shadow="0 3px 12px rgba(33,150,243,0.4)"},
-            {emoji="📚", name="마법 이론", desc="Magic Theory", send="마법 이론을 듣는다", gradient="linear-gradient(135deg, #03A9F4 0%, #29B6F6 100%)", shadow="0 3px 12px rgba(3,169,244,0.4)"},
-            {emoji="📖", name="자습", desc="Self-Study", send="도서관에서 자습한다", gradient="linear-gradient(135deg, #00BCD4 0%, #26C6DA 100%)", shadow="0 3px 12px rgba(0,188,212,0.4)"},
-            {emoji="💤", name="땡땡이", desc="Skip Class", send="수업을 빠지고 쉰다", gradient="linear-gradient(135deg, #607D8B 0%, #78909C 100%)", shadow="0 3px 12px rgba(96,125,139,0.4)"}
-        }
-
-        local html = "<div style='max-width:650px;margin:20px auto;padding:20px;background:linear-gradient(135deg, rgba(33,150,243,0.05) 0%, rgba(3,169,244,0.05) 100%);border-radius:16px;border:2px solid rgba(33,150,243,0.2)'>"
-        html = html .. "<div style='text-align:center;font-size:18px;font-weight:700;color:#2196F3;margin-bottom:20px;letter-spacing:0.5px'>☀️ 오늘 오전은 어떻게 보낼까?</div>"
-        html = html .. "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 10px'>"
-
-        for i, act in ipairs(activities) do
-            html = html .. string.format(
-                "<button type='button' risu-send='%s' style='padding:18px 16px;background:%s;color:white;border:none;border-radius:12px;box-shadow:%s;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s ease;text-align:center'><div style='font-size:28px;margin-bottom:8px'>%s</div><div style='margin-bottom:4px'>%s</div><div style='font-size:11px;opacity:0.85;font-weight:400'>%s</div></button>",
-                act.send, act.gradient, act.shadow, act.emoji, act.name, act.desc
-            )
-        end
-
-        html = html .. "</div></div>"
-        return html
-    end)
-
-    -- <ActivityChoice:Afternoon> - 평일 오후
-    data = data:gsub("<ActivityChoice:Afternoon>", function()
-        local activities = {
-            {emoji="🏋️", name="훈련장", desc="Training Grounds", send="훈련장에서 단련한다", gradient="linear-gradient(135deg, #F44336 0%, #EF5350 100%)", shadow="0 3px 12px rgba(244,67,54,0.4)"},
-            {emoji="☕", name="카페", desc="Café District", send="카페 거리를 방문한다", gradient="linear-gradient(135deg, #795548 0%, #8D6E63 100%)", shadow="0 3px 12px rgba(121,85,72,0.4)"},
-            {emoji="🏬", name="쇼핑", desc="Shopping Plaza", send="쇼핑가에 간다", gradient="linear-gradient(135deg, #E91E63 0%, #EC407A 100%)", shadow="0 3px 12px rgba(233,30,99,0.4)"},
-            {emoji="📋", name="퀘스트", desc="Quest Board", send="미드나이트 앨리에서 의뢰를 받는다", gradient="linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)", shadow="0 3px 12px rgba(255,152,0,0.4)"},
-            {emoji="🎭", name="동아리", desc="Club Activities", send="동아리 활동에 참여한다", gradient="linear-gradient(135deg, #9C27B0 0%, #AB47BC 100%)", shadow="0 3px 12px rgba(156,39,176,0.4)"},
-            {emoji="🛌", name="휴식", desc="Rest", send="기숙사로 돌아가 쉰다", gradient="linear-gradient(135deg, #607D8B 0%, #78909C 100%)", shadow="0 3px 12px rgba(96,125,139,0.4)"}
-        }
-
-        local html = "<div style='max-width:650px;margin:20px auto;padding:20px;background:linear-gradient(135deg, rgba(76,175,80,0.05) 0%, rgba(139,195,74,0.05) 100%);border-radius:16px;border:2px solid rgba(76,175,80,0.2)'>"
-        html = html .. "<div style='text-align:center;font-size:18px;font-weight:700;color:#4CAF50;margin-bottom:20px;letter-spacing:0.5px'>🌤️ 오늘 오후는 어떻게 보낼까?</div>"
-        html = html .. "<div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 10px'>"
-
-        for i, act in ipairs(activities) do
-            html = html .. string.format(
-                "<button type='button' risu-send='%s' style='padding:18px 16px;background:%s;color:white;border:none;border-radius:12px;box-shadow:%s;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s ease;text-align:center'><div style='font-size:28px;margin-bottom:8px'>%s</div><div style='margin-bottom:4px'>%s</div><div style='font-size:11px;opacity:0.85;font-weight:400'>%s</div></button>",
-                act.send, act.gradient, act.shadow, act.emoji, act.name, act.desc
-            )
-        end
-
-        html = html .. "</div></div>"
-        return html
-    end)
-
-    -- <ActivityChoice:Weekend> - 주말
-    data = data:gsub("<ActivityChoice:Weekend>", function()
-        local activities = {
-            {emoji="💕", name="데이트", desc="Character Date", send="친한 사람과 데이트한다", gradient="linear-gradient(135deg, #E91E63 0%, #F06292 100%)", shadow="0 3px 12px rgba(233,30,99,0.4)"},
-            {emoji="🏰", name="던전 탐험", desc="Dungeon Exploration", send="던전을 탐험한다", gradient="linear-gradient(135deg, #673AB7 0%, #7E57C2 100%)", shadow="0 3px 12px rgba(103,58,183,0.4)"},
-            {emoji="🌿", name="완전 휴식", desc="Full Rest", send="주말 내내 푹 쉰다", gradient="linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)", shadow="0 3px 12px rgba(76,175,80,0.4)"}
-        }
-
-        local html = "<div style='max-width:650px;margin:20px auto;padding:20px;background:linear-gradient(135deg, rgba(233,30,99,0.05) 0%, rgba(156,39,176,0.05) 100%);border-radius:16px;border:2px solid rgba(233,30,99,0.2)'>"
-        html = html .. "<div style='text-align:center;font-size:18px;font-weight:700;color:#E91E63;margin-bottom:20px;letter-spacing:0.5px'>🌸 주말을 어떻게 보낼까?</div>"
-        html = html .. "<div style='display:grid;grid-template-columns:1fr;gap:12px;padding:0 10px;max-width:400px;margin:0 auto'>"
-
-        for i, act in ipairs(activities) do
-            html = html .. string.format(
-                "<button type='button' risu-send='%s' style='padding:20px 20px;background:%s;color:white;border:none;border-radius:12px;box-shadow:%s;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s ease;text-align:center'><span style='font-size:32px;margin-right:12px'>%s</span><span style='margin-right:8px'>%s</span><span style='font-size:12px;opacity:0.85;font-weight:400'>%s</span></button>",
-                act.send, act.gradient, act.shadow, act.emoji, act.name, act.desc
-            )
-        end
-
-        html = html .. "</div></div>"
-        return html
-    end)
-
     return data
 end)
 
@@ -4052,6 +3928,6 @@ log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 
 log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
 log("🔘 아이템 버튼: use_item_1~15 등록 완료")
 log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
-log("📅 활동 시스템: <ActivityChoice> 마커를 HTML 버튼으로 변환 (editDisplay)")
-log("📺 editDisplay 리스너: <CombatChoice>, <ActivityChoice> 태그를 HTML 버튼으로 변환")
+log("📅 활동 시스템: HTML 패널에 상시 표시되는 floating 버튼")
+log("📺 editDisplay 리스너: <CombatChoice> 태그를 HTML 버튼으로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel)")
