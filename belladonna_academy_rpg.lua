@@ -3782,7 +3782,7 @@ listenEdit("editRequest", function(triggerId, data)
     return data
 end)
 
--- editDisplay: <CombatChoice> 태그를 HTML 버튼으로 변환
+-- editDisplay: <CombatChoice> 태그를 HTML 버튼으로 변환 (최신 메시지에만)
 listenEdit("editDisplay", function(triggerId, data)
     data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
         local html = "<div style='max-width:600px;margin:15px auto;padding:0 10px'>"
@@ -3831,7 +3831,9 @@ listenEdit("editDisplay", function(triggerId, data)
         end
 
         html = html .. "</div>"
-        return html
+
+        -- Handlebars 조건문으로 감싸기: 최신 메시지에만 버튼 표시
+        return "{{#if {{equal::{{chat_index}}::{{lastmessageid}}}}}}" .. html .. "{{/if}}"
     end)
 
     return data
