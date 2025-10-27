@@ -416,6 +416,52 @@ CRITICAL RULES:
 - [Combat:End] = Do NOT generate <CombatChoice>
 - <CombatChoice> present = Do NOT output [Combat:End]
 - These are MUTUALLY EXCLUSIVE - never both in same turn
+
+---
+## Activity Selection System
+
+WHEN TO OUTPUT <ActivityChoice>:
+- When {{user}} asks about or wants to choose daily activities
+- When {{user}} expresses intent to select what to do (e.g., "오늘 뭐하지?", "활동을 선택하고 싶어")
+- At the START of a new time period IF {{user}} is free and unoccupied
+- When Main AI narrative suggests {{user}} should choose an activity
+
+WHEN NOT TO OUTPUT <ActivityChoice>:
+- {{user}} is already engaged in an activity or event
+- During ongoing combat, dialogue, or story scenes
+- {{user}} gave specific action or dialogue (honor their choice)
+- Time period already has planned activity
+
+### Format
+Choose ONE marker based on current time:
+
+**Weekday Morning:**
+```
+<ActivityChoice:Morning>
+```
+
+**Weekday Afternoon:**
+```
+<ActivityChoice:Afternoon>
+```
+
+**Weekend:**
+```
+<ActivityChoice:Weekend>
+```
+
+### Selection Criteria
+Check environment variables:
+- If is_weekend == "false" AND current_time == "오전" → <ActivityChoice:Morning>
+- If is_weekend == "false" AND current_time == "오후" → <ActivityChoice:Afternoon>
+- If is_weekend == "true" → <ActivityChoice:Weekend>
+
+### Important Notes
+- Output ONLY the marker, no additional text
+- The marker will be converted to clickable buttons automatically
+- After {{user}} selects activity, DO NOT output marker again
+- Wait for Main AI to describe the chosen activity
+- Provide appropriate rewards (Stat/EXP/Gold) based on activity outcome
 ]]
 
 -- ============================================
@@ -3833,78 +3879,6 @@ for i = 1, 6 do
     end
 end
 
--- ============================================
--- 활동 선택 버튼 함수 등록 (risu-trigger용)
--- ============================================
-
--- 평일 오전 활동
-_G["activity_combat_training"] = function(triggerId)
-    addChat(triggerId, "user", "전투 훈련을 듣는다")
-    log("📚 활동 선택: 전투 훈련")
-end
-
-_G["activity_magic_theory"] = function(triggerId)
-    addChat(triggerId, "user", "마법 이론을 듣는다")
-    log("📚 활동 선택: 마법 이론")
-end
-
-_G["activity_self_study"] = function(triggerId)
-    addChat(triggerId, "user", "도서관에서 자습한다")
-    log("📚 활동 선택: 자습")
-end
-
-_G["activity_skip_class"] = function(triggerId)
-    addChat(triggerId, "user", "수업을 빠지고 쉰다")
-    log("📚 활동 선택: 땡땡이")
-end
-
--- 평일 오후 활동
-_G["activity_training_ground"] = function(triggerId)
-    addChat(triggerId, "user", "훈련장에서 단련한다")
-    log("🌤️ 활동 선택: 훈련장")
-end
-
-_G["activity_cafe"] = function(triggerId)
-    addChat(triggerId, "user", "카페 거리를 방문한다")
-    log("🌤️ 활동 선택: 카페")
-end
-
-_G["activity_shopping"] = function(triggerId)
-    addChat(triggerId, "user", "쇼핑가에 간다")
-    log("🌤️ 활동 선택: 쇼핑")
-end
-
-_G["activity_quest"] = function(triggerId)
-    addChat(triggerId, "user", "미드나이트 앨리에서 의뢰를 받는다")
-    log("🌤️ 활동 선택: 퀘스트")
-end
-
-_G["activity_club"] = function(triggerId)
-    addChat(triggerId, "user", "동아리 활동에 참여한다")
-    log("🌤️ 활동 선택: 동아리")
-end
-
-_G["activity_rest"] = function(triggerId)
-    addChat(triggerId, "user", "기숙사로 돌아가 쉰다")
-    log("🌤️ 활동 선택: 휴식")
-end
-
--- 주말 활동
-_G["activity_date"] = function(triggerId)
-    addChat(triggerId, "user", "친한 사람과 데이트한다")
-    log("🌸 활동 선택: 데이트")
-end
-
-_G["activity_dungeon"] = function(triggerId)
-    addChat(triggerId, "user", "던전을 탐험한다")
-    log("🌸 활동 선택: 던전 탐험")
-end
-
-_G["activity_full_rest"] = function(triggerId)
-    addChat(triggerId, "user", "주말 내내 푹 쉰다")
-    log("🌸 활동 선택: 완전 휴식")
-end
-
 -- editRequest: 메인 AI 요청에서 보조모델 태그 모두 제거
 listenEdit("editRequest", function(triggerId, data)
     -- <CombatChoice> 블록 제거
@@ -4078,6 +4052,6 @@ log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 
 log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
 log("🔘 아이템 버튼: use_item_1~15 등록 완료")
 log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
-log("📅 활동 선택 버튼: 13개 활동 (오전4/오후6/주말3) 등록 완료")
-log("📺 editDisplay 리스너: <CombatChoice> 태그를 HTML 버튼으로 변환")
+log("📅 활동 시스템: <ActivityChoice> 마커를 HTML 버튼으로 변환 (editDisplay)")
+log("📺 editDisplay 리스너: <CombatChoice>, <ActivityChoice> 태그를 HTML 버튼으로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel)")
