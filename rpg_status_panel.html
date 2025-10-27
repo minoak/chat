@@ -12,65 +12,180 @@
 .rpg-details[open] summary::before {transform: rotate(90deg);}
 .rpg-details-content {margin-top: 12px;}
 
-/* Floating Activity Selector */
-.activity-float {position: fixed; bottom: 80px; right: 20px; z-index: 9999; max-width: 400px;}
+/* Floating Activity Selector - Enhanced Style */
+@keyframes float-pulse {
+    0%, 100% { box-shadow: 0 4px 30px rgba(255, 107, 157, 0.6), 0 0 0 0 rgba(255, 107, 157, 0.4); }
+    50% { box-shadow: 0 4px 30px rgba(255, 107, 157, 0.8), 0 0 20px 8px rgba(255, 107, 157, 0.2); }
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.activity-float {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 450px;
+    font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+}
+
 .activity-float summary {
-    padding: 16px 24px;
-    background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%);
+    padding: 18px 32px;
+    background: linear-gradient(135deg, #FF6B9D 0%, #FE8A71 50%, #FF6B9D 100%);
+    background-size: 200% 200%;
     color: white;
     border: none;
-    border-radius: 50px;
-    box-shadow: 0 4px 20px rgba(255, 107, 157, 0.5);
-    font-size: 16px;
-    font-weight: 700;
+    border-radius: 60px;
+    box-shadow: 0 8px 30px rgba(255, 107, 157, 0.5);
+    font-size: 17px;
+    font-weight: 800;
     cursor: pointer;
     list-style: none;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: float-pulse 3s ease-in-out infinite;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
+
 .activity-float summary::-webkit-details-marker {display: none;}
+
+.activity-float summary::before {
+    content: '✨';
+    font-size: 20px;
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .activity-float summary:hover {
-    background: linear-gradient(135deg, #FF7FA8 0%, #D35579 100%);
-    box-shadow: 0 6px 25px rgba(255, 107, 157, 0.7);
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #FF7FA8 0%, #FFAA99 50%, #FF7FA8 100%);
+    background-size: 200% 200%;
+    box-shadow: 0 12px 40px rgba(255, 107, 157, 0.8), 0 0 30px rgba(255, 107, 157, 0.4);
+    transform: translateY(-4px) scale(1.05);
+    letter-spacing: 1.5px;
 }
+
 .activity-float[open] summary {
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -2px 20px rgba(255, 107, 157, 0.4);
+    animation: none;
 }
+
 .activity-float-content {
-    background: #1a1a1a;
-    border-radius: 16px 0 0 16px;
-    padding: 16px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid rgba(255, 107, 157, 0.3);
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
     margin-top: 0;
-    max-height: 500px;
+    max-height: 600px;
     overflow-y: auto;
+    animation: slide-up 0.3s ease-out;
 }
+
+.activity-float-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.activity-float-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.activity-float-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #FF6B9D, #FE8A71);
+    border-radius: 10px;
+}
+
+.activity-section-title {
+    text-align: center;
+    font-weight: 800;
+    font-size: 18px;
+    margin-bottom: 16px;
+    padding: 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
 .activity-btn {
+    position: relative;
     display: block;
     width: 100%;
-    padding: 16px;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 16px;
+    margin-bottom: 0;
     color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
     text-align: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    letter-spacing: 0.5px;
 }
+
+.activity-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.activity-btn:hover::before {
+    left: 100%;
+}
+
 .activity-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+    transform: translateY(-4px) scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
+
+.activity-btn:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
 .activity-btn-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.activity-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.5), transparent);
+    margin: 24px 0;
+    position: relative;
+}
+
+.activity-divider::after {
+    content: '◆';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #1a1a2e;
+    color: #FF6B9D;
+    padding: 0 10px;
+    font-size: 12px;
 }
 </style>
 
@@ -172,77 +287,100 @@
 
 <!-- Floating Activity Selector Button -->
 <details class="activity-float">
-    <summary>📅 활동 선택</summary>
+    <summary>활동 선택</summary>
     <div class="activity-float-content">
+
         <!-- 평일 오전 활동 -->
-        <div style="text-align:center;color:#2196F3;font-weight:700;font-size:16px;margin-bottom:12px;">☀️ 오전 활동</div>
+        <div class="activity-section-title" style="background:linear-gradient(135deg, rgba(33,150,243,0.2), rgba(3,169,244,0.2));color:#42A5F5;">
+            ☀️ Morning Classes
+        </div>
         <div class="activity-btn-grid">
-            <button type="button" risu-send="전투 훈련을 듣는다" class="activity-btn" style="background:linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">🗡️</div>
-                <div>전투 훈련</div>
+            <button type="button" risu-send="전투 훈련을 듣는다" class="activity-btn" style="background:linear-gradient(135deg, #1976D2 0%, #2196F3 100%);box-shadow:0 4px 15px rgba(33,150,243,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">⚔️</div>
+                <div style="font-size:15px;">전투 훈련</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Combat</div>
             </button>
-            <button type="button" risu-send="마법 이론을 듣는다" class="activity-btn" style="background:linear-gradient(135deg, #03A9F4 0%, #29B6F6 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">📚</div>
-                <div>마법 이론</div>
+            <button type="button" risu-send="마법 이론을 듣는다" class="activity-btn" style="background:linear-gradient(135deg, #0288D1 0%, #03A9F4 100%);box-shadow:0 4px 15px rgba(3,169,244,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">📚</div>
+                <div style="font-size:15px;">마법 이론</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Magic Theory</div>
             </button>
-            <button type="button" risu-send="도서관에서 자습한다" class="activity-btn" style="background:linear-gradient(135deg, #00BCD4 0%, #26C6DA 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">📖</div>
-                <div>자습</div>
+            <button type="button" risu-send="도서관에서 자습한다" class="activity-btn" style="background:linear-gradient(135deg, #0097A7 0%, #00BCD4 100%);box-shadow:0 4px 15px rgba(0,188,212,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">📖</div>
+                <div style="font-size:15px;">자습</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Self-Study</div>
             </button>
-            <button type="button" risu-send="수업을 빠지고 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #607D8B 0%, #78909C 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">💤</div>
-                <div>땡땡이</div>
+            <button type="button" risu-send="수업을 빠지고 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #455A64 0%, #607D8B 100%);box-shadow:0 4px 15px rgba(96,125,139,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">💤</div>
+                <div style="font-size:15px;">땡땡이</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Skip Class</div>
             </button>
         </div>
 
         <!-- 구분선 -->
-        <div style="height:1px;background:rgba(255,255,255,0.1);margin:20px 0;"></div>
+        <div class="activity-divider"></div>
 
         <!-- 평일 오후 활동 -->
-        <div style="text-align:center;color:#4CAF50;font-weight:700;font-size:16px;margin-bottom:12px;">🌤️ 오후 활동</div>
+        <div class="activity-section-title" style="background:linear-gradient(135deg, rgba(76,175,80,0.2), rgba(139,195,74,0.2));color:#66BB6A;">
+            🌤️ Afternoon Activities
+        </div>
         <div class="activity-btn-grid">
-            <button type="button" risu-send="훈련장에서 단련한다" class="activity-btn" style="background:linear-gradient(135deg, #F44336 0%, #EF5350 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">🏋️</div>
-                <div>훈련장</div>
+            <button type="button" risu-send="훈련장에서 단련한다" class="activity-btn" style="background:linear-gradient(135deg, #D32F2F 0%, #F44336 100%);box-shadow:0 4px 15px rgba(244,67,54,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">🏋️</div>
+                <div style="font-size:15px;">훈련장</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Training</div>
             </button>
-            <button type="button" risu-send="카페 거리를 방문한다" class="activity-btn" style="background:linear-gradient(135deg, #795548 0%, #8D6E63 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">☕</div>
-                <div>카페</div>
+            <button type="button" risu-send="카페 거리를 방문한다" class="activity-btn" style="background:linear-gradient(135deg, #5D4037 0%, #795548 100%);box-shadow:0 4px 15px rgba(121,85,72,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">☕</div>
+                <div style="font-size:15px;">카페</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Café Street</div>
             </button>
-            <button type="button" risu-send="쇼핑가에 간다" class="activity-btn" style="background:linear-gradient(135deg, #E91E63 0%, #EC407A 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">🏬</div>
-                <div>쇼핑</div>
+            <button type="button" risu-send="쇼핑가에 간다" class="activity-btn" style="background:linear-gradient(135deg, #C2185B 0%, #E91E63 100%);box-shadow:0 4px 15px rgba(233,30,99,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">🛍️</div>
+                <div style="font-size:15px;">쇼핑</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Shopping</div>
             </button>
-            <button type="button" risu-send="미드나이트 앨리에서 의뢰를 받는다" class="activity-btn" style="background:linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">📋</div>
-                <div>퀘스트</div>
+            <button type="button" risu-send="미드나이트 앨리에서 의뢰를 받는다" class="activity-btn" style="background:linear-gradient(135deg, #E65100 0%, #FF6F00 100%);box-shadow:0 4px 15px rgba(255,152,0,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">📋</div>
+                <div style="font-size:15px;">퀘스트</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Quest Board</div>
             </button>
-            <button type="button" risu-send="동아리 활동에 참여한다" class="activity-btn" style="background:linear-gradient(135deg, #9C27B0 0%, #AB47BC 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">🎭</div>
-                <div>동아리</div>
+            <button type="button" risu-send="동아리 활동에 참여한다" class="activity-btn" style="background:linear-gradient(135deg, #7B1FA2 0%, #9C27B0 100%);box-shadow:0 4px 15px rgba(156,39,176,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">🎭</div>
+                <div style="font-size:15px;">동아리</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Club</div>
             </button>
-            <button type="button" risu-send="기숙사로 돌아가 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #607D8B 0%, #78909C 100%);">
-                <div style="font-size:24px;margin-bottom:4px;">🛌</div>
-                <div>휴식</div>
+            <button type="button" risu-send="기숙사로 돌아가 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #455A64 0%, #607D8B 100%);box-shadow:0 4px 15px rgba(96,125,139,0.4);">
+                <div style="font-size:28px;margin-bottom:6px;">🛌</div>
+                <div style="font-size:15px;">휴식</div>
+                <div style="font-size:11px;opacity:0.7;margin-top:2px;">Rest</div>
             </button>
         </div>
 
         <!-- 구분선 -->
-        <div style="height:1px;background:rgba(255,255,255,0.1);margin:20px 0;"></div>
+        <div class="activity-divider"></div>
 
         <!-- 주말 활동 -->
-        <div style="text-align:center;color:#E91E63;font-weight:700;font-size:16px;margin-bottom:12px;">🌸 주말 활동</div>
-        <button type="button" risu-send="친한 사람과 데이트한다" class="activity-btn" style="background:linear-gradient(135deg, #E91E63 0%, #F06292 100%);margin-bottom:10px;">
-            <div style="font-size:28px;margin-bottom:4px;">💕</div>
-            <div>데이트</div>
-        </button>
-        <button type="button" risu-send="던전을 탐험한다" class="activity-btn" style="background:linear-gradient(135deg, #673AB7 0%, #7E57C2 100%);margin-bottom:10px;">
-            <div style="font-size:28px;margin-bottom:4px;">🏰</div>
-            <div>던전 탐험</div>
-        </button>
-        <button type="button" risu-send="주말 내내 푹 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);margin-bottom:10px;">
-            <div style="font-size:28px;margin-bottom:4px;">🌿</div>
-            <div>완전 휴식</div>
-        </button>
+        <div class="activity-section-title" style="background:linear-gradient(135deg, rgba(233,30,99,0.2), rgba(240,98,146,0.2));color:#F06292;">
+            🌸 Weekend Special
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+            <button type="button" risu-send="친한 사람과 데이트한다" class="activity-btn" style="background:linear-gradient(135deg, #C2185B 0%, #E91E63 100%);box-shadow:0 4px 15px rgba(233,30,99,0.5);padding:24px 16px;">
+                <div style="font-size:32px;margin-bottom:6px;">💕</div>
+                <div style="font-size:16px;">데이트</div>
+                <div style="font-size:12px;opacity:0.7;margin-top:2px;">Romantic Date</div>
+            </button>
+            <button type="button" risu-send="던전을 탐험한다" class="activity-btn" style="background:linear-gradient(135deg, #512DA8 0%, #673AB7 100%);box-shadow:0 4px 15px rgba(103,58,183,0.5);padding:24px 16px;">
+                <div style="font-size:32px;margin-bottom:6px;">🏰</div>
+                <div style="font-size:16px;">던전 탐험</div>
+                <div style="font-size:12px;opacity:0.7;margin-top:2px;">Dungeon Raid</div>
+            </button>
+            <button type="button" risu-send="주말 내내 푹 쉰다" class="activity-btn" style="background:linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);box-shadow:0 4px 15px rgba(76,175,80,0.5);padding:24px 16px;">
+                <div style="font-size:32px;margin-bottom:6px;">🌿</div>
+                <div style="font-size:16px;">완전 휴식</div>
+                <div style="font-size:12px;opacity:0.7;margin-top:2px;">Full Rest</div>
+            </button>
+        </div>
+
     </div>
 </details>
