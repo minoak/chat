@@ -1870,6 +1870,8 @@ end
 function callAuxiliaryModel(triggerId, mainResponse)
     local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
 
+    log("🤖 보조모델 호출 시작")
+
     -- axLLM()은 메시지 배열 형식을 요구함
     local messages = {
         {
@@ -1883,10 +1885,14 @@ function callAuxiliaryModel(triggerId, mainResponse)
 
     -- 에러 체크
     if not response then
+        log("❌ 보조모델 응답 없음 (response is nil)")
         return ""
     end
 
+    log(string.format("🔍 보조모델 응답 success: %s", tostring(response.success)))
+
     if response.success == false then
+        log(string.format("❌ 보조모델 에러: %s", tostring(response.result or "unknown error")))
         return ""
     end
 
@@ -1894,8 +1900,10 @@ function callAuxiliaryModel(triggerId, mainResponse)
     local result = response.result or ""
 
     if result ~= "" then
+        log(string.format("✅ 보조모델 출력 (%d자): %s", #result, result:sub(1, 100)))
         return result
     else
+        log("⚠️ 보조모델 응답이 빈 문자열")
         return ""
     end
 end
