@@ -3833,6 +3833,78 @@ for i = 1, 6 do
     end
 end
 
+-- ============================================
+-- 활동 선택 버튼 함수 등록 (risu-trigger용)
+-- ============================================
+
+-- 평일 오전 활동
+_G["activity_combat_training"] = function(triggerId)
+    addChat(triggerId, "user", "전투 훈련을 듣는다")
+    log("📚 활동 선택: 전투 훈련")
+end
+
+_G["activity_magic_theory"] = function(triggerId)
+    addChat(triggerId, "user", "마법 이론을 듣는다")
+    log("📚 활동 선택: 마법 이론")
+end
+
+_G["activity_self_study"] = function(triggerId)
+    addChat(triggerId, "user", "도서관에서 자습한다")
+    log("📚 활동 선택: 자습")
+end
+
+_G["activity_skip_class"] = function(triggerId)
+    addChat(triggerId, "user", "수업을 빠지고 쉰다")
+    log("📚 활동 선택: 땡땡이")
+end
+
+-- 평일 오후 활동
+_G["activity_training_ground"] = function(triggerId)
+    addChat(triggerId, "user", "훈련장에서 단련한다")
+    log("🌤️ 활동 선택: 훈련장")
+end
+
+_G["activity_cafe"] = function(triggerId)
+    addChat(triggerId, "user", "카페 거리를 방문한다")
+    log("🌤️ 활동 선택: 카페")
+end
+
+_G["activity_shopping"] = function(triggerId)
+    addChat(triggerId, "user", "쇼핑가에 간다")
+    log("🌤️ 활동 선택: 쇼핑")
+end
+
+_G["activity_quest"] = function(triggerId)
+    addChat(triggerId, "user", "미드나이트 앨리에서 의뢰를 받는다")
+    log("🌤️ 활동 선택: 퀘스트")
+end
+
+_G["activity_club"] = function(triggerId)
+    addChat(triggerId, "user", "동아리 활동에 참여한다")
+    log("🌤️ 활동 선택: 동아리")
+end
+
+_G["activity_rest"] = function(triggerId)
+    addChat(triggerId, "user", "기숙사로 돌아가 쉰다")
+    log("🌤️ 활동 선택: 휴식")
+end
+
+-- 주말 활동
+_G["activity_date"] = function(triggerId)
+    addChat(triggerId, "user", "친한 사람과 데이트한다")
+    log("🌸 활동 선택: 데이트")
+end
+
+_G["activity_dungeon"] = function(triggerId)
+    addChat(triggerId, "user", "던전을 탐험한다")
+    log("🌸 활동 선택: 던전 탐험")
+end
+
+_G["activity_full_rest"] = function(triggerId)
+    addChat(triggerId, "user", "주말 내내 푹 쉰다")
+    log("🌸 활동 선택: 완전 휴식")
+end
+
 -- editRequest: 메인 AI 요청에서 보조모델 태그 모두 제거
 listenEdit("editRequest", function(triggerId, data)
     -- <CombatChoice> 블록 제거
@@ -3995,7 +4067,7 @@ listenEdit("editDisplay", function(triggerId, data)
     return data
 end)
 
-log("🥀 Belladonna Academy v7.1 - RPG Edition")
+log("🥀 Belladonna Academy v7.2 - Activity System")
 log("✅ 로어북 기준 장소명 정리 + RPG 시스템 통합")
 log("📍 Scarlet Street, Midnight Alley, Lotus Street, Ruby Row 등")
 log("🌐 한영 병기 출력 텍스트")
@@ -4006,5 +4078,6 @@ log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 
 log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
 log("🔘 아이템 버튼: use_item_1~15 등록 완료")
 log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
+log("📅 활동 선택 버튼: 13개 활동 (오전4/오후6/주말3) 등록 완료")
 log("📺 editDisplay 리스너: <CombatChoice> 태그를 HTML 버튼으로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel)")
