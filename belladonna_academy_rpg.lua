@@ -3834,6 +3834,31 @@ for i = 1, 6 do
     end
 end
 
+-- 활동 선택 버튼 함수 등록
+local activities = {
+    {id = "combat", message = "전투 훈련을 듣는다"},
+    {id = "magic", message = "마법 이론을 듣는다"},
+    {id = "study", message = "도서관에서 자습한다"},
+    {id = "skip", message = "수업을 빠지고 쉰다"},
+    {id = "training", message = "훈련장에서 단련한다"},
+    {id = "cafe", message = "카페 거리를 방문한다"},
+    {id = "shopping", message = "쇼핑가에 간다"},
+    {id = "quest", message = "미드나이트 앨리에서 의뢰를 받는다"},
+    {id = "club", message = "동아리 활동에 참여한다"},
+    {id = "rest", message = "기숙사로 돌아가 쉰다"},
+    {id = "date", message = "친한 사람과 데이트한다"},
+    {id = "dungeon", message = "던전을 탐험한다"},
+    {id = "fullrest", message = "주말 내내 푹 쉰다"}
+}
+
+for _, activity in ipairs(activities) do
+    _G["activity_" .. activity.id] = function(triggerId)
+        -- 사용자 메시지로 활동 추가
+        addChat(triggerId, "user", activity.message)
+        log(string.format("📅 활동 선택: %s", activity.message))
+    end
+end
+
 -- editRequest: 메인 AI 요청에서 보조모델 태그 모두 제거
 listenEdit("editRequest", function(triggerId, data)
     -- <CombatChoice> 블록 제거
@@ -3928,6 +3953,6 @@ log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 
 log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
 log("🔘 아이템 버튼: use_item_1~15 등록 완료")
 log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
-log("📅 활동 시스템: HTML 패널에 상시 표시되는 floating 버튼")
+log("📅 활동 버튼: activity_combat, activity_magic 등 13개 등록 완료")
 log("📺 editDisplay 리스너: <CombatChoice> 태그를 HTML 버튼으로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel)")
