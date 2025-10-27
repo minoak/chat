@@ -3092,6 +3092,7 @@ function onStart(triggerId)
     end
     if not getChatVar(triggerId, "week_of_season") then
         setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
     end
     if not getChatVar(triggerId, "current_day") then
         setChatVar(triggerId, "current_day", "1")
@@ -3160,6 +3161,7 @@ function onStart(triggerId)
         setChatVar(triggerId, "is_winter", "false")
         setState(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
         setChatVar(triggerId, "day_of_week", "1")
         setChatVar(triggerId, "day_of_week_name", "월요일")
         setState(triggerId, "current_time", "오전")
@@ -3555,6 +3557,7 @@ listenEdit("editInput", function(triggerId, data)
 
         setChatVar(triggerId, "last_processed_turn_id", "0")
         setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
         setChatVar(triggerId, "active_event", "none")
 
         -- RPG 시스템 리셋
@@ -3886,7 +3889,7 @@ local function progressTime(triggerId, isFullRest)
             weekOfSeason = weekOfSeason + 1
 
             -- 시즌이 끝나면 다음 시즌으로
-            if weekOfSeason > 4 then
+            if weekOfSeason > 12 then
                 weekOfSeason = 1
                 local seasons = {"봄", "여름", "가을", "겨울"}
                 local currentSeasonIdx = 1
@@ -3913,7 +3916,15 @@ local function progressTime(triggerId, isFullRest)
 
             setChatVar(triggerId, "week_of_season", tostring(weekOfSeason))
             setState(triggerId, "week_of_season", tostring(weekOfSeason))
-            log(string.format("📅 Week %d 시작", weekOfSeason))
+
+            -- 시험 주차 체크 (4, 8, 12주)
+            if weekOfSeason == 4 or weekOfSeason == 8 or weekOfSeason == 12 then
+                setChatVar(triggerId, "is_exam_week", "true")
+                log(string.format("📝 Week %d 시작 - 시험 주차!", weekOfSeason))
+            else
+                setChatVar(triggerId, "is_exam_week", "false")
+                log(string.format("📅 Week %d 시작", weekOfSeason))
+            end
         end
 
         setChatVar(triggerId, "day_of_week", tostring(dayOfWeek))
