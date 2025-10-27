@@ -3027,38 +3027,26 @@ function onStart(triggerId)
 
     initScheduleVars(triggerId)
 
-    -- 환경 변수 초기화 (최초 1회만)
-    if not getChatVar(triggerId, "current_season") then
-        setChatVar(triggerId, "current_season", "봄")
-    end
-    if not getChatVar(triggerId, "week_of_season") then
-        setChatVar(triggerId, "week_of_season", "1")
-    end
-    if not getChatVar(triggerId, "current_day") then
-        setChatVar(triggerId, "current_day", "1")
-    end
-    if not getChatVar(triggerId, "current_time") then
-        setChatVar(triggerId, "current_time", "오전")
-    end
-    if not getChatVar(triggerId, "current_location") then
-        setChatVar(triggerId, "current_location", "중앙 광장")
+    -- 환경 변수 초기화 (매 턴마다 - 보조모델 출력으로 덮어씀)
+    -- TODO: 나중에 조건부 초기화로 변경 (현재는 보조모델 작동을 위해 유지)
+    setChatVar(triggerId, "current_season", getChatVar(triggerId, "current_season") or "봄")
+    setChatVar(triggerId, "week_of_season", getChatVar(triggerId, "week_of_season") or "1")
+    setChatVar(triggerId, "current_day", getChatVar(triggerId, "current_day") or "1")
+    setChatVar(triggerId, "current_time", getChatVar(triggerId, "current_time") or "오전")
+    setChatVar(triggerId, "current_location", getChatVar(triggerId, "current_location") or "중앙 광장")
+    setChatVar(triggerId, "current_weather", getChatVar(triggerId, "current_weather") or "맑음")
+    setChatVar(triggerId, "active_event", getChatVar(triggerId, "active_event") or "none")
 
-        -- 초기 위치 플래그 설정
+    -- 위치 플래그 초기화 (최초 1회만)
+    if not getChatVar(triggerId, "location_flags_initialized") then
         for _, flag in pairs(locationFlags) do
             setChatVar(triggerId, flag, "false")
         end
         setChatVar(triggerId, "at_plaza", "true")
-    end
-    if not getChatVar(triggerId, "current_weather") then
-        setChatVar(triggerId, "current_weather", "맑음")
-    end
-    if not getChatVar(triggerId, "active_event") then
-        setChatVar(triggerId, "active_event", "none")
+        setChatVar(triggerId, "location_flags_initialized", "true")
     end
 
-    if not getChatVar(triggerId, "last_processed_turn_id") then
-        setChatVar(triggerId, "last_processed_turn_id", "0")
-    end
+    setChatVar(triggerId, "last_processed_turn_id", getChatVar(triggerId, "last_processed_turn_id") or "0")
 
     -- RPG 시스템 초기화
     if getState(triggerId, "player_level") == nil then
