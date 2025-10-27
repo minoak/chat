@@ -3084,12 +3084,19 @@ function onStart(triggerId)
     -- 환경 변수 초기화 (최초 1회만)
     if not getChatVar(triggerId, "current_season") then
         setChatVar(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "is_spring", "true")
+        setChatVar(triggerId, "is_summer", "false")
+        setChatVar(triggerId, "is_autumn", "false")
+        setChatVar(triggerId, "is_winter", "false")
     end
     if not getChatVar(triggerId, "week_of_season") then
         setChatVar(triggerId, "week_of_season", "1")
     end
     if not getChatVar(triggerId, "current_day") then
         setChatVar(triggerId, "current_day", "1")
+    end
+    if not getChatVar(triggerId, "day_of_week") then
+        setChatVar(triggerId, "day_of_week", "1")
     end
     if not getChatVar(triggerId, "current_time") then
         setChatVar(triggerId, "current_time", "오전")
@@ -3145,8 +3152,13 @@ function onStart(triggerId)
         -- Season, Week, Time, Location 초기값
         setState(triggerId, "current_season", "봄")
         setChatVar(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "is_spring", "true")
+        setChatVar(triggerId, "is_summer", "false")
+        setChatVar(triggerId, "is_autumn", "false")
+        setChatVar(triggerId, "is_winter", "false")
         setState(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "day_of_week", "1")
         setState(triggerId, "current_time", "오전")
         setChatVar(triggerId, "current_time", "오전")
         setState(triggerId, "current_location", "")
@@ -3834,6 +3846,74 @@ for i = 1, 6 do
     end
 end
 
+-- 시간 진행 함수
+local function progressTime(triggerId, isFullRest)
+    local currentTime = getChatVar(triggerId, "current_time") or "오전"
+    local dayOfWeek = tonumber(getChatVar(triggerId, "day_of_week")) or 1
+    local weekOfSeason = tonumber(getChatVar(triggerId, "week_of_season")) or 1
+    local season = getChatVar(triggerId, "current_season") or "봄"
+
+    -- 주말 내내 쉬기: 일요일 오후로 점프
+    if isFullRest then
+        setChatVar(triggerId, "day_of_week", "7")
+        setChatVar(triggerId, "current_time", "오후")
+        log("⏰ 시간 진행: 주말 내내 휴식 → 일요일 오후")
+        return
+    end
+
+    -- 일반 시간 진행
+    if currentTime == "오전" then
+        -- 오전 → 오후
+        setChatVar(triggerId, "current_time", "오후")
+        log(string.format("⏰ 시간 진행: 오전 → 오후 (Day %d)", dayOfWeek))
+    else
+        -- 오후 → 다음날 오전
+        dayOfWeek = dayOfWeek + 1
+
+        -- 주차가 끝나면 다음 주로
+        if dayOfWeek > 7 then
+            dayOfWeek = 1
+            weekOfSeason = weekOfSeason + 1
+
+            -- 시즌이 끝나면 다음 시즌으로
+            if weekOfSeason > 4 then
+                weekOfSeason = 1
+                local seasons = {"봄", "여름", "가을", "겨울"}
+                local currentSeasonIdx = 1
+                for i, s in ipairs(seasons) do
+                    if s == season then
+                        currentSeasonIdx = i
+                        break
+                    end
+                end
+
+                local nextSeasonIdx = (currentSeasonIdx % 4) + 1
+                season = seasons[nextSeasonIdx]
+                setChatVar(triggerId, "current_season", season)
+                setState(triggerId, "current_season", season)
+
+                -- 시즌 플래그 업데이트
+                setChatVar(triggerId, "is_spring", season == "봄" and "true" or "false")
+                setChatVar(triggerId, "is_summer", season == "여름" and "true" or "false")
+                setChatVar(triggerId, "is_autumn", season == "가을" and "true" or "false")
+                setChatVar(triggerId, "is_winter", season == "겨울" and "true" or "false")
+
+                log(string.format("📅 시즌 변경: %s → %s", seasons[currentSeasonIdx], season))
+            end
+
+            setChatVar(triggerId, "week_of_season", tostring(weekOfSeason))
+            setState(triggerId, "week_of_season", tostring(weekOfSeason))
+            log(string.format("📅 Week %d 시작", weekOfSeason))
+        end
+
+        setChatVar(triggerId, "day_of_week", tostring(dayOfWeek))
+        setChatVar(triggerId, "current_time", "오전")
+
+        local dayNames = {"월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"}
+        log(string.format("⏰ 시간 진행: 오후 → 다음날 오전 (%s, Day %d)", dayNames[dayOfWeek] or "?", dayOfWeek))
+    end
+end
+
 -- 활동 선택 버튼 함수 등록
 local activities = {
     {id = "combat", message = "전투 훈련을 듣는다"},
@@ -3856,6 +3936,10 @@ for _, activity in ipairs(activities) do
         -- 사용자 메시지로 활동 추가
         addChat(triggerId, "user", activity.message)
         log(string.format("📅 활동 선택: %s", activity.message))
+
+        -- 시간 진행
+        local isFullRest = (activity.id == "fullrest")
+        progressTime(triggerId, isFullRest)
     end
 end
 
