@@ -3093,6 +3093,7 @@ function onStart(triggerId)
     if not getChatVar(triggerId, "week_of_season") then
         setChatVar(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "is_exam_week", "false")
+        setChatVar(triggerId, "week_schedule_message", getWeekSchedule(1))
     end
     if not getChatVar(triggerId, "current_day") then
         setChatVar(triggerId, "current_day", "1")
@@ -3162,6 +3163,7 @@ function onStart(triggerId)
         setState(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "is_exam_week", "false")
+        setChatVar(triggerId, "week_schedule_message", getWeekSchedule(1))
         setChatVar(triggerId, "day_of_week", "1")
         setChatVar(triggerId, "day_of_week_name", "월요일")
         setState(triggerId, "current_time", "오전")
@@ -3558,6 +3560,7 @@ listenEdit("editInput", function(triggerId, data)
         setChatVar(triggerId, "last_processed_turn_id", "0")
         setChatVar(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "is_exam_week", "false")
+        setChatVar(triggerId, "week_schedule_message", getWeekSchedule(1))
         setChatVar(triggerId, "active_event", "none")
 
         -- RPG 시스템 리셋
@@ -3858,6 +3861,25 @@ local function getDayName(dayNum)
     return dayNames[dayNum] or "알 수 없음"
 end
 
+-- 주차별 학사 일정 메시지
+local function getWeekSchedule(weekNum)
+    local schedules = {
+        [1] = "신입생 오리엔테이션 및 하우스 배정",
+        [2] = "정규 수업 시작 / 하우스 필수 회의",
+        [3] = "정규 수업 진행중 / 동아리 활동",
+        [4] = "📝 1차 시험 주간",
+        [5] = "정규 수업 진행중",
+        [6] = "특별 수업 및 실습 주간",
+        [7] = "정규 수업 진행중",
+        [8] = "📝 2차 시험 주간",
+        [9] = "정규 수업 진행중",
+        [10] = "실전 훈련 및 퀘스트 주간",
+        [11] = "정규 수업 진행중 / 기말 준비",
+        [12] = "📝 기말 시험 주간"
+    }
+    return schedules[weekNum] or "정규 수업 진행중"
+end
+
 -- 시간 진행 함수
 local function progressTime(triggerId, isFullRest)
     local currentTime = getChatVar(triggerId, "current_time") or "오전"
@@ -3916,6 +3938,9 @@ local function progressTime(triggerId, isFullRest)
 
             setChatVar(triggerId, "week_of_season", tostring(weekOfSeason))
             setState(triggerId, "week_of_season", tostring(weekOfSeason))
+
+            -- 주차별 학사 일정 메시지 업데이트
+            setChatVar(triggerId, "week_schedule_message", getWeekSchedule(weekOfSeason))
 
             -- 시험 주차 체크 (4, 8, 12주)
             if weekOfSeason == 4 or weekOfSeason == 8 or weekOfSeason == 12 then
