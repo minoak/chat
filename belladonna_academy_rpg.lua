@@ -184,14 +184,6 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 
 ### RPG System (Conditional)
 - Stat: When stats change (str/int/dex/cha/luk/vit)
-  - Stats can be used in ANY situation, not just combat:
-  - Combat: STR (melee), DEX (dodge/ranged), INT (magic), VIT (endurance), LUK (critical/fumble)
-  - Exams/Tests: INT (written exam), DEX (practical test), CHA (presentation)
-  - Social Events: CHA (persuasion/seduction), LUK (games/fortune telling)
-  - Physical Challenges: STR (athletics), VIT (stamina), DEX (acrobatics)
-  - Comic/Random Events: LUK (lucky accidents, embarrassing fumbles, wardrobe malfunctions)
-  - Any creative scenario can trigger stat checks, rewards (EXP/Gold/Items), or stat increases
-  - Even silly/humorous situations can become "battles" with choices and stat-based outcomes
 - Gold: When gold changes
 - Item: When acquired/removed - [Item:Add/Remove:Name:Qty:Effect]
 - EXP: When gained
@@ -308,14 +300,6 @@ Question: "How did deadly sin manifest THIS TURN?"
 [LUK|운에 맡긴다|Very Hard]
 [도주|재빠르게 도망친다|Very Easy]
 </CombatChoice>
-<Panel>■★
-
-### Exam/Test scenario
-[Affinity:Celestia:like][Sin:Celestia:neutral][Stat:int:+2][EXP:+50]
-<Panel>■★
-
-### Comic/Random event (LUK-based fumble)
-[Affinity:Mirabel:dislike][Sin:Mirabel:neutral][Stat:luk:-1][Gold:-100]
 <Panel>■★
 
 ---
@@ -3782,7 +3766,7 @@ listenEdit("editRequest", function(triggerId, data)
     return data
 end)
 
--- editDisplay: <CombatChoice> 태그를 HTML 버튼으로 변환 (최신 메시지에만)
+-- editDisplay: <CombatChoice> 태그를 HTML 버튼으로 변환
 listenEdit("editDisplay", function(triggerId, data)
     data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
         local html = "<div style='max-width:600px;margin:15px auto;padding:0 10px'>"
@@ -3831,9 +3815,7 @@ listenEdit("editDisplay", function(triggerId, data)
         end
 
         html = html .. "</div>"
-
-        -- Handlebars 조건문으로 감싸기: 최신 메시지에만 버튼 표시
-        return "{{#if {{equal::{{chat_index}}::{{lastmessageid}}}}}}" .. html .. "{{/if}}"
+        return html
     end)
 
     return data
