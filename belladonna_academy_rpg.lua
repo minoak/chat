@@ -648,66 +648,25 @@ function updateRpgDisplayVars(triggerId)
     setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
     setState(triggerId, "player_combat_power_max", maxCombatPower)
 
-    -- 아이템 HTML 생성 및 함수 등록 (모든 아이템)
-    local itemsStr = getChatVar(triggerId, "player_items") or ""
-    local items = parseItemList(itemsStr)
-
+    -- 아이템 HTML 생성 (슬롯 15개 기반)
     local itemsHtml = ""
-    local sortedItems = {}
-    for name, count in pairs(items) do
-        if count > 0 then
-            table.insert(sortedItems, {name = name, count = count})
+    local hasItems = false
+
+    for i = 1, 15 do
+        local itemName = getChatVar(triggerId, "player_item_slot_" .. i .. "_name") or ""
+        local itemCount = getChatVar(triggerId, "player_item_slot_" .. i .. "_count") or "0"
+
+        if itemName ~= "" and itemCount ~= "0" then
+            hasItems = true
+            itemsHtml = itemsHtml .. string.format(
+                "<button type='button' risu-trigger='use_item_%d' class='rpg-item-button'>%s (%s)</button>",
+                i, itemName, itemCount
+            )
         end
     end
-    table.sort(sortedItems, function(a, b) return a.name < b.name end)
 
-    if #sortedItems == 0 then
+    if not hasItems then
         itemsHtml = "<span style='color: #666; font-style: italic;'>아이템 없음</span>"
-    else
-        for i, item in ipairs(sortedItems) do
-            -- 아이템 ID 생성 (함수명으로 사용)
-            local itemId = item.name:gsub("%s+", "_"):gsub("[^%w_가-힣]", "")
-            local itemName = item.name
-
-            -- HTML 버튼 생성
-            itemsHtml = itemsHtml .. string.format(
-                "<button type='button' risu-trigger='use_item_%s' class='rpg-item-button'>%s (%d)</button>",
-                itemId, item.name, item.count
-            )
-
-            -- 아이템 사용 함수 동적 등록
-            _G["use_item_" .. itemId] = function(tid)
-                local currentItems = parseItemList(getChatVar(tid, "player_items") or "")
-
-                if (currentItems[itemName] or 0) > 0 then
-                    -- 사용 중인 아이템 저장
-                    setChatVar(tid, "using_item", itemName)
-                    setState(tid, "using_item", itemName)
-
-                    -- AI가 생성한 효과도 함께 저장
-                    local effectStr = getChatVar(tid, "item_effect_" .. itemName) or ""
-                    setChatVar(tid, "using_item_effect", effectStr)
-                    setState(tid, "using_item_effect", effectStr)
-
-                    -- 아이템 즉시 차감 (AI 응답에서 반환 태그 있으면 복원됨)
-                    currentItems[itemName] = currentItems[itemName] - 1
-                    local newItemsStr = serializeItemList(currentItems)
-                    setChatVar(tid, "player_items", newItemsStr)
-                    setState(tid, "player_items", newItemsStr)
-
-                    -- 슬롯 변수 및 HTML 업데이트
-                    updateItemSlotVars(tid)
-                    updateRpgDisplayVars(tid)
-
-                    -- 스냅샷도 즉시 업데이트
-                    setChatVar(tid, "snapshot_player_items", newItemsStr)
-
-                    log(string.format("🎒 아이템 사용: %s (즉시 차감)", itemName))
-                else
-                    log(string.format("⚠️ %s 아이템이 없습니다", itemName))
-                end
-            end
-        end
     end
 
     setChatVar(triggerId, "player_items_html", itemsHtml)
@@ -928,8 +887,8 @@ function updateItemSlotVars(triggerId)
     end
     table.sort(sortedItems, function(a, b) return a.name < b.name end)
 
-    -- 각 슬롯 변수 설정 (최대 5개)
-    for i = 1, 5 do
+    -- 각 슬롯 변수 설정 (최대 15개)
+    for i = 1, 15 do
         if sortedItems[i] then
             local itemName = sortedItems[i].name
             local itemCount = sortedItems[i].count
@@ -3788,8 +3747,51 @@ listenEdit("editInput", function(triggerId, data)
 end)
 
 -- ============================================
--- 아이템 사용 버튼 함수는 updateRpgDisplayVars에서 동적 등록됨
+-- 아이템 사용 버튼 함수 등록 (risu-trigger용)
 -- ============================================
+
+-- 슬롯 N번 아이템 사용 (1~15)
+for i = 1, 15 do
+    _G["use_item_" .. i] = function(triggerId)
+        local itemName = getChatVar(triggerId, "player_item_slot_" .. i .. "_name") or ""
+
+        if itemName == "" then
+            log(string.format("⚠️ 슬롯%d에 아이템이 없습니다", i))
+            return
+        end
+
+        local itemsStr = getChatVar(triggerId, "player_items") or ""
+        local items = parseItemList(itemsStr)
+
+        if (items[itemName] or 0) <= 0 then
+            log(string.format("⚠️ %s 아이템이 없습니다", itemName))
+            return
+        end
+
+        -- 사용 중인 아이템 저장
+        setChatVar(triggerId, "using_item", itemName)
+        setState(triggerId, "using_item", itemName)
+
+        -- AI가 생성한 효과도 함께 저장
+        local effectStr = getChatVar(triggerId, "item_effect_" .. itemName) or ""
+        setChatVar(triggerId, "using_item_effect", effectStr)
+        setState(triggerId, "using_item_effect", effectStr)
+
+        -- 아이템 즉시 차감 (AI 응답에서 반환 태그 있으면 복원됨)
+        items[itemName] = items[itemName] - 1
+        local newItemsStr = serializeItemList(items)
+        setChatVar(triggerId, "player_items", newItemsStr)
+        setState(triggerId, "player_items", newItemsStr)
+
+        -- 슬롯 변수 업데이트
+        updateItemSlotVars(triggerId)
+
+        -- 스냅샷도 즉시 업데이트
+        setChatVar(triggerId, "snapshot_player_items", newItemsStr)
+
+        log(string.format("🎒 슬롯%d 아이템 사용: %s (즉시 차감)", i, itemName))
+    end
+end
 
 -- 전투 선택지 버튼 등록 (combat_choice_1 ~ combat_choice_6)
 for i = 1, 6 do
@@ -3901,9 +3903,9 @@ log("🌐 한영 병기 출력 텍스트")
 log("🎮 RPG: Stats, Gold, Items, Traits (서술용), EXP/Level")
 log("👨‍⚖️ 보조모델: STATUS_OUTPUT_INSTRUCTIONS_v2.0.md 참조")
 log("🔄 명령어: /status, /schedule, /reset, /test")
-log("🎒 아이템: 동적 HTML 생성, 접을 수 있는 인벤토리, 모든 아이템 표시")
+log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 최대 15개 표시")
 log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
-log("🔘 아이템 버튼: 동적 등록 (use_item_[아이템명])")
+log("🔘 아이템 버튼: use_item_1~15 등록 완료")
 log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
 log("📺 editDisplay 리스너: <CombatChoice> 태그를 HTML 버튼으로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel)")
