@@ -1911,9 +1911,10 @@ function buildAuxiliaryPrompt(triggerId, mainResponse)
     local time = getChatVar(triggerId, "current_time") or "Unknown"
     local season = getChatVar(triggerId, "current_season") or "봄"
     local week = getChatVar(triggerId, "week_of_season") or "1"
+    local dayName = getChatVar(triggerId, "day_of_week_name") or "월요일"
 
     prompt = prompt .. "\n\n## Current Context:\n"
-    prompt = prompt .. string.format("Season: %s Week %s | Time: %s | Location: %s\n", season, week, time, location)
+    prompt = prompt .. string.format("Season: %s Week %s | Day: %s %s | Location: %s\n", season, week, dayName, time, location)
 
     -- 메인 AI 응답 추가
     prompt = prompt .. "\n## Main AI Response to Analyze:\n"
