@@ -3439,9 +3439,6 @@ onOutput = async(function(triggerId)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
     setChat(triggerId, -1, finalMessage)
 
-    -- 마지막 메시지 리로드하여 스크롤 위치 정상화
-    reloadChat(triggerId, -1)
-
     log(string.format("✅ 턴 %s 처리 완료", currentTurnId))
 end)
 
