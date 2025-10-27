@@ -195,6 +195,12 @@ You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's outpu
 - Effect: When magic/skill buffs/debuffs applied/removed - [Effect:Add/Remove:Name:StatBonus]
 - Trait: When {{user}} gains permanent trait (NOT for NPC traits)
 - Combat: When enemy/monster appears - [Combat:EnemyName:PowerValue]
+  - PowerValue guidelines (player average ~400):
+    - Weak enemies (tutorial, fodder): 150-250
+    - Easy enemies (early mobs): 250-350
+    - Normal enemies (standard combat): 350-500
+    - Strong enemies (dangerous foes): 500-650
+    - Boss enemies (dungeon boss, etc): 650-900+
   - MUST generate <CombatChoice> with 6 options immediately after [Combat:] tag
   - Combat End: When combat ends - [Combat:End]
 
@@ -250,7 +256,7 @@ Question: "How did deadly sin manifest THIS TURN?"
 [Effect:Add:축복:str+15] - Buff applied
 [Effect:Remove:축복] - Buff removed
 [Trait:Name:Description] - Player trait only
-[Combat:Goblin:45] - Combat encounter (enemy name:power level)
+[Combat:Goblin:280] - Combat encounter (enemy name:power level)
 [Combat:End] - Combat ended
 <CombatChoice>
 [STR|Description|Difficulty]
@@ -291,7 +297,7 @@ Question: "How did deadly sin manifest THIS TURN?"
 <Panel>■★
 
 ### Combat encounter
-[Affinity:Cassandra:neutral][Sin:Cassandra:neutral][Combat:Goblin:45]
+[Affinity:Cassandra:neutral][Sin:Cassandra:neutral][Combat:Goblin:280]
 <CombatChoice>
 [STR|검으로 베어넘긴다|Easy]
 [DEX|재빠르게 피한 후 반격한다|Normal]
