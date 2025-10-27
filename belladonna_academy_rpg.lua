@@ -199,6 +199,15 @@ Stats: str(strength), int(intelligence), dex(dexterity), cha(charisma), luk(luck
 Range: 0-100
 Initial assignment: Analyze {{user}} persona, assign 40-70 (default 50)
 
+**Stats can be used in ANY situation, not just combat:**
+- Combat: STR (melee), DEX (dodge/ranged), INT (magic), VIT (endurance), LUK (critical/fumble)
+- Exams/Tests: INT (written exam), DEX (practical test), CHA (presentation)
+- Social Events: CHA (persuasion/seduction), LUK (games/fortune telling)
+- Physical Challenges: STR (athletics), VIT (stamina), DEX (acrobatics)
+- Comic/Random Events: LUK (lucky accidents, embarrassing fumbles, wardrobe malfunctions)
+- Any creative scenario can trigger stat checks, rewards (EXP/Gold/Items), or stat increases
+- Even silly/humorous situations can become "battles" with choices and stat-based outcomes
+
 ### Gold: [Gold:±value]
 Quest rewards, purchases, trading
 
@@ -244,6 +253,14 @@ Conditions: always, vs_X (vs_dragons), low_hp, high_hp, in_combat, night_time, d
 [Season:여름][Week:1][Time:오전]
 <Panel>■★
 No character interaction this turn, but new semester started
+
+### Exam/Test scenario
+[Affinity:Celestia:like][Sin:Celestia:neutral][Stat:int:+2][EXP:+50]
+<Panel>■★
+
+### Comic/Random event (LUK-based fumble)
+[Affinity:Mirabel:dislike][Sin:Mirabel:neutral][Stat:luk:-1][Gold:-100]
+<Panel>■★
 ]]
 
 -- ============================================
