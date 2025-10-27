@@ -1845,7 +1845,11 @@ function buildAuxiliaryPrompt(triggerId, mainResponse)
     prompt = prompt .. "\n## Main AI Response to Analyze:\n"
     prompt = prompt .. mainResponse
 
-    prompt = prompt .. "\n\n## Your Output (tags only):\n"
+    -- 캐시 무효화용 고유 ID (v166.3.1 cache fallback 이슈 우회)
+    local uniqueId = tostring(os.time()) .. "_" .. tostring(math.random(1000000))
+    prompt = prompt .. "\n\n<!-- Request ID: " .. uniqueId .. " -->\n"
+
+    prompt = prompt .. "\n## Your Output (tags only):\n"
 
     return prompt
 end
