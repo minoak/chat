@@ -3269,6 +3269,13 @@ onOutput = async(function(triggerId)
         return
     end
 
+    -- week_schedule_message 초기화 체크 (비어있으면 현재 주차 기준으로 설정)
+    if not getChatVar(triggerId, "week_schedule_message") or getChatVar(triggerId, "week_schedule_message") == "" then
+        local currentWeek = tonumber(getChatVar(triggerId, "week_of_season")) or 1
+        setChatVar(triggerId, "week_schedule_message", getWeekSchedule(currentWeek))
+        log(string.format("📋 학사 일정 초기화: Week %d", currentWeek))
+    end
+
     local currentTurnId = generateTurnId(triggerId)
     local lastTurnId = getChatVar(triggerId, "last_processed_turn_id") or "0"
 
