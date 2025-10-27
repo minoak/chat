@@ -1,149 +1,110 @@
 <!-- RPG Status Panel Template -->
 <!-- RisuAI 정규식 디스플레이 변환에서 <Panel>■★를 이 HTML로 치환하세요 -->
 
-<div class="rpg-status-panel" style="
-    border: 2px solid #8B4513;
-    padding: 15px;
-    margin: 15px 0;
-    background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%);
-    border-radius: 10px;
-    font-family: 'Noto Sans KR', serif;
-    color: #f0e6d2;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-">
-    <!-- 헤더 -->
-    <div style="
-        text-align: center;
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #FFD700;
-        margin-bottom: 12px;
-        border-bottom: 2px solid #8B4513;
-        padding-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    ">
-        ⚔️ RPG 스테이터스 ⚔️
-    </div>
+<style>
+.rpg-item-button {padding: 8px 16px; background: #00d4ff; color: #0a0a0a; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3); transition: all 0.2s ease; letter-spacing: 0.3px;}
+.rpg-item-button:hover {background: #00e5ff; box-shadow: 0 4px 12px rgba(0, 212, 255, 0.5); transform: translateY(-2px);}
+.rpg-item-button:active {background: #00b8d4; transform: translateY(0) scale(0.98);}
+.rpg-details {margin-bottom: 16px; padding: 16px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);}
+.rpg-details summary {font-weight: 700; color: #00d4ff; margin-bottom: 12px; font-size: 1.05em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
+.rpg-details summary::-webkit-details-marker {display: none;}
+.rpg-details summary::before {content: '▶ '; display: inline-block; transition: transform 0.2s;}
+.rpg-details[open] summary::before {transform: rotate(90deg);}
+.rpg-details-content {margin-top: 12px;}
+</style>
 
-    <!-- 기본 정보 -->
-    <div style="
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 12px;
-        padding: 10px;
-        background: rgba(139, 69, 19, 0.2);
-        border-radius: 5px;
-    ">
-        <div style="color: #87CEEB;">
-            <strong>📊 레벨:</strong> <span style="color: #FFD700;">{{getvar::player_level}}</span>
+<div class="rpg-status-panel" style="border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; margin: 15px auto; background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); max-width: 700px;">
+
+<!-- 헤더 -->
+<div style="text-align: center; font-size: 1.4em; font-weight: 700; color: #00d4ff; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 212, 255, 0.3); padding-bottom: 12px; letter-spacing: 1px;">RPG STATUS</div>
+
+<!-- 기본 정보 -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; padding: 16px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+    <div style="color: #ff5757; grid-column: 1 / -1;">
+        <strong style="color: #ff7979;">⚔ COMBAT POWER</strong>
+        <div style="display: flex; justify-content: space-between; margin: 6px 0 4px 0; font-size: 0.9em;">
+            <span style="color: #00d4ff;">{{getvar::player_combat_power}}</span>
+            <span style="color: #666;">{{getvar::player_combat_power_max}}</span>
         </div>
-        <div style="color: #90EE90;">
-            <strong>💰 골드:</strong> <span style="color: #FFD700;">{{getvar::player_gold}}G</span>
-        </div>
-        <div style="color: #DDA0DD; grid-column: 1 / -1;">
-            <strong>✨ 경험치:</strong>
-            <span style="color: #FFD700;">{{getvar::player_exp}}</span> /
-            <span style="color: #B0C4DE;">{{getvar::player_exp_to_next}}</span>
-            <div style="
-                width: 100%;
-                height: 8px;
-                background: #333;
-                border-radius: 4px;
-                margin-top: 4px;
-                overflow: hidden;
-            ">
-                <div style="
-                    width: {{getvar::player_exp_percent}}%;
-                    height: 100%;
-                    background: linear-gradient(90deg, #4CAF50, #8BC34A);
-                    transition: width 0.3s;
-                "></div>
-            </div>
+        <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden;">
+            <div style="width: calc({{getvar::player_combat_power}} / {{getvar::player_combat_power_max}} * 100%); height: 100%; background: linear-gradient(90deg, #ff5757, #ff7979); border-radius: 10px; transition: width 0.3s;"></div>
         </div>
     </div>
-
-    <!-- 스탯 -->
-    <div style="
-        margin-bottom: 12px;
-        padding: 10px;
-        background: rgba(139, 69, 19, 0.2);
-        border-radius: 5px;
-    ">
-        <div style="
-            font-weight: bold;
-            color: #DDA0DD;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        ">📈 능력치</div>
-        <div style="
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        ">
-            <div style="color: #FFB6C1;">
-                <strong style="color: #FF6B6B;">STR:</strong> <span style="color: #FFDAB9;">{{getvar::player_str}}</span>
-            </div>
-            <div style="color: #87CEEB;">
-                <strong style="color: #4FC3F7;">INT:</strong> <span style="color: #FFDAB9;">{{getvar::player_int}}</span>
-            </div>
-            <div style="color: #90EE90;">
-                <strong style="color: #66BB6A;">DEX:</strong> <span style="color: #FFDAB9;">{{getvar::player_dex}}</span>
-            </div>
-            <div style="color: #FFD700;">
-                <strong style="color: #FDD835;">CHA:</strong> <span style="color: #FFDAB9;">{{getvar::player_cha}}</span>
-            </div>
-            <div style="color: #DDA0DD;">
-                <strong style="color: #BA68C8;">LUK:</strong> <span style="color: #FFDAB9;">{{getvar::player_luk}}</span>
-            </div>
-            <div style="color: #FF6B6B;">
-                <strong style="color: #E53935;">VIT:</strong> <span style="color: #FFDAB9;">{{getvar::player_vit}}</span>
-            </div>
+    <div style="color: #aaa;">
+        <strong style="color: #00d4ff;">📊 LEVEL</strong>
+        <div style="font-size: 1.3em; font-weight: 700; color: #fff; margin-top: 4px;">{{getvar::player_level}}</div>
+    </div>
+    <div style="color: #aaa;">
+        <strong style="color: #ffd700;">💰 GOLD</strong>
+        <div style="font-size: 1.3em; font-weight: 700; color: #fff; margin-top: 4px;">{{getvar::player_gold}}</div>
+    </div>
+    <div style="color: #c792ea; grid-column: 1 / -1;">
+        <strong style="color: #c792ea;">✨ EXPERIENCE</strong>
+        <div style="display: flex; justify-content: space-between; margin: 6px 0 4px 0; font-size: 0.9em;">
+            <span style="color: #00d4ff;">{{getvar::player_exp}}</span>
+            <span style="color: #666;">{{getvar::player_exp_to_next}}</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden;">
+            <div style="width: {{getvar::player_exp_percent}}%; height: 100%; background: linear-gradient(90deg, #c792ea, #00d4ff); border-radius: 10px; transition: width 0.3s;"></div>
         </div>
     </div>
+</div>
 
-    <!-- 아이템 (있을 경우에만 표시) -->
-    <div style="
-        margin-bottom: 12px;
-        padding: 10px;
-        background: rgba(139, 69, 19, 0.2);
-        border-radius: 5px;
-        display: {{getvar::player_items_display}};
-    ">
-        <div style="
-            font-weight: bold;
-            color: #FFB6C1;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        ">🎒 소지 아이템</div>
-        <div style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        ">
+<!-- 스탯 -->
+<div style="margin-bottom: 16px; padding: 16px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+    <div style="font-weight: 700; color: #00d4ff; margin-bottom: 12px; font-size: 1.05em; letter-spacing: 0.5px;">ATTRIBUTES</div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <div style="background: rgba(255, 87, 87, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #ff5757;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">STR</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_str}}</div>
+        </div>
+        <div style="background: rgba(0, 212, 255, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #00d4ff;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">INT</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_int}}</div>
+        </div>
+        <div style="background: rgba(130, 255, 173, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #82ffad;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">DEX</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_dex}}</div>
+        </div>
+        <div style="background: rgba(255, 215, 0, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #ffd700;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">CHA</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_cha}}</div>
+        </div>
+        <div style="background: rgba(199, 146, 234, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #c792ea;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">LUK</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_luk}}</div>
+        </div>
+        <div style="background: rgba(255, 107, 107, 0.1); padding: 8px; border-radius: 6px; border-left: 3px solid #ff6b6b;">
+            <div style="color: #999; font-size: 0.75em; margin-bottom: 2px;">VIT</div>
+            <div style="color: #fff; font-size: 1.4em; font-weight: 700;">{{getvar::player_vit}}</div>
+        </div>
+    </div>
+</div>
+
+<!-- 인벤토리 (접을 수 있음) -->
+<details class="rpg-details" open>
+    <summary>🎒 INVENTORY</summary>
+    <div class="rpg-details-content">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             {{getvar::player_items_html}}
         </div>
     </div>
+</details>
 
-    <!-- Traits (있을 경우에만 표시) -->
-    <div style="
-        padding: 10px;
-        background: rgba(139, 69, 19, 0.2);
-        border-radius: 5px;
-        display: {{getvar::player_traits_display}};
-    ">
-        <div style="
-            font-weight: bold;
-            color: #B0C4DE;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        ">🌟 특성</div>
-        <div style="
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        ">
+<!-- 활성 효과 -->
+<div style="margin-bottom: 16px; padding: 16px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+    <div style="font-weight: 700; color: #00d4ff; margin-bottom: 12px; font-size: 1.05em; letter-spacing: 0.5px;">ACTIVE EFFECTS</div>
+    <div style="color: #c792ea; line-height: 1.8; font-size: 0.95em;">{{getvar::active_effects_display}}</div>
+</div>
+
+<!-- 특성 (접을 수 있음) -->
+<details class="rpg-details" open>
+    <summary>🌟 TRAITS</summary>
+    <div class="rpg-details-content">
+        <div style="color: #e0e0e0; line-height: 1.8; font-size: 0.95em;">
             {{getvar::player_traits_html}}
         </div>
     </div>
+</details>
+
 </div>
