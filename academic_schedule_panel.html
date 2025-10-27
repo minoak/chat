@@ -1,60 +1,45 @@
 <style>
-/* 호버 툴팁 스타일 */
 .calendar-day {
-  position: relative;
-  cursor: pointer;
-}
-
-.calendar-day .tooltip {
-  visibility: hidden;
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #1a1a2e;
-  border: 2px solid #c9a961;
-  color: #fff;
-  text-align: center;
-  padding: 10px;
-  border-radius: 8px;
-  white-space: nowrap;
-  z-index: 1000;
+  height: 45px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transition: opacity 0.3s, visibility 0.3s;
+  border: 2px solid #444;
+  background: #1a1a2e;
+  color: #999;
 }
 
-.calendar-day:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-.calendar-day .tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #c9a961 transparent transparent transparent;
-}
-
-/* 계절별 현재 날짜 테두리 색상 */
-.spring-current { border: 3px solid #ffa8d5 !important; box-shadow: 0 0 15px rgba(255, 168, 213, 0.6); }
-.summer-current { border: 3px solid #ffd700 !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
-.autumn-current { border: 3px solid #ff8c42 !important; box-shadow: 0 0 15px rgba(255, 140, 66, 0.6); }
-.winter-current { border: 3px solid #87ceeb !important; box-shadow: 0 0 15px rgba(135, 206, 235, 0.6); }
-
-/* 펄스 애니메이션 */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+.calendar-day.past {
+  background: #0a0a0a;
+  border-color: #333;
 }
 
 .calendar-day.current {
+  border: 3px solid gold;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
   animation: pulse 2s infinite;
+}
+
+.calendar-day.current.spring { border-color: #ffa8d5; box-shadow: 0 0 15px rgba(255, 168, 213, 0.6); }
+.calendar-day.current.summer { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+.calendar-day.current.autumn { border-color: #ff8c42; box-shadow: 0 0 15px rgba(255, 140, 66, 0.6); }
+.calendar-day.current.winter { border-color: #87ceeb; box-shadow: 0 0 15px rgba(135, 206, 235, 0.6); }
+
+.calendar-day.weekend {
+  background: #2a1a3e;
+  border-color: #552;
+  color: #c9a;
+}
+
+.calendar-day.weekend.past {
+  background: #1a0a2a;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 </style>
 
@@ -62,180 +47,116 @@
 
   <div style="text-align: center; border-bottom: 2px solid #c9a961; padding-bottom: 12px; margin-bottom: 20px;">
     <h2 style="color: #c9a961; margin: 0; font-size: 24px;">🥀 Belladonna Academy</h2>
-    <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">정보 패널</p>
+    <p style="color: #999; margin: 5px 0 0 0; font-size: 13px;">학사 일정</p>
   </div>
 
-  <!-- 달력 섹션 -->
+  <!-- 현재 시즌 & 주차 정보 -->
   <div style="background-color: #16213e; border: 2px solid #c9a961; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
 
-    <!-- 계절별 제목 + 현재 주차 표시 -->
     {{#if {{equal::{{getvar::is_spring}}::true}}}}
-    <h3 style="color: #ffa8d5; text-align: center; margin: 0 0 10px 0; font-size: 20px;">🌸 봄 학기 - Week {{getvar::week_of_season}}</h3>
-    {{/if}}
-    {{#if {{equal::{{getvar::is_summer}}::true}}}}
-    <h3 style="color: #ffd700; text-align: center; margin: 0 0 10px 0; font-size: 20px;">☀️ 여름 학기 - Week {{getvar::week_of_season}}</h3>
-    {{/if}}
-    {{#if {{equal::{{getvar::is_autumn}}::true}}}}
-    <h3 style="color: #ff8c42; text-align: center; margin: 0 0 10px 0; font-size: 20px;">🍂 가을 학기 - Week {{getvar::week_of_season}}</h3>
-    {{/if}}
-    {{#if {{equal::{{getvar::is_winter}}::true}}}}
-    <h3 style="color: #87ceeb; text-align: center; margin: 0 0 10px 0; font-size: 20px;">❄️ 겨울 학기 - Week {{getvar::week_of_season}}</h3>
-    {{/if}}
+    <h3 style="text-align: center; margin: 0 0 8px 0; font-size: 18px; color: #ffa8d5;">🌸 {{getvar::current_season}} 학기 - Week {{getvar::week_of_season}}</h3>
+    {{:else}}{{#if {{equal::{{getvar::is_summer}}::true}}}}
+    <h3 style="text-align: center; margin: 0 0 8px 0; font-size: 18px; color: #ffd700;">☀️ {{getvar::current_season}} 학기 - Week {{getvar::week_of_season}}</h3>
+    {{:else}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}
+    <h3 style="text-align: center; margin: 0 0 8px 0; font-size: 18px; color: #ff8c42;">🍂 {{getvar::current_season}} 학기 - Week {{getvar::week_of_season}}</h3>
+    {{:else}}{{#if {{equal::{{getvar::is_winter}}::true}}}}
+    <h3 style="text-align: center; margin: 0 0 8px 0; font-size: 18px; color: #87ceeb;">❄️ {{getvar::current_season}} 학기 - Week {{getvar::week_of_season}}</h3>
+    {{:else}}
+    <h3 style="text-align: center; margin: 0 0 8px 0; font-size: 18px; color: #c9a961;">{{getvar::current_season}} 학기 - Week {{getvar::week_of_season}}</h3>
+    {{/if}}{{/if}}{{/if}}{{/if}}
 
     <p style="color: #999; text-align: center; margin: 0 0 15px 0; font-size: 12px;">
-      {{getvar::current_time}} | {{getvar::day_of_week}}일차
+      {{getvar::current_time}} | Day {{getvar::day_of_week}}
     </p>
 
-    <!-- 현재 주차 달력만 표시 -->
-    <div style="margin-bottom: 12px;">
-      <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+    <!-- 1주일 달력 -->
+    {{#if {{equal::{{getvar::is_spring}}::true}}}}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 15px;">
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::1}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}past{{/if}}{{/if}}">월</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::2}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}past{{/if}}{{/if}}">화</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::3}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}past{{/if}}{{/if}}">수</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::4}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}past{{/if}}{{/if}}">목</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::5}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}past{{/if}}{{/if}}">금</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::6}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}past{{/if}}{{/if}}">토</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::7}}}}current spring{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}past{{/if}}{{/if}}">일</div>
+    </div>
+    {{:else}}{{#if {{equal::{{getvar::is_summer}}::true}}}}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 15px;">
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::1}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}past{{/if}}{{/if}}">월</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::2}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}past{{/if}}{{/if}}">화</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::3}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}past{{/if}}{{/if}}">수</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::4}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}past{{/if}}{{/if}}">목</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::5}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}past{{/if}}{{/if}}">금</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::6}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}past{{/if}}{{/if}}">토</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::7}}}}current summer{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}past{{/if}}{{/if}}">일</div>
+    </div>
+    {{:else}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 15px;">
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::1}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}past{{/if}}{{/if}}">월</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::2}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}past{{/if}}{{/if}}">화</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::3}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}past{{/if}}{{/if}}">수</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::4}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}past{{/if}}{{/if}}">목</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::5}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}past{{/if}}{{/if}}">금</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::6}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}past{{/if}}{{/if}}">토</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::7}}}}current autumn{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}past{{/if}}{{/if}}">일</div>
+    </div>
+    {{:else}}{{#if {{equal::{{getvar::is_winter}}::true}}}}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 15px;">
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::1}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}past{{/if}}{{/if}}">월</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::2}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}past{{/if}}{{/if}}">화</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::3}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}past{{/if}}{{/if}}">수</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::4}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}past{{/if}}{{/if}}">목</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::5}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}past{{/if}}{{/if}}">금</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::6}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}past{{/if}}{{/if}}">토</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::7}}}}current winter{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}past{{/if}}{{/if}}">일</div>
+    </div>
+    {{:else}}
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 15px;">
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::1}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}past{{/if}}{{/if}}">월</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::2}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}past{{/if}}{{/if}}">화</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::3}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}past{{/if}}{{/if}}">수</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::4}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}past{{/if}}{{/if}}">목</div>
+      <div class="calendar-day {{#if {{equal::{{getvar::day_of_week}}::5}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}past{{/if}}{{/if}}">금</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::6}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}past{{/if}}{{/if}}">토</div>
+      <div class="calendar-day weekend {{#if {{equal::{{getvar::day_of_week}}::7}}}}current{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}past{{/if}}{{/if}}">일</div>
+    </div>
+    {{/if}}{{/if}}{{/if}}{{/if}}
 
-        <!-- 평일 5칸 -->
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==1}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==1}}}}#1a1a2e{{:else}}{{#if {{? {{getvar::day_of_week}}>1}}}}#0a0a0a{{:else}}#1a1a2e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=1}}}}#333{{:else}}#555{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          월
-          <span class="tooltip">
-            월요일<br>
-            {{#if {{? {{getvar::day_of_week}}==1}}}}
-              {{#if {{equal::{{getvar::current_time}}::오전}}}}☀️ 오전{{:else}}🌙 오후{{/if}}<br>
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>1}}}}
-                ✓ 완료
-              {{:else}}
-                📅 예정
-              {{/if}}
-            {{/if}}
-          </span>
-        </div>
+    <!-- 학사 일정 요약 -->
+    {{#if {{equal::{{getvar::is_spring}}::true}}}}
+    <div style="background-color: #1a1a2e; border-left: 4px solid #ffa8d5; padding: 10px; border-radius: 4px;">
+      <p style="color: #ffa8d5; margin: 0 0 4px 0; font-size: 13px; font-weight: bold;">📅 Week {{getvar::week_of_season}}</p>
+    {{:else}}{{#if {{equal::{{getvar::is_summer}}::true}}}}
+    <div style="background-color: #1a1a2e; border-left: 4px solid #ffd700; padding: 10px; border-radius: 4px;">
+      <p style="color: #ffd700; margin: 0 0 4px 0; font-size: 13px; font-weight: bold;">📅 Week {{getvar::week_of_season}}</p>
+    {{:else}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}
+    <div style="background-color: #1a1a2e; border-left: 4px solid #ff8c42; padding: 10px; border-radius: 4px;">
+      <p style="color: #ff8c42; margin: 0 0 4px 0; font-size: 13px; font-weight: bold;">📅 Week {{getvar::week_of_season}}</p>
+    {{:else}}{{#if {{equal::{{getvar::is_winter}}::true}}}}
+    <div style="background-color: #1a1a2e; border-left: 4px solid #87ceeb; padding: 10px; border-radius: 4px;">
+      <p style="color: #87ceeb; margin: 0 0 4px 0; font-size: 13px; font-weight: bold;">📅 Week {{getvar::week_of_season}}</p>
+    {{:else}}
+    <div style="background-color: #1a1a2e; border-left: 4px solid #c9a961; padding: 10px; border-radius: 4px;">
+      <p style="color: #c9a961; margin: 0 0 4px 0; font-size: 13px; font-weight: bold;">📅 Week {{getvar::week_of_season}}</p>
+    {{/if}}{{/if}}{{/if}}{{/if}}
 
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==2}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==2}}}}#1a1a2e{{:else}}{{#if {{? {{getvar::day_of_week}}>2}}}}#0a0a0a{{:else}}#1a1a2e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=2}}}}#333{{:else}}#555{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          화
-          <span class="tooltip">
-            화요일<br>
-            {{#if {{? {{getvar::day_of_week}}==2}}}}
-              {{#if {{equal::{{getvar::current_time}}::오전}}}}☀️ 오전{{:else}}🌙 오후{{/if}}<br>
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>2}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==3}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==3}}}}#1a1a2e{{:else}}{{#if {{? {{getvar::day_of_week}}>3}}}}#0a0a0a{{:else}}#1a1a2e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=3}}}}#333{{:else}}#555{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          수
-          <span class="tooltip">
-            수요일<br>
-            {{#if {{? {{getvar::day_of_week}}==3}}}}
-              {{#if {{equal::{{getvar::current_time}}::오전}}}}☀️ 오전{{:else}}🌙 오후{{/if}}<br>
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>3}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==4}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==4}}}}#1a1a2e{{:else}}{{#if {{? {{getvar::day_of_week}}>4}}}}#0a0a0a{{:else}}#1a1a2e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=4}}}}#333{{:else}}#555{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          목
-          <span class="tooltip">
-            목요일<br>
-            {{#if {{? {{getvar::day_of_week}}==4}}}}
-              {{#if {{equal::{{getvar::current_time}}::오전}}}}☀️ 오전{{:else}}🌙 오후{{/if}}<br>
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>4}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==5}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==5}}}}#1a1a2e{{:else}}{{#if {{? {{getvar::day_of_week}}>5}}}}#0a0a0a{{:else}}#1a1a2e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=5}}}}#333{{:else}}#555{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          금
-          <span class="tooltip">
-            금요일<br>
-            {{#if {{? {{getvar::day_of_week}}==5}}}}
-              {{#if {{equal::{{getvar::current_time}}::오전}}}}☀️ 오전{{:else}}🌙 오후{{/if}}<br>
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>5}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-        <!-- 주말 2칸 -->
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==6}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==6}}}}#2a1a3e{{:else}}{{#if {{? {{getvar::day_of_week}}>6}}}}#1a0a2a{{:else}}#2a1a3e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=6}}}}#552{{:else}}#775{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #c9a;">
-          토
-          <span class="tooltip">
-            토요일<br>
-            🌸 주말<br>
-            {{#if {{? {{getvar::day_of_week}}==6}}}}
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>6}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-        <div class="calendar-day {{#if {{? {{getvar::day_of_week}}==7}}}}current {{#if {{equal::{{getvar::is_spring}}::true}}}}spring-current{{/if}}{{#if {{equal::{{getvar::is_summer}}::true}}}}summer-current{{/if}}{{#if {{equal::{{getvar::is_autumn}}::true}}}}autumn-current{{/if}}{{#if {{equal::{{getvar::is_winter}}::true}}}}winter-current{{/if}}{{/if}}" style="height: 50px; background: {{#if {{? {{getvar::day_of_week}}==7}}}}#2a1a3e{{:else}}{{#if {{? {{getvar::day_of_week}}>7}}}}#1a0a2a{{:else}}#2a1a3e{{/if}}{{/if}}; border: 2px solid {{#if {{? {{getvar::day_of_week}}>=7}}}}#552{{:else}}#775{{/if}}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">
-          일
-          <span class="tooltip">
-            일요일<br>
-            🌸 주말<br>
-            {{#if {{? {{getvar::day_of_week}}==7}}}}
-              ✨ 현재 진행중
-            {{:else}}
-              {{#if {{? {{getvar::day_of_week}}>7}}}}✓ 완료{{:else}}📅 예정{{/if}}
-            {{/if}}
-          </span>
-        </div>
-
-      </div>
+      {{#if {{equal::{{getvar::week_of_season}}::1}}}}
+      <p style="color: #ccc; margin: 0; font-size: 12px;">신입생 오리엔테이션 및 하우스 배정</p>
+      {{:else}}{{#if {{equal::{{getvar::week_of_season}}::2}}}}
+      <p style="color: #ccc; margin: 0; font-size: 12px;">정규 수업 시작 / 하우스 필수 회의</p>
+      {{:else}}{{#if {{equal::{{getvar::week_of_season}}::3}}}}
+      <p style="color: #ccc; margin: 0; font-size: 12px;">정규 수업 진행중 / 동아리 활동</p>
+      {{:else}}{{#if {{equal::{{getvar::week_of_season}}::4}}}}
+      <p style="color: #ccc; margin: 0; font-size: 12px;">중간 평가 준비 기간</p>
+      {{:else}}
+      <p style="color: #ccc; margin: 0; font-size: 12px;">정규 수업 진행중</p>
+      {{/if}}{{/if}}{{/if}}{{/if}}
     </div>
 
   </div>
 
-  <!-- 학사일정 접이식 -->
-  <details style="margin-bottom: 15px;">
-    <summary style="background-color: #c9a961; color: #1a1a2e; padding: 12px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; list-style: none;">
-      📅 학사 일정
-    </summary>
-
-    <div style="background-color: #16213e; border: 1px solid #c9a961; border-radius: 6px; padding: 15px; margin-top: 10px;">
-
-      {{#if {{equal::{{getvar::is_spring}}::true}}}}
-      <h3 style="color: #ffa8d5; margin: 0 0 12px 0; font-size: 18px;">🌸 봄 학기</h3>
-      <p style="color: #ddd; margin: 0 0 12px 0; font-size: 13px;">벚꽃이 핀다. 새로운 시작. 서열이 재편된다.</p>
-
-      <!-- Week 1-2: Early Spring -->
-      {{#if {{? ({{getvar::week_of_season}}>=1) & ({{getvar::week_of_season}}<=2)}}}}
-      <div style="background-color: #1a1a2e; border: 2px solid #ffa8d5; border-left: 4px solid #ffa8d5; padding: 10px; margin-bottom: 8px; box-shadow: 0 0 10px rgba(255,168,213,0.3);">
-        <p style="color: #ffa8d5; margin: 0 0 4px 0; font-size: 14px; font-weight: bold;">🌱 1-2주차: 봄의 시작 (진행중)</p>
-        <p style="color: gold; margin: 0 0 4px 0; font-size: 13px;">📍 현재: {{getvar::week_of_season}}주차</p>
-        <p style="color: #ccc; margin: 0; font-size: 12px;">입학식, 하우스 배정, 신입생 오리엔테이션</p>
-      </div>
-      {{/if}}
-
-      <!-- (이하 생략 - 사용자가 제공한 학사일정 HTML과 동일) -->
-
-      {{/if}}
-
-      <div style="background-color: #c9a961; padding: 8px; border-radius: 4px; margin-top: 12px; text-align: center;">
-        <p style="margin: 0; color: #1a1a2e; font-size: 11px; font-weight: bold;">📋 매달 1주차: 하우스 필수 회의</p>
-      </div>
-    </div>
-  </details>
-
-  <!-- 캐릭터 위치 접이식 (사용자 제공 코드와 동일) -->
-  <details style="margin-bottom: 15px;">
-    <summary style="background-color: #c9a961; color: #1a1a2e; padding: 12px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; list-style: none;">
-      📍 캐릭터 위치
-    </summary>
-
-    <div style="background-color: #16213e; border: 1px solid #c9a961; border-radius: 6px; padding: 15px; margin-top: 10px;">
-      <!-- (생략 - 사용자 제공 코드와 동일) -->
-    </div>
-  </details>
-
   <div style="padding-top: 12px; border-top: 1px solid #c9a961; text-align: center;">
-    <p style="color: #808080; font-size: 11px; margin: 0;">헤더 클릭으로 펼치기/접기</p>
+    <p style="color: #808080; font-size: 11px; margin: 0;">활동 선택으로 시간이 자동 진행됩니다</p>
   </div>
 
 </div>
