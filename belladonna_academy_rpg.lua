@@ -3097,6 +3097,7 @@ function onStart(triggerId)
     end
     if not getChatVar(triggerId, "day_of_week") then
         setChatVar(triggerId, "day_of_week", "1")
+        setChatVar(triggerId, "day_of_week_name", "월요일")
     end
     if not getChatVar(triggerId, "current_time") then
         setChatVar(triggerId, "current_time", "오전")
@@ -3159,6 +3160,7 @@ function onStart(triggerId)
         setState(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "week_of_season", "1")
         setChatVar(triggerId, "day_of_week", "1")
+        setChatVar(triggerId, "day_of_week_name", "월요일")
         setState(triggerId, "current_time", "오전")
         setChatVar(triggerId, "current_time", "오전")
         setState(triggerId, "current_location", "")
@@ -3846,6 +3848,12 @@ for i = 1, 6 do
     end
 end
 
+-- 요일 이름 변환 함수
+local function getDayName(dayNum)
+    local dayNames = {"월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"}
+    return dayNames[dayNum] or "알 수 없음"
+end
+
 -- 시간 진행 함수
 local function progressTime(triggerId, isFullRest)
     local currentTime = getChatVar(triggerId, "current_time") or "오전"
@@ -3856,6 +3864,7 @@ local function progressTime(triggerId, isFullRest)
     -- 주말 내내 쉬기: 일요일 오후로 점프
     if isFullRest then
         setChatVar(triggerId, "day_of_week", "7")
+        setChatVar(triggerId, "day_of_week_name", "일요일")
         setChatVar(triggerId, "current_time", "오후")
         log("⏰ 시간 진행: 주말 내내 휴식 → 일요일 오후")
         return
@@ -3907,10 +3916,10 @@ local function progressTime(triggerId, isFullRest)
         end
 
         setChatVar(triggerId, "day_of_week", tostring(dayOfWeek))
+        setChatVar(triggerId, "day_of_week_name", getDayName(dayOfWeek))
         setChatVar(triggerId, "current_time", "오전")
 
-        local dayNames = {"월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"}
-        log(string.format("⏰ 시간 진행: 오후 → 다음날 오전 (%s, Day %d)", dayNames[dayOfWeek] or "?", dayOfWeek))
+        log(string.format("⏰ 시간 진행: 오후 → 다음날 오전 (%s, Day %d)", getDayName(dayOfWeek), dayOfWeek))
     end
 end
 
