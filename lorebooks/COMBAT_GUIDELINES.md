@@ -167,70 +167,40 @@ Describe the combat vividly based on this result:
 ```
 1. Action description
 2. 🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
-3. Outcome description (success/failure based on line 2)
+3. Outcome description
 ```
 
-**Available Variables:**
-- `{{getvar::combat_last_roll}}` - Dice value (1-20) rolled by system
-- `{{getvar::combat_last_bonus}}` - Stat bonus applied
-- `{{getvar::combat_last_total}}` - Final result (roll + bonus)
-- `{{getvar::combat_last_target}}` - Difficulty target number
-- `{{getvar::combat_last_result}}` - "성공" or "실패"
-- `{{getvar::combat_last_choice_stat}}` - Which stat was used (STR/DEX/INT/CHA/LUK)
+**Variables:**
+- `combat_last_roll` - 주사위 값 (1-20)
+- `combat_last_bonus` - 스탯 보너스
+- `combat_last_total` - 합계 (주사위 + 보너스)
+- `combat_last_target` - 목표 난이도
+- `combat_last_result` - 결과 ("성공" 또는 "실패")
+- `combat_last_choice_stat` - 사용한 스탯 (STR/DEX/INT/CHA/LUK)
 
-**Combat Description Guidelines:**
-- Vividly describe the action matching the chosen stat (STR = powerful strike, DEX = quick dodge, etc.)
-- Show dice calculation (line 2) between action and outcome
-- Describe outcome intensity based on margin (barely succeed vs overwhelming success)
-- Combat power changes are handled automatically by Lua - focus on narrative
-
-**Example:**
-```
-당신은 칼을 휘두른다!
-🎲 STR 체크: 14 + 2 = 16 (목표 15 이상)
-칼이 고블린의 가슴을 베었다! 고블린이 비틀거린다.
-```
+Example: `당신은 칼을 휘두른다! 🎲 STR 체크: 14 + 2 = 16 (목표 15 이상) 칼이 고블린을 베었다!`
 
 ### After Choice (Free Input):
 
 **Response Structure:**
 ```
 1. Action description
-2. 🎲 [STAT] 체크: {dice 1-20} + {bonus} = {total} (목표 {target} 이상)
-3. ✅ 성공! or ❌ 실패! (based on: total >= target)
+2. 🎲 [STAT] 체크: {주사위 1-20} + {보너스} = {합계} (목표 {난이도} 이상)
+3. 판정: 합계 >= 목표 → ✅ 성공! / 합계 < 목표 → ❌ 실패!
 4. Outcome description
 ```
 
-**Available Variables for Bonuses:**
-- `{{getvar::str_bonus}}` - STR bonus (physical attacks, strength)
-- `{{getvar::dex_bonus}}` - DEX bonus (evasion, agile actions)
-- `{{getvar::int_bonus}}` - INT bonus (magic, tactics, analysis)
-- `{{getvar::cha_bonus}}` - CHA bonus (persuasion, negotiation)
-- `{{getvar::luk_bonus}}` - LUK bonus (luck-based actions)
+**Stat Selection:**
+- STR - 물리 공격, 힘 사용 | DEX - 회피, 민첩한 행동 | INT - 마법, 분석, 전술
+- CHA - 설득, 협상, 대화 | LUK - 운에 의존하는 행동
 
-**Judgment Rules:**
-- total >= target → ✅ 성공!
-- total < target → ❌ 실패!
-- dice = 20 → 🌟 크리티컬 성공! (automatic success, 2x effect)
-- dice = 1 → 💀 펌블! (automatic failure, negative effect)
+**Variables:** `str_bonus`, `dex_bonus`, `int_bonus`, `cha_bonus`, `luk_bonus`
 
-**Difficulty Targets:**
-- Very Easy: 5 | Easy: 10 | Normal: 15 | Hard: 20 | Very Hard: 25
+**Difficulty:** Very Easy 5 / Easy 10 / Normal 15 / Hard 20 / Very Hard 25
 
-**Combat Description Guidelines:**
-- Select stat based on action type (hide = DEX, persuade = CHA, cast spell = INT, etc.)
-- Select dice number 1-20 randomly without bias
-- Show calculation clearly (line 2)
-- Apply judgment rule transparently (line 3)
-- Describe outcome matching the judgment
+**Special:** 주사위 20 = 🌟 크리티컬 (자동 성공, 2배 효과) / 주사위 1 = 💀 펌블 (자동 실패, 부정적 효과)
 
-**Example:**
-```
-당신은 나무 뒤로 몸을 숨긴다.
-🎲 DEX 체크: 15 + 2 = 17 (목표 10 이상)
-✅ 성공!
-완벽하게 은신했다. 고블린이 당신을 발견하지 못한다.
-```
+Example: `나무 뒤로 숨는다. 🎲 DEX 체크: 15 + 2 = 17 (목표 10 이상) ✅ 성공! 완벽하게 은신했다.`
 
 ### Combat End Condition:
 
