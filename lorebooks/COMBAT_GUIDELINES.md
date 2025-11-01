@@ -157,9 +157,26 @@ Describe the combat vividly based on this result:
 
 ### After Choice (Button):
 - Read the "Last Action Result" variables above to describe
+- **MUST display dice roll result to user in your response**
 - Respect the already-rolled dice result
 - Vividly describe outcomes based on success/failure
 - Combat power changes are automatically handled by Lua
+
+**Required Display Format:**
+```
+🎲 [STAT] 체크: {{getvar::combat_last_roll}} (d20) + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표: {{getvar::combat_last_target}})
+→ {{getvar::combat_last_result}}
+```
+
+**Example:**
+```
+당신은 칼을 휘두른다!
+
+🎲 STR 체크: 14 (d20) + 2 = 16 (목표: 15)
+→ 성공!
+
+칼이 고블린의 가슴을 베었다! 고블린이 비틀거린다.
+```
 
 ### After Choice (Free Input):
 - Strictly follow dice rules
