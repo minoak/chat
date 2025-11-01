@@ -20,11 +20,11 @@ Enemy: {{getvar::combat_enemy_name}} ({{getvar::combat_enemy_hp}} / {{getvar::co
 ## Combat Variables Reference
 
 Player Stats & Bonuses:
-- STR {{getvar::player_str}} → bonus {{getvar::str_bonus}} (physical attack, strength)
-- DEX {{getvar::player_dex}} → bonus {{getvar::dex_bonus}} (evasion, agility)
-- INT {{getvar::player_int}} → bonus {{getvar::int_bonus}} (magic, tactics, analysis)
-- CHA {{getvar::player_cha}} → bonus {{getvar::cha_bonus}} (persuasion, negotiation)
-- LUK {{getvar::player_luk}} → bonus {{getvar::luk_bonus}} (luck)
+- STR {{getvar::player_str}} → {{getvar::str_effective}} (bonus {{getvar::str_bonus}}) - physical attack, strength
+- DEX {{getvar::player_dex}} → {{getvar::dex_effective}} (bonus {{getvar::dex_bonus}}) - evasion, agility
+- INT {{getvar::player_int}} → {{getvar::int_effective}} (bonus {{getvar::int_bonus}}) - magic, tactics, analysis
+- CHA {{getvar::player_cha}} → {{getvar::cha_effective}} (bonus {{getvar::cha_bonus}}) - persuasion, negotiation
+- LUK {{getvar::player_luk}} → {{getvar::luk_effective}} (bonus {{getvar::luk_bonus}}) - luck
 
 Combat State:
 - combat_enemy_name: enemy name
