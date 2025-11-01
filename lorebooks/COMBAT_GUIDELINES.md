@@ -163,67 +163,74 @@ Describe the combat vividly based on this result:
 
 ### After Choice (Button):
 
-**Every button response must follow this exact structure:**
-
+**Response Structure:**
 ```
-[Line 1] Action description - vividly describe what the character does
-[Line 2] 🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
-[Line 3] Outcome description - describe the result based on success/failure
+1. Action description
+2. 🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
+3. Outcome description (success/failure based on line 2)
 ```
 
-**Why this structure:**
-- Line 2 shows the user what dice value was rolled by the system
-- Without Line 2, the user cannot verify the result is fair
-- The dice line must appear BETWEEN action and outcome
+**Available Variables:**
+- `{{getvar::combat_last_roll}}` - Dice value (1-20) rolled by system
+- `{{getvar::combat_last_bonus}}` - Stat bonus applied
+- `{{getvar::combat_last_total}}` - Final result (roll + bonus)
+- `{{getvar::combat_last_target}}` - Difficulty target number
+- `{{getvar::combat_last_result}}` - "성공" or "실패"
+- `{{getvar::combat_last_choice_stat}}` - Which stat was used (STR/DEX/INT/CHA/LUK)
 
-**Concrete Example:**
+**Combat Description Guidelines:**
+- Vividly describe the action matching the chosen stat (STR = powerful strike, DEX = quick dodge, etc.)
+- Show dice calculation (line 2) between action and outcome
+- Describe outcome intensity based on margin (barely succeed vs overwhelming success)
+- Combat power changes are handled automatically by Lua - focus on narrative
+
+**Example:**
 ```
 당신은 칼을 휘두른다!
-
 🎲 STR 체크: 14 + 2 = 16 (목표 15 이상)
-
-성공! 칼이 고블린의 가슴을 베었다!
+칼이 고블린의 가슴을 베었다! 고블린이 비틀거린다.
 ```
-
-**What NOT to do:**
-```
-당신은 칼을 휘두른다! 성공! 칼이 고블린의 가슴을 베었다!
-```
-↑ Missing Line 2 - User cannot see the dice roll
 
 ### After Choice (Free Input):
 
-**Every free input response must follow this exact structure:**
-
+**Response Structure:**
 ```
-[Line 1] Action description - describe the character's attempt
-[Line 2] 🎲 [STAT] 체크: {dice 1-20} + {bonus} = {total} (목표 {target} 이상)
-[Line 3] Judgment result - state ✅ 성공! or ❌ 실패! based on: total >= target
-[Line 4] Outcome description - describe what happens based on Line 3
+1. Action description
+2. 🎲 [STAT] 체크: {dice 1-20} + {bonus} = {total} (목표 {target} 이상)
+3. ✅ 성공! or ❌ 실패! (based on: total >= target)
+4. Outcome description
 ```
 
-**Why this structure:**
-- Line 2 shows what number you selected (1-20) and the calculation
-- Line 3 applies the judgment rule transparently
-- Without Lines 2-3, the user cannot verify fairness
-- You must select a number 1-20 randomly without bias
+**Available Variables for Bonuses:**
+- `{{getvar::str_bonus}}` - STR bonus (physical attacks, strength)
+- `{{getvar::dex_bonus}}` - DEX bonus (evasion, agile actions)
+- `{{getvar::int_bonus}}` - INT bonus (magic, tactics, analysis)
+- `{{getvar::cha_bonus}}` - CHA bonus (persuasion, negotiation)
+- `{{getvar::luk_bonus}}` - LUK bonus (luck-based actions)
 
-**Concrete Example:**
+**Judgment Rules:**
+- total >= target → ✅ 성공!
+- total < target → ❌ 실패!
+- dice = 20 → 🌟 크리티컬 성공! (automatic success, 2x effect)
+- dice = 1 → 💀 펌블! (automatic failure, negative effect)
+
+**Difficulty Targets:**
+- Very Easy: 5 | Easy: 10 | Normal: 15 | Hard: 20 | Very Hard: 25
+
+**Combat Description Guidelines:**
+- Select stat based on action type (hide = DEX, persuade = CHA, cast spell = INT, etc.)
+- Select dice number 1-20 randomly without bias
+- Show calculation clearly (line 2)
+- Apply judgment rule transparently (line 3)
+- Describe outcome matching the judgment
+
+**Example:**
 ```
 당신은 나무 뒤로 몸을 숨긴다.
-
 🎲 DEX 체크: 15 + 2 = 17 (목표 10 이상)
-
 ✅ 성공!
-
-당신은 완벽하게 은신했다. 고블린이 당신을 발견하지 못한다.
+완벽하게 은신했다. 고블린이 당신을 발견하지 못한다.
 ```
-
-**What NOT to do:**
-```
-당신은 나무 뒤로 몸을 숨긴다. 당신은 완벽하게 은신했다.
-```
-↑ Missing Lines 2-3 - No dice roll shown, result appears arbitrary
 
 ### Combat End Condition:
 
