@@ -63,27 +63,17 @@ Absolute Prohibitions:
 - ❌ Deciding success/failure without dice
 - ❌ Arbitrarily lowering difficulty
 
-Required Display Format (use CBS syntax):
+Required Display Format:
 ```
-{{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::stat_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
-🎲 [STAT] 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: {target})
-{{#when::{{gettempvar::dice}}::is::20}}
-🌟 크리티컬 성공!
-{{:else}}
-{{#when::{{gettempvar::dice}}::is::1}}
-💀 펌블!
-{{:else}}
-{{#when::{{gettempvar::total}}::>=::{target}}}
-✅ 성공!
-{{:else}}
-❌ 실패!
-{{/when}}
-{{/when}}
-{{/when}}
+🎲 [STAT] 체크: {dice 1-20} + {bonus} = {total} (목표 {target} 이상)
+→ Compare total to target, then state 성공 or 실패
 ```
 
-Replace {stat_bonus} with: str_bonus, dex_bonus, int_bonus, cha_bonus, or luk_bonus
-Replace {target} with numeric value: 5, 10, 15, 20, or 25
+**Judgment Rules:**
+- total >= target → ✅ 성공!
+- total < target → ❌ 실패!
+- dice = 20 → 🌟 크리티컬 성공! (automatic success, 2x effect)
+- dice = 1 → 💀 펌블! (automatic failure, negative effect)
 
 #### Free Input Examples
 
@@ -93,21 +83,8 @@ User: "나무 뒤에 숨어서 고블린을 관찰한다"
 
 당신은 조용히 나무 뒤로 몸을 숨긴다.
 
-{{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::dex_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
-🎲 DEX 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 10 - Easy)
-{{#when::{{gettempvar::dice}}::is::20}}
-🌟 크리티컬 성공!
-{{:else}}
-{{#when::{{gettempvar::dice}}::is::1}}
-💀 펌블!
-{{:else}}
-{{#when::{{gettempvar::total}}::>=::10}}
+🎲 DEX 체크: 15 + 2 = 17 (목표 10 이상)
 ✅ 성공!
-{{:else}}
-❌ 실패!
-{{/when}}
-{{/when}}
-{{/when}}
 
 당신은 완벽하게 은신했다. 고블린이 당신을 발견하지 못하고 두리번거린다.
 유리한 위치를 선점했다! (다음 공격 난이도 -1단계)
@@ -119,21 +96,8 @@ User: "고블린에게 협상을 시도한다"
 
 당신은 손을 들며 고블린에게 말을 건다.
 
-{{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::cha_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
-🎲 CHA 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 20 - Hard)
-{{#when::{{gettempvar::dice}}::is::20}}
-🌟 크리티컬 성공!
-{{:else}}
-{{#when::{{gettempvar::dice}}::is::1}}
-💀 펌블!
-{{:else}}
-{{#when::{{gettempvar::total}}::>=::20}}
-✅ 성공!
-{{:else}}
+🎲 CHA 체크: 6 + 1 = 7 (목표 20 이상)
 ❌ 실패!
-{{/when}}
-{{/when}}
-{{/when}}
 
 고블린은 당신의 말을 이해하지 못하고, 오히려 공격 기회로 여긴다!
 고블린의 칼이 당신의 팔을 스친다. (전투력 -15)
@@ -146,21 +110,8 @@ User: "주변의 돌을 집어 고블린의 머리에 던진다"
 
 당신은 재빠르게 날카로운 돌을 집어 던진다!
 
-{{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::dex_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
-🎲 DEX 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 15 - Normal)
-{{#when::{{gettempvar::dice}}::is::20}}
+🎲 DEX 체크: 20 + 2 = 22 (목표 15 이상)
 🌟 크리티컬 성공!
-{{:else}}
-{{#when::{{gettempvar::dice}}::is::1}}
-💀 펌블!
-{{:else}}
-{{#when::{{gettempvar::total}}::>=::15}}
-✅ 성공!
-{{:else}}
-❌ 실패!
-{{/when}}
-{{/when}}
-{{/when}}
 
 돌이 완벽한 궤적으로 날아가 고블린의 이마를 정확히 강타한다!
 고블린이 비틀거리며 쓰러진다! (적 전투력 -50, 기절)
@@ -212,25 +163,22 @@ Describe the combat vividly based on this result:
 
 ### After Choice (Button):
 - Read the "Last Action Result" variables above to describe
-- **MUST display dice roll result to user in your response**
+- **MUST display dice roll result in your response**
 - Respect the already-rolled dice result
 - Vividly describe outcomes based on success/failure
 - Combat power changes are automatically handled by Lua
 
-**Required Display Format:**
+**Display Format:**
 ```
-🎲 [STAT] 체크: {{getvar::combat_last_roll}} (d20) + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표: {{getvar::combat_last_target}})
-→ {{getvar::combat_last_result}}
+🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
+→ Based on the result, describe success or failure
 ```
 
 **Example:**
 ```
 당신은 칼을 휘두른다!
-
-🎲 STR 체크: 14 (d20) + 2 = 16 (목표: 15)
-→ 성공!
-
-칼이 고블린의 가슴을 베었다! 고블린이 비틀거린다.
+🎲 STR 체크: 14 + 2 = 16 (목표 15 이상)
+→ 성공! 칼이 고블린의 가슴을 베었다!
 ```
 
 ### After Choice (Free Input):
