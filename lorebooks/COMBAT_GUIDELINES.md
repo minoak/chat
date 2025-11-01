@@ -1,13 +1,18 @@
-{{#if_pure {{equal::{{getvar::combat_active}}::true}}}}
-
 @@depth 0
 
 ---
 
+# Player Combat Info
+
+Current Combat Power: {{getvar::player_combat_power_max}} (calculated from stats)
+
+---
+
+{{#if_pure {{equal::{{getvar::combat_active}}::true}}}}
+
 # ⚔️ In Combat
 
 Enemy: {{getvar::combat_enemy_name}} (Combat Power: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})
-Player Combat Power: {{getvar::player_combat_power}} / {{getvar::player_combat_power_max}}
 
 ---
 
