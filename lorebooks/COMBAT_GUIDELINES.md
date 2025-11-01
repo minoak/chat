@@ -162,24 +162,21 @@ Describe the combat vividly based on this result:
 - End with question: "어떻게 행동하시겠습니까?"
 
 ### After Choice (Button):
-⚠️ **CRITICAL REQUIREMENT: You MUST display dice roll in every combat action response**
 
-**Required Response Structure:**
-1. Describe the action vividly
-2. **Display dice roll result (ABSOLUTELY REQUIRED)**
-3. Describe the outcome based on result
+**Every button response must follow this exact structure:**
 
-**PROHIBITED:**
-- ❌ Describing outcome without showing dice roll
-- ❌ Skipping dice display and going straight to results
-- ❌ "The attack succeeds" without showing the roll
-
-**Display Format (COPY THIS):**
 ```
-🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
+[Line 1] Action description - vividly describe what the character does
+[Line 2] 🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
+[Line 3] Outcome description - describe the result based on success/failure
 ```
 
-**Example:**
+**Why this structure:**
+- Line 2 shows the user what dice value was rolled by the system
+- Without Line 2, the user cannot verify the result is fair
+- The dice line must appear BETWEEN action and outcome
+
+**Concrete Example:**
 ```
 당신은 칼을 휘두른다!
 
@@ -188,21 +185,45 @@ Describe the combat vividly based on this result:
 성공! 칼이 고블린의 가슴을 베었다!
 ```
 
+**What NOT to do:**
+```
+당신은 칼을 휘두른다! 성공! 칼이 고블린의 가슴을 베었다!
+```
+↑ Missing Line 2 - User cannot see the dice roll
+
 ### After Choice (Free Input):
-⚠️ **CRITICAL REQUIREMENT: You MUST roll dice and display the process for every action**
 
-**Required Response Structure:**
-1. Describe the action attempt
-2. **Display dice roll calculation (ABSOLUTELY REQUIRED)**
-3. State success or failure based on judgment rules
-4. Describe the outcome
+**Every free input response must follow this exact structure:**
 
-**PROHIBITED:**
-- ❌ Describing outcome without rolling/showing dice
-- ❌ "You successfully hide" without showing dice roll
-- ❌ Deciding result based on story preference instead of dice
+```
+[Line 1] Action description - describe the character's attempt
+[Line 2] 🎲 [STAT] 체크: {dice 1-20} + {bonus} = {total} (목표 {target} 이상)
+[Line 3] Judgment result - state ✅ 성공! or ❌ 실패! based on: total >= target
+[Line 4] Outcome description - describe what happens based on Line 3
+```
 
-Follow judgment rules strictly and display the roll process
+**Why this structure:**
+- Line 2 shows what number you selected (1-20) and the calculation
+- Line 3 applies the judgment rule transparently
+- Without Lines 2-3, the user cannot verify fairness
+- You must select a number 1-20 randomly without bias
+
+**Concrete Example:**
+```
+당신은 나무 뒤로 몸을 숨긴다.
+
+🎲 DEX 체크: 15 + 2 = 17 (목표 10 이상)
+
+✅ 성공!
+
+당신은 완벽하게 은신했다. 고블린이 당신을 발견하지 못한다.
+```
+
+**What NOT to do:**
+```
+당신은 나무 뒤로 몸을 숨긴다. 당신은 완벽하게 은신했다.
+```
+↑ Missing Lines 2-3 - No dice roll shown, result appears arbitrary
 
 ### Combat End Condition:
 
