@@ -72,9 +72,11 @@ Step 1: Stat Selection (choose appropriate stat for the situation)
 - CHA: persuasion, intimidation, negotiation, morale boost, deception
 - LUK: actions relying on luck, unpredictable attempts
 
-Step 2: Calculate Bonus
-Formula: floor((stat - 10) / 2)
-Example: STR 14 → (14-10)/2 = 2
+Step 2: Use Stat Bonus
+Use the bonus values from the stat display above:
+- str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
+- These bonuses are already calculated and account for active effects
+- Typical range: -3 to +10
 
 Step 3: Set Difficulty (critically important - assess situation accurately)
 - Very Easy (10): overwhelming advantage (defenseless enemy, perfect ambush)
