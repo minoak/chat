@@ -911,7 +911,14 @@ function updateRpgDisplayVars(triggerId)
 
     setChatVar(triggerId, "player_exp_percent", tostring(math.floor(expPercent)))
 
-    -- 최대 전투력 계산 (현재 스탯 기반)
+    -- 스탯 보너스 계산 및 저장 (효과 포함)
+    for _, stat in ipairs({"str", "dex", "int", "cha", "luk", "vit"}) do
+        local bonus = calculateEffectBonus(triggerId, stat)
+        setChatVar(triggerId, stat .. "_bonus", tostring(bonus))
+        setState(triggerId, stat .. "_bonus", bonus)
+    end
+
+    -- 최대 전투력 계산 (현재 스탯 기반, 효과 포함)
     local maxCombatPower = calculateCombatPower(triggerId)
     setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
     setState(triggerId, "player_combat_power_max", maxCombatPower)
