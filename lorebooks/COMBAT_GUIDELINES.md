@@ -162,29 +162,47 @@ Describe the combat vividly based on this result:
 - End with question: "어떻게 행동하시겠습니까?"
 
 ### After Choice (Button):
-- Read the "Last Action Result" variables above to describe
-- **MUST display dice roll result in your response**
-- Respect the already-rolled dice result
-- Vividly describe outcomes based on success/failure
-- Combat power changes are automatically handled by Lua
+⚠️ **CRITICAL REQUIREMENT: You MUST display dice roll in every combat action response**
 
-**Display Format:**
+**Required Response Structure:**
+1. Describe the action vividly
+2. **Display dice roll result (ABSOLUTELY REQUIRED)**
+3. Describe the outcome based on result
+
+**PROHIBITED:**
+- ❌ Describing outcome without showing dice roll
+- ❌ Skipping dice display and going straight to results
+- ❌ "The attack succeeds" without showing the roll
+
+**Display Format (COPY THIS):**
 ```
 🎲 [STAT] 체크: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (목표 {{getvar::combat_last_target}} 이상)
-→ Based on the result, describe success or failure
 ```
 
 **Example:**
 ```
 당신은 칼을 휘두른다!
+
 🎲 STR 체크: 14 + 2 = 16 (목표 15 이상)
-→ 성공! 칼이 고블린의 가슴을 베었다!
+
+성공! 칼이 고블린의 가슴을 베었다!
 ```
 
 ### After Choice (Free Input):
-- Strictly follow dice rules
-- MUST display dice roll process
-- Fair judgment without bias
+⚠️ **CRITICAL REQUIREMENT: You MUST roll dice and display the process for every action**
+
+**Required Response Structure:**
+1. Describe the action attempt
+2. **Display dice roll calculation (ABSOLUTELY REQUIRED)**
+3. State success or failure based on judgment rules
+4. Describe the outcome
+
+**PROHIBITED:**
+- ❌ Describing outcome without rolling/showing dice
+- ❌ "You successfully hide" without showing dice roll
+- ❌ Deciding result based on story preference instead of dice
+
+Follow judgment rules strictly and display the roll process
 
 ### Combat End Condition:
 
