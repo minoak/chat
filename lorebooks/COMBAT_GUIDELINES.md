@@ -77,11 +77,11 @@ Formula: floor((stat - 10) / 2)
 Example: STR 14 → (14-10)/2 = 2
 
 Step 3: Set Difficulty (critically important - assess situation accurately)
-- Very Easy (5): overwhelming advantage (defenseless enemy, perfect ambush)
-- Easy (10): favorable situation (high ground, wounded enemy)
-- Normal (15): balanced situation (frontal confrontation, normal action)
-- Hard (20): unfavorable situation (enemy has advantageous position, player wounded)
-- Very Hard (25): overwhelming disadvantage (surrounded, desperate situation)
+- Very Easy (10): overwhelming advantage (defenseless enemy, perfect ambush)
+- Easy (15): favorable situation (high ground, wounded enemy)
+- Normal (20): balanced situation (frontal confrontation, normal action)
+- Hard (25): unfavorable situation (enemy has advantageous position, player wounded)
+- Very Hard (30): overwhelming disadvantage (surrounded, desperate situation)
 
 Step 4: Roll Dice
 Select random number between 1-20 with uniform probability distribution.
