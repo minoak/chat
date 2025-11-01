@@ -67,7 +67,19 @@ Required Display Format (using CBS):
 ```
 {{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::stat_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
 🎲 [STAT] 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: {target})
-{{#when::{{gettempvar::dice}}::is::20}}🌟 크리티컬 성공!{{:else}}{{#when::{{gettempvar::dice}}::is::1}}💀 펌블!{{:else}}{{#when::{{gettempvar::total}}::>=::{target}}}✅ 성공!{{:else}}❌ 실패!{{/when}}{{/when}}{{/when}}
+{{#when::{{gettempvar::dice}}::is::20}}
+🌟 크리티컬 성공!
+{{:else}}
+{{#when::{{gettempvar::dice}}::is::1}}
+💀 펌블!
+{{:else}}
+{{#when::{{gettempvar::total}}::>=::{target}}}
+✅ 성공!
+{{:else}}
+❌ 실패!
+{{/when}}
+{{/when}}
+{{/when}}
 ```
 
 Replace {stat_bonus} with appropriate bonus variable (str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus)
@@ -83,7 +95,19 @@ User: "나무 뒤에 숨어서 고블린을 관찰한다"
 
 {{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::dex_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
 🎲 DEX 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 10 - Easy)
-{{#when::{{gettempvar::dice}}::is::20}}🌟 크리티컬 성공!{{:else}}{{#when::{{gettempvar::dice}}::is::1}}💀 펌블!{{:else}}{{#when::{{gettempvar::total}}::>=::10}}✅ 성공!{{:else}}❌ 실패!{{/when}}{{/when}}{{/when}}
+{{#when::{{gettempvar::dice}}::is::20}}
+🌟 크리티컬 성공!
+{{:else}}
+{{#when::{{gettempvar::dice}}::is::1}}
+💀 펌블!
+{{:else}}
+{{#when::{{gettempvar::total}}::>=::10}}
+✅ 성공!
+{{:else}}
+❌ 실패!
+{{/when}}
+{{/when}}
+{{/when}}
 
 당신은 완벽하게 은신했다. 고블린이 당신을 발견하지 못하고 두리번거린다.
 유리한 위치를 선점했다! (다음 공격 난이도 -1단계)
@@ -97,7 +121,19 @@ User: "고블린에게 협상을 시도한다"
 
 {{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::cha_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
 🎲 CHA 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 20 - Hard)
-{{#when::{{gettempvar::dice}}::is::20}}🌟 크리티컬 성공!{{:else}}{{#when::{{gettempvar::dice}}::is::1}}💀 펌블!{{:else}}{{#when::{{gettempvar::total}}::>=::20}}✅ 성공!{{:else}}❌ 실패!{{/when}}{{/when}}{{/when}}
+{{#when::{{gettempvar::dice}}::is::20}}
+🌟 크리티컬 성공!
+{{:else}}
+{{#when::{{gettempvar::dice}}::is::1}}
+💀 펌블!
+{{:else}}
+{{#when::{{gettempvar::total}}::>=::20}}
+✅ 성공!
+{{:else}}
+❌ 실패!
+{{/when}}
+{{/when}}
+{{/when}}
 
 고블린은 당신의 말을 이해하지 못하고, 오히려 공격 기회로 여긴다!
 고블린의 칼이 당신의 팔을 스친다. (전투력 -15)
@@ -112,7 +148,19 @@ User: "주변의 돌을 집어 고블린의 머리에 던진다"
 
 {{settempvar::dice::{{roll::1d20}}}}{{settempvar::bonus::{{getvar::dex_bonus}}}}{{settempvar::total::{{calc::{{gettempvar::dice}}+{{gettempvar::bonus}}}}}}
 🎲 DEX 체크: {{gettempvar::dice}} (d20) + {{gettempvar::bonus}} = {{gettempvar::total}} (목표: 15 - Normal)
-{{#when::{{gettempvar::dice}}::is::20}}🌟 크리티컬 성공!{{:else}}{{#when::{{gettempvar::dice}}::is::1}}💀 펌블!{{:else}}{{#when::{{gettempvar::total}}::>=::15}}✅ 성공!{{:else}}❌ 실패!{{/when}}{{/when}}{{/when}}
+{{#when::{{gettempvar::dice}}::is::20}}
+🌟 크리티컬 성공!
+{{:else}}
+{{#when::{{gettempvar::dice}}::is::1}}
+💀 펌블!
+{{:else}}
+{{#when::{{gettempvar::total}}::>=::15}}
+✅ 성공!
+{{:else}}
+❌ 실패!
+{{/when}}
+{{/when}}
+{{/when}}
 
 돌이 완벽한 궤적으로 날아가 고블린의 이마를 정확히 강타한다!
 고블린이 비틀거리며 쓰러진다! (적 전투력 -50, 기절)
