@@ -120,7 +120,7 @@ User: "주변의 돌을 집어 고블린의 머리에 던진다"
 
 ---
 
-{{#when::{{getvar::combat_last_choice_num}}::isnot::}}
+{{#if {{? {{getvar::combat_last_choice_num}} != 0}}}}
 
 ## 🎲 Last Action Result (Button Selection)
 
@@ -148,7 +148,7 @@ Describe the combat vividly based on this result:
 - On fumble: Additional negative effects
 - Lua automatically handles combat power calculations, no need to mention specific numbers
 
-{{/when}}
+{{/if}}
 
 ---
 
