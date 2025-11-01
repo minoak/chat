@@ -126,11 +126,11 @@ Dice Roll:
 - 🎯 Target: {{getvar::combat_last_target}} ({{getvar::combat_last_choice_diff}})
 - 🏆 Result: {{getvar::combat_last_result}}
 
-{{#if {{? {{getvar::combat_last_critical}} == "true"}}}}
+{{#if {{equal::{{getvar::combat_last_critical}}::true}}}}
 🌟 Critical Success! Additional effects occur!
 {{/if}}
 
-{{#if {{? {{getvar::combat_last_fumble}} == "true"}}}}
+{{#if {{equal::{{getvar::combat_last_fumble}}::true}}}}
 💀 Fumble! Negative effects occur!
 {{/if}}
 
