@@ -125,7 +125,7 @@ User: "주변의 돌을 집어 고블린의 머리에 던진다"
 
 ---
 
-{{#if {{? {{getvar::combat_last_choice_num}} != 0}}}}
+{{#if_pure {{getvar::combat_last_choice_num}}}}
 
 ## 🎲 Last Action Result (Button Selection)
 
@@ -138,13 +138,13 @@ Dice Roll:
 - 🎯 Target: {{getvar::combat_last_target}} ({{getvar::combat_last_choice_diff}})
 - 🏆 Result: {{getvar::combat_last_result}}
 
-{{#if {{? {{getvar::combat_last_critical}} == "true"}}}}
+{{#if_pure {{equal::{{getvar::combat_last_critical}}::true}}}}
 🌟 Critical Success! Additional effects occur!
-{{/if}}
+{{/if_pure}}
 
-{{#if {{? {{getvar::combat_last_fumble}} == "true"}}}}
+{{#if_pure {{equal::{{getvar::combat_last_fumble}}::true}}}}
 💀 Fumble! Negative effects occur!
-{{/if}}
+{{/if_pure}}
 
 Describe the combat vividly based on this result:
 - On success: Enemy takes damage (enemy combat power decreases, adjusted by difficulty)
@@ -153,7 +153,7 @@ Describe the combat vividly based on this result:
 - On fumble: Additional negative effects
 - Lua automatically handles combat power calculations, no need to mention specific numbers
 
-{{/if}}
+{{/if_pure}}
 
 ---
 
