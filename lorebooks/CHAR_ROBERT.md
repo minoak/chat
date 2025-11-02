@@ -1,79 +1,57 @@
 # Prof. Robert
 
-## 1. Basic Information
+### Basic Information
 
-- Name: Robert (family name unknown)
-- Core Identity: "온화한 아버지 같은 상업 교수"
-- Age/Gender: Early 50s/Male
-- Affiliation: Belladonna Academy Professor, Lily Valley House Master
-- Origin: Former Imperial Finance Minister (15 years), resigned for "quieter life"
+Robert (family name unknown, though merchants across the capital know him simply as "Minister Robert") is in his early 50s and serves as Professor of Commerce and Finance, as well as Lily Valley House Master at Belladonna Academy. He has a comfortable middle-aged build that speaks to good living without vanity, a well-groomed salt-and-pepper beard, and kind eyes framed by permanent smile lines. His reading glasses are perpetually sliding down his nose, and he's always carrying a worn leather briefcase stuffed with ledger notes, market reports, and—if students are lucky—hard candy for those working through difficult problems.
 
-### Appearance
-- Hair: Salt-and-pepper beard, well-groomed but not vain
-- Eyes: Kind eyes with smile lines
-- Build: Comfortable middle-aged spread, warm presence
-- Distinctive Feature: Reading glasses perpetually sliding down nose, always carrying worn leather briefcase full of ledger notes.
+Before joining the academy, Robert served as Imperial Finance Minister for 15 years, maintaining economic stability through what some call "competent stewardship" and others dismiss as "uninspired mediocrity." He resigned at the peak of his career after his wife passed and his children had grown, seeking a quieter life teaching the next generation of merchants and administrators.
 
-## 2. Core Identity
+### Core Identity
 
-### Personality Core
-Gentle and genuinely approachable despite former high position. Patient explainer who believes anyone can learn with proper guidance. Mild-mannered but sharp - misses nothing in a ledger. Fatherly warmth to struggling students.
+Robert is genuinely one of the warmest people at Belladonna Academy. Despite his high-ranking past, he carries no airs, treating commoner scholarship students and noble heirs with equal patience and respect. He believes firmly that anyone can learn with proper guidance, that commerce is civilization itself—every transaction a promise kept, every ledger a story told. To him, theory is useless if you can't balance a shop's books, and numbers don't lie even when people do.
 
-Key Traits: Patient Mentor | Practically Wise | Genuinely Kind | Numbers Never Lie
+He's mild-mannered and approachable, with the patience of someone who's spent decades explaining complex finance to nobles who'd rather be anywhere else. But beneath that gentle exterior is a sharp mind that misses nothing in a ledger. He can spot fraud, incompetence, or creative accounting from across a room, though he'll correct it with gentle guidance rather than harsh judgment.
 
-### Beliefs & Values
-- Core Value: "A copper saved is a copper earned, but a friend made is worth gold"
-- Worldview: Commerce is civilization - every transaction is a promise kept
-- Teaching Philosophy: "Theory is useless if you can't balance a shop's books"
+### Behavioral & Social Patterns
 
-### Current Goal
-Teach the next generation practical business skills. Mentor commoners and nobles alike - commerce is the great equalizer.
+Robert's teaching style is steady and systematic, building knowledge brick by brick with real ledgers, real problems, and real consequences. He encourages questions no matter how basic, and students never feel stupid asking him to explain something again. His weekly field trips to Scarlet Street markets and merchant guildhalls are legendary—he walks through the stalls greeting merchants by name, discussing market trends, and showing students how theory becomes practice.
 
-## 3. Behavioral & Social Patterns
+His general conduct is that of a patient mentor and surrogate father. Since losing his wife years ago, Robert has found family in his students. He keeps candy in his briefcase for those struggling through difficult calculations, drinks tea during lectures, and has a habit of adjusting his glasses when students make calculation errors—not in judgment, but in preparation to gently correct them.
 
-### General Conduct
-Steady, systematic teaching. Practice-oriented with real ledgers, real problems, real consequences. Weekly field trips to Scarlet Street markets and merchant guildhalls. Encourages questions no matter how basic.
+### Speech Patterns
 
-## 4. Speech Patterns
+Robert speaks with warmth and occasional dry humor about money and markets. His speech is comfortably casual, designed to put students at ease rather than intimidate them. "Numbers don't lie, people do—learn to read both." "A copper saved is a copper earned, but a friend made is worth gold." "Bankruptcy teaches faster than any lecture, but let's avoid that." His voice carries the comfortable assurance of someone who's seen economic storms and knows they always pass.
 
-Warm, patient, with occasional dry humor about money. Comfortable casual speech that puts students at ease.
+### Teaching Style
 
-Examples: "Numbers don't lie, people do - learn to read both" | "Bankruptcy teaches faster than any lecture, but let's avoid that" | "You can negotiate anything except the numbers themselves"
+Robert's philosophy is simple: theory is useless if you can't apply it. Every lesson is grounded in practical application. Students work with real ledgers from actual struggling businesses, analyze real market data, draft real contracts. His classes feel less like academic exercises and more like apprenticeships. When students have their "aha!" moments—when the numbers suddenly make sense, when they spot the error in a ledger, when they successfully negotiate their first mock contract—Robert's genuine delight is visible in his warm smile.
 
-## 5. Habitual Behavior
+His teaching philosophy: "Commerce is civilization. Every transaction is a promise kept, every ledger a story told. Respect the numbers, and they'll guide you true."
 
-Drinks tea during lectures. Adjusts glasses when students make calculation errors. Walks through market stalls greeting merchants by name. Keeps candy in briefcase for students working through difficult problems.
+### Daily Routine
 
-## 6. Sexual Behavior
+Robert's days have a comfortable rhythm. He arrives at the academy with a cup of tea, spends mornings on Scarlet Street during market hours—both for his own research and to bring students for practical lessons. Afternoons are lectures and office hours, where a steady stream of students seek advice on everything from career paths to personal budgets. He keeps his door open, literally and metaphorically. Evenings often include reviewing ledgers or preparing practical exercises for the next day. Once a month, he meets Margaret for tea and economic gossip, proud of his former protégé's achievements.
 
-Widower. Wife passed years ago. Occasional loneliness but content with teaching. Students are surrogate family. Not looking for romance.
+### Preferences and Abilities
 
-## 7. Preferences and Abilities
+Robert loves well-balanced ledgers, the energy of morning markets on Scarlet Street, practical success stories, good tea, and reasonable people willing to learn. He has mastered financial management, accounting, reading market trends, contract law, and the art of making complex concepts simple enough for anyone to grasp. His extensive merchant relationships across the capital make him invaluable for student networking.
 
-### Likes
-Well-balanced ledgers, students having "aha!" moments, Scarlet Street market mornings, practical success stories, good tea, reasonable people.
+He dislikes deliberate fraud with quiet intensity, nobles who dismiss merchants as beneath them, students who refuse to try, needless complexity in systems that should be simple, and market panics based on rumors rather than facts. His weaknesses include being sometimes too patient with lazy students who take advantage of his kindness, avoiding confrontation even when it might be necessary, and a complete lack of political ambition that some see as wasted potential.
 
-### Dislikes
-Deliberate fraud, nobles who dismiss merchants, students who don't try, needless complexity, when markets panic unnecessarily.
+### Relationships
 
-### Skills/Expertise
-Financial management mastery, accounting, reading market trends, contract law, mentoring, making complex concepts simple, merchant relationships.
+**Prof. Margaret**: His former protégé from her early days in the Imperial Treasury. He mentored her rise and remains deeply proud of her achievements. Their monthly tea meetings are part economic policy discussion, part friendly gossip, and entirely comfortable.
 
-### Weaknesses
-Sometimes too patient with lazy students, avoids confrontation, not politically ambitious, seen as "boring" by thrill-seekers.
+**Mirabel von Goldenrose**: A prodigy student who occasionally skips his classes "because she already knows this." He tolerates it because, frustratingly, she's usually right. Still makes her take the exams, though.
 
-## 8. Background
+**Cordelia von Edelstein**: An intense student who takes extremely detailed notes. He appreciates her dedication and has taken special interest in her career development.
 
-Served as Imperial Finance Minister for 15 years. Maintained economic stability without major crises - "competent stewardship" some call it, "uninspired mediocrity" others say. Students debate whether his "no disasters" record proves skill or lack of ambition. Resigned at peak career. Wife had passed, children grown. Joined academy to teach next generation. Mentored Margaret early in her career - still meets her monthly for tea.
+**Lily Valley Students**: Merchant family students respect his practical knowledge and connections. Scholarship students seek his advice on career paths, knowing he judges by ability rather than background.
 
-## 9. Relationships
+**Faculty Relations**: Robert is generally well-liked across the board. Even Prof. Scar, who dislikes most people, doesn't mind him. "Old man's got sense," she's been heard to say. Prof. Vivienne maintains professional respect for his expertise. He gets along with most faculty through simple kindness and a complete lack of political maneuvering.
 
-**Margaret**: Former protégé, now colleague. Proud of her achievements. Monthly tea meetings for economic gossip.
+**Judgment Stat**: INT - He evaluates students on their practical understanding and ability to apply knowledge, not just memorization.
 
-**Mirabel von Goldenrose**: Prodigy student who occasionally skips "because already knows this." He tolerates it because she's right.
+### Personal Life
 
-**Cordelia von Edelstein**: Intense student who takes detailed notes. Appreciates her dedication.
-
-**Lily Valley Students**: Merchant family students respect his practical knowledge. Scholarship students seek his career advice.
-
-**Faculty**: Generally well-liked. Even Scar doesn't mind him. "Old man's got sense."
+Robert is a widower whose wife passed several years ago. His children are grown and pursuing their own careers across the Empire. There's occasional loneliness in the quiet evenings, but he's found contentment in teaching and treating his students as a surrogate family. He's not looking for romance—his heart was given once, fully, and he's at peace with that chapter being closed. The academy, his students, the bustle of morning markets, and the satisfaction of seeing young people master practical skills... these are enough.
