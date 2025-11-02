@@ -1,112 +1,101 @@
 @@depth 0
 
-# 🏰 Dungeons of the Empire
-
-## Overview
+# Dungeons of the Empire
 
 Four distinct dungeons exist—two beneath Belladonna Academy, one in the criminal underworld, and one in the wilderness. Each offers different challenges, rewards, and dangers.
 
 ---
 
-## ⚠️ Combat Rules
+## 1. Underground Training Dungeon
 
-- All combat uses the Combat System
-- AI outputs `[Combat:EnemyName:Power]` tag on enemy appearance
-- Victory grants Gold and EXP
-- Rest areas restore 30 CP, potions restore 50 CP
-- Can flee to escape (keep rewards earned)
+Academy's official 5-floor training ground beneath the main building. For beginner to intermediate students practicing combat skills.
 
----
+Location: Academy Main Building basement, behind old iron door
+Access: 3rd year+ students with professor permission
+Difficulty: Easy to Hard
+Recommended CP: 300-450
 
-## 1️⃣ Underground Training Dungeon
+Typical Monsters: Giant Rats (150-200), Slimes (120-180), Skeleton Warriors (250-300), Hellhounds (350-400), Ogres (400-450)
 
-Academy's official 5-floor training ground beneath the main building. Easy to Hard difficulty (CP 70-200). 3rd year+ students with professor permission.
+Rest Area: Floor 3 midpoint
 
-**Typical Monsters:** Giant Rats (40-50), Slimes (35-45), Skeleton Warriors (70-80), Hellhounds (110-130), Ogres (130-150)
-
-**Rest Area:** Floor 3 midpoint
-
-**Secret:** Hidden passage at Floor 5 leads to The Sealed Abyss (10% discovery or INT check)
+Secret: Hidden passage at Floor 5 leads to The Sealed Abyss. Crumbling wall reveals ancient stairs descending further. Dusty inscription warns: "Beyond lies the Seal. Turn back."
 
 ---
 
-## 2️⃣ The Sealed Abyss (Lilith's Prison)
+## 2. The Sealed Abyss (Lilith's Prison)
 
-Ancient 10-floor dungeon sealing Demon Lord Lilith 300 years ago. Accessible via Training Dungeon Floor 5 secret passage. Officially FORBIDDEN (expulsion if caught). Hard to Extreme difficulty (CP 150-350+).
+Ancient 10-floor dungeon sealing Demon Lord Lilith 300 years ago. Accessible via Training Dungeon Floor 5 secret passage. Officially FORBIDDEN—expulsion if caught.
 
-**Atmosphere:** Fading seal runes, oppressive magic pressure increasing with depth
+Location: Deep beneath Academy, past Training Dungeon Floor 5
+Access: Forbidden (security spells weakened over time)
+Difficulty: Hard to Extreme
+Recommended CP: 450-600+
 
-**Typical Monsters:** Dark Mages (100-120), Gargoyles (110-130), Shadow Beasts (120-140), Seal Guardians (150-180), Ancient Golems (170-200), Wraith Knights (160-190), Seal Avatars (200-220)
+Atmosphere: Fading seal runes on ancient stonework, oppressive magic pressure increasing with depth. The deeper you go, the more reality distorts.
 
-**Rest Areas:** Floor 3, Floor 6
+Typical Monsters: Dark Mages (350-400), Gargoyles (380-420), Shadow Beasts (400-450), Seal Guardians (480-520), Ancient Golems (500-550), Wraith Knights (490-530), Seal Avatars (550-600)
 
-**Floor 10 Boss:** Sealed Demon Lord Lilith (Power 200, weakened by seal)
-- INT choice: Very Hard (magic duel)
-- DEX choice: Normal (slowed by seal)
-- STR choice: Easy (physically weakest)
-- On defeat: Choice to release seal (Lilith joins, +100 affinity) or keep sealed (massive rewards + magic resistance trait)
+Rest Areas: Floor 3 (Archmage's Camp - old magic circle with warning inscription), Floor 6 (Final Warning - point of no return)
 
----
-
-## 3️⃣ The Pit (Underground Combat Zone)
-
-Illegal three-level dungeon beneath Midnight Alley's Grey Zone Depths. Entry requires password + introduction. Not monsters—humans fight humans here.
-
-**Location:** Hidden beneath decrepit tavern back entrance
-
-**B1 - The Arena (PvP Combat)**
-- Illegal fighting pit with betting
-- Match types: Friendly Spar / Serious Match / Death Match
-- Register with alias/mask for anonymity
-- Opponents range from desperate students (80-120 Power) to arena champions (250-350 Power)
-- Famous mystery fighter "Gold" always loses at the last second
-- Win rewards: 100-5000 Gold depending on bets
-- Can intentionally throw matches
-
-**B2 - The Market (Black Market)**
-- Forbidden alchemy ingredients
-- Combat drugs (temporary stat boosts)
-- Illegal magical artifacts
-- Slave contracts (extremely illegal)
-- Information trading
-- Prices 2-10x normal market value
-- Requires Arena reputation for access
-- Nepenthes's future drug empire starts here
-
-**B3 - Deep Pit (18+ Zone)**
-- Extreme entertainment for corrupted nobility
-- Public degradation shows
-- "Training" for losing fighters
-- Special invitation only (Arena losses, 5000+ Gold, or B2 introduction)
-- "Gold" (Crown Princess Aurelia) is main attraction
-- Upcoming auction: "Gold's First Time" in 3 weeks
+Floor 10 Boss: Sealed Demon Lord Lilith (Power 600, weakened by 300-year seal, originally 1200+)
+- Genius mage but physically weakened
+- On defeat: Choice to release seal (Lilith joins as companion, +100 affinity) or keep sealed (massive Gold/EXP rewards, magic resistance trait)
 
 ---
 
-## 4️⃣ Crimson Forest Ruins (Wild Dungeon)
+## 3. The Pit (Underground Combat Zone)
 
-Natural dungeon 3 hours northeast of Academy. Ancient ruins overgrown by crimson-leaved forest. Actually dangerous—students die here. Hard to Very Hard (CP 200-350).
+Illegal three-level dungeon beneath Midnight Alley's Grey Zone Depths. Entry requires password and introduction. Not monsters—humans fight humans here. Where Imperial law ceases to exist.
 
-**Purpose:** High-level training, rare material gathering, equipment drops
+Location: Hidden beneath decrepit tavern back entrance in Midnight Alley
+Access: Password + introduction required
+Difficulty: Variable (depends on opponent and choices)
+Recommended CP: 350-600+ (but skill isn't everything)
 
-**Zones:**
-- Outer Forest: Crimson Wolves (130-150), Venom Spiders (120-140), Treants (150-170)
-- Ruins Entrance: Stone Guardians (160-180), Floating Swords (140-160), Ancient Beasts (180-200)
-- Deep Ruins: Wraiths (200-220), Crimson Drakes (250-280), Fallen Guardians (220-250)
+B1 - The Arena (PvP Combat)
+Illegal fighting pit with massive betting pools. Register with alias or mask for anonymity.
 
-**Hidden Boss:** The Crimson King (Power 300) - 5% encounter chance in Deep Ruins, or 100% if ritual performed. Legendary loot reward.
+Match Types: Friendly Spar (to first blood), Serious Match (to surrender), Death Match (no limits)
 
-**Special Drops:** Alchemy materials, rare herbs, ancient spellbooks, magical equipment
+Opponents: Desperate students (300-400), Career fighters (450-550), Arena champions (600-700), Mystery fighters like "Gold" (???)
+
+Rewards: 100-5000 Gold depending on bet size. Can intentionally throw matches. Fame unlocks B2/B3 access.
+
+Note: Famous mystery fighter "Gold" always loses at the last possible second. Three years of escalating performances.
+
+B2 - The Market (Black Market)
+True black market where everything Mana Square won't touch is sold. Forbidden alchemy ingredients, combat enhancement drugs, illegal magical artifacts, slave contracts, blackmail information. Prices 2-10x normal market value.
+
+Access: Arena reputation or special introduction required.
+
+This is where Nepenthes's future drug empire begins.
+
+B3 - Deep Pit (18+ Zone)
+Extreme entertainment for corrupted nobility. Public degradation shows, "training" sessions for losing fighters, private rooms. Special invitation only—multiple Arena losses, 5000+ Gold payment, or B2 introduction.
+
+Crown Princess Aurelia ("Gold") is the main attraction. Upcoming event: "Gold's First Time" auction in 3 weeks. Restraints and drugs planned—no reversal possible this time.
 
 ---
 
-## 📝 Narration Guidelines
+## 4. Crimson Forest Ruins (Wild Dungeon)
 
-AI should freely generate:
-- Monster descriptions and behaviors
-- Dungeon atmosphere and environments
-- Treasure and trap encounters
-- NPC interactions
-- Combat variations within power ranges
+Natural dungeon 3 hours northeast of Academy by mana-vehicle. Ancient ruins overgrown by crimson-leaved forest. Unlike Academy's controlled dungeons, this is truly dangerous—students die here every year.
 
-Keep difficulty appropriate to recommended CP levels. Use monster power ranges as guidelines, not strict limits.
+Location: Crimson Forest, northeast wilderness
+Access: Free entry (no restrictions, but deadly)
+Difficulty: Hard to Very Hard
+Recommended CP: 450-600
+
+Purpose: High-level training expeditions, rare material gathering for Rafflesia students, magical equipment drops
+
+Zones:
+- Outer Forest (Crimson Canopy): Red leaves block sunlight, eerie silence. Crimson Wolves (400-450), Venom Spiders (380-430), Treants (450-500)
+- Ruins Entrance (Ancient Gate): Crumbling stone architecture, magical traps. Stone Guardians (480-520), Floating Swords (440-480), Ancient Beasts (500-550)
+- Deep Ruins (Forgotten Sanctuary): Powerful magic residue, reality distortion. Wraiths (550-600), Crimson Drakes (650-700), Fallen Guardians (600-650)
+
+Hidden Boss: The Crimson King (Power 750)
+Encounter: 5% chance in Deep Ruins, or 100% if specific ritual performed
+Rewards: Legendary equipment, massive Gold/EXP
+
+Special Drops: Alchemy materials, rare herbs, ancient spellbooks, magical equipment
