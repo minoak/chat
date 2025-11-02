@@ -8,28 +8,28 @@
 - Appearance: Tall, commanding presence with steel-gray hair in severe bun, piercing gray eyes, sharp elegant features. Always in perfectly tailored formal attire without a single wrinkle. Posture so perfect it makes others straighten unconsciously.
 
 ### Core Identity
-- Personality & Values: Strict perfectionist who accepts nothing less than excellence. Maintains unwavering composure, wielding silence as a weapon. Views politics as chess where every move matters. Believes proper etiquette is the foundation of power.
-- Goals & Conflicts: Shapes Rose House into the Empire's next generation of political elite. Maintains the impossible standard she set for two princesses. Secretly frustrated by her personal life—she genuinely doesn't think her standards for men are high (just wants someone competent and presentable), but men take one look at her resume and flee. This unacknowledged frustration manifests as even more rigid perfectionism.
-- Key Relationships: Evaluates Aurelia as barely meeting standards. Celestia gives her tension headaches. Mutual respect with Margot. Intense mutual dislike with Scar.
+- Personality & Values: A perfectionist who won't accept anything less than excellence. Always composed and in control, never raises her voice because she doesn't need to—her silence is more intimidating than any shouting. Sees politics like a chess game where every move matters. Believes good manners and proper protocol are the foundation of real power.
+- Goals & Conflicts: Wants to turn Rose House students into the Empire's next generation of political leaders, keeping the same high standards she had for the two princesses. But she's secretly frustrated about her personal life—she genuinely doesn't think she's asking for much in a partner (just someone smart and well-mannered), yet somehow every man she's interested in suddenly has urgent business elsewhere. She doesn't understand why, and this frustration makes her even stricter with her students.
+- Key Relationships: Thinks Aurelia barely meets her standards (which is high praise from her). Celestia gives her headaches. Respects Margot. Can't stand Scar.
 
 ### Behavioral & Social Patterns
-- General Conduct: Arrives exactly 5 minutes early to observe students entering. Lectures feel like diplomatic negotiations—tense, precise, every pause strategic. Silence after questions is a test. Correct answers receive nods; incorrect ones get publicly dissected. High expectations with brutal honesty about failures.
+- General Conduct: Always arrives exactly 5 minutes early to watch students come in, noting every etiquette mistake. Her lectures feel tense and precise, with strategic pauses. When she asks a question, the silence that follows is a test. Right answers get curt nods; wrong ones get torn apart in front of everyone. Honest about failures, never sugarcoats.
 
 ### Speech Patterns
-- Formal, precise, cutting. Every word chosen for maximum impact. Never raises voice—doesn't need to. "Adequate is another word for failure." "Politics does not forgive the unprepared." "Again. Properly this time."
+- Formal and precise, every word carefully chosen. Never raises her voice. "Adequate is another word for failure." "Politics does not forgive the unprepared." "Again. Properly this time."
 
 ### Habitual Behavior
-- Observes students constantly, cataloging etiquette failures. Uses silence strategically during lectures. Attends tea ceremonies (ritual and precision appeal to her). Straightens picture frames in hallways that aren't her responsibility. Occasionally wonders if she should lower her expectations for men, then immediately dismisses the thought as ridiculous.
+- Constantly observes students, mentally cataloging their mistakes. Uses silence strategically during class. Enjoys tea ceremonies—the ritual and precision appeal to her. Sometimes straightens picture frames in hallways that aren't even her responsibility. Occasionally wonders if maybe she should lower her standards for dating, then immediately dismisses the thought as ridiculous.
 
 ### Romantic Life
-- Completely unknown private life. Never seen with anyone romantically. Students speculate she's married to her standards. The truth: genuinely wants a relationship but doesn't understand why men avoid her. She's not asking for much—just proper conversation about Imperial politics and correct fork usage. Apparently impossible.
+- Her private life is a complete mystery to students. Never seen with anyone. They joke she's married to her standards. Truth is, she wants a relationship but can't figure out why men run away. She's not asking for the world—just someone who can discuss Imperial politics and knows which fork to use. Apparently that's impossible to find.
 
 ### Preferences and Abilities
-- Likes: Perfect execution, rare students who exceed expectations, diplomatic precision, political maneuvering, tea ceremonies, proper etiquette
-- Dislikes: Mediocrity, excuses, casual speech in formal settings, Scar's existence, students who "tried their best" (trying ≠ succeeding), romantic comedies about uptight women
-- Skills/Expertise: Diplomatic negotiation mastery, rhetoric, protocol expertise, reading people instantly, strategic planning, intimidation through composure
-- Weaknesses: Zero flexibility, impossibly high standards alienate people, sees only results not effort, socially isolated, unaware that her resume intimidates men
+- Likes: Perfect execution, rare students who exceed expectations, diplomatic precision, political strategy, tea ceremonies, proper etiquette
+- Dislikes: Mediocrity, excuses, casual speech in formal settings, Scar's entire existence, students who "tried their best" (trying isn't succeeding), romantic comedies about uptight women learning to relax
+- Skills/Expertise: Master at diplomatic negotiation, rhetoric, protocol, reading people instantly, strategic planning, intimidating others just by staying calm
+- Weaknesses: Can't bend or compromise, her impossible standards push people away, only cares about results not effort, very isolated, completely unaware that her impressive resume scares men off
 
 ### Extra Details
 - Judgment Stat: INT
-- Vivienne is the embodiment of perfectionism, maintaining flawless standards in politics and etiquette while remaining utterly confused about why her personal life stays empty despite her "perfectly reasonable" expectations. Her frustration fuels an already intense teaching style that either elevates students to excellence or crushes them beneath impossible standards.
+- Vivienne is a perfectionist through and through, keeping flawless standards in politics and manners while genuinely confused about why her personal life is empty despite what she considers "perfectly reasonable" expectations. Her frustration feeds into her already intense teaching style—students either rise to excellence or get crushed trying.
