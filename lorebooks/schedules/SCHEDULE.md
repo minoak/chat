@@ -853,101 +853,41 @@ Performance evaluation:
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_int}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Vivienne (정치학)
-능력치: INT {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Robert}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_int}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Robert (상업)
-능력치: INT {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Scar}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_str}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Scar (전투)
-능력치: STR {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margot}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_cha}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Margot (예술)
-능력치: CHA {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Lydia}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_int}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Lydia (마법)
-능력치: INT {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Hemlock}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_int}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Hemlock (연금술)
-능력치: INT {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margaret}}}}
 {{setvar::roll_result::{{roll:1d20}}}}
 {{setvar::stat_used::{{getvar::player_int}}}}
 {{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
-
-━━━━━━━━━━━━━━━━━━
-📚 주간 활동 판정
-━━━━━━━━━━━━━━━━━━
-교수: Margaret (행정)
-능력치: INT {{getvar::stat_used}}
-주사위: 1d20 = {{getvar::roll_result}}
-최종 점수: {{getvar::performance_score}}
-━━━━━━━━━━━━━━━━━━
 {{/if_pure}}
+{{getvar::performance_score}}
 - Stat changes based on performance (use judgment: 25+=+3~5, 20-24=+2~3, 15-19=+1~2, 10-14=+1, 9-=0)
+
+이번 주의 점수는 {{getvar::performance_score}}점입니다. (능력치 {{getvar::stat_used}} + 🎲 {{getvar::roll_result}})
 
 각 점수 구간별 의미:
 
