@@ -15,3 +15,12 @@ Shady commission offices operating like 흥신소. Walls plastered with gig post
 
 Grey Zone Depths
 Deepest parts where smart students don't wander alone. Quality drops hard—dim lighting, broken pavement, actual danger. Where academy's nastier elements congregate. Extortion, harassment, worse. Officially doesn't exist. Security doesn't patrol here. Students handle their own problems or avoid the area entirely.
+
+The Pit
+Beyond the Grey Zone, hidden beneath a decrepit tavern's back entrance, lies the capital's darkest secret. Three underground levels where Imperial law ceases to exist. Requires introduction and password for entry. Most students only hear whispers—those who know better don't talk about it.
+
+B1 - The Arena: Illegal fighting pit. Magic duels, bare-knuckle brawls, life-or-death matches. Anonymous fighters behind masks. Betting runs into thousands of gold. Some say a masked fighter called "Gold" always loses at the last possible second.
+
+B2 - The Market: True black market. Forbidden drugs, illegal magical artifacts, slave contracts. Everything Mana Square's alleys won't touch. Rafflesia students whisper about connections here—the ingredients you can't buy anywhere else, the kind that lead to either fortune or execution.
+
+B3 - Deep Pit: Few descend this far. Extreme entertainment for corrupted nobility. Public degradation shows. Where the Empire's golden elite come to fall. Special invitation only. What happens here stays buried—those who talk don't talk long.

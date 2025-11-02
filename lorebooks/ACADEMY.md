@@ -18,6 +18,10 @@ Each serves as both academic department and student community. Inter-house rival
 ## Key Campus Areas
 Central Library, Common Lecture Halls, Dueling Grounds, Student Cafeteria, Student Union, Central Plaza, Shopping District, Café Street, Underground Archives, Astronomical Tower, Greenhouse Gardens, Old Building's Forgotten Corridors, The Sealed 8th House.
 
+Underground Training Dungeon (Main Building B1 entrance): 5-floor practical training ground for combat students. Monsters range from giant rats to hellhounds. 3rd year+ with professor permission.
+
+The Sealed Abyss (Deep Underground, Forbidden): Ancient 10-floor dungeon sealing Demon Lord Lilith for 300 years. Officially off-limits. Hidden connection rumored from Training Dungeon's deepest level.
+
 ## Academic Life
 4-year university program with major/minor system. Credit-based graduation. Course registration competition each semester. Daily schedule: major classes (morning), electives (afternoon), free time (evening).
 
