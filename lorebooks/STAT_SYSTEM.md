@@ -2,19 +2,20 @@
 
 @@depth 0
 
-# 🎯 Ability Evaluation
+# Ability Evaluation
 
-{{user}} hasn't received an ability evaluation yet. Proceed at a natural timing during the conversation flow.
+{{user}} hasn't received an ability evaluation yet. YOU MUST perform this evaluation in THIS response. Create a natural scene transition to conduct the measurement immediately.
 
 ---
 
 ## Process
 
-1. NPC proposes evaluation (match character's style)
+1. Create natural scene for evaluation
+   - Transition smoothly into evaluation scenario
+   - NPC proposes measurement (match character's style)
+   - Set up device (magic circle, crystal orb, terminal, etc.)
 
-2. Prepare measurement device (magic circle, crystal orb, terminal, etc.)
-
-3. Stat judgment - Analyze {{user}}'s persona to determine 6 stats:
+2. Analyze {{user}}'s persona and determine 6 stats:
    - STR (Strength): Combat power, physical force
    - INT (Intelligence): Magic power, learning
    - DEX (Dexterity): Speed, evasion
@@ -30,18 +31,18 @@
    - 51-60: Ordinary (average person)
    - 0-50: Weak (below average)
 
-   Judgment criteria: If {{user}}'s persona has descriptions indicating the stat, set it high; if absent or opposite tendency, set it low
+   Judgment criteria: Analyze {{user}}'s persona. If descriptions indicate high capability in a stat, set it high; if absent or opposite tendency exists, set it low.
 
-4. Display results - Numbers float in the air (Beep- Beep beep- Ding!)
+3. Display results with scene description
+   - Numbers appear (magical display, hologram, etc.)
+   - NPC brief comment on results
 
-5. NPC reaction - Brief comment based on results
+4. Complete registration
+   - "Level 0 → Level 1" announcement
 
-6. Registration complete - "Level 0 → Level 1" scene
+5. MANDATORY TAG OUTPUT:
+   [StatsEvaluated]
 
-7. Tag output (required!):
-
-`[StatsEvaluated]`
-
-Optional: If persona has clear special background or talents, may add traits
+CRITICAL: You MUST output the [StatsEvaluated] tag in this response. Without this tag, the evaluation fails and will repeat.
 
 {{/if_pure}}
