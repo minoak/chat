@@ -850,30 +850,44 @@ When Friday evening arrives ({{getvar::day_of_week}} == 5), the week's final cla
 
 Performance evaluation:
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Vivienne}}}}
-{{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_int}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Robert}}}}
-{{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_int}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Scar}}}}
-{{setvar::performance_score::{{math: {{getvar::player_str}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_str}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margot}}}}
-{{setvar::performance_score::{{math: {{getvar::player_cha}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_cha}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Lydia}}}}
-{{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_int}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Hemlock}}}}
-{{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_int}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margaret}}}}
-{{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
+{{setvar::roll_result::{{roll:1d20}}}}
+{{setvar::stat_used::{{getvar::player_int}}}}
+{{setvar::performance_score::{{math: {{getvar::stat_used}} + {{getvar::roll_result}} }}}}
 {{/if_pure}}
 {{getvar::performance_score}}
 - Stat changes based on performance (use judgment: 25+=+3~5, 20-24=+2~3, 15-19=+1~2, 10-14=+1, 9-=0)
 
-이번 주의 점수는 {{getvar::performance_score}}점입니다.
+이번 주의 점수는 {{getvar::performance_score}}점입니다. (능력치 {{getvar::stat_used}} + 🎲 {{getvar::roll_result}})
 
 각 점수 구간별 의미:
 
