@@ -1772,14 +1772,14 @@ function processCombatResult(triggerId, success, critical, fumble, difficulty, e
 
     if critical then
         -- 크리티컬: 적에게 큰 데미지, 플레이어 무상
-        enemyDamage = 50
+        enemyDamage = 150
         playerDamage = 0
         combatState = "Critical"
         log("💥 크리티컬!")
 
     elseif fumble then
         -- 대실패: 플레이어가 큰 데미지
-        playerDamage = 40
+        playerDamage = 120
         enemyDamage = 0
         combatState = "Fumble"
         log("💀 대실패!")
@@ -1787,33 +1787,33 @@ function processCombatResult(triggerId, success, critical, fumble, difficulty, e
     elseif success then
         -- 성공 - 난이도별 데미지
         if difficulty == "Very Easy" or difficulty == "Easy" then
-            enemyDamage = 25
-            playerDamage = 5
+            enemyDamage = 80
+            playerDamage = 20
             combatState = "Advantageous"
             log("✅ 성공! 큰 타격!")
 
         elseif difficulty == "Normal" then
-            enemyDamage = 20
-            playerDamage = 10
+            enemyDamage = 60
+            playerDamage = 40
             combatState = "Neutral"
             log("✅ 성공!")
 
         elseif difficulty == "Hard" then
-            enemyDamage = 15
-            playerDamage = 15
+            enemyDamage = 50
+            playerDamage = 60
             combatState = "Neutral"
             log("⚡ 성공! 하지만 피해도 입음")
 
         else  -- Very Hard
-            enemyDamage = 10
-            playerDamage = 20
+            enemyDamage = 40
+            playerDamage = 80
             combatState = "Disadvantageous"
             log("😰 간신히 성공...")
         end
 
     else
         -- 실패 - 적만 데미지 줌
-        playerDamage = 25
+        playerDamage = 100
         enemyDamage = 0
         combatState = "Disadvantageous"
         log("❌ 실패!")
