@@ -3232,6 +3232,14 @@ function onStart(triggerId)
         setChatVar(triggerId, "active_event", "none")
     end
 
+    -- 보조 AI 모드 초기화 (기본값: 보조 모델)
+    if not getChatVar(triggerId, "auxiliary_mode") then
+        setChatVar(triggerId, "auxiliary_mode", "auxiliary")
+        setChatVar(triggerId, "auxiliary_mode_display", "보조 모델")
+        setState(triggerId, "auxiliary_mode", "auxiliary")
+        setState(triggerId, "auxiliary_mode_display", "보조 모델")
+    end
+
     -- 주간 스케줄 변수 초기화
     if not getState(triggerId, "weekly_schedule_display") then
         local defaultSchedule = "=== 이번 주 계획 ===\n\n아직 스케줄이 설정되지 않았습니다.\n'스케줄 조정' 버튼을 눌러 계획을 세워보세요!"
@@ -4491,12 +4499,18 @@ end
 _G["set_aux_mode_auxiliary"] = function(triggerId)
     setChatVar(triggerId, "auxiliary_mode", "auxiliary")
     setChatVar(triggerId, "auxiliary_mode_display", "보조 모델")
+    setState(triggerId, "auxiliary_mode", "auxiliary")
+    setState(triggerId, "auxiliary_mode_display", "보조 모델")
+    reloadDisplay(triggerId)
     log("🤖 보조 AI 모드: 보조 모델")
 end
 
 _G["set_aux_mode_main"] = function(triggerId)
     setChatVar(triggerId, "auxiliary_mode", "main")
     setChatVar(triggerId, "auxiliary_mode_display", "메인 모델")
+    setState(triggerId, "auxiliary_mode", "main")
+    setState(triggerId, "auxiliary_mode_display", "메인 모델")
+    reloadDisplay(triggerId)
     log("🤖 보조 AI 모드: 메인 모델")
 end
 
