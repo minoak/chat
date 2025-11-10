@@ -810,41 +810,42 @@ Stat Effect: INT increased, CHA increased, reflection and growth
 
 This week proceeds according to chosen {{getvar::current_curriculum}} curriculum and {{getvar::current_lifestyle}} lifestyle.
 
-## Friday Evening: Weekly Summary & Report
+## Weekly Summary & Report
 
-When Friday evening arrives ({{getvar::day_of_week}} == 5), the week's final class ends.
-{{user}} heads back to the dormitory, reflecting on Monday through Friday - the entire week that has passed.
+The weekly summary begins from the current day ({{getvar::day_of_week_name}}) and continues through Friday.
+If currently on Friday evening ({{getvar::day_of_week}} == 5), the week's final class has ended.
+{{user}} heads back to the dormitory, reflecting on the days that have passed.
 
-### Summarizing the Week Through a Key Moment
+### Summarizing Through Key Moments
 
-한 주를 대표하는 **주요 장면 하나**를 통해 이번 주가 어땠는지 보여준다:
+현재 요일부터 금요일까지의 기간을 주요 장면들을 통해 보여준다:
 
-**특별 이벤트 (진행 중인 경우):**
-이번 주에 특별 이벤트가 진행 중이었다면, 그 준비 과정이나 분위기도 주요 장면 선택지:
-- Spring Ball: 파트너에게 용기 내어 말 걸던 순간, 무도회 연습하며 서툴게 스텝 밟던 순간
-- Foundation Festival: 부스 준비하며 동료들과 땀 흘리던 순간, 장기자랑 연습
-- Cherry Blossom Picnic: 피크닉 준비하며 기대에 부푼 마음
-- 캠퍼스 전체가 들뜬 축제 분위기, 복도에서 오가는 설레는 대화들
+특별 이벤트 (진행 중인 경우):
+이 기간에 특별 이벤트가 예정되어 있다면, 해당 이벤트가 시작되는 요일에서 요약을 중단하고 이벤트로 전환한다.
+요약 중 특별 이벤트 주차(위 섹션 참조)의 해당 요일에 도달하면, 준비 과정이나 분위기를 간략히 묘사한 후 이벤트 시작을 알리고 중단한다.
+예: "수요일, 캠퍼스 전체가 Spring Ball 분위기로 들떴다. 이제 무도회가 시작된다."
 
-**Curriculum - {{getvar::current_curriculum}}'s Classes:**
-이번 주 수업 중 가장 인상적이었던 순간 하나를 구체적으로:
+특별 이벤트가 없는 경우, 일반 주간 활동 계속:
+
+Curriculum - {{getvar::current_curriculum}}'s Classes:
+현재 요일부터 금요일까지의 수업 중 가장 인상적이었던 순간 하나를 구체적으로:
 - 교수가 던진 어려운 질문에 대답했던 순간 (성공? 실패?)
 - 실습 중 시도했던 기술 (칭찬? 좌절?)
 - 동료들과의 상호작용에서 기억에 남는 한 장면
 - 교수의 반응: 고개 끄덕임, 격려, 비판, 실망한 표정
 - 감각적 디테일: 훈련 중 무기의 무게, 마법 공식의 복잡함, 발표 때의 긴장감
 
-**Lifestyle - {{getvar::current_lifestyle}} Activities:**
+Lifestyle - {{getvar::current_lifestyle}} Activities:
 방과 후 활동 중 기억에 남는 한 순간:
 - 누구를 만났고, 어떤 대화를 나눴는지
 - 잘 풀렸던 일, 어색했던 순간, 새로운 발견
 - 감각적 디테일: 카페에서의 웃음, 훈련의 땀, 도서관의 고요함
 - 관계의 변화: 누군가와 가까워졌거나, 오해가 풀렸거나
 
-**금요일 저녁:**
+금요일 저녁 (도달 시):
 마지막 수업이 끝나고, 복도를 걸어 기숙사로 향한다.
-한 주가 몸으로 느껴진다 - 피곤함, 뿌듯함, 아쉬움, 성장감, 혹은 이번 주말 이벤트에 대한 설렘.
-그 주요 장면이 이번 주 전체를 상징하며 떠오른다.
+지나온 날들이 몸으로 느껴진다 - 피곤함, 뿌듯함, 아쉬움, 성장감, 혹은 이번 주말 이벤트에 대한 설렘.
+그 주요 장면들이 지나온 시간을 상징하며 떠오른다.
 
 ### Weekly Report Summary
 
@@ -878,7 +879,7 @@ Performance evaluation:
 각 점수 구간별 의미:
 
 {{#if_pure {{greater_equal::{{getvar::performance_score}}::25}}}}
-S Grade (25+) 🏆: 일주일 동안의 모든 일이 잘 풀렸음. 능력은 자신의 한계 이상으로 뽐냈으며 주변은 사용자에게서 빛나는 가능성을 발견함. 운조차 사용자를 도와주는 한 주였음.
+S Grade (25+) 🏆: 이번 주 모든 일이 잘 풀렸음. 능력은 자신의 한계 이상으로 뽐냈으며 주변은 사용자에게서 빛나는 가능성을 발견함. 운조차 사용자를 도와주는 한 주였음.
 → Everything went perfectly this week. The student exceeded their own limits, and everyone around saw their shining potential. Even luck was on their side.
 
 Writing Style:
@@ -889,7 +890,7 @@ Writing Style:
 {{/if_pure}}
 
 {{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::20}}::{{less_equal::{{getvar::performance_score}}::24}}}}}}
-A Grade (20-24) ⭐: 일주일 동안 대체로 순조로웠음. 자신의 능력을 충분히 발휘했고, 노력이 확실한 성과로 이어졌음. 교수와 주변 학생들이 성장을 인정해줌.
+A Grade (20-24) ⭐: 이번 주 대체로 순조로웠음. 자신의 능력을 충분히 발휘했고, 노력이 확실한 성과로 이어졌음. 교수와 주변 학생들이 성장을 인정해줌.
 → The week went smoothly overall. The student demonstrated their abilities well, and their efforts yielded clear results. Professors and peers acknowledged their growth.
 
 Writing Style:
@@ -900,7 +901,7 @@ Writing Style:
 {{/if_pure}}
 
 {{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::15}}::{{less_equal::{{getvar::performance_score}}::19}}}}}}
-B Grade (15-19) ✨: 일주일이 무난하게 흘러갔음. 특별히 뛰어나진 않았지만 성실하게 따라갔고, 조금씩 발전하는 느낌이 있었음. 평범하지만 나쁘지 않은 한 주.
+B Grade (15-19) ✨: 이번 주가 무난하게 흘러갔음. 특별히 뛰어나진 않았지만 성실하게 따라갔고, 조금씩 발전하는 느낌이 있었음. 평범하지만 나쁘지 않은 한 주.
 → The week passed without major issues. Nothing exceptional, but the student kept up diligently and felt gradual improvement. An ordinary but decent week.
 
 Writing Style:
@@ -911,7 +912,7 @@ Writing Style:
 {{/if_pure}}
 
 {{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::10}}::{{less_equal::{{getvar::performance_score}}::14}}}}}}
-C Grade (10-14) 💫: 일주일이 힘들고 버거웠음. 수업 내용을 따라가기 어려웠고, 운도 따라주지 않았음. 간신히 낙제를 면했지만 성장보단 버티기에 급급했던 한 주.
+C Grade (10-14) 💫: 이번 주가 힘들고 버거웠음. 수업 내용을 따라가기 어려웠고, 운도 따라주지 않았음. 간신히 낙제를 면했지만 성장보단 버티기에 급급했던 한 주.
 → The week was difficult and overwhelming. The student struggled to keep up with classes, and luck wasn't on their side. Barely avoided failing, focused more on surviving than growing.
 
 Writing Style:
@@ -922,7 +923,7 @@ Writing Style:
 {{/if_pure}}
 
 {{#if_pure {{less_equal::{{getvar::performance_score}}::9}}}}
-D Grade (9-) 📝: 일주일이 완전히 망했음. 수업을 전혀 이해하지 못했고, 모든 일이 꼬였음. 교수는 실망했고, 자신도 좌절감을 느낌. 운도 최악이었던 참담한 한 주.
+D Grade (9-) 📝: 이번 주가 완전히 망했음. 수업을 전혀 이해하지 못했고, 모든 일이 꼬였음. 교수는 실망했고, 자신도 좌절감을 느낌. 운도 최악이었던 참담한 한 주.
 → The week was a complete disaster. The student understood nothing in class, and everything went wrong. The professor was disappointed, and the student felt defeated. Even luck turned its back - a disastrous week.
 
 Writing Style:
@@ -932,20 +933,20 @@ Writing Style:
 - Example phrases: "참담한 결과", "완전히 실패", "아무것도 못했다", "이해하지 못했다"
 {{/if_pure}}
 
-이 점수 결과에 맞춰 일주일간의 내용을 요약해주세요.
+이 점수 결과에 맞춰 주간 활동 내용을 요약해주세요.
 
 Note: The auxiliary AI will extract this information and generate a visual report interface automatically.
 
 ### After the Report: Character Encounter
 
-일주일을 정리하고 기숙사로 향하다, 누군가와 마주친다.
+이번 주를 정리하고 기숙사로 향하다, 누군가와 마주친다.
 
 이번 주 {{getvar::current_curriculum}} 수업이나 {{getvar::current_lifestyle}} 활동에서 만났던 캐릭터 중,
 호감도가 높거나 관계가 발전하고 있는 캐릭터와 자연스럽게 대화를 나눈다.
 
-**금요일 저녁 대화:**
+금요일 저녁 대화:
 - "이번 주 어땠어?"
-- 일주일간의 불평, 성공담, 재밌었던 순간 공유
+- 주간 활동 중 불평, 성공담, 재밌었던 순간 공유
 - 주말 계획 가볍게 이야기
 - 목소리에 묻어나는 한 주의 피로와 안도감
 

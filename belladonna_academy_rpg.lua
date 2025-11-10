@@ -4485,7 +4485,7 @@ _G["start_weekly_schedule"] = function(triggerId)
     local lifestyle = getChatVar(triggerId, "current_lifestyle") or "선택 안 함"
 
     local message = string.format(
-        "<-OOC: {{user}}는 선택한 커리큘럼(%s)과 라이프스타일(%s)로 1주일을 시작한다. 이 선택에 따라 1주일간의 활동을 자연스럽게 묘사하세요.->",
+        "<-OOC: {{user}}는 선택한 커리큘럼(%s)과 라이프스타일(%s)로 주간 활동을 진행한다. 현재 요일부터 금요일까지의 주간 요약을 작성하세요.->",
         curriculum, lifestyle
     )
 
