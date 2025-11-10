@@ -2029,7 +2029,6 @@ end
 function callAuxiliaryModel(triggerId, mainResponse)
     local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
 
-    -- axLLM()은 메시지 배열 형식을 요구함
     local messages = {
         {
             content = promptText,
@@ -2037,8 +2036,17 @@ function callAuxiliaryModel(triggerId, mainResponse)
         }
     }
 
-    -- axLLM() 함수로 보조모델 호출
-    local response = axLLM(triggerId, messages)
+    -- 모델 선택: 기본값은 보조 모델 (auxiliary)
+    local mode = getChatVar(triggerId, "auxiliary_mode") or "auxiliary"
+    local response
+
+    if mode == "main" then
+        log("🤖 메인 모델로 보조 프롬프트 전송")
+        response = LLM(triggerId, messages)
+    else
+        log("🤖 보조 모델로 프롬프트 전송")
+        response = axLLM(triggerId, messages)
+    end
 
     -- 에러 체크
     if not response then
@@ -4477,6 +4485,19 @@ for i = 1, 5 do
         setChatVar(triggerId, "current_lifestyle", lifestyle_names[i])
         log("🌟 라이프스타일 선택: " .. lifestyle_names[i])
     end
+end
+
+-- 보조 AI 모델 선택 함수
+_G["set_aux_mode_auxiliary"] = function(triggerId)
+    setChatVar(triggerId, "auxiliary_mode", "auxiliary")
+    setChatVar(triggerId, "auxiliary_mode_display", "보조 모델")
+    log("🤖 보조 AI 모드: 보조 모델")
+end
+
+_G["set_aux_mode_main"] = function(triggerId)
+    setChatVar(triggerId, "auxiliary_mode", "main")
+    setChatVar(triggerId, "auxiliary_mode_display", "메인 모델")
+    log("🤖 보조 AI 모드: 메인 모델")
 end
 
 -- 스케줄 시작 함수
