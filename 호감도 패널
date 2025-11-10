@@ -887,7 +887,7 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div style="padding:10px;background:#f5f1e8;border-radius:6px;text-align:center;border:1px solid #d4c4a8;">
 <span style="font-size:13px;color:#666;">현재 설정: </span>
-<span style="font-weight:700;color:#5d4e37;font-size:14px;">{{#if {{getvar::auxiliary_mode_display}}}}{{getvar::auxiliary_mode_display}}{{else}}보조 모델{{/if}}</span>
+<span style="font-weight:700;color:#5d4e37;font-size:14px;">{{getvar::auxiliary_mode_text}}</span>
 </div>
 </div>
 

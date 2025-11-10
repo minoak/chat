@@ -2036,17 +2036,9 @@ function callAuxiliaryModel(triggerId, mainResponse)
         }
     }
 
-    -- 모델 선택: 기본값은 보조 모델 (auxiliary)
-    local mode = getChatVar(triggerId, "auxiliary_mode") or "auxiliary"
-    local response
-
-    if mode == "main" then
-        log("🤖 메인 모델로 보조 프롬프트 전송")
-        response = LLM(triggerId, messages)
-    else
-        log("🤖 보조 모델로 프롬프트 전송")
-        response = axLLM(triggerId, messages)
-    end
+    -- 모델 선택: 기본값은 보조 모델
+    local mode = getState(triggerId, "auxiliary_mode") or "2"
+    local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
 
     -- 에러 체크
     if not response then
@@ -3233,11 +3225,9 @@ function onStart(triggerId)
     end
 
     -- 보조 AI 모드 초기화 (기본값: 보조 모델)
-    if not getChatVar(triggerId, "auxiliary_mode") then
-        setChatVar(triggerId, "auxiliary_mode", "auxiliary")
-        setChatVar(triggerId, "auxiliary_mode_display", "보조 모델")
-        setState(triggerId, "auxiliary_mode", "auxiliary")
-        setState(triggerId, "auxiliary_mode_display", "보조 모델")
+    if getState(triggerId, "auxiliary_mode") == nil then
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
     end
 
     -- 주간 스케줄 변수 초기화
@@ -4497,21 +4487,15 @@ end
 
 -- 보조 AI 모델 선택 함수
 _G["set_aux_mode_auxiliary"] = function(triggerId)
-    setChatVar(triggerId, "auxiliary_mode", "auxiliary")
-    setChatVar(triggerId, "auxiliary_mode_display", "보조 모델")
-    setState(triggerId, "auxiliary_mode", "auxiliary")
-    setState(triggerId, "auxiliary_mode_display", "보조 모델")
-    reloadDisplay(triggerId)
-    log("🤖 보조 AI 모드: 보조 모델")
+    setState(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+    alertNormal(triggerId, "보조 AI가 [보조 모델]을 사용하도록 설정되었습니다.")
 end
 
 _G["set_aux_mode_main"] = function(triggerId)
-    setChatVar(triggerId, "auxiliary_mode", "main")
-    setChatVar(triggerId, "auxiliary_mode_display", "메인 모델")
-    setState(triggerId, "auxiliary_mode", "main")
-    setState(triggerId, "auxiliary_mode_display", "메인 모델")
-    reloadDisplay(triggerId)
-    log("🤖 보조 AI 모드: 메인 모델")
+    setState(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
+    alertNormal(triggerId, "보조 AI가 [메인 모델]을 사용하도록 설정되었습니다.")
 end
 
 -- 스케줄 시작 함수
