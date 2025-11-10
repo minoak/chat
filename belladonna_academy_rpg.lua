@@ -343,12 +343,9 @@ Examples:
 - Wrong: [Affinity:{{user}}:like] or [Affinity:Mirabel von Goldenrose:like]
 - Right: [Affinity:Mirabel:like]
 
-## Example Outputs
-
-### Example 1: Combat Start
-Main AI: "A goblin jumps out from the bushes, brandishing a rusty sword!"
-
-Your output:
+## Example
+Input: "A goblin attacks!"
+Output:
 [Affinity:Cassandra:neutral][Sin:Cassandra:neutral][Combat:Goblin:280]
 <CombatChoice>
 [STR|검으로 베어넘긴다|Easy]
@@ -360,98 +357,14 @@ Your output:
 </CombatChoice>
 <Panel>■★
 
----
+## CombatChoice Generation
+Generate <CombatChoice> ONLY for ACTIVE, ONGOING combat/threat. NOT for concluded/peaceful situations.
+Format: [Combat:Name:Power] then <CombatChoice> with exactly 6 choices (STR/DEX/INT/CHA/LUK/Trait or 도주).
 
-### Example 2: Combat End with Rewards
-Main AI: "You defeat the goblin! Gold coins spill from its pouch. Cassandra watches in approval."
-
-Your output:
-[Affinity:Cassandra:like][Sin:Cassandra:resist][Stat:str:+2][Gold:+300][EXP:+80][Combat:End]
-<Panel>■★
-
----
-
-### Example 3: Weekly Report (Friday)
-Main AI: "Professor Vivienne's rhetoric training sharpened your wit. By Friday evening, you feel noticeably more capable."
-
-Your output:
-[Stat:int:+3][Stat:cha:+2]
-<WeeklyReport>Week:2|Season:봄|Curriculum:Vivienne|Lifestyle:Social|Score:18|INT:+3|CHA:+2</WeeklyReport>
-<Panel>■★
-
----
-
-### Example 4: New Week (Monday)
-Main AI: "Monday morning arrives. Week 3 begins with fresh energy."
-
-Your output:
-[Week:3][Day:월요일][Time:오전]
-<Panel>■★
-
----
-
-## CombatChoice Generation Guide
-
-WHEN TO GENERATE <CombatChoice>:
-- ONLY when Main AI describes an ACTIVE, ONGOING combat/threat situation
-- Enemy is present AND player needs to decide next action
-- Combat has NOT concluded yet
-
-WHEN NOT TO GENERATE <CombatChoice>:
-- Combat already ended (enemy defeated/fled/negotiated)
-- No immediate threat or danger
-- Player is in safe situation
-- Peaceful/narrative moments
-
-### Generation Rules:
-
-When you detect NEW or ONGOING combat situation:
-
-1. [Combat:EnemyName:PowerValue] tag first (only for NEW combat)
-2. <CombatChoice> block immediately after with exactly 6 choices
-
-### Format
-```
-<CombatChoice>
-[STAT|Action description|Difficulty]
-...6 lines total...
-</CombatChoice>
-```
-
-### 6 Choice Structure
-1. [STR|...] - Strength-based action (직접 공격, 힘으로 밀어붙이기)
-2. [DEX|...] - Dexterity-based action (회피, 기습, 민첩한 공격)
-3. [INT|...] - Intelligence-based action (약점 분석, 전술, 마법)
-4. [CHA|...] - Charisma-based action (설득, 위협, 협상)
-5. [LUK|...] - Luck-based action (always "운에 맡긴다")
-6. [TraitName|...] or [도주|...] - Player trait (if applicable) or flee
-
-### Difficulty Determination
-Read Main AI's narrative context:
-- Player advantage (high ground, ambush, enemy wounded) → Easy/Very Easy
-- Balanced fight → Normal
-- Player disadvantage (outnumbered, trapped, injured) → Hard/Very Hard
-
-Base difficulty on enemy power vs player capability (infer from narrative).
-
-### Difficulty Levels
-- Very Easy: Almost guaranteed success (target: 5)
-- Easy: Good chance (target: 10)
-- Normal: Fair challenge (target: 15)
-- Hard: Difficult task (target: 20)
-- Very Hard: Nearly impossible (target: 25)
-
-### Action Description Guidelines
-- STR: 직접적인 물리 공격, 힘을 사용한 행동
-  - Example: "검으로 베어넘긴다", "방패로 밀쳐낸다"
-- DEX: 민첩성, 회피, 기습
-  - Example: "재빠르게 피한 후 반격한다", "그림자를 이용해 기습한다"
-- INT: 지능적 판단, 약점 파악, 마법
-  - Example: "약점을 노려 공격한다", "주변 환경을 이용한다"
-- CHA: 대화, 설득, 위협
-  - Example: "위협하여 물러서게 한다", "협상을 시도한다"
-- LUK: Always "운에 맡긴다" (no variation)
-- 6th choice: Use player trait if relevant to situation, otherwise use "도주" (flee)
+### Difficulty & Actions
+Difficulties (based on context): Very Easy/Easy/Normal/Hard/Very Hard
+Action Guidelines:
+STR: 물리공격/힘 | DEX: 회피/기습 | INT: 전술/마법 | CHA: 설득/협상 | LUK: "운에 맡긴다" | 6th: Trait or 도주
 
 ### Player Traits Reference
 {{PLAYER_TRAITS_SECTION}}
@@ -459,27 +372,9 @@ Base difficulty on enemy power vs player capability (infer from narrative).
 If player has combat-relevant trait (검술, 마법, 전투 관련), use it for 6th choice.
 If no relevant trait or no traits at all, use: [도주|재빠르게 도망친다|Very Easy]
 
-### Combat End Detection
-
-Output [Combat:End] when:
-- Main AI clearly states combat concluded:
-  - "전투가 끝났다" / "Combat has ended"
-  - "적을 물리쳤다" / "Enemy defeated"
-  - "도망쳤다" / "Fled successfully"
-  - "협상이 성공했다" / "Negotiation succeeded"
-- No ongoing threat or combat action
-
-NEVER output [Combat:End] if:
-- Enemy just appeared (first turn)
-- Combat still ongoing
-- Player in middle of action
-
-CRITICAL RULES:
-- [Combat:End] = Do NOT generate <CombatChoice>
-- <CombatChoice> present = Do NOT output [Combat:End]
-- These are MUTUALLY EXCLUSIVE - never both in same turn
-
----
+### Combat End
+Output [Combat:End] when combat concluded (defeated/fled/resolved).
+CRITICAL: [Combat:End] and <CombatChoice> are MUTUALLY EXCLUSIVE - never both in same turn.
 
 ]]
 
