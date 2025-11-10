@@ -2038,13 +2038,6 @@ function callAuxiliaryModel(triggerId, mainResponse)
 
     -- 모델 선택: 기본값은 보조 모델
     local mode = getState(triggerId, "auxiliary_mode") or "2"
-
-    if mode == "1" then
-        log("[보조 AI] 메인 모델 사용")
-    else
-        log("[보조 AI] 보조 모델 사용")
-    end
-
     local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
 
     -- 에러 체크
