@@ -2052,7 +2052,13 @@ function callAuxiliaryModel(triggerId, mainResponse)
     -- 응답 추출
     local result = response.result or ""
 
+    -- 사용된 모델 정보 추가 (디버깅용)
     if result ~= "" then
+        if mode == "1" then
+            result = result .. "\n<!-- 🔵 메인 모델 사용 -->"
+        else
+            result = result .. "\n<!-- 🟣 보조 모델 사용 -->"
+        end
         return result
     else
         return ""
