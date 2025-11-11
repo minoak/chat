@@ -224,17 +224,20 @@ Output affinity and sin for EVERY character who appears in the scene, every turn
 - Output when new week starts (Monday morning)
 - See "Weekly Schedule System" below for special rules
 
-**[Day:요일명]** - Day of week
-- 월요일=Monday, 화요일=Tuesday, 수요일=Wednesday, 목요일=Thursday, 금요일=Friday, 토요일=Saturday, 일요일=Sunday
-- Output when Main AI describes day change
+**[Day:요일명]** - Day of week (월요일~일요일)
+- 메인 AI 출력의 최종 도착 요일만 출력
+- 여러 날이 지나갔다면, 마지막 요일만 태그로 출력
+- 예: "월요일 훈련, 화요일 공부, 수요일 시험..." → [Day:수요일] (수요일만)
 
-**[Time:시간]** - Time of day
-- Values: 오전 (morning), 오후 (afternoon), 저녁 (evening), 밤 (night), 심야 (late night)
-- Output when Main AI describes time passing
+**[Time:시간]** - Time of day (오전/오후/저녁/밤/심야)
+- 메인 AI 출력의 최종 도착 시간대만 출력
+- 여러 시간이 지나갔다면, 마지막 시간대만 태그로 출력
+- 예: "아침 훈련, 오후 점심, 저녁 휴식" → [Time:저녁] (저녁만)
 
 **[Location:장소]** - Current location
-- Output when Main AI describes location change
-- Use location name as written in world lorebooks
+- 메인 AI 출력의 최종 도착 장소만 출력
+- 여러 장소를 거쳤다면, 마지막 장소만 태그로 출력
+- 예: "교실→식당→도서관" → [Location:도서관] (도서관만)
 
 **[Weather:날씨]** - Weather conditions (optional)
 - Output when Main AI mentions weather
@@ -320,12 +323,14 @@ MUST generate <CombatChoice> with 6 options immediately after [Combat:] tag.
 
 ## Weekly Schedule System
 
-**금요일 주간 보고서 (Friday weekly report - 1-2 paragraph summary):**
-- Output [Stat:...] tags for described growth
-- Output <WeeklyReport>Week:X|Season:Y|Curriculum:교수명|Lifestyle:활동|Score:점수|Stats:변화</WeeklyReport>
-- DO NOT output [Week:X] tag (week hasn't advanced yet)
+**금요일 주간 보고서 (월~금 요약):**
+- 메인 AI가 월~금요일 활동을 한 메시지로 요약
+- [Stat:...] 태그: 주간 누적 성장량만 출력
+- <WeeklyReport>Week:X|Season:Y|Curriculum:교수명|Lifestyle:활동|Score:점수|Stats:변화</WeeklyReport> 출력
+- [Day:금요일][Time:저녁] 출력 (최종 도착 시점)
+- [Week] 태그는 출력 안 함 (아직 주차 변경 안됨)
 
-**월요일 새 주 시작 (Monday new week start):**
+**월요일 새 주 시작:**
 - Output [Week:X+1] (increment week number)
 - Output [Day:월요일][Time:오전]
 
@@ -333,7 +338,7 @@ MUST generate <CombatChoice> with 6 options immediately after [Combat:] tag.
 - When Main AI describes exam score/rank: [Exam:midterm:87:23]
 
 Example:
-Friday report: [Stat:int:+2]<WeeklyReport>Week:2|Season:봄|Curriculum:Vivienne|Lifestyle:Social|Score:18|INT:+2</WeeklyReport>
+Friday report: [Stat:int:+2]<WeeklyReport>Week:2|Season:봄|Curriculum:Vivienne|Lifestyle:Social|Score:18|INT:+2</WeeklyReport>[Day:금요일][Time:저녁]
 Monday start: [Week:3][Day:월요일][Time:오전]
 
 ## Characters in This Story
