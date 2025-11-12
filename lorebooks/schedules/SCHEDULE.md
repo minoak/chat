@@ -340,95 +340,31 @@ Refer to "Activity Guide" below to freely narrate story.
 ### [Only Currently Selected Curriculum Activated]
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Vivienne}}}}
-Prof. Vivienne (Rose House) - Political Science & Diplomacy
-- Background: Former Imperial Diplomatic Advisor, personal tutor to two princesses
-- Personality: Strict and perfectionist, unwavering composure
-- Teaching Style: High expectations, no tolerance for mistakes, emphasizes political results
-- Main Subjects: Political Theory, Rhetoric, Protocol Practice, International Relations
-- Key Students: Eglantine (honor student), Aurelia, Celestia, noble students
-- Main Locations: Rose House lecture hall, protocol room
-- Growth Direction: Political sense, diplomacy, perfect etiquette
-- Description Points: Tension, pressure toward perfection, elegant authority
-- Judgment Stat: INT
+Political Science (INT): Political sense, diplomacy, etiquette
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Robert}}}}
-Prof. Robert (Lily Valley) - Commerce & Finance
-- Background: Former Imperial Finance Minister, stable economic management
-- Personality: Gentle and approachable, middle-aged ease
-- Teaching Style: Steady and systematic, practice-oriented
-- Main Subjects: Financial Management, Accounting, Commercial Practice
-- Key Students: Lily Valley merchant family students
-- Main Locations: Commerce lecture hall, Scarlet Street market field trips
-- Growth Direction: Financial management, stable judgment
-- Description Points: Practical, calm, numbers and stability
-- Judgment Stat: INT
+Commerce & Finance (INT): Financial management, stable judgment
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Scar}}}}
-Prof. Scar (Aconitum) - Combat Studies
-- Background: Former mercenary "Mad Dog", commoner-born Sword Saint
-- Personality: Rough and blunt, meritocratic, 28-year-old young professor
-- Teaching Style: Almost only practical training, theory brief and concise
-- Main Subjects: Combat Practice, Sparring, Field Training
-- Key Students: Oleander (rival), Cassandra, Aconitum warriors
-- Main Locations: Outdoor training ground, practical field
-- Growth Direction: Combat power, survival ability, practical sense
-- Description Points: Sweat, blood, brutal training, rough encouragement, results are everything
-- Judgment Stat: STR
+Combat Studies (STR): Combat power, survival ability, practical sense
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margot}}}}
-Prof. Margot (Ivy) - Art Studies
-- Background: Former imperial art critic, famous for scathing reviews
-- Personality: Cynical and observational, creatively cruel criticism
-- Teaching Style: Rarely teaches, observes and gives destructive criticism
-- Main Subjects: Art Theory, Criticism, Creation (but doesn't directly teach)
-- Key Students: Ivy artists (fear and respect)
-- Main Locations: Ivy Hall gallery, atelier
-- Growth Direction: Artistic sense, critical thinking, mental strength
-- Description Points: Sharp criticism, agony of creation, rare recognition
-- Judgment Stat: CHA
+Art Studies (CHA): Artistic sense, critical thinking, mental strength
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Lydia}}}}
-Prof. Lydia (Poppy) - Magic Studies
-- Background: Tower of Mages archmage (lower rank), mid-20s
-- Personality: Tired and lethargic, hates teaching, wants to do research
-- Teaching Style: Deep and thorough theory lectures, killer assignments and exams
-- Main Subjects: Magic Theory, Spellcraft, Mana Control
-- Key Students: Poppy mages (exam terror)
-- Main Locations: Magic practice room, research lab (rarely comes out)
-- Growth Direction: Magic theory, precise mana control
-- Description Points: Fatigue, deep theory, difficult assignments, dark circles under eyes
-- Judgment Stat: INT
+Magic Studies (INT): Magic theory, precise mana control
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Hemlock}}}}
-Prof. Hemlock (Rafflesia) - Alchemy
-- Background: Former court alchemist, toxicology specialist
-- Personality: Languid and unstable-looking, monotone voice
-- Appearance: Bloodshot eyes, pallid complexion, occasional tremors (poison immunity side effects)
-- Teaching Style: Precise and systematic but unsettling appearance
-- Main Subjects: Toxicology, Antidote Development, Material Transformation
-- Key Students: Rafflesia alchemists
-- Main Locations: Alchemy lab, Mana Square
-- Growth Direction: Alchemy, poison knowledge, meticulous preparation
-- Description Points: Potion smells, dangerous experiments, unsettling atmosphere, precision
-- Judgment Stat: INT
+Alchemy (INT): Alchemy, poison knowledge, meticulous preparation
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_curriculum}}::Margaret}}}}
-Prof. Margaret (Belladonna) - Administrative Studies & Practice
-- Background: Former Imperial Treasury Director, youngest commoner director
-- Personality: Pragmatic, no noble connections, competes with ability
-- Teaching Style: Corporate-level rigor, employment-focused practice
-- Main Subjects: Administrative Studies, Accounting, Career Management
-- Key Students: Belladonna commoner students (nobles rarely attend)
-- Main Locations: General lecture hall, counseling room (packed with commoner students)
-- Growth Direction: Practical skills, career development, networking (not bloodline)
-- Description Points: Practicality, meritocracy, career counseling, commoners' hope
-- Judgment Stat: INT
+Administrative Studies (INT): Practical skills, career development, networking
 {{/if_pure}}
 
 
@@ -437,52 +373,23 @@ Prof. Margaret (Belladonna) - Administrative Studies & Practice
 ### [Only Currently Selected Lifestyle Activated]
 
 {{#if_pure {{equal::{{getvar::current_lifestyle}}::Social}}}}
-Social - Socializing and Networking
-- Main Locations: Scarlet Street cafes, Lotus Street parties/performances
-- Characters to Meet: Natural mingling with various students (2-3 people)
-- Main Activities: Cafe conversations, shopping, concert viewing, social gatherings
-- Cost: Money spent (cafes, gifts, etc.)
-- Growth Direction: Charm and social skills improved
-- Description Points: Laughter, chatter, new rumors, deepening relationships
+Social: CHA growth, mingling with various characters
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_lifestyle}}::Training}}}}
-Training - Personal Development
-- Main Locations: Training ground, library, practice room
-- Characters to Meet: Student with same goal (about 1 person)
-- Main Activities: Combat training, reading, magic practice, self-improvement
-- Cost: Physical/mental stamina consumed
-- Growth Direction: Intensively improved abilities related to chosen curriculum
-- Description Points: Sweat, concentration, breaking limits, quiet achievement
+Training: Curriculum-related stat growth intensified
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_lifestyle}}::Club}}}}
-Club - Club Activities
-- Main Locations: Club room, related places (performance hall, training ground, etc.)
-- Characters to Meet: Deep bonds with club members
-- Main Activities: Club projects, practice, collaborative work
-- Cost: Time investment
-- Growth Direction: Abilities matching club characteristics + cooperation
-- Description Points: Passion, teamwork, common goals, sense of belonging
+Club: Club-related stat growth, bonds with club members
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_lifestyle}}::Adventure}}}}
-Adventure - Off-Campus Activities
-- Main Locations: Midnight Alley quest board, off-campus danger zones
-- Characters to Meet: Adventurous students
-- Main Activities: Quest completion, dungeon exploration, dangerous work
-- Cost: Injury risk
-- Rewards: Money and experience, loot
-- Description Points: Tension, thrill, danger, pleasure of reward
+Adventure: High risk/high reward, gold and experience
 {{/if_pure}}
 
 {{#if_pure {{equal::{{getvar::current_lifestyle}}::Rest}}}}
-Rest - Relaxation and Recovery
-- Main Locations: Dormitory, campus garden, quiet places
-- Characters to Meet: Roommate or chance encounters (optional)
-- Main Activities: Sleep, hobbies, walks, leisure
-- Effect: Physical recovery, stress relief
-- Description Points: Serenity, recharging, self-reflection, preparation for next
+Rest: Physical/mental recovery, preparation
 {{/if_pure}}
 
 
