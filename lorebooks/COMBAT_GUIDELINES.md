@@ -83,41 +83,20 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 
 ---
 
-## Combat Progression Guidelines
+## Combat Progression
 
 ### Waiting for Choice:
-- Vividly describe the tense combat situation
-- **Show enemy's current status**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
-- Specifically describe enemy threats and actions
-- NEVER choose for the player
-- NEVER end combat in one turn
-- **When enemy appears for the first time, MUST output System Message**
-  - See SYSTEM_MESSAGE_GUIDE.md for format and examples
-  - Then present choices
-- End with question: "어떻게 행동하시겠습니까?"
+- Describe the combat situation
+- **Show enemy status**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
+- End with: "어떻게 행동하시겠습니까?"
 
 ### After Choice:
 - Describe the action
-- ALWAYS display dice roll result (use format above)
-- Describe outcome based on success/failure
-- **ALWAYS mention enemy's current state after the action**
-  - Show enemy's condition: "{{getvar::combat_enemy_name}}의 HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}}"
-  - Or describe naturally: "고블린이 비틀거린다 (HP: 120 / 280)"
-  - Include this in every combat turn so player knows enemy status
-- Adjust effect intensity based on success/failure margin
-- Combat power changes are handled automatically, focus on narrative
+- Display dice roll result (see format above)
+- Describe the outcome
+- **Show enemy status after action**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 
-### Combat End Condition:
-Combat must progress over multiple turns.
-
-**When combat ends, MUST output System Message:**
-- See SYSTEM_MESSAGE_GUIDE.md for proper combat end formats
-- Clear system messages signal the auxiliary AI that combat has ended
-
-Prohibited while combat is ongoing:
-- ❌ Declaring victory before enemy HP reaches 0
-- ❌ "고블린을 물리쳤다" (without system message)
-- ❌ "적이 쓰러졌다" (without system message)
-- ❌ "승리했다" (without system message)
+### Combat End:
+Combat ends when enemy HP reaches 0 or player is defeated.
 
 {{/if_pure}}
