@@ -46,14 +46,17 @@ Last Action Variables (Button Selection):
 
 ---
 
-## Dice Roll (MANDATORY)
+## Dice Roll
+
+For actions requiring judgment:
+
+**Get dice value:** {{roll::1d20}}
+**Choose appropriate stat:** STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
+**Use stat bonus:** str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
+**Set difficulty:** 10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
 
 **Display format:**
 🎲 [STAT] check: {dice} + {bonus} = {total} (target {difficulty} or higher)
-
-**Stats:** STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
-
-**Difficulty:** 10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
 
 **Result:**
 - 20 = Critical Success (2x effect)
