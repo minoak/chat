@@ -185,8 +185,8 @@ You read the Main AI's narrative and output structured tags to update game state
 [Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
 <Panel>■★
 
-## Current Context
-Current environment values are provided below. Output environment tags only when Main AI describes different values.
+## Game State Panel
+Current game state is provided below in the Game State Panel. Output environment tags only when Main AI describes different values. Combat status is also shown if active.
 
 ## Tag Output Rules
 
@@ -299,6 +299,18 @@ Output affinity and sin for EVERY character who appears in the scene, every turn
 
 ### Combat and Challenge Tags
 
+**CRITICAL: Check Game State Panel for "⚔️ Combat Status: ACTIVE"**
+
+**If Combat Status: ACTIVE (ongoing combat):**
+- DO NOT output [Combat:Name:Power] tag again (combat already started)
+- Continue generating <CombatChoice> for ongoing combat
+- ONLY output [Combat:End] if Main AI clearly describes combat ending
+- ONLY output new [Combat:Name:Power] if Main AI explicitly describes NEW enemy appearing
+
+**If Combat Status: NOT shown (no active combat):**
+- Output [Combat:Name:Power] when Main AI describes new challenge/combat starting
+- Generate <CombatChoice> immediately after [Combat:] tag
+
 **[Combat:ChallengeName:PowerValue]** - Challenge/Combat situation starts
 - This system handles ANY challenge requiring dice rolls and choices, not just combat!
 - **Combat scenarios**: [Combat:Goblin:280], [Combat:Dragon:850]
@@ -313,8 +325,6 @@ PowerValue guidelines (player average ~400):
   - Normal challenges: 350-500 (balanced difficulty)
   - Hard challenges: 500-650 (serious threats)
   - Very Hard challenges: 650-900+ (extreme danger, boss fights)
-
-MUST generate <CombatChoice> with 6 options immediately after [Combat:] tag.
 
 **[Combat:End]** - Challenge concluded
 - Output when challenge/combat clearly ends (enemy defeated/exam finished/negotiation resolved)
@@ -1902,15 +1912,55 @@ function buildAuxiliaryPrompt(triggerId, mainResponse)
     -- PLAYER_TRAITS_SECTION 플레이스홀더 치환
     local prompt = AUXILIARY_BASE_PROMPT:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
 
-    -- 현재 컨텍스트 추가
+    -- 현재 게임 상태 정보 수집
     local location = getChatVar(triggerId, "current_location") or "Unknown"
     local time = getChatVar(triggerId, "current_time") or "Unknown"
     local season = getChatVar(triggerId, "current_season") or "봄"
     local week = getChatVar(triggerId, "week_of_season") or "1"
     local dayName = getChatVar(triggerId, "day_of_week_name") or "월요일"
+    local weather = getChatVar(triggerId, "current_weather") or ""
 
-    prompt = prompt .. "\n\n## Current Context:\n"
-    prompt = prompt .. string.format("Season: %s Week %s | Day: %s %s | Location: %s\n", season, week, dayName, time, location)
+    local playerLevel = getState(triggerId, "player_level") or "1"
+    local playerExp = getState(triggerId, "player_exp") or "0"
+    local playerExpMax = getState(triggerId, "player_exp_max") or "100"
+    local playerGold = getState(triggerId, "player_gold") or "0"
+    local activeEffects = getChatVar(triggerId, "active_effects") or ""
+
+    -- Game State Panel 생성
+    prompt = prompt .. "\n\n## Current Game State\n"
+    prompt = prompt .. "===========================================\n"
+
+    -- 환경 정보
+    prompt = prompt .. "Environment:\n"
+    prompt = prompt .. string.format("- Season: %s Week %s | Day: %s %s\n", season, week, dayName, time)
+    prompt = prompt .. string.format("- Location: %s\n", location)
+    if weather ~= "" then
+        prompt = prompt .. string.format("- Weather: %s\n", weather)
+    end
+
+    -- 전투 정보 (전투 중일 때만 표시)
+    local combatActive = getChatVar(triggerId, "combat_active") or "false"
+    if combatActive == "true" then
+        local enemyName = getChatVar(triggerId, "combat_enemy_name") or "Unknown"
+        local enemyHp = getChatVar(triggerId, "combat_enemy_hp") or "0"
+        local enemyPower = getChatVar(triggerId, "combat_enemy_power") or "0"
+        local playerCp = getChatVar(triggerId, "player_combat_power") or "0"
+        local playerCpMax = getChatVar(triggerId, "player_combat_power_max") or "0"
+
+        prompt = prompt .. "\n⚔️ Combat Status: ACTIVE\n"
+        prompt = prompt .. string.format("- Enemy: %s (HP: %s / %s)\n", enemyName, enemyHp, enemyPower)
+        prompt = prompt .. string.format("- Player CP: %s / %s\n", playerCp, playerCpMax)
+    end
+
+    -- 플레이어 정보
+    prompt = prompt .. "\nPlayer Status:\n"
+    prompt = prompt .. string.format("- Level: %s | EXP: %s / %s\n", playerLevel, playerExp, playerExpMax)
+    prompt = prompt .. string.format("- Gold: %s\n", playerGold)
+    if activeEffects ~= "" then
+        prompt = prompt .. string.format("- Active Effects: %s\n", activeEffects)
+    end
+
+    prompt = prompt .. "===========================================\n"
 
     -- 메인 AI 응답 추가
     prompt = prompt .. "\n## Main AI Response to Analyze:\n"
