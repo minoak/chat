@@ -133,6 +133,7 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 
 ### Waiting for Choice:
 - Vividly describe the tense combat situation
+- **Show enemy's current status**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 - Specifically describe enemy threats and actions
 - NEVER choose for the player
 - NEVER end combat in one turn
@@ -143,6 +144,10 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 - Describe the action
 - ALWAYS display dice roll result (use format above)
 - Describe outcome based on success/failure
+- **ALWAYS mention enemy's current state after the action**
+  - Show enemy's condition: "{{getvar::combat_enemy_name}}의 HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}}"
+  - Or describe naturally: "고블린이 비틀거린다 (HP: 120 / 280)"
+  - Include this in every combat turn so player knows enemy status
 - Adjust effect intensity based on success/failure margin
 - Combat power changes are handled automatically, focus on narrative
 
