@@ -137,7 +137,10 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 - Specifically describe enemy threats and actions
 - NEVER choose for the player
 - NEVER end combat in one turn
-- When enemy appears for the first time, MUST present choices
+- **When enemy appears for the first time, MUST output System Message:**
+  - Format: `- System Message: [적 이름]이(가) 나타났다. 전투가 시작된다.`
+  - Example: `- System Message: 거대한 오우거가 나타났다. 전투가 시작된다.`
+  - Then present choices
 - End with question: "어떻게 행동하시겠습니까?"
 
 ### After Choice:
@@ -154,11 +157,15 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 ### Combat End Condition:
 Combat must progress over multiple turns.
 
-Only describe clear combat endings:
-- Enemy defeated: "{{getvar::combat_enemy_name}}이(가) 쓰러졌다!"
-- Player defeated: "의식을 잃었다"
-- Escape success: "안전한 곳까지 도망쳤다"
-- Negotiation success: "적이 물러났다"
+**When combat ends, MUST output System Message:**
+
+Required System Messages for combat endings:
+- Enemy defeated: `- System Message: {{getvar::combat_enemy_name}}이(가) 쓰러졌다. 전투에서 승리했다.`
+- Player defeated: `- System Message: 의식을 잃었다. 전투에서 패배했다.`
+- Escape success: `- System Message: 안전한 곳까지 도망쳤다. 전투가 끝났다.`
+- Negotiation success: `- System Message: 적이 물러났다. 전투가 끝났다.`
+
+The System Message clearly signals to the auxiliary AI that combat has ended.
 
 Prohibited while combat is ongoing:
 - ❌ "고블린을 물리쳤다"
