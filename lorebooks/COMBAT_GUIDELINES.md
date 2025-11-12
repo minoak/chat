@@ -46,30 +46,18 @@ Last Action Variables (Button Selection):
 
 ---
 
-## Dice Roll Format
-
-**MANDATORY for all combat actions.**
+## Dice Roll (MANDATORY)
 
 **Display format:**
 🎲 [STAT] check: {dice} + {bonus} = {total} (target {difficulty} or higher)
 
-### Button Selection
-Use variables as provided: {{getvar::combat_last_choice_stat}}, {{getvar::combat_last_roll}}, {{getvar::combat_last_bonus}}, {{getvar::combat_last_total}}, {{getvar::combat_last_target}}
+**Stats:** STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
 
-### Free Input
+**Difficulty:** 10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
 
-**Choose appropriate stat:**
-STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
-
-**Use stat bonus from above:**
-str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
-
-**Set difficulty:**
-10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
-
-**Roll 1d20, judge result:**
-- 20 = Critical Success (auto-success, 2x effect)
-- 1 = Fumble (auto-fail, negative effect)
+**Result:**
+- 20 = Critical Success (2x effect)
+- 1 = Fumble (negative effect)
 - Total ≥ Target = Success
 - Total < Target = Failure
 
