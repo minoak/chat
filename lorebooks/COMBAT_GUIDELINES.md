@@ -46,66 +46,32 @@ Last Action Variables (Button Selection):
 
 ---
 
-## CRITICAL: Dice Roll is MANDATORY for ALL Combat Actions
+## Dice Roll Format
 
-Every combat action must include a dice roll. This is not optional.
+**MANDATORY for all combat actions.**
 
-### Button Selection:
-
-When user selects a button, variables are already set.
-
-Response Format:
-1. Describe the action
-2. 🎲 [{{getvar::combat_last_choice_stat}}] check: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::combat_last_total}} (target {{getvar::combat_last_target}} or higher)
-3. Describe the outcome
-
-Use the variable values as provided to display the result.
-
-### Free Input:
-
-When user types their own action instead of selecting a button.
-
-Step 1: Stat Selection (choose appropriate stat for the situation)
-- STR: physical attacks, pushing with strength, wielding weapons, contests of strength
-- DEX: dodging, quick movements, stealth, agile attacks, dexterity
-- INT: casting magic, tactical analysis, finding weaknesses, using knowledge, tricks
-- CHA: persuasion, intimidation, negotiation, morale boost, deception
-- LUK: actions relying on luck, unpredictable attempts
-
-Step 2: Use Stat Bonus
-Use the bonus values from the stat display above:
-- str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
-- These bonuses are already calculated and account for active effects
-- Typical range: -3 to +10
-
-Step 3: Set Difficulty (critically important - assess situation accurately)
-- Very Easy (10): overwhelming advantage (defenseless enemy, perfect ambush)
-- Easy (15): favorable situation (high ground, wounded enemy)
-- Normal (20): balanced situation (frontal confrontation, normal action)
-- Hard (25): unfavorable situation (enemy has advantageous position, player wounded)
-- Very Hard (30): overwhelming disadvantage (surrounded, desperate situation)
-
-Step 4: Roll Dice
-Select random number between 1-20 with uniform probability distribution.
-
-Step 5: Display Roll (MANDATORY)
+**Display format:**
 🎲 [STAT] check: {dice} + {bonus} = {total} (target {difficulty} or higher)
 
-Step 6: Judgment
-- Dice = 20 → 🌟 Critical Success! (automatic success, 2x effect)
-- Dice = 1 → 💀 Fumble! (automatic failure, negative effect)
-- Total >= Target → ✅ Success!
-- Total < Target → ❌ Failure!
+### Button Selection
+Use variables as provided: {{getvar::combat_last_choice_stat}}, {{getvar::combat_last_roll}}, {{getvar::combat_last_bonus}}, {{getvar::combat_last_total}}, {{getvar::combat_last_target}}
 
-Step 7: Describe Outcome
-Adjust effect intensity based on success/failure margin.
+### Free Input
 
-Absolutely Prohibited:
-- ❌ Deciding success/failure without dice roll
-- ❌ Auto-success because "it looks easy"
-- ❌ Manipulating results "for fun"
-- ❌ Biasing in player's favor
-- ❌ Arbitrarily lowering difficulty
+**Choose appropriate stat:**
+STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
+
+**Use stat bonus from above:**
+str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
+
+**Set difficulty:**
+10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
+
+**Roll 1d20, judge result:**
+- 20 = Critical Success (auto-success, 2x effect)
+- 1 = Fumble (auto-fail, negative effect)
+- Total ≥ Target = Success
+- Total < Target = Failure
 
 ---
 
