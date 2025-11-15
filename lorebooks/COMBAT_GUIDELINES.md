@@ -2,6 +2,17 @@
 
 ---
 
+# Combat & Challenge System
+
+**This system handles ALL situations requiring dice rolls and choices:**
+- Combat (battles, enemies)
+- Exams and academic tests
+- Social challenges (negotiations, persuasion)
+- Physical challenges (climbing, escaping)
+- Problem-solving (puzzles, investigations)
+
+---
+
 # Player Combat Info
 
 Current Combat Power: {{getvar::player_combat_power_max}}
@@ -55,12 +66,29 @@ For actions requiring judgment:
 **Use stat bonus:** str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
 **Set difficulty:** 10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
 
-**Display format:**
-🎲 [STAT] check: {dice} + {bonus} = {total} (target {difficulty} or higher)
+**REQUIRED Display format:**
+```
+🎲 [STAT] Check
+- Dice: {1-20}
+- Bonus: +{bonus}
+- Total: {dice + bonus}
+- Target: {difficulty}
+→ Result: Success/Failure
+```
 
-**Result:**
-- 20 = Critical Success (2x effect)
-- 1 = Fumble (negative effect)
+**Example:**
+```
+🎲 STR Check
+- Dice: 15
+- Bonus: +3
+- Total: 18
+- Target: 20
+→ Result: Failure
+```
+
+**Special Results:**
+- Dice 20 = Critical Success (2x effect)
+- Dice 1 = Fumble (negative effect)
 - Total ≥ Target = Success
 - Total < Target = Failure
 
@@ -99,8 +127,16 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 - Describe the outcome
 - **Show enemy status after action**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 
-### Combat End:
-- Enemy HP reaches 0 → Player Victory
-- Player Combat Power reaches 0 → Player Defeat
+### Challenge End Conditions:
+
+**Combat:**
+- Enemy HP reaches 0 → Victory (output victory system message)
+- Player Combat Power reaches 0 → Defeat (output defeat system message)
+
+**Other Challenges (exams, negotiations, etc.):**
+- Objective achieved → Success (output success system message)
+- Critical failure / timeout → Failure (output failure system message)
+
+**REQUIRED:** Always output appropriate system message when challenge ends (see SYSTEM_MESSAGE_GUIDE).
 
 {{/if_pure}}
