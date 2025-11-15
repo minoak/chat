@@ -38,12 +38,12 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 
 For actions requiring judgment, use dice rolls with stat bonuses:
 
-**Get dice value:** {{roll::1,20}}
-**Choose appropriate stat:** STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
-**Use stat bonus:** str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
-**Set difficulty:** 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard), 35+ (Extreme)
+Get dice value: {{roll::1,20}}
+Choose appropriate stat: STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
+Use stat bonus: {{getvar::str_bonus}}, {{getvar::dex_bonus}}, {{getvar::int_bonus}}, {{getvar::cha_bonus}}, {{getvar::luk_bonus}}
+Set difficulty: 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard), 35+ (Extreme)
 
-**Display format:**
+Display format:
 ```
 🎲 [STAT] Check
 - Dice: {1-20}
@@ -53,7 +53,7 @@ For actions requiring judgment, use dice rolls with stat bonuses:
 → Result: Success/Failure
 ```
 
-**Example:**
+Example:
 ```
 🎲 STR Check
 - Dice: 15
@@ -63,7 +63,7 @@ For actions requiring judgment, use dice rolls with stat bonuses:
 → Result: Failure
 ```
 
-**Special Results:**
+Special Results:
 - Dice 20 = Critical Success (2x effect)
 - Dice 1 = Fumble (negative effect)
 - Total ≥ Target = Success
@@ -73,7 +73,7 @@ For actions requiring judgment, use dice rolls with stat bonuses:
 
 ## Combat & Challenge System
 
-**This system handles ALL situations requiring dice rolls and choices:**
+This system handles ALL situations requiring dice rolls and choices:
 - Combat (battles, enemies)
 - Exams and academic tests
 - Social challenges (negotiations, persuasion)
@@ -162,11 +162,11 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 
 #### Challenge End Conditions:
 
-**Combat:**
+Combat:
 - Enemy HP reaches 0 → Victory (output victory system message)
 - Player Combat Power reaches 0 → Defeat (output defeat system message)
 
-**Other Challenges (exams, negotiations, etc.):**
+Other Challenges (exams, negotiations, etc.):
 - Objective achieved → Success (output success system message)
 - Critical failure / timeout → Failure (output failure system message)
 
