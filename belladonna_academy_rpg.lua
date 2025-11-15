@@ -3197,6 +3197,7 @@ function onStart(triggerId)
     -- 보조 AI 모드 초기화 (기본값: 보조 모델)
     if getState(triggerId, "auxiliary_mode") == nil then
         setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
         setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
     end
 
@@ -4458,18 +4459,21 @@ end
 -- 보조 AI 모델 선택 함수
 _G["set_aux_mode_auxiliary"] = function(triggerId)
     setState(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode", "2")
     setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
     alertNormal(triggerId, "보조 AI가 [보조 모델]을 사용하도록 설정되었습니다.")
 end
 
 _G["set_aux_mode_main"] = function(triggerId)
     setState(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode", "1")
     setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
     alertNormal(triggerId, "보조 AI가 [메인 모델]을 사용하도록 설정되었습니다.")
 end
 
 _G["set_aux_mode_off"] = function(triggerId)
     setState(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode", "0")
     setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
     alertNormal(triggerId, "보조 AI가 [Off]로 설정되었습니다. 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.")
 end
