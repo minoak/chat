@@ -303,10 +303,12 @@ Output affinity and sin for EVERY character who appears in the scene, every turn
 **CRITICAL: Check Game State Panel for "⚔️ Combat Status: ACTIVE"**
 
 **If Combat Status: ACTIVE (ongoing combat):**
-- DO NOT output [Combat:Name:Power] tag again (combat already started)
+- Game State Panel shows "Enemy: [name]" - this is the CURRENT enemy
+- Main AI may use different names (점액 → 슬라임 위협, etc.) but it's SAME combat
+- DO NOT output [Combat:Name:Power] tag again
 - Continue generating <CombatChoice> for ongoing combat
 - ONLY output [Combat:End] if Main AI clearly describes combat ending
-- ONLY output new [Combat:Name:Power] if Main AI explicitly describes NEW enemy appearing
+- ONLY output new [Combat:Name:Power] if entirely different enemy appears
 
 **If Combat Status: NOT shown (no active combat):**
 - Output [Combat:Name:Power] when Main AI describes new challenge/combat starting
