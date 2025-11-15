@@ -34,6 +34,25 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 
 ---
 
+## Combat System Messages
+
+Combat Start:
+`- System Message: [적 이름]이(가) 나타났다. 전투가 시작된다.`
+
+Combat Damage:
+`- System Message: 적에게 25의 피해를 입혔다.`
+`- System Message: 적의 공격을 받아 18의 피해를 입었다.`
+
+Combat End:
+- Victory: `- System Message: [적 이름]이(가) 쓰러졌다. 전투에서 승리했다.`
+- Defeat: `- System Message: 의식을 잃었다. 전투에서 패배했다.`
+- Escape: `- System Message: 도망쳤다. 전투가 끝났다.`
+- Negotiation: `- System Message: 적이 물러났다. 협상이 성공했다.`
+
+---
+
+{{#if_pure {{equal::{{getvar::combat_active}}::true}}}}
+
 ## Roll & Dice System
 
 For actions requiring judgment, use dice rolls with stat bonuses:
@@ -83,8 +102,6 @@ This system handles ALL situations requiring dice rolls and choices:
 - Problem-solving (puzzles, investigations)
 
 Current Combat Power: {{getvar::player_combat_power_max}}
-
-{{#if_pure {{equal::{{getvar::combat_active}}::true}}}}
 
 ### ⚔️ In Combat
 
@@ -173,23 +190,6 @@ Other Challenges (exams, negotiations, etc.):
 - Critical failure / timeout → Failure (output failure system message)
 
 {{/if_pure}}
-
----
-
-## Combat System Messages
-
-Combat Start:
-`- System Message: [적 이름]이(가) 나타났다. 전투가 시작된다.`
-
-Combat Damage:
-`- System Message: 적에게 25의 피해를 입혔다.`
-`- System Message: 적의 공격을 받아 18의 피해를 입었다.`
-
-Combat End:
-- Victory: `- System Message: [적 이름]이(가) 쓰러졌다. 전투에서 승리했다.`
-- Defeat: `- System Message: 의식을 잃었다. 전투에서 패배했다.`
-- Escape: `- System Message: 도망쳤다. 전투가 끝났다.`
-- Negotiation: `- System Message: 적이 물러났다. 협상이 성공했다.`
 
 ---
 
