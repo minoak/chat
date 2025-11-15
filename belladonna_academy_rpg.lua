@@ -248,6 +248,7 @@ Output affinity and sin for EVERY character who appears in the scene, every turn
 - Stats: str (strength), int (intelligence), dex (dexterity), cha (charisma), luk (luck), vit (vitality)
 - Range: 0-100
 - Typical changes: ±1 to ±5 (training/events), ±10+ (major events)
+- **Initial stats**: When Main AI outputs [StatsEvaluated], parse stat values and output without ± (e.g., [Stat:str:12])
 - Examples: [Stat:str:+3] [Stat:int:-2] [Stat:dex:+5]
 
 **[Gold:±value]** - Money gained or spent
@@ -722,11 +723,19 @@ function parseStatChanges(triggerId, message)
     local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or oldMaxPower
     local powerRatio = (oldMaxPower > 0) and (currentPower / oldMaxPower) or 1.0
 
-    for statId, changeStr in message:gmatch("%[Stat:(%w+):([%+%-]%d+)%]") do
-        local change = tonumber(changeStr) or 0
+    for statId, changeStr in message:gmatch("%[Stat:(%w+):([%+%-]?%d+)%]") do
         local key = "player_" .. statId:lower()
         local current = tonumber(getChatVar(triggerId, key)) or STAT_DEFAULT
-        local new = clampValue(current + change, STAT_MIN, STAT_MAX)
+        local change, new
+
+        -- ±가 있으면 변화값, 없으면 절대값
+        if changeStr:match("^[%+%-]") then
+            change = tonumber(changeStr) or 0
+            new = clampValue(current + change, STAT_MIN, STAT_MAX)
+        else
+            new = clampValue(tonumber(changeStr) or STAT_DEFAULT, STAT_MIN, STAT_MAX)
+            change = new - current
+        end
 
         setChatVar(triggerId, key, tostring(new))
 
