@@ -123,9 +123,9 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 
 ### After Choice:
 - Describe the action
-- Display dice roll result (see format above)
+- Display dice roll result (Dice/Bonus/Total/Target → Result)
 - Describe the outcome
-- **Show enemy status after action**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
+- **Show enemy status**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 
 ### Challenge End Conditions:
 
@@ -136,7 +136,5 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 **Other Challenges (exams, negotiations, etc.):**
 - Objective achieved → Success (output success system message)
 - Critical failure / timeout → Failure (output failure system message)
-
-**REQUIRED:** Always output appropriate system message when challenge ends (see SYSTEM_MESSAGE_GUIDE).
 
 {{/if_pure}}
