@@ -38,7 +38,7 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 
 For actions requiring judgment, use dice rolls with stat bonuses:
 
-Get dice value: {{roll::1,20}}
+Get dice value: {{roll::1d20}}
 Choose appropriate stat: STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
 Use stat bonus: {{getvar::str_bonus}}, {{getvar::dex_bonus}}, {{getvar::int_bonus}}, {{getvar::cha_bonus}}, {{getvar::luk_bonus}}
 Set difficulty: 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard), 35+ (Extreme)
