@@ -43,6 +43,8 @@ Choose appropriate stat: STR (physical), DEX (agility), INT (magic/tactics), CHA
 Use stat bonus: {{getvar::str_bonus}}, {{getvar::dex_bonus}}, {{getvar::int_bonus}}, {{getvar::cha_bonus}}, {{getvar::luk_bonus}}
 Set difficulty: 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard), 35+ (Extreme)
 
+Judgment: Dice + stat bonus = total. Character's action succeeds if total ≥ difficulty, fails if total < difficulty.
+
 Display format:
 ```
 🎲 [STAT] Check
