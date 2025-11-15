@@ -289,9 +289,12 @@ Output affinity and sin for EVERY character who appears in the scene, every turn
 
 **[Effect:Action:Name:StatBonus]** - Buffs/debuffs applied or removed
 - Actions: Add (apply buff/debuff), Remove (remove effect)
-- StatBonus format: stat+value (e.g., str+15, int-10)
+- StatBonus format:
+  - Stat effects: stat+value (e.g., str+15, int-10)
+  - Display-only effects: description text (e.g., 민감도 증폭, 출혈 멈춤)
 - Examples:
   - [Effect:Add:미라벨의 축복:str+15]
+  - [Effect:Add:정화포션 부작용:민감도 증폭]
   - [Effect:Remove:독]
 
 **[Trait:Name:Description]** - Permanent trait acquisition (player only, NOT for NPCs)
