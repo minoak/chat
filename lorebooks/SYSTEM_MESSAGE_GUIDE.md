@@ -12,7 +12,7 @@ Place system messages between paragraphs to mark significant game events.
 ## Content
 Clearly display key status updates and progress for the {{user}}. This includes:
 - Combat events (enemy appears, attacks, takes damage, combat ends)
-- HP/MP/SP consumption and recovery
+- HP/MP/SP changes and recovery (consumption, potions, rest, healing)
 - Use of skills, abilities, and magic
 - Item usage, acquisition, or loss (equipment, consumables, key items)
 - Experience gained and level-up progress
@@ -20,22 +20,17 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 - Character stat changes (STR, INT, DEX, CHA, LUK, VIT increases or decreases)
 - Training and practice sessions completed
 - Buffs/debuffs applied or removed (temporary status effects)
-- Healing and recovery (potions, magic, rest, meals)
 - Quest events (triggered, ongoing, completed, failed)
-- Time changes (morning, afternoon, evening, night)
+- Time and calendar progression (hour, day, week, season changes)
 - Location changes (moving between places)
-- Day/week/season changes
 - Weather changes
 - Trait or permanent ability acquisition
-- Special events and triggers
+- Special events and triggers (festivals, tournaments, ceremonies)
 - Weekly system (curriculum/lifestyle choice, week start/end)
 - Relationship changes (affinity, confessions, dates)
 - Academic events (attendance, assignments, exams, grades)
 - Club activities (joining, meetings, competitions)
-- House points changes
-- Social reputation changes
-- Festival/tournament participation
-- Character encounters and partings
+- Reputation and status changes (house points, social standing)
 
 ---
 
