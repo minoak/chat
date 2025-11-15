@@ -100,6 +100,7 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 - **Show enemy status after action**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 
 ### Combat End:
-Combat ends when enemy HP reaches 0 or player is defeated.
+- Enemy HP reaches 0 → Player Victory
+- Player Combat Power reaches 0 → Player Defeat
 
 {{/if_pure}}
