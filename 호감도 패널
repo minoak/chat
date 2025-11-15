@@ -880,10 +880,11 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 
 <div style="margin-bottom:25px;">
 <h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">🤖 보조 AI 모델 선택</h3>
-<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">상태 파싱에 사용할 AI 모델을 선택하세요. 보조 모델이 설정되지 않은 경우 메인 모델을 선택하세요.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">상태 파싱에 사용할 AI 모델을 선택하세요. Off를 선택하면 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
 <button type="button" risu-trigger="set_aux_mode_auxiliary" style="padding:14px 20px;background:linear-gradient(135deg,#9370DB,#6A5ACD);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(147,112,219,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(147,112,219,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(147,112,219,0.3)'">보조 모델</button>
 <button type="button" risu-trigger="set_aux_mode_main" style="padding:14px 20px;background:linear-gradient(135deg,#8b7355,#5d4e37);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(139,115,85,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(139,115,85,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(139,115,85,0.3)'">메인 모델</button>
+<button type="button" risu-trigger="set_aux_mode_off" style="padding:14px 20px;background:linear-gradient(135deg,#95a5a6,#7f8c8d);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(149,165,166,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(149,165,166,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(149,165,166,0.3)'">Off</button>
 </div>
 <div style="padding:10px;background:#f5f1e8;border-radius:6px;text-align:center;border:1px solid #d4c4a8;">
 <span style="font-size:13px;color:#666;">현재 설정: </span>
@@ -891,9 +892,15 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 </div>
 
+<div style="margin-bottom:25px;">
+<h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">📊 스탯 초기화</h3>
+<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">모든 스탯을 50으로, 레벨을 1로 초기화합니다. (EXP 0, 전투력 자동 재계산)</p>
+<button type="button" risu-trigger="reset_all_stats_to_50" style="width:100%;padding:14px 20px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(231,76,60,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(231,76,60,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(231,76,60,0.3)'">🔄 스탯 초기화 (50)</button>
+</div>
+
 <div style="margin-top:20px;padding:15px;background:#fff9e6;border-left:4px solid #8b7355;border-radius:4px;">
 <p style="font-size:12px;color:#5d4e37;margin:0;line-height:1.5;">
-💡 <strong>팁:</strong> 보조 모델을 사용하면 메인 모델의 부담을 줄일 수 있습니다. 하지만 보조 모델이 설정되지 않았다면 메인 모델을 선택하세요.
+💡 <strong>팁:</strong> 보조 모델을 사용하면 메인 모델의 부담을 줄일 수 있습니다. Off 모드는 보조 모델 호출 없이 메인 모델만 사용합니다.
 </p>
 </div>
 </div>
