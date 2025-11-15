@@ -1991,6 +1991,14 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
+    -- 모델 선택: 기본값은 보조 모델
+    local mode = getState(triggerId, "auxiliary_mode") or "2"
+
+    -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
+    if mode == "0" then
+        return ""
+    end
+
     local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
 
     local messages = {
@@ -2000,8 +2008,6 @@ function callAuxiliaryModel(triggerId, mainResponse)
         }
     }
 
-    -- 모델 선택: 기본값은 보조 모델
-    local mode = getState(triggerId, "auxiliary_mode") or "2"
     local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
 
     -- 에러 체크
@@ -4460,6 +4466,39 @@ _G["set_aux_mode_main"] = function(triggerId)
     setState(triggerId, "auxiliary_mode", "1")
     setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
     alertNormal(triggerId, "보조 AI가 [메인 모델]을 사용하도록 설정되었습니다.")
+end
+
+_G["set_aux_mode_off"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+    alertNormal(triggerId, "보조 AI가 [Off]로 설정되었습니다. 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.")
+end
+
+_G["reset_all_stats_to_50"] = function(triggerId)
+    local stats = {"str", "dex", "int", "cha", "luk", "vit"}
+
+    for _, stat in ipairs(stats) do
+        local key = "player_" .. stat
+        setChatVar(triggerId, key, "50")
+        setState(triggerId, key, 50)
+    end
+
+    -- 레벨도 1로 초기화
+    setChatVar(triggerId, "player_level", "1")
+    setState(triggerId, "player_level", 1)
+    setChatVar(triggerId, "player_exp", "0")
+    setState(triggerId, "player_exp", 0)
+
+    -- 전투력 재계산
+    local maxCombatPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
+    setChatVar(triggerId, "player_combat_power", tostring(maxCombatPower))
+    setState(triggerId, "player_combat_power_max", maxCombatPower)
+    setState(triggerId, "player_combat_power", maxCombatPower)
+
+    alertNormal(triggerId, "모든 스탯이 50으로 초기화되었습니다. (레벨 1, EXP 0)")
+    log("🔄 스탯 초기화: 모든 스탯 50, 레벨 1")
+    return true
 end
 
 -- 스케줄 시작 함수
