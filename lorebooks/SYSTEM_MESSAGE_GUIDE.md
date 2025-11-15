@@ -36,16 +36,18 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 
 ## Critical: Combat Events
 
-**Combat Start (REQUIRED):**
+Combat Start:
 `- System Message: [적 이름]이(가) 나타났다. 전투가 시작된다.`
 
-**Combat End (REQUIRED):**
+Combat Damage:
+`- System Message: 적에게 25의 피해를 입혔다.`
+`- System Message: 적의 공격을 받아 18의 피해를 입었다.`
+
+Combat End:
 - Victory: `- System Message: [적 이름]이(가) 쓰러졌다. 전투에서 승리했다.`
 - Defeat: `- System Message: 의식을 잃었다. 전투에서 패배했다.`
 - Escape: `- System Message: 도망쳤다. 전투가 끝났다.`
 - Negotiation: `- System Message: 적이 물러났다. 협상이 성공했다.`
-
-These are **critical** for the auxiliary AI to generate [Combat:] and [Combat:End] tags.
 
 ---
 
