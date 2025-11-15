@@ -28,6 +28,14 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 - Weather changes
 - Trait or permanent ability acquisition
 - Special events and triggers
+- Weekly system (curriculum/lifestyle choice, week start/end)
+- Relationship changes (affinity, confessions, dates)
+- Academic events (attendance, assignments, exams, grades)
+- Club activities (joining, meetings, competitions)
+- House points changes
+- Social reputation changes
+- Festival/tournament participation
+- Character encounters and partings
 
 ---
 
