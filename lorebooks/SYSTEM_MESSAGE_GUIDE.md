@@ -11,7 +11,7 @@ Place system messages between paragraphs to mark significant game events.
 
 ## Content
 Clearly display key status updates and progress for the {{user}}. This includes:
-- Combat events (enemy appears, attacks, takes damage, combat ends)
+- Combat events (enemy appears, attacks, damage dealt/taken, combat ends)
 - HP/MP/SP changes and recovery (consumption, potions, rest, healing)
 - Use of skills, abilities, and magic
 - Item usage, acquisition, or loss (equipment, consumables, key items)
