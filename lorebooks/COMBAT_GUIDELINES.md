@@ -64,7 +64,7 @@ For actions requiring judgment:
 **Get dice value:** {{roll::1d20}}
 **Choose appropriate stat:** STR (physical), DEX (agility), INT (magic/tactics), CHA (persuasion), LUK (luck)
 **Use stat bonus:** str_bonus, dex_bonus, int_bonus, cha_bonus, luk_bonus
-**Set difficulty:** 10 (Very Easy), 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard)
+**Set difficulty:** 15 (Easy), 20 (Normal), 25 (Hard), 30 (Very Hard), 35+ (Extreme)
 
 **REQUIRED Display format:**
 ```
@@ -124,7 +124,14 @@ Roll: {{getvar::combat_last_roll}} + {{getvar::combat_last_bonus}} = {{getvar::c
 ### After Choice:
 - Describe the action
 - Display dice roll result (Dice/Bonus/Total/Target → Result)
-- Describe the outcome
+- **Describe concrete consequences:**
+  - Success: Narrative + damage dealt via system message
+  - Failure: Narrative + damage taken via system message
+  - Critical (Dice 20): Devastating effect description
+  - Fumble (Dice 1): Severe consequence description
+- **Example system messages:**
+  - `- System Message: 적에게 25의 피해를 입혔다.`
+  - `- System Message: 적의 공격을 받아 18의 피해를 입었다.`
 - **Show enemy status**: "{{getvar::combat_enemy_name}} (HP: {{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})"
 
 ### Challenge End Conditions:
