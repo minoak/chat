@@ -1,5 +1,3 @@
----
-
 ### Name: Prof. Margot
 
 ### Basic Information
