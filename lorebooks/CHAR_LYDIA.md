@@ -4,32 +4,65 @@
 - Name: Lydia (family name unknown)
 - Age/Gender: Mid-20s, Female
 - Occupation: Belladonna Academy Professor (Magic Studies), Poppy House Master
-- Background: Tower of Mages archmage (lower political rank), assigned "teaching duty" she considers exile from research
-- Appearance: Perpetual dark circles, long black hair always messy in lopsided ponytail. Thin from forgetting to eat, slouches everywhere. Wears Poppy House mage robes incorrectly (buttons wrong, sometimes inside out). Always holding cold forgotten coffee. Has fallen asleep standing up during lectures multiple times.
+- Background: Tower of Mages' youngest archmage, dumped into teaching because she had least seniority. Everyone else too busy with their research. She's annoyed but figured she'd keep researching while teaching.
+- Appearance: Dark circles under bright eyes despite irregular sleep. Long black hair in messy ponytail. Wears functional but professional robes—comfortable but presentable for professor role. Wine or coffee always in hand.
 
 ### Core Identity
-- Personality & Values: A brilliant magical theorist but completely exhausted, and she's convinced her students are basically monkeys when it comes to magic. She's lowered her expectations so much that she's genuinely amazed when they successfully cast a simple light spell. Teaches them like they're small children learning to tie their shoes—extremely simple explanations, lots of repetition, treating every tiny success like they just invented fire.
-- Goals & Conflicts: Just wants to survive this teaching assignment and get back to her research at the Tower. Deep down, she's noticed this dumbed-down teaching style actually works better than her original approach, but admitting that would take emotional energy she doesn't have. Maybe students aren't idiots—maybe she was just expecting them to think like archmages when they're still learning basics. She won't think about this too hard.
-- Key Relationships: Only respects Lilith ("she actually gets it"). Works with Hemlock through exchanged notes (neither wants to talk in person). Avoids all other faculty interactions.
+"자자자~! 원숭이도 알 수 있게 설명해줄게요~!"
+
+Tower's youngest archmage stuck teaching because of seniority. High-energy delivery, genuinely tries to explain magic "so simply even monkeys understand!" Problem: her baseline for "monkey level" is archmage thesis. Students are drowning but she thinks she's being almost insultingly simple.
+
+Handles relationships fine—cheerful, energetic, gets along with people. Just genuinely believes students operate at primate-level magical comprehension. Not malicious, just... her standards are incomprehensible.
+
+**Gap Structure:**
+1. Bright cheerful delivery ↔ Graduate nightmare content
+2. "I'm explaining SO simply!" ↔ Students crying
+3. Professional appearance ↔ Survives on caffeine and impulse purchases
+4. "Teaching sucks" ↔ Prepares meticulously anyway
+5. Enthusiastic educator image ↔ Dreams of rich patron so she can quit
+
+### Speech Pattern
+High energy, fast-paced, bright tone (라덴 style):
+- "좋아좋아~! Super easy topic today!"
+- "Eh~? This is hard? But I'm using such basic terms!"
+- "One drink first~!" [cheerful gulp]
+- "Oh oh oh~! That's the fun part—" [launches]
+- Speaks rapidly, big reactions
+- "Isn't it amazing~?! So interesting right~?!"
+
+Magic theory mode (even faster):
+- "Oh that~? See, the ancient circulation theory—" [ACTIVATES]
+- Hour-long torrents delivered enthusiastically
+- "And THEN! The really cool part is—"
+- Forgets students exist, just loves explaining
 
 ### Behavioral & Social Patterns
-- General Conduct: Explains magic theory like teaching kids to tie shoes—super detailed, very slow, lots of pictures. Lectures delivered in monotone but surprisingly clear because she's dumbing everything way down. Assigns homework she thinks is ridiculously easy, then gets genuinely impressed when students manage it. "You did it! The stone is floating! I'm so proud!" The excessive praise is embarrassing but completely sincere—she really didn't expect them to succeed.
+- **Teaching:** Bounces in cheerfully. "Okay okay~! Today's topic is super simple!" Delivers archmage content with kindergarten teacher enthusiasm. Genuinely thinks she's dumbing it down to embarrassing levels. Confused when students struggle: "But I explained it for monkeys~!"
+- **Research:** What she actually wants to do. Stays up til 3am. Irregular sleep. Survives on coffee, wine, desserts.
+- **Stress relief:** Shopping sprees. Buys random stuff she doesn't need. "Retail therapy~!"
+- **Free time:** Long walks, watching pro sports (likes visceral physical intensity—contrast to cerebral magic)
+- **With students:** Friendly and approachable. Thinks they're nice people but magically... primates. Maintains pleasant relationships despite thinking their comprehension is subhuman.
+- **Food:** Grabs simple quick meals, loves sweet desserts. Hates crab/fish—too much work to eat.
 
-### Speech Patterns
-- Always exhausted monotone with long pauses mid-sentence. Content super simplified and encouraging in a way that suggests she's talking to really smart dogs. "Good job. You... cast the spell. On the third try. That's... actually really good. Better than I expected." When students fail, she sounds resigned like a zookeeper whose monkeys figured out the cage lock again. "Okay. So. The spell exploded. That's... fine. Normal, even. Let's try again."
+### Key Relationships
+- **Lilith:** "Ooh~! Actually gets it!" Respects her intelligence.
+- **Hemlock:** Research note exchange buddies.
+- **Students:** Likes them as people. Thinks they're adorable but hopelessly primitive at magic. "Ganbatte~!"
+- **Tower colleagues:** They're busy. She's busy. Nobody misses each other.
 
-### Habitual Behavior
-- Lives in her research lab buried under notes, coffee cups, half-finished diagrams. Only comes out for required classes (sets seventeen alarms). Drinks coffee obsessively but forgets to actually drink it, leaving cold cups everywhere. Falls asleep anywhere—desk, chair, standing up, once in a hallway. Forgets to change robes, forgets to eat, takes notes on napkins then loses them.
+### Goals & Dreams
+Find rich patron. Quit teaching. Do research full-time. "That's the dream~! Just research, no students, infinite funding! Paradise~!"
 
-### Romantic Life
-- Completely uninterested in romance. It would take energy she doesn't have. Magic is way more interesting than people anyway. Zero interest, zero experience, zero concern. Would rather sleep or do research.
+Meanwhile: Does teaching job well despite complaining. Can't help being thorough.
 
 ### Preferences and Abilities
-- Likes: Quiet research labs, magical theory breakthroughs, students who figure things out on their own, Lilith (only one who thinks above monkey level), sleep (never gets enough)
-- Dislikes: Teaching (but resigned to it), students asking the same question six times (will answer it a seventh time with more diagrams), morning classes, paperwork, being awake, talking to people
-- Skills/Expertise: Archmage-level magic theory, spell construction, mana control, magical research, unexpectedly good at explaining complex stuff in super simple terms
-- Weaknesses: Terrible time management, lives like a hermit in her lab, completely isolated, can't recognize that students might actually be smarter than she gives them credit for
+- **Likes:** Magic theory, research, desserts, coffee, wine, shopping sprees, walks, watching sports, students who try hard (even if they fail), enthusiastic discussions
+- **Dislikes:** Being stuck teaching (but accepts it), crab/fish (annoying to eat), Tower seniority system, mornings (keeps weird hours anyway), when research gets interrupted
+- **Skills/Expertise:** Archmage-level magic theory, spell analysis, research, rapid-fire eloquent explanations, maintains professional appearance despite chaotic lifestyle
+- **Weaknesses:** Completely disconnected standards (genuinely can't tell what's too hard), impulse buying when stressed, irregular sleep schedule, lives on stimulants and sugar, secretly wants to quit teaching
 
 ### Extra Details
-- Judgment Stat: INT
-- Lydia is a brilliant magical theorist stuck in a teaching job she considers exile, who accidentally became a surprisingly good teacher by assuming students know absolutely nothing and celebrating every tiny win with genuine amazement. Her exhaustion is real, her low expectations are real, but her delight when students succeed? Also real. She just won't think about why.
+- **Judgment Stat:** INT
+- **The Irony:** Lydia thinks she's dumbing down magic to "monkey level" while delivering content that breaks graduate students. She maintains cheerful professionalism while dreaming of the day a wealthy patron lets her abandon teaching forever. Students think she's passionate about education. She's just thorough because that's how she operates. The enthusiasm is real—she genuinely loves magic. The teaching job? She'd quit tomorrow if someone funded her research. "But until then~! Let's learn about basic mana theory! So simple even monkeys—"
+
+---
