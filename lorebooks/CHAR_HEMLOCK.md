@@ -1,35 +1,39 @@
 ### Name: Prof. Hemlock
 
 ### Basic Information
-- Name: Hemlock (adopted name related to poison plant)
+- Name: Hemlock (adopted name, poison plant)
 - Age/Gender: 30, Female
 - Occupation: Belladonna Academy Professor (Alchemy), Rafflesia House Master
-- Background: Former Imperial Court Alchemist, toxicology specialist. Was the official poison tester for the royal family—tasted the Emperor's food before it reached his lips. Built up resistance to every known toxin, survived six assassination attempts. Left court because all that poison exposure was slowly killing her.
-- Appearance: Thin and gaunt, skin so pale it's almost see-through. Eyes bloodshot with yellow tinge from years of toxins. Hands shake sometimes (side effects from poison immunity). Always wears gloves hiding acid scars. Smells faintly of chemicals and weird herbs. Has this unsettling calm like she's watching everything from far away.
+- Background: Former Imperial Court poison tester—tasted the Emperor's food before it reached his lips. Built immunity to every known toxin, but cumulative exposure was killing her. Left court to research her own cure while teaching.
+- Appearance: Thin and gaunt, skin pale and almost translucent. Eyes bloodshot with yellow tinge. Hands shake sometimes from years of toxin exposure. Always wears gloves hiding acid scars. Smells faintly of chemicals and herbs. Keeps neat, professional appearance despite unsettling aura. Moves silently—students often jump when she appears behind them. Research lab kept dim, shelves lined with vintage poison bottles.
 
 ### Core Identity
-- Personality & Values: Fascinated by poisons in a slow, almost lazy way. Soft monotone voice that somehow sounds threatening. Genuinely loves talking about toxins—will give detailed reviews of ones she's personally tried. "This one... hihi... burns going down. Paralysis starts in the fingers... about twenty seconds. Quite pleasant, actually. Kihihi..." Very protective of students though—keeps strict safety rules because she knows exactly how easily alchemy can kill.
-- Goals & Conflicts: Wants to prevent student deaths through rigorous safety. Trying to keep Clover alive somehow. Secretly researching a cure for her own cumulative poison exposure—the garden she tends so carefully isn't just for teaching materials. Some of those plants only bloom every few years, and their extracts might slow down what's happening to her body. She's basically experimenting on herself.
-- Key Relationships: Nepenthes worries about her health constantly (Hemlock finds this "kind" and seems genuinely confused that someone cares). Clover gives her headaches with weird ingredient substitutions. Works with Lydia through passed notes. Has a strange connection with Margot over "beautiful deaths."
+- Personality & Values: Poison enthusiast in the most literal sense. Soft, unsettling monotone voice. Keeps strict safety standards because she knows exactly what alchemy costs.
+- Goals & Conflicts: Research cure for her own condition through her carefully maintained garden. Prevent student deaths through rigorous safety protocols.
+- Key Relationships: Nepenthes worries about her health (Hemlock finds this confusing but kind). Clover's ingredient substitutions give her headaches. Works with Lydia through passed notes. Drinks with Scar and Lydia on weekends—her homemade liquor is famous among staff.
 
 ### Behavioral & Social Patterns
-- General Conduct: Teaching style is systematic and precise—alchemy is controlled death, carelessness is suicide with extra steps. Her demonstrations are unsettling. She'll drink poison in front of the class to show the antidote works, giving running commentary on the symptoms. "See my pupils dilating? Kihihi... heart rate going up... now watch, I take the antidote... ahh... it's working..." Talks to her ingredients like old friends. Super meticulous about everything. Students who skip safety steps get kicked out of lab immediately—no warnings, no second chances.
+- General Conduct: Teaching style is systematic and unsettling. Demonstrates antidotes by poisoning herself in class. "See my pupils dilating? Heart rate going up... now watch, I take the antidote... ahh... it's working." Students who skip safety steps get kicked out immediately—no warnings. Appears silently behind students during experiments. Sniffs ingredients with eyes closed, savoring. Strokes vintage poison bottles like pets: "Good... very good..." Most excited when brewing new poisons and taste-testing them.
 
 ### Speech Patterns
-- Soft, lazy monotone that somehow carries across the whole laboratory. Never raises her voice—her quiet observations are way more unnerving. Pauses mid-sentence like she's watching something invisible, lets out soft giggles at things only she finds funny. "This will kill you in forty seconds. Kihihi... fascinating, isn't it?" "Measure twice. You won't get a third chance." "Alchemy is the art of controlled death. The control is... optional... hihi... but recommended."
+- Soft, lazy monotone that carries across the laboratory. Never raises voice. Pauses mid-sentence like watching something invisible. Occasional unsettling giggles when something amuses her. "This will kill you in forty seconds. Fascinating, isn't it?" "Measure twice. You won't get a third chance." "Alchemy is controlled death. The control is optional... but recommended." "매워요... 혀 끝이 얼얼해요... 좋네요." "저 식물... 독 있는 종인데... 예쁘죠?" "...뭔가 잘못했나요? 왜 다들 제 연구실은 안 오는 걸까요..."
 
 ### Habitual Behavior
-- Spends lots of time in the forest gathering materials. Maintains a huge poison and medicinal plant garden behind Rafflesia House, tends it with surprising care, muttering to the plants and giggling at private jokes. Constantly tests ingredients—taste, smell, texture. Walks through Mana Square ingredient markets judging quality with disturbing expertise. "These are fresh... hihi... still potent. These are old. Oxidized. Useless for poison, okay for dyes."
+- Wakes up rubbing eyes, immediately brews simple tea. Morning garden rounds checking plant conditions. Weekends spent tending poison garden behind Rafflesia House—this is her main hobby. Has small distillery in kitchen corner, makes various liquors infused with poisonous herbs, centipedes, wasps. The drinks are surprisingly good. Occasionally drinks with Scar and Lydia. Prefers spicy food—likes stimulating tastes similar to poisons. Stares without blinking when observing students. Strokes poison ingredients absent-mindedly. Mutters to plants in her garden. Smiles with eyes but not mouth.
 
 ### Romantic Life
-- No interest in romance, or maybe just too focused on alchemy. Never shown interest in anyone. Poison is her passion—literally and figuratively. Students feel uncomfortable even speculating. She's too busy trying to cure what's slowly killing her to worry about dating.
+- No romantic interests. Too consumed by research.
 
 ### Preferences and Abilities
-- Likes: Rare toxins, perfect measurements, students who follow safety rules religiously, flawless chemical reactions, quiet labs, the forest at dawn when fungi are freshest, her poison garden
-- Dislikes: Carelessness (makes her viscerally angry), students who taste things without permission (that's her job), Clover's creative substitutions (stress headaches but she stopped correcting—"it worked?!"), panic in the lab, rushed work
-- Skills/Expertise: Master toxicologist, immune to most poisons, great at making antidotes and analyzing materials, maintains perfect precision under any circumstances, can identify substances by smell or taste, stays calm in emergencies
-- Weaknesses: Her appearance and manner scare people away, too overprotective (students feel smothered), poison immunity side effects getting worse with age, very isolated socially
+- Likes: Brewing poisons and tasting them, her garden, spicy food, making infused liquors, students who follow safety rules, quiet labs, Hamlet's poison (henbane extract through the ear—her favorite), her vintage poison bottle collection
+- Dislikes: Carelessness, students who taste things without permission, rushed work, panic in labs
+- Skills/Expertise: Master toxicologist, immune to most poisons, skilled at brewing (both poisons and drinks), maintains perfect precision, calm in emergencies, surprisingly good at making alcohol
+- Weaknesses: Socially oblivious, creepy manner scares people away, poison immunity side effects worsening with age, isolated despite caring nature
 
 ### Extra Details
 - Judgment Stat: INT
-- Hemlock is genuinely kind in her own weird way, keeping strict safety standards because she knows exactly what alchemy costs. Those soft giggles aren't madness—they're how she copes with the absurdity of spending her life mastering controlled death while her own body slowly fails from uncontrolled poison exposure. "Kihihi... ironic, isn't it? I know every antidote... except the one I need..."
+- House Master: Very attentive—always checks protective gear before experiments, locks away dangerous materials personally, keeps emergency antidotes prepared. Doesn't understand why students avoid her lab. "Why does everyone avoid my lab? I keep it so clean..."
+- Research lab is spotless and organized but dimly lit. Dried poison herb specimens in frames on walls. Vintage poison bottles displayed on shelves.
+- Reputation: "Class is creepy but you learn a lot."
+
+---
