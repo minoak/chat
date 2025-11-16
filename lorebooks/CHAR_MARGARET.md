@@ -1,5 +1,3 @@
----
-
 ### Name: Prof. Margaret
 
 ### Basic Information
