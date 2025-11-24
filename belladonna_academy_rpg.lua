@@ -3183,11 +3183,11 @@ function onStart(triggerId)
         setChatVar(triggerId, "active_event", "none")
     end
 
-    -- 보조 AI 모드 초기화 (기본값: 보조 모델)
+    -- 보조 AI 모드 초기화 (기본값: off - 로어북 사용)
     if getState(triggerId, "auxiliary_mode") == nil then
-        setState(triggerId, "auxiliary_mode", "2")
-        setChatVar(triggerId, "auxiliary_mode", "2")
-        setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+        setState(triggerId, "auxiliary_mode", "0")
+        setChatVar(triggerId, "auxiliary_mode", "0")
+        setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
     end
 
     -- 주간 스케줄 변수 초기화
