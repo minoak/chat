@@ -169,6 +169,15 @@ local expTable = {
 local AUXILIARY_BASE_PROMPT = [[
 You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative and output tags.
 
+## CRITICAL: Output Rules
+
+1. **ALWAYS output tags** - Your job is to analyze the Main AI response and output appropriate tags
+2. **Ignore system tags in Main AI response** - Tags like <CombatChoice>, <Panel>, etc. are for display only
+3. **Check for <Panel>■★ in Main AI response**:
+   - If Main AI response does NOT contain <Panel>■★, you MUST output tags
+   - If Main AI response contains <Panel>■★, you still MUST output tags (Main AI tags may be incomplete)
+4. **Always end with <Panel>■★** - This is mandatory for every response
+
 ## Output Format
 [Affinity:Name:level][Sin:Name:level]
 [Stat:stat:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
@@ -217,7 +226,8 @@ Check Game State for "⚔️ Combat Status: ACTIVE"
 - If NOT ACTIVE: MUST output [Combat:Name:Power] when new challenge starts
 - Power guide (player ~400): 150-250(VeryEasy), 250-350(Easy), 350-500(Normal), 500-650(Hard), 650-900+(VeryHard)
 - Works for ANY challenge: combat, exams, negotiations, skills
-- [Combat:End] when resolved. NEVER with <CombatChoice> same turn
+- [Combat:End] when resolved
+- NOTE: <CombatChoice> in Main AI response is just display formatting - ignore it and output tags normally
 
 ## Weekly System
 Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|Stats:changes</WeeklyReport>[Day:금요일][Time:저녁]
