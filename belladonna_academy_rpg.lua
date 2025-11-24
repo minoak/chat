@@ -1854,6 +1854,14 @@ function parseCombatChoices(triggerId, message)
     local choiceBlock = message:match("(<CombatChoice>.-</CombatChoice>)")
     if choiceBlock then
         parseCombatChoice(triggerId, choiceBlock)
+    else
+        -- 전투 선택지 태그가 없으면 버튼 초기화 (이전 전투 데이터 제거)
+        for i = 1, 6 do
+            setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+        end
+        setChatVar(triggerId, "combat_choices_html", "")
     end
 end
 
