@@ -1,0 +1,505 @@
+# RisuAI Lua Triggers Complete Guide v166
+
+## Lua Trigger System Overview
+
+RisuAI's Lua Trigger system is a powerful scripting environment that allows handling various events within conversations. It operates in a Lua 5.4-based environment executed through JavaScript, enabling chat interaction automation and custom behavior implementation.
+
+### System Features
+- **Lua 5.4 Based**: Supports latest Lua language features
+- **JavaScript Execution**: Performance considerations due to JavaScript execution layer
+- **Sandboxed Environment**: No file system or network access
+- **External Libraries**: Only `json.lua` included
+- **Event-Driven**: Responds to various chat events
+
+---
+
+## 1. Callback Functions
+
+### Basic Callback Functions
+
+| Function | Trigger Point | Parameters | Description |
+|----------|---------------|------------|-------------|
+| `onStart(triggerId)` | Chat sent | `triggerId`: Trigger identifier | Called when user sends message |
+| `onOutput(triggerId)` | AI response received | `triggerId`: Trigger identifier | Called when AI generates response |
+| `onInput(triggerId)` | User input received | `triggerId`: Trigger identifier | Called when user input is received |
+
+### Button Event Callbacks
+```lua
+-- When using {{button::Display::TriggerName}}
+function TriggerName(triggerId)
+    -- Code to execute when button is clicked
+end
+```
+
+### Edit Event Listeners
+```lua
+listenEdit("editDisplay", function(triggerId, data)
+    -- Edit processing logic
+    return modifiedData
+end)
+```
+
+**Supported Types:** `editRequest`, `editDisplay`, `editInput`, `editOutput`
+
+---
+
+## 2. Logging and Debugging
+
+| Function | Description | Usage | Limitations |
+|----------|-------------|-------|-------------|
+| `log(message)` | RisuAI defined logging function (JSON format) | `log({key = "value"})` | May not work in certain environments |
+| `print(message)` | Lua standard logging function | `print("simple text")` | **Recommended for reliability** |
+
+**�뮕 Tip:** Use `print` function for debugging as it's more stable than `log`.
+
+---
+
+## 3. Variable Management
+
+### Chat Variables
+| Function | Description | Limitations |
+|----------|-------------|-------------|
+| `setChatVar(triggerId, key, value)` | Set chat variable | value must be string, **Safe Access required** |
+| `getChatVar(triggerId, key)` | Get chat variable value | - |
+
+### Global Variables
+| Function | Description | Limitations |
+|----------|-------------|-------------|
+| `getGlobalVar(triggerId, key)` | Get global variable value | Returns null if undefined |
+
+### State Variables - **Recommended**
+| Function | Description | Limitations |
+|----------|-------------|-------------|
+| `setState(triggerId, key, value)` | Set state variable | value must be JSON serializable |
+| `getState(triggerId, key)` | Get state variable value | - |
+
+**�뮕 Recommendation:** `setState`/`getState` supports more data types and is preferred.
+
+---
+
+## 4. User Interface
+
+### Alert Functions
+| Function | Description | Return Value | Limitations |
+|----------|-------------|--------------|-------------|
+| `alertError(triggerId, message)` | Show error alert | - | **Safe Access required** |
+| `alertNormal(triggerId, message)` | Show normal alert | - | **Safe Access required** |
+| `alertInput(triggerId, message)` | Show input alert and get user input | Input value | **Safe Access required** |
+| `alertSelect(triggerId, options)` | Show selection alert with options array | Selected option | **Safe Access required** |
+
+### Display Control
+| Function | Description | Limitations |
+|----------|-------------|-------------|
+| `reloadDisplay(triggerId)` | Reload GUI display | **Safe Access required** |
+| `reloadChat(triggerId, index)` | Reload specific chat message at index | **Safe Access required** |
+
+### Chat Control
+| Function | Description | Limitations |
+|----------|-------------|-------------|
+| `stopChat(triggerId)` | Stop chat | **Safe Access required**, Only works on certain events |
+
+---
+
+## 5. Chat Manipulation
+
+### Basic Chat Manipulation
+| Function | Description | Parameters | Limitations |
+|----------|-------------|------------|-------------|
+| `getChat(triggerId, index)` | Get message at specified index | index: 0-based | - |
+| `setChat(triggerId, index, message)` | Set message at specified index | index: 0-based | **Safe Access required** |
+| `setChatRole(triggerId, index, role)` | Set role at specified index | role: "user" or "char" | **Safe Access required** |
+| `removeChat(triggerId, index)` | Remove message at specified index | - | **Safe Access required** |
+| `cutChat(triggerId, start, end)` | Cut messages from start to end | - | **Safe Access required** |
+
+### Chat Addition/Insertion
+| Function | Description | Parameters | Limitations |
+|----------|-------------|------------|-------------|
+| `addChat(triggerId, role, message)` | Add new message | Appends to end of chat | **Safe Access required** |
+| `insertChat(triggerId, index, role, message)` | Insert message at specified position | - | **Safe Access required** |
+
+### Chat Information Retrieval
+| Function | Description | Return Value | Limitations |
+|----------|-------------|--------------|-------------|
+| `getChatLength(triggerId)` | Get total message count | Number | - |
+| `getFullChat(triggerId)` | Get full chat history | Array of message objects | - |
+| `setFullChat(triggerId, chat)` | Set entire chat history | - | **Safe Access required** |
+
+### Message History Retrieval
+| Function | Description | Return Value | Limitations |
+|----------|-------------|--------------|-------------|
+| `getCharacterLastMessage(triggerId)` | Get the last message from character | String | **Returns first message if no character messages found** |
+| `getUserLastMessage(triggerId)` | Get the last message from user | String or null | Returns null if no user message found |
+
+**Message Object Structure:**
+```lua
+{
+    role = "user" or "char",
+    data = "message content",
+    time = timestamp or 0
+}
+```
+
+---
+
+## 6. Character Management
+
+### Basic Character Information
+| Function | Description | Return/Set Value | Limitations |
+|----------|-------------|------------------|-------------|
+| `getName(triggerId)` | Get current character name | String | **Async - requires `:await()`** |
+| `setName(triggerId, name)` | Set character name | - | **Safe Access required, Async - requires `:await()`** |
+| `getDescription(triggerId)` | Get character description | String | **Safe Access required, Async - requires `:await()`, Not for groups** |
+| `setDescription(triggerId, description)` | Set character description | - | **�좑툘 BROKEN - DO NOT USE** |
+
+**�좑툘 Critical Bug:** The `setDescription` function is currently broken due to a variable reference error in the source code (references `data` instead of `desc` parameter).
+
+### Advanced Character Information
+| Function | Description | Return/Set Value | Limitations |
+|----------|-------------|------------------|-------------|
+| `getCharacterFirstMessage(triggerId)` | Get character's first message | String | **Async - requires `:await()`** |
+| `setCharacterFirstMessage(triggerId, message)` | Set character's first message | - | **Safe Access required, Async - requires `:await()`** |
+| `getBackgroundEmbedding(triggerId)` | Get background embedding | Embedding data | **Safe Access required, Async - requires `:await()`** |
+| `setBackgroundEmbedding(triggerId, embedding)` | Set background embedding | - | **Safe Access required, Async - requires `:await()`** |
+
+### Persona Information
+| Function | Description | Return Value | Limitations |
+|----------|-------------|--------------|-------------|
+| `getPersonaName(triggerId)` | Get current persona name | String | - |
+| `getPersonaDescription(triggerId)` | Get current persona description (CBS parsed) | String | - |
+
+### Chat Metadata
+| Function | Description | Return Value | Limitations |
+|----------|-------------|--------------|-------------|
+| `getAuthorsNote(triggerId)` | Get current chat's author note | String | - |
+
+---
+
+## 7. Lorebook Management
+
+### Lorebook Search and Loading
+| Function | Description | Parameters | Return Value | Limitations |
+|----------|-------------|------------|--------------|-------------|
+| `getLoreBooks(triggerId, search)` | Return all lorebooks with comment field matching search | `search`: Lorebook comment to search for | Array of lorebook objects | - |
+| `loadLoreBooks(triggerId, reserve)` | Return currently active lorebooks within context limits | `reserve`: Token count to reserve | Array of lorebook objects | **Low Level Access required, Already awaited - DO NOT use `:await()`** |
+
+### Lorebook Management
+| Function | Description | Parameters | Limitations |
+|----------|-------------|------------|-------------|
+| `upsertLocalLoreBook(triggerId, name, content, options)` | Create or update local lorebook entry | `name`: Comment/name, `content`: Content, `options`: Configuration object | **Safe Access required** |
+
+**upsertLocalLoreBook Options:**
+```lua
+{
+    alwaysActive = false,      -- Always active flag
+    insertOrder = 100,         -- Priority value
+    key = '',                  -- Activation keyword
+    secondKey = '',            -- Secondary keyword
+    regex = false              -- Use regex for keys
+}
+```
+
+### Lorebook Data Structures
+
+**getLoreBooks Return Object:**
+- `content`: Lorebook content (CBS parsed)
+- `comment`: Lorebook name/description
+- `key`: Activation keyword array
+- `priority`: Priority value
+- `alwaysActive`: Always active flag
+
+**loadLoreBooks Return Object:**
+- `data`: Parsed lorebook content
+- `role`: Message role ("user", "char", "system")
+
+---
+
+## 8. Advanced Features (Requires Low Level Access)
+
+### �좑툘 **CRITICAL: Async Function Usage**
+
+**Functions that require `:await()` (TypeScript declared as async):**
+- `similarity(triggerId, source, value):await()`
+- `request(triggerId, url):await()`
+- `generateImage(triggerId, prompt, negative):await()`
+- `simpleLLM(triggerId, prompt):await()`
+- `getTokens(triggerId, text):await()`
+- `hash(triggerId, text):await()`
+
+**Functions with internal await handling (DO NOT use `:await()`):**
+- `LLM(triggerId, messages)` - **Already awaited internally**
+- `axLLM(triggerId, messages)` - **Already awaited internally**
+- `loadLoreBooks(triggerId, reserve)` - **Already awaited internally**
+
+### Language Model Integration
+| Function | Description | Parameters | Return Value | Limitations |
+|----------|-------------|------------|--------------|-------------|
+| `LLM(triggerId, messages)` | LLM request using main model | `messages`: Message array | LLM response object | **Low Level Access required, Already awaited - DO NOT use `:await()`** |
+| `axLLM(triggerId, messages)` | LLM request using auxiliary model | `messages`: Message array | LLM response object | **Low Level Access required, Already awaited - DO NOT use `:await()`** |
+| `simpleLLM(triggerId, prompt)` | Simple LLM request with single prompt | `prompt`: String prompt | LLM response object | **Low Level Access required, Async - requires `:await()`** |
+
+**Message Format for LLM Functions:**
+```lua
+{
+    {role = "system", content = "System message"},
+    {role = "user", content = "User message"},
+    {role = "assistant", content = "Assistant message"}  -- or "char", "bot"
+}
+```
+
+**LLM Response Object:**
+```lua
+{
+    success = true/false,
+    result = "response text" or "error message"
+}
+```
+
+### Other Advanced Functions
+| Function | Description | Parameters | Return Value | Limitations |
+|----------|-------------|------------|--------------|-------------|
+| `similarity(triggerId, source, value)` | Perform similarity sorting | `source`: Array, `value`: String | Sorted array | **Low Level Access required, Async - requires `:await()`** |
+| `generateImage(triggerId, prompt, negative)` | Generate image | `prompt`: String, `negative`: String (optional) | Image asset CBS | **Low Level Access required, Async - requires `:await()`** |
+| `request(triggerId, url)` | HTTP GET request | `url`: HTTPS URL only | `{status: number, data: string}` | **Low Level Access required, Async - requires `:await()`** |
+
+**HTTP Request Security Restrictions:**
+- **HTTPS Only**: Only HTTPS URLs allowed
+- **URL Length**: Maximum 120 characters
+- **Rate Limiting**: 5 requests per minute
+- **Banned Domains**: risuai.net, risuai.xyz, realm.risuai.net
+
+### Utility Functions
+| Function | Description | Parameters | Return Value | Limitations |
+|----------|-------------|------------|--------------|-------------|
+| `getTokens(triggerId, text)` | Calculate token count of string | `text`: String to tokenize | Token count (number) | **Safe Access required, Async - requires `:await()`** |
+| `hash(triggerId, text)` | Generate hash value of string | `text`: String to hash | Hash string | **Async - requires `:await()`** |
+
+---
+
+## 9. Performance Optimization
+
+RisuAI's Lua executes through JavaScript, which can create significant performance overhead. Follow these guidelines for optimization to prevent scripts from becoming heavy and slow.
+
+### Key Performance Considerations
+
+#### 1. Avoid Excessive Looping
+```lua
+-- �� Inefficient: Multiple full chat history scans
+function onOutput(triggerId)
+    local count = getChatLength(triggerId)
+    for i = 0, count - 1 do
+        local message = getChat(triggerId, i)
+        if message.role == "char" then
+            setChat(triggerId, i, message.data .. " [Edited]")
+        end
+    end
+    for i = 0, count - 1 do
+        local message = getChat(triggerId, i)
+        print("Message " .. i .. " role: " .. message.role)
+    end
+end
+
+-- �� Efficient: Single pass processing
+function onOutput(triggerId)
+    local fullChat = getFullChat(triggerId)
+    for i, message in ipairs(fullChat) do
+        if message.role == "char" then
+            setChat(triggerId, i-1, message.data .. " [Edited]")
+        end
+        print("Message " .. (i-1) .. " role: " .. message.role)
+    end
+end
+```
+
+#### 2. Optimize Data Access
+```lua
+-- �� Inefficient: Repeated function calls
+function processChat(triggerId)
+    for i = 0, getChatLength(triggerId) - 1 do
+        local name = getName(triggerId):await()  -- Called every iteration
+    end
+end
+
+-- �� Efficient: Value caching
+function processChat(triggerId)
+    local chatLength = getChatLength(triggerId)
+    local characterName = getName(triggerId):await()
+    for i = 0, chatLength - 1 do
+        -- Use cached values
+    end
+end
+```
+
+#### 3. Minimize Asynchronous Operations
+```lua
+-- �� Inefficient: Unnecessary async operations in loop
+function onOutput(triggerId)
+    for i = 1, 10 do
+        local response = simpleLLM(triggerId, "Hello"):await()
+    end
+end
+
+-- �� Efficient: Cache and conditional execution
+function onOutput(triggerId)
+    local needsLLM = getState(triggerId, "needsLLMResponse")
+    if needsLLM then
+        local response = simpleLLM(triggerId, "Important question"):await()
+        setState(triggerId, "llmResponse", response)
+        setState(triggerId, "needsLLMResponse", false)
+    end
+end
+```
+
+#### 4. Smart State Management
+```lua
+-- �� Inefficient: Recalculating every time
+function onOutput(triggerId)
+    local stats = {}
+    for i = 0, getChatLength(triggerId) - 1 do
+        local message = getChat(triggerId, i)
+        if message.role == "char" then
+            stats.charCount = (stats.charCount or 0) + 1
+        end
+    end
+end
+
+-- �� Efficient: Incremental updates
+function onOutput(triggerId)
+    local stats = getState(triggerId, "chatStats") or {charCount = 0}
+    local lastMsg = getCharacterLastMessage(triggerId)
+    if lastMsg then
+        stats.charCount = stats.charCount + 1
+        setState(triggerId, "chatStats", stats)
+    end
+end
+```
+
+### Recommended Optimization Strategies
+
+1. **Use Local Variables**: Cache frequently accessed values in local variables
+2. **Batch Operations**: Use `getFullChat()` instead of multiple `getChat()` calls
+3. **Conditional Execution**: Perform complex operations only when necessary
+4. **State Management**: Use `setState` to store calculation results and prevent recalculation
+5. **String Operations**: Use `table.concat()` for multiple string concatenations
+6. **Memory Management**: Periodically clean up large state objects
+
+---
+
+## 10. Access Level Requirements
+
+### Always Available Functions
+- `log`, `print`, `setState`/`getState`, `getChatVar`, `getGlobalVar`
+- `getChat`, `getChatLength`, `getFullChat`, `getPersonaName`, `getPersonaDescription`
+- `getAuthorsNote`, `getCharacterLastMessage`, `getUserLastMessage`, `getLoreBooks`
+
+### Safe Access Required Functions
+- `setChatVar`, `setChat`, `setChatRole`, `addChat`, `insertChat`, `removeChat`, `cutChat`, `setFullChat`
+- `stopChat`, `alertError`, `alertNormal`, `alertInput`, `alertSelect`, `reloadDisplay`, `reloadChat`
+- `setName` (**Async**), `getDescription` (**Async**), `setCharacterFirstMessage` (**Async**)
+- `getBackgroundEmbedding` (**Async**), `setBackgroundEmbedding` (**Async**), `upsertLocalLoreBook`
+- `getTokens` (**Async**)
+
+### Low Level Access Required Functions
+- `similarity` (**Async**), `request` (**Async**), `generateImage` (**Async**)
+- `LLM` (**Already awaited**), `axLLM` (**Already awaited**), `simpleLLM` (**Async**)
+- `loadLoreBooks` (**Already awaited**)
+
+### Functions with Async Behavior
+
+**Require `:await()` (TypeScript async functions):**
+- `getName(triggerId):await()`
+- `setName(triggerId, name):await()`
+- `getDescription(triggerId):await()`
+- `getCharacterFirstMessage(triggerId):await()`
+- `setCharacterFirstMessage(triggerId, message):await()`
+- `getBackgroundEmbedding(triggerId):await()`
+- `setBackgroundEmbedding(triggerId, embedding):await()`
+- `getTokens(triggerId, text):await()`
+- `hash(triggerId, text):await()`
+- `similarity(triggerId, source, value):await()` (Low Level Access)
+- `request(triggerId, url):await()` (Low Level Access)
+- `generateImage(triggerId, prompt, negative):await()` (Low Level Access)
+- `simpleLLM(triggerId, prompt):await()` (Low Level Access)
+
+**DO NOT use `:await()` (Internal await handling):**
+- `LLM(triggerId, messages)` - Already awaited in Lua wrapper
+- `axLLM(triggerId, messages)` - Already awaited in Lua wrapper
+- `loadLoreBooks(triggerId, reserve)` - Already awaited in Lua wrapper
+
+---
+
+## 11. Troubleshooting Guide
+
+### Common Async/Await Issues
+
+#### 1. Missing :await() on Async Functions
+```lua
+-- �� Error: Missing :await()
+local name = getName(triggerId)  -- This will fail
+
+-- �� Correct
+local name = getName(triggerId):await()
+```
+
+#### 2. Using :await() on Pre-awaited Functions
+```lua
+-- �� Error: Using :await() on pre-awaited function
+local response = LLM(triggerId, messages):await()  -- This will fail
+
+-- �� Correct
+local response = LLM(triggerId, messages)  -- Already awaited internally
+```
+
+#### 3. Access Level Errors
+```lua
+-- �� This will fail in editDisplay mode
+setChat(triggerId, 0, "new message")  -- Requires Safe Access
+
+-- �� Check access level
+local message = getChat(triggerId, 0)  -- Always available
+```
+
+### Performance Debugging
+```lua
+function performanceWrapper(triggerId, functionName, func)
+    local startTime = os.clock()
+    local result = func()
+    local endTime = os.clock()
+    local duration = endTime - startTime
+    
+    if duration > 0.1 then  -- Log functions taking more than 100ms
+        print("Performance warning: " .. functionName .. " took " .. 
+              string.format("%.3f", duration) .. " seconds")
+    end
+    
+    return result
+end
+```
+
+---
+
+## 12. Known Issues and Bugs
+
+### Critical Bugs
+1. **`setDescription()` Function**: Completely broken - references `data` instead of `desc` parameter
+2. **Duplicate Function Declarations**: Some functions declared multiple times in source code
+
+### Async/Await Issues
+1. **Mixed Async Patterns**: Some functions use internal await, others require external await
+
+---
+
+## 13. Version History
+
+### v166 Changes
+- **Fixed async/await documentation**: Accurately reflects TypeScript source code
+- **Corrected function signatures**: All parameters and return values verified
+- **Updated access level requirements**: Based on actual source code implementation
+- **Added critical bug warnings**: Clearly marked broken functions
+- **Improved troubleshooting**: Added async-specific debugging tips
+
+**�좑툘 Breaking Changes from Previous Versions:**
+- Many functions now correctly marked as requiring `:await()`
+- `LLM`, `axLLM`, `loadLoreBooks` should NOT use `:await()`
+- Some functions require different access levels than previously documented
+
+---
