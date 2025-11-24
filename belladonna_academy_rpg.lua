@@ -3397,21 +3397,13 @@ function processOutput(triggerId)
     end
 
     -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
-    -- setChat으로 보조 출력이 추가된 경우 "\n\n" 이후에 <Panel>이 있음
-    -- 로어북 모드에서는 메인 응답에 <Panel>이 있을 수 있으므로 이 패턴으로 구분
-    if message:match("\n\n.*<Panel>") then
+    -- setChat으로 보조 출력이 추가된 경우: <Panel>■★ 다음에 \n\n이 있고 그 뒤에 태그들이 있음
+    -- 로어북 모드에서 메인 응답은: <Panel>■★로 끝나지만 그 앞에 \n\n이 없음
+    if message:match("<Panel>■★%s*\n\n") then
         return
     end
 
     log("📨 새 턴 처리")
-
-    -- 디버그: 메인 메시지 확인
-    local mode = getState(triggerId, "auxiliary_mode") or "0"
-    addChat(triggerId, "system", string.format("🔧 DEBUG: 메인메시지 길이=%d | 모드=%s", #message, mode))
-
-    -- 메인 메시지의 마지막 500자 출력 (태그가 보통 끝에 있으므로)
-    local messageEnd = message:sub(math.max(1, #message - 500))
-    addChat(triggerId, "system", "🔧 DEBUG: 메인메시지 끝 500자:\n" .. messageEnd)
 
     -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
     parseCombatChoices(triggerId, message)
