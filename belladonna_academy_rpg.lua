@@ -3365,8 +3365,10 @@ function processOutput(triggerId)
         return
     end
 
-    -- 이미 태그가 추가된 메시지는 스킵 (setChat() 재트리거 방지)
-    if message:find("<Panel>") then
+    -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
+    -- setChat으로 보조 출력이 추가된 경우 "\n\n" 이후에 <Panel>이 있음
+    -- 로어북 모드에서는 메인 응답에 <Panel>이 있을 수 있으므로 이 패턴으로 구분
+    if message:match("\n\n.*<Panel>") then
         return
     end
 
