@@ -3405,6 +3405,14 @@ function processOutput(triggerId)
 
     log("📨 새 턴 처리")
 
+    -- 디버그: 메인 메시지 확인
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
+    addChat(triggerId, "system", string.format("🔧 DEBUG: 메인메시지 길이=%d | 모드=%s", #message, mode))
+
+    -- 메인 메시지의 마지막 500자 출력 (태그가 보통 끝에 있으므로)
+    local messageEnd = message:sub(math.max(1, #message - 500))
+    addChat(triggerId, "system", "🔧 DEBUG: 메인메시지 끝 500자:\n" .. messageEnd)
+
     -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
     parseCombatChoices(triggerId, message)
 
@@ -3469,7 +3477,9 @@ function processOutput(triggerId)
     end
 
     -- 호감도 파싱
+    local affinityCount = 0
     for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+        affinityCount = affinityCount + 1
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
                 local key = char.storage .. "_affinity"
@@ -3494,9 +3504,12 @@ function processOutput(triggerId)
             end
         end
     end
+    addChat(triggerId, "system", string.format("🔧 DEBUG: Affinity 태그 %d개 파싱", affinityCount))
 
     -- 죄악도 파싱
+    local sinCount = 0
     for charName, level in combinedSource:gmatch("%[Sin:(%w+):(%w+)%]") do
+        sinCount = sinCount + 1
         for _, char in ipairs(characters) do
             if char.is_main and char.display == charName then
                 if sinPosChanges[level] then
@@ -3537,6 +3550,14 @@ function processOutput(triggerId)
             end
         end
     end
+    addChat(triggerId, "system", string.format("🔧 DEBUG: Sin 태그 %d개 파싱", sinCount))
+
+    -- Combat 태그 카운트 (이미 parseStatusWindow에서 파싱됨)
+    local combatCount = 0
+    for _ in combinedSource:gmatch("%[Combat:[^%]]+%]") do
+        combatCount = combatCount + 1
+    end
+    addChat(triggerId, "system", string.format("🔧 DEBUG: Combat 태그 %d개 파싱", combatCount))
 
     -- RPG 시스템 파싱 (태그 소스에서)
     if rpgEnabled then
