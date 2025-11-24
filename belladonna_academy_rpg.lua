@@ -3608,7 +3608,12 @@ onOutput = async(function(triggerId)
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
-    setChat(triggerId, -1, finalMessage)
+
+    -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
+    local chatLength = getChatLength(triggerId)
+    local lastIndex = chatLength - 1
+
+    setChat(triggerId, lastIndex, finalMessage)
 
     log("✅ 턴 처리 완료")
 end)
