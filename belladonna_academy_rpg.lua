@@ -3372,14 +3372,27 @@ function onStart(triggerId)
     log("✅ 초기화 완료 (로어북 기준 + RPG 시스템)")
 end
 
+-- onOutput 중복 실행 방지 플래그
+local isProcessing = false
+
 onOutput = async(function(triggerId)
+    -- 이미 처리 중이면 스킵 (전송 취소 후 재전송 등의 경우)
+    if isProcessing then
+        log("⚠️ 이미 처리 중 - 스킵")
+        return
+    end
+
+    isProcessing = true
+
     local message = getCharacterLastMessage(triggerId)
     if not message then
+        isProcessing = false
         return
     end
 
     -- 이미 태그가 추가된 메시지는 스킵 (setChat() 재트리거 방지)
     if message:find("<Panel>") then
+        isProcessing = false
         return
     end
 
@@ -3615,6 +3628,7 @@ onOutput = async(function(triggerId)
 
     setChat(triggerId, lastIndex, finalMessage)
 
+    isProcessing = false
     log("✅ 턴 처리 완료")
 end)
 
