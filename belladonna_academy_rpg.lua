@@ -3408,9 +3408,8 @@ function processOutput(triggerId)
     end
 
     -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
-    -- <!--PROCESSED--> 마커가 있으면 이미 처리된 메시지
-    if message:find("<!--PROCESSED-->") then
-        log("⏭️ 이미 처리된 메시지 - 스킵")
+    -- <Panel>■★ 마커가 있으면 이미 보조 출력이 추가된 메시지
+    if message:find("<Panel>■★", 1, true) then
         return
     end
 
@@ -3640,8 +3639,7 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
-    -- 중복 처리 방지를 위한 마커 추가
-    local finalMessage = message .. "\n\n<!--PROCESSED-->\n" .. auxiliaryMessage
+    local finalMessage = message .. "\n\n" .. auxiliaryMessage
 
     -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
     local chatLength = getChatLength(triggerId)
