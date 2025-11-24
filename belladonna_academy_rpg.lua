@@ -3378,11 +3378,15 @@ onOutput = async(function(triggerId)
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
 
-    -- 보조모델이 생성한 태그 파싱
-    parseStatusWindow(triggerId, auxiliaryMessage)
+    -- 태그 파싱 소스 결정: 보조모델 off면 메인 응답에서, on이면 보조 응답에서
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
+    local tagSource = (mode == "0") and message or auxiliaryMessage
+
+    -- 태그 파싱
+    parseStatusWindow(triggerId, tagSource)
 
     -- SIN RESET 처리
-    for charStorage, sinType in auxiliaryMessage:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
+    for charStorage, sinType in tagSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
         local countKey = charStorage .. "_sin_" .. sinType .. "_count"
         local gaugeKey = charStorage .. "_sin_" .. sinType
 
@@ -3403,7 +3407,7 @@ onOutput = async(function(triggerId)
     end
 
     -- 호감도 파싱
-    for charName, feeling in auxiliaryMessage:gmatch("%[Affinity:(%w+):(%w+)%]") do
+    for charName, feeling in tagSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
                 local key = char.storage .. "_affinity"
@@ -3430,7 +3434,7 @@ onOutput = async(function(triggerId)
     end
 
     -- 죄악도 파싱
-    for charName, level in auxiliaryMessage:gmatch("%[Sin:(%w+):(%w+)%]") do
+    for charName, level in tagSource:gmatch("%[Sin:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.is_main and char.display == charName then
                 if sinPosChanges[level] then
@@ -3472,16 +3476,16 @@ onOutput = async(function(triggerId)
         end
     end
 
-    -- RPG 시스템 파싱 (보조모델 응답에서)
+    -- RPG 시스템 파싱 (태그 소스에서)
     if rpgEnabled then
-        parseStatChanges(triggerId, auxiliaryMessage)
-        parseGoldChanges(triggerId, auxiliaryMessage)
-        parseExpChanges(triggerId, auxiliaryMessage)
-        parseHeal(triggerId, auxiliaryMessage)
-        parseItems(triggerId, auxiliaryMessage)
-        parseTraits(triggerId, auxiliaryMessage)
-        parseEffects(triggerId, auxiliaryMessage)
-        parseExams(triggerId, auxiliaryMessage)
+        parseStatChanges(triggerId, tagSource)
+        parseGoldChanges(triggerId, tagSource)
+        parseExpChanges(triggerId, tagSource)
+        parseHeal(triggerId, tagSource)
+        parseItems(triggerId, tagSource)
+        parseTraits(triggerId, tagSource)
+        parseEffects(triggerId, tagSource)
+        parseExams(triggerId, tagSource)
 
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
@@ -3523,9 +3527,9 @@ onOutput = async(function(triggerId)
     if usingItem ~= "" then
         log("🎒 아이템 사용 완료 처리: " .. usingItem)
 
-        -- AI가 아이템을 반환했는지 확인
+        -- AI가 아이템을 반환했는지 확인 (태그 소스에서)
         local returnPattern = "%[Item:Add:" .. usingItem .. ":1[:%]]"
-        local wasReturned = message:find(returnPattern) ~= nil
+        local wasReturned = tagSource:find(returnPattern) ~= nil
 
         if wasReturned then
             -- 비소모품: 아이템 복원
