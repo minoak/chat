@@ -3540,6 +3540,7 @@ function processOutput(triggerId)
 
     -- RPG 시스템 파싱 (태그 소스에서)
     if rpgEnabled then
+        addChat(triggerId, "system", "🔧 DEBUG: Step 4 - RPG 파싱 시작")
         parseStatChanges(triggerId, combinedSource)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
@@ -3549,11 +3550,15 @@ function processOutput(triggerId)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
 
+        addChat(triggerId, "system", "🔧 DEBUG: Step 5 - updateEffectDurations 시작")
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
 
+        addChat(triggerId, "system", "🔧 DEBUG: Step 6 - updateRpgDisplayVars 시작")
         -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
         updateRpgDisplayVars(triggerId)
+
+        addChat(triggerId, "system", "🔧 DEBUG: Step 7 - RPG 파싱 완료")
     end
 
     -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
