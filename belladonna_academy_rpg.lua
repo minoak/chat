@@ -1911,25 +1911,17 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     end
 
     -- 활성 효과 정보 가져오기
-    local effectsStr = getChatVar(triggerId, "active_effects") or ""
-    addChat(triggerId, "system", "🔧 DEBUG: active_effects 원본 = " .. effectsStr)
-
     local effects = getActiveEffects(triggerId)
     local effectsSection = ""
 
     if #effects > 0 then
         effectsSection = "**Current Active Effects:**\n"
-        for i, effect in ipairs(effects) do
+        for _, effect in ipairs(effects) do
             -- nil 방어: 모든 필드가 유효한 값인지 확인
             local effectName = effect.name or "Unknown"
             local effectType = effect.type or "display"
             local effectValue = tonumber(effect.value) or 0
             local effectDesc = effect.desc or ""
-
-            -- 디버그: 모든 effect 데이터 출력
-            addChat(triggerId, "system", string.format("🔧 DEBUG: Effect #%d - name=%s type=%s value=%s duration=%s desc=%s",
-                i, tostring(effect.name), tostring(effect.type), tostring(effect.value),
-                tostring(effect.duration), tostring(effect.desc)))
 
             if effectType == "display" then
                 effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
@@ -2035,7 +2027,6 @@ function callAuxiliaryModel(triggerId, mainResponse)
 
     if not success then
         log("⚠️ buildAuxiliaryMessages 에러: " .. tostring(messages))
-        addChat(triggerId, "system", "🔧 DEBUG: buildAuxiliaryMessages 에러 - " .. tostring(messages))
         return "<Panel>■★"
     end
 
@@ -3241,9 +3232,9 @@ function onStart(triggerId)
 
     -- 보조 AI 모드 초기화 (기본값: off - 로어북 사용)
     if getState(triggerId, "auxiliary_mode") == nil then
-        setState(triggerId, "auxiliary_mode", "0")
-        setChatVar(triggerId, "auxiliary_mode", "0")
-        setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "Aux")
     end
 
     -- 주간 스케줄 변수 초기화
@@ -3441,28 +3432,13 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
-    addChat(triggerId, "system", "🔧 DEBUG: Step 1 - 보조모델 호출 시작")
-    local mode = getState(triggerId, "auxiliary_mode") or "0"
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
-
-    -- 디버그: 보조모델 상태 확인
-    local debugMsg = string.format("🔧 DEBUG: 보조모델 모드=%s | 보조출력길이=%d",
-        mode,
-        #auxiliaryMessage)
-    addChat(triggerId, "system", debugMsg)
-
-    -- 디버그: 보조모델 전체 출력
-    addChat(triggerId, "system", "🔧 DEBUG: 보조출력 전체:\n" .. auxiliaryMessage)
-
-    addChat(triggerId, "system", "🔧 DEBUG: Step 2 - 태그 파싱 시작")
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
 
     -- 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
-
-    addChat(triggerId, "system", "🔧 DEBUG: Step 3 - parseStatusWindow 완료")
 
     -- SIN RESET 처리
     for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
@@ -3486,9 +3462,7 @@ function processOutput(triggerId)
     end
 
     -- 호감도 파싱
-    local affinityCount = 0
     for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
-        affinityCount = affinityCount + 1
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
                 local key = char.storage .. "_affinity"
@@ -3513,12 +3487,9 @@ function processOutput(triggerId)
             end
         end
     end
-    addChat(triggerId, "system", string.format("🔧 DEBUG: Affinity 태그 %d개 파싱", affinityCount))
 
     -- 죄악도 파싱
-    local sinCount = 0
     for charName, level in combinedSource:gmatch("%[Sin:(%w+):(%w+)%]") do
-        sinCount = sinCount + 1
         for _, char in ipairs(characters) do
             if char.is_main and char.display == charName then
                 if sinPosChanges[level] then
@@ -3559,18 +3530,9 @@ function processOutput(triggerId)
             end
         end
     end
-    addChat(triggerId, "system", string.format("🔧 DEBUG: Sin 태그 %d개 파싱", sinCount))
-
-    -- Combat 태그 카운트 (이미 parseStatusWindow에서 파싱됨)
-    local combatCount = 0
-    for _ in combinedSource:gmatch("%[Combat:[^%]]+%]") do
-        combatCount = combatCount + 1
-    end
-    addChat(triggerId, "system", string.format("🔧 DEBUG: Combat 태그 %d개 파싱", combatCount))
 
     -- RPG 시스템 파싱 (태그 소스에서)
     if rpgEnabled then
-        addChat(triggerId, "system", "🔧 DEBUG: Step 4 - RPG 파싱 시작")
         parseStatChanges(triggerId, combinedSource)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
@@ -3580,15 +3542,11 @@ function processOutput(triggerId)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
 
-        addChat(triggerId, "system", "🔧 DEBUG: Step 5 - updateEffectDurations 시작")
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
 
-        addChat(triggerId, "system", "🔧 DEBUG: Step 6 - updateRpgDisplayVars 시작")
         -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
         updateRpgDisplayVars(triggerId)
-
-        addChat(triggerId, "system", "🔧 DEBUG: Step 7 - RPG 파싱 완료")
     end
 
     -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
@@ -3693,7 +3651,6 @@ onOutput = async(function(triggerId)
     -- 이미 처리 중이면 스킵 (전송 취소 후 재전송 등의 경우)
     if isProcessing then
         log("⚠️ 이미 처리 중 - 스킵")
-        addChat(triggerId, "system", "🔧 DEBUG: 이미 처리 중 - 스킵됨")
         return
     end
 
@@ -3706,7 +3663,6 @@ onOutput = async(function(triggerId)
 
     if not success then
         log("❌ onOutput 에러 발생: " .. tostring(result))
-        addChat(triggerId, "system", "🔧 DEBUG: onOutput 에러 - " .. tostring(result))
     else
         log("✅ 턴 처리 완료")
     end
