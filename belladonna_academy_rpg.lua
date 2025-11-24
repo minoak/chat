@@ -1972,8 +1972,8 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    -- 모델 선택: 기본값은 보조 모델
-    local mode = getState(triggerId, "auxiliary_mode") or "2"
+    -- 모델 선택: 기본값은 off (로어북에서 처리)
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
 
     -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
     if mode == "0" then
