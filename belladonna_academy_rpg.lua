@@ -1899,12 +1899,18 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
 
     if #effects > 0 then
         effectsSection = "**Current Active Effects:**\n"
-        for _, effect in ipairs(effects) do
+        for i, effect in ipairs(effects) do
             -- nil 방어: 모든 필드가 유효한 값인지 확인
             local effectName = effect.name or "Unknown"
             local effectType = effect.type or "display"
             local effectValue = tonumber(effect.value) or 0
             local effectDesc = effect.desc or ""
+
+            -- 디버그: effect 데이터 확인
+            if not effect.name or not effect.type or not effect.value then
+                addChat(triggerId, "system", string.format("🔧 DEBUG: Effect #%d 에러 - name=%s type=%s value=%s",
+                    i, tostring(effect.name), tostring(effect.type), tostring(effect.value)))
+            end
 
             if effectType == "display" then
                 effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
