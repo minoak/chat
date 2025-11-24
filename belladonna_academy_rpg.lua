@@ -3393,7 +3393,15 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+
+    -- 디버그: 보조모델 상태 확인
+    local debugMsg = string.format("🔧 DEBUG: 보조모델 모드=%s | 보조출력길이=%d | 내용앞100자=%s",
+        mode,
+        #auxiliaryMessage,
+        auxiliaryMessage:sub(1, math.min(100, #auxiliaryMessage)))
+    addChat(triggerId, "system", debugMsg)
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
@@ -3612,6 +3620,7 @@ onOutput = async(function(triggerId)
     -- 이미 처리 중이면 스킵 (전송 취소 후 재전송 등의 경우)
     if isProcessing then
         log("⚠️ 이미 처리 중 - 스킵")
+        addChat(triggerId, "system", "🔧 DEBUG: 이미 처리 중 - 스킵됨")
         return
     end
 
@@ -3624,6 +3633,7 @@ onOutput = async(function(triggerId)
 
     if not success then
         log("❌ onOutput 에러 발생: " .. tostring(result))
+        addChat(triggerId, "system", "🔧 DEBUG: onOutput 에러 - " .. tostring(result))
     else
         log("✅ 턴 처리 완료")
     end
