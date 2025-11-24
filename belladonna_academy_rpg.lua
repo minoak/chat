@@ -3424,6 +3424,7 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
+    addChat(triggerId, "system", "🔧 DEBUG: Step 1 - 보조모델 호출 시작")
     local mode = getState(triggerId, "auxiliary_mode") or "0"
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
 
@@ -3436,11 +3437,15 @@ function processOutput(triggerId)
     -- 디버그: 보조모델 전체 출력
     addChat(triggerId, "system", "🔧 DEBUG: 보조출력 전체:\n" .. auxiliaryMessage)
 
+    addChat(triggerId, "system", "🔧 DEBUG: Step 2 - 태그 파싱 시작")
+
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
 
     -- 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
+
+    addChat(triggerId, "system", "🔧 DEBUG: Step 3 - parseStatusWindow 완료")
 
     -- SIN RESET 처리
     for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
