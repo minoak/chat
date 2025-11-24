@@ -3420,11 +3420,13 @@ function processOutput(triggerId)
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
 
     -- 디버그: 보조모델 상태 확인
-    local debugMsg = string.format("🔧 DEBUG: 보조모델 모드=%s | 보조출력길이=%d | 내용앞100자=%s",
+    local debugMsg = string.format("🔧 DEBUG: 보조모델 모드=%s | 보조출력길이=%d",
         mode,
-        #auxiliaryMessage,
-        auxiliaryMessage:sub(1, math.min(100, #auxiliaryMessage)))
+        #auxiliaryMessage)
     addChat(triggerId, "system", debugMsg)
+
+    -- 디버그: 보조모델 전체 출력
+    addChat(triggerId, "system", "🔧 DEBUG: 보조출력 전체:\n" .. auxiliaryMessage)
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
