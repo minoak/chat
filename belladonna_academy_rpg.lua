@@ -3408,9 +3408,9 @@ function processOutput(triggerId)
     end
 
     -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
-    -- setChat으로 보조 출력이 추가된 경우: <Panel>■★ 다음에 \n\n이 있고 그 뒤에 태그들이 있음
-    -- 로어북 모드에서 메인 응답은: <Panel>■★로 끝나지만 그 앞에 \n\n이 없음
-    if message:match("<Panel>■★%s*\n\n") then
+    -- <!--PROCESSED--> 마커가 있으면 이미 처리된 메시지
+    if message:find("<!--PROCESSED-->") then
+        log("⏭️ 이미 처리된 메시지 - 스킵")
         return
     end
 
@@ -3640,7 +3640,8 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
-    local finalMessage = message .. "\n\n" .. auxiliaryMessage
+    -- 중복 처리 방지를 위한 마커 추가
+    local finalMessage = message .. "\n\n<!--PROCESSED-->\n" .. auxiliaryMessage
 
     -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
     local chatLength = getChatLength(triggerId)
