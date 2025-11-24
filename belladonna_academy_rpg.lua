@@ -1752,7 +1752,7 @@ function parseCombat(triggerId, tag)
         setState(triggerId, "combat_enemy_name", enemyName)
         setState(triggerId, "combat_enemy_power", enemyPower)
 
-        log(string.format("✅ 플레이어 전투력: %d", playerCombatPower))
+        log(string.format("✅ 플레이어 전투력: %d", currentPower))
         log(string.format("✅ 적 HP: %d", enemyPower))
         log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
 
