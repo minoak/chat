@@ -8,28 +8,17 @@
 .rpg-details summary::before {content: '♥ '; display: inline-block; transition: transform 0.2s;}
 .rpg-details[open] summary::before {transform: rotate(90deg);}
 .rpg-details-content {margin-top: 6px;}
-@keyframes float-pulse {0%, 100% {box-shadow: 0 4px 20px rgba(255, 105, 180, 0.6), 0 0 0 0 rgba(255, 182, 193, 0.4);} 50% {box-shadow: 0 6px 30px rgba(255, 105, 180, 0.8), 0 0 15px 5px rgba(255, 182, 193, 0.3);}}
-@keyframes slide-down {from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);}}
-@keyframes heart-beat {0%, 100% {transform: scale(1);} 50% {transform: scale(1.1);}}
-.activity-float {position: fixed; top: 150px; right: 20px; z-index: 9999; max-width: 450px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;}
-.activity-float summary {width: 60px; height: 60px; background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 50%, #FFB6C1 100%); background-size: 200% 200%; color: white; border: 3px solid white; border-radius: 50%; box-shadow: 0 6px 20px rgba(255, 105, 180, 0.5); font-size: 30px; font-weight: 700; cursor: pointer; list-style: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); animation: float-pulse 3s ease-in-out infinite; display: flex; align-items: center; justify-content: center; padding: 0;}
-.activity-float summary::-webkit-details-marker {display: none;}
-.activity-float summary::before {content: '💖'; animation: heart-beat 1.5s ease-in-out infinite;}
-.activity-float summary:hover {background: linear-gradient(135deg, #FFC0CB 0%, #FF1493 50%, #FFC0CB 100%); background-size: 200% 200%; box-shadow: 0 12px 40px rgba(255, 105, 180, 0.8), 0 0 30px rgba(255, 182, 193, 0.4); transform: scale(1.1);}
-.activity-float[open] summary {border-radius: 50%; animation: none;}
-.activity-float-content {background: linear-gradient(180deg, #FFF5F7 0%, #FFE4E8 100%); border: 3px solid #FFB6C1; border-radius: 20px; padding: 24px; box-shadow: 0 8px 30px rgba(255, 105, 180, 0.3); margin-bottom: 12px; max-height: 600px; overflow-y: auto; animation: slide-down 0.3s ease-out;}
-.activity-float-content::-webkit-scrollbar {width: 8px;}
-.activity-float-content::-webkit-scrollbar-track {background: rgba(255, 182, 193, 0.2); border-radius: 10px;}
-.activity-float-content::-webkit-scrollbar-thumb {background: linear-gradient(180deg, #FFB6C1, #FF69B4); border-radius: 10px;}
-.activity-section-title {text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 1.5px; text-shadow: 0 2px 5px rgba(255, 105, 180, 0.3);}
-.activity-btn {position: relative; display: block; width: 100%; padding: 20px 16px; margin-bottom: 0; color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 16px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; letter-spacing: 0.5px;}
-.activity-btn::before {content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); transition: left 0.5s;}
-.activity-btn:hover::before {left: 100%;}
-.activity-btn:hover {transform: translateY(-4px) scale(1.05); border-color: white; box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);}
-.activity-btn:active {transform: translateY(-2px) scale(1.02);}
-.activity-btn-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;}
-.activity-divider {height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 182, 193, 0.5), transparent); margin: 24px 0; position: relative;}
-.activity-divider::after {content: '♥'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #FFF5F7; color: #FF69B4; padding: 0 10px; font-size: 12px;}
+.schedule-details {margin-bottom: 10px; padding: 18px; background: rgba(255, 255, 255, 0.8); border-radius: 12px; border: 2px solid #B0BEC5;}
+.schedule-details summary {font-weight: 700; color: #546E7A; margin-bottom: 10px; font-size: 1em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
+.schedule-details summary::-webkit-details-marker {display: none;}
+.schedule-details summary::before {content: '📅 '; display: inline-block; transition: transform 0.2s;}
+.schedule-details[open] summary::before {transform: rotate(90deg);}
+.schedule-details-content {margin-top: 12px;}
+.schedule-btn {position: relative; display: block; width: 100%; padding: 14px 12px; margin-bottom: 0; color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.3s ease; overflow: hidden; letter-spacing: 0.3px;}
+.schedule-btn::before {content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); transition: left 0.5s;}
+.schedule-btn:hover::before {left: 100%;}
+.schedule-btn:hover {transform: translateY(-3px); border-color: white; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.2);}
+.schedule-btn:active {transform: translateY(-1px);}
 </style>
 <div class="rpg-status-panel" style="border: 2px solid #FFB6C1; padding: 8px; margin: 10px auto; background: linear-gradient(135deg, #FFF5F7 0%, #FFE4E8 100%); border-radius: 15px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; color: #333; box-shadow: 0 6px 24px rgba(255, 105, 180, 0.3); max-width: 700px;">
 <div style="text-align: center; font-size: 1em; font-weight: 700; color: #FF69B4; margin-bottom: 8px; border-bottom: 2px solid #FFB6C1; padding-bottom: 6px; letter-spacing: 0.8px;">♥ RPG STATUS ♥</div>
@@ -51,35 +40,34 @@
 <details class="rpg-details"><summary>✨ ACTIVE EFFECTS</summary><div class="rpg-details-content"><div style="color: #9C27B0; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::active_effects_display}}</div></div></details>
 <details class="rpg-details"><summary>🌟 TRAITS</summary><div class="rpg-details-content"><div style="color: #333; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::player_traits_display}}</div></div></details>
 </div>
-<details class="activity-float"><summary></summary><div class="activity-float-content">
-<div class="activity-section-title" style="background:linear-gradient(135deg, #E3F2FD, #BBDEFB);color:#1976D2;">📅 주간 스케줄</div>
-<div style="margin-bottom:16px;background:rgba(255,255,255,0.7);padding:16px;border-radius:12px;">
-<div style="font-size:13px;line-height:1.8;color:#555;">
-<div style="margin-bottom:8px;"><strong style="color:#FF69B4;">커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
-<div><strong style="color:#66BB6A;">라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
+<details class="schedule-details"><summary>📅 주간 스케줄</summary><div class="schedule-details-content">
+<div style="margin-bottom:16px;background:rgba(255,255,255,0.9);padding:16px;border-radius:10px;border:2px solid #CFD8DC;">
+<div style="font-size:14px;line-height:2;color:#555;">
+<div style="margin-bottom:10px;"><strong style="color:#546E7A;">📚 커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
+<div><strong style="color:#546E7A;">🌟 라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
 </div>
 </div>
 <div style="margin-bottom:20px;">
-<div style="font-size:12px;font-weight:700;color:#FF69B4;margin-bottom:8px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-<button type="button" risu-trigger="set_curriculum_1" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">정치학</button>
-<button type="button" risu-trigger="set_curriculum_2" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">경제학</button>
-<button type="button" risu-trigger="set_curriculum_3" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">전투술</button>
-<button type="button" risu-trigger="set_curriculum_4" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">예술학</button>
-<button type="button" risu-trigger="set_curriculum_5" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">마법학</button>
-<button type="button" risu-trigger="set_curriculum_6" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);">연금술</button>
-<button type="button" risu-trigger="set_curriculum_7" class="activity-btn" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4);box-shadow:0 4px 15px rgba(255,105,180,0.4);grid-column:1/-1;">행정학</button>
+<div style="font-size:13px;font-weight:700;color:#546E7A;margin-bottom:10px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
+<button type="button" risu-trigger="set_curriculum_1" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">정치학</button>
+<button type="button" risu-trigger="set_curriculum_2" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">경제학</button>
+<button type="button" risu-trigger="set_curriculum_3" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">전투술</button>
+<button type="button" risu-trigger="set_curriculum_4" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">예술학</button>
+<button type="button" risu-trigger="set_curriculum_5" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">마법학</button>
+<button type="button" risu-trigger="set_curriculum_6" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">연금술</button>
+<button type="button" risu-trigger="set_curriculum_7" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);grid-column:1/-1;">행정학</button>
 </div>
-<div style="font-size:12px;font-weight:700;color:#66BB6A;margin-bottom:8px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-<button type="button" risu-trigger="set_lifestyle_1" class="activity-btn" style="background:linear-gradient(135deg,#90EE90,#66BB6A);box-shadow:0 4px 15px rgba(102,187,106,0.4);">사교 활동</button>
-<button type="button" risu-trigger="set_lifestyle_2" class="activity-btn" style="background:linear-gradient(135deg,#90EE90,#66BB6A);box-shadow:0 4px 15px rgba(102,187,106,0.4);">자기개발</button>
-<button type="button" risu-trigger="set_lifestyle_3" class="activity-btn" style="background:linear-gradient(135deg,#90EE90,#66BB6A);box-shadow:0 4px 15px rgba(102,187,106,0.4);">동아리</button>
-<button type="button" risu-trigger="set_lifestyle_4" class="activity-btn" style="background:linear-gradient(135deg,#90EE90,#66BB6A);box-shadow:0 4px 15px rgba(102,187,106,0.4);">모험</button>
-<button type="button" risu-trigger="set_lifestyle_5" class="activity-btn" style="background:linear-gradient(135deg,#90EE90,#66BB6A);box-shadow:0 4px 15px rgba(102,187,106,0.4);grid-column:1/-1;">휴식</button>
+<div style="font-size:13px;font-weight:700;color:#546E7A;margin-bottom:10px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<button type="button" risu-trigger="set_lifestyle_1" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">사교 활동</button>
+<button type="button" risu-trigger="set_lifestyle_2" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">자기개발</button>
+<button type="button" risu-trigger="set_lifestyle_3" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">동아리</button>
+<button type="button" risu-trigger="set_lifestyle_4" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">모험</button>
+<button type="button" risu-trigger="set_lifestyle_5" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);grid-column:1/-1;">휴식</button>
 </div>
-<div style="margin-top:16px;">
-<button type="button" risu-trigger="start_weekly_schedule" class="activity-btn" style="background:linear-gradient(135deg,#9370DB,#6A5ACD);box-shadow:0 4px 15px rgba(106,90,205,0.4);">📅 스케줄 시작</button>
+<div style="margin-top:18px;">
+<button type="button" risu-trigger="start_weekly_schedule" class="schedule-btn" style="background:linear-gradient(135deg,#9575CD,#7E57C2);">📅 스케줄 시작</button>
 </div>
 </div>
-</div></details>
+</details>
