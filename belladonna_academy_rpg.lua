@@ -635,6 +635,7 @@ end
 
 -- 경험치 파싱 및 레벨업 체크
 function parseExpChanges(triggerId, message)
+    -- [EXP:+100] 형식 파싱
     for changeStr in message:gmatch("%[EXP:([%+%-]%d+)%]") do
         local change = tonumber(changeStr) or 0
         local current = tonumber(getChatVar(triggerId, "player_exp")) or 0
@@ -650,6 +651,22 @@ function parseExpChanges(triggerId, message)
 
         if change > 0 then
             checkLevelUp(triggerId)
+        end
+    end
+
+    -- [Level:1] 형식 파싱 (직접 레벨 설정)
+    for levelStr in message:gmatch("%[Level:(%d+)%]") do
+        local newLevel = tonumber(levelStr) or 1
+        local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+
+        if newLevel ~= currentLevel then
+            setState(triggerId, "player_level", newLevel)
+            setChatVar(triggerId, "player_level", tostring(newLevel))
+
+            -- 스냅샷도 즉시 업데이트 (리롤 시 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_player_level", tostring(newLevel))
+
+            log(string.format("⭐ 레벨 설정: %d → %d", currentLevel, newLevel))
         end
     end
 end
