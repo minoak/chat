@@ -1894,6 +1894,9 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     end
 
     -- 활성 효과 정보 가져오기
+    local effectsStr = getChatVar(triggerId, "active_effects") or ""
+    addChat(triggerId, "system", "🔧 DEBUG: active_effects 원본 = " .. effectsStr)
+
     local effects = getActiveEffects(triggerId)
     local effectsSection = ""
 
@@ -1906,11 +1909,10 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
             local effectValue = tonumber(effect.value) or 0
             local effectDesc = effect.desc or ""
 
-            -- 디버그: effect 데이터 확인
-            if not effect.name or not effect.type or not effect.value then
-                addChat(triggerId, "system", string.format("🔧 DEBUG: Effect #%d 에러 - name=%s type=%s value=%s",
-                    i, tostring(effect.name), tostring(effect.type), tostring(effect.value)))
-            end
+            -- 디버그: 모든 effect 데이터 출력
+            addChat(triggerId, "system", string.format("🔧 DEBUG: Effect #%d - name=%s type=%s value=%s duration=%s desc=%s",
+                i, tostring(effect.name), tostring(effect.type), tostring(effect.value),
+                tostring(effect.duration), tostring(effect.desc)))
 
             if effectType == "display" then
                 effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
