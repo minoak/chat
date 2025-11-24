@@ -2014,7 +2014,13 @@ function callAuxiliaryModel(triggerId, mainResponse)
     end
 
     -- 4개 메시지 구조로 프롬프트 생성
-    local messages = buildAuxiliaryMessages(triggerId, mainResponse)
+    local success, messages = pcall(buildAuxiliaryMessages, triggerId, mainResponse)
+
+    if not success then
+        log("⚠️ buildAuxiliaryMessages 에러: " .. tostring(messages))
+        addChat(triggerId, "system", "🔧 DEBUG: buildAuxiliaryMessages 에러 - " .. tostring(messages))
+        return "<Panel>■★"
+    end
 
     log("📤 보조모델 호출 시작 (4-message structure)")
 
