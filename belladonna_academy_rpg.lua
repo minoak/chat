@@ -300,8 +300,13 @@ function saveActiveEffects(triggerId, effects)
     -- 직렬화: name:type:value:duration:desc|name:type:value:duration:desc|...
     local parts = {}
     for _, effect in ipairs(effects) do
+        -- nil 방어: 모든 필드가 유효한 값인지 확인
         local effectStr = string.format("%s:%s:%d:%d:%s",
-            effect.name, effect.type, effect.value, effect.duration, effect.desc or "")
+            effect.name or "Unknown",
+            effect.type or "display",
+            tonumber(effect.value) or 0,
+            tonumber(effect.duration) or 0,
+            effect.desc or "")
         table.insert(parts, effectStr)
     end
 
@@ -323,18 +328,24 @@ function updateEffectsDisplay(triggerId, effects)
 
     local lines = {}
     for _, effect in ipairs(effects) do
-        local sign = effect.value >= 0 and "+" or ""
-        local durationText = effect.duration > 0 and (effect.duration .. "턴") or "영구"
+        -- nil 방어: value와 duration을 숫자로 보장
+        local effectValue = tonumber(effect.value) or 0
+        local effectDuration = tonumber(effect.duration) or 0
+        local effectName = effect.name or "Unknown"
+        local effectDesc = effect.desc or ""
+
+        local sign = effectValue >= 0 and "+" or ""
+        local durationText = effectDuration > 0 and (effectDuration .. "턴") or "영구"
 
         -- 효과 설명이 있으면: "이름: 설명 (효과, 기간)"
         -- 효과 설명이 없으면: "이름: 효과 (기간)"
         local line
-        if effect.desc and effect.desc ~= "" and effect.desc ~= effect.name then
+        if effectDesc ~= "" and effectDesc ~= effectName then
             line = string.format("%s: %s (%s%d, %s)",
-                effect.name, effect.desc, sign, effect.value, durationText)
+                effectName, effectDesc, sign, effectValue, durationText)
         else
             line = string.format("%s: %s%d (%s)",
-                effect.name, sign, effect.value, durationText)
+                effectName, sign, effectValue, durationText)
         end
 
         table.insert(lines, line)
@@ -1889,11 +1900,17 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     if #effects > 0 then
         effectsSection = "**Current Active Effects:**\n"
         for _, effect in ipairs(effects) do
-            if effect.type == "display" then
-                effectsSection = effectsSection .. string.format("- %s: %s\n", effect.name, effect.desc)
+            -- nil 방어: 모든 필드가 유효한 값인지 확인
+            local effectName = effect.name or "Unknown"
+            local effectType = effect.type or "display"
+            local effectValue = tonumber(effect.value) or 0
+            local effectDesc = effect.desc or ""
+
+            if effectType == "display" then
+                effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
             else
-                local statName = effect.type:gsub("_bonus", ""):upper()
-                effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effect.name, statName, effect.value)
+                local statName = effectType:gsub("_bonus", ""):upper()
+                effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effectName, statName, effectValue)
             end
         end
     else
