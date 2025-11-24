@@ -4,11 +4,11 @@
 
 ---
 
-# SYSTEM TAG OUTPUT INSTRUCTIONS
+# RPG TAG OUTPUT INSTRUCTIONS
 
 **CRITICAL: Output Order**
 1. First: Write your complete narrative response (story, dialogue, descriptions)
-2. Last: Output system tags at the very end of your response
+2. Last: Output RPG tags at the very end of your response
 
 After your narrative response, output structured tags to update game state.
 
