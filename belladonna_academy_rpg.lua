@@ -3377,16 +3377,19 @@ function processOutput(triggerId)
     -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
     parseCombatChoices(triggerId, message)
 
+    -- 리롤 지원: 이전 스냅샷으로 복원 후 새 스냅샷 생성
     for _, char in ipairs(characters) do
-        takeSnapshot(triggerId, char)
+        restoreSnapshot(triggerId, char)  -- 리롤 시 이전 상태로 복원
         clearChanges(triggerId, char)
+        takeSnapshot(triggerId, char)     -- 현재 턴 시작 전 상태 저장
     end
 
     -- RPG 스냅샷 및 변경량 초기화 (RPG 활성화 시에만)
     local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
     if rpgEnabled then
-        takeRpgSnapshot(triggerId)
+        restoreRpgSnapshot(triggerId)  -- 리롤 시 이전 상태로 복원
         clearRpgChanges(triggerId)
+        takeRpgSnapshot(triggerId)     -- 현재 턴 시작 전 상태 저장
     end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
