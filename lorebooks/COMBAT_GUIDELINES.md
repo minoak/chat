@@ -13,6 +13,24 @@ This system handles all challenge situations:
 
 Current Combat Power: {{getvar::player_combat_power_max}}
 
+## Understanding Combat Power
+
+**Combat Power = Comprehensive Battle Capability**
+
+- NOT just "attack power" or "HP" separately
+- Represents: Attack strength + Defense + Stamina + Health combined
+- When damaged: Combat Power decreases (reflects injuries, fatigue, reduced fighting ability)
+- Combat = "Combat Power Exchange" - both sides chip away at each other's total capability
+
+**Why it makes sense:**
+- Wounded fighter → Weaker attacks AND slower movement AND less endurance
+- Combat Power naturally reflects this degradation
+- 500 → 300 means you're bloodied and struggling, not just "lost some HP"
+
+**Key Concept:** 전투력 교환 (Combat Power Exchange)
+- You trade blows, each reducing the opponent's fighting capability
+- First to reach 0 Combat Power loses (knocked out, surrenders, or dies)
+
 ---
 
 ## Choice Format Rules
@@ -53,13 +71,14 @@ Current Combat Power: {{getvar::player_combat_power_max}}
 
 1. **Combat Start:** Describe enemy → Show status → Present 6 choices
 2. **Each Turn:** Narrate result → Update status → Present 6 new choices
-3. **Combat End:** Either side reaches 0 HP/CP, or escape succeeds
+3. **Combat End:** Either side reaches 0 Combat Power, or escape succeeds
 
 **Status Display:**
 ```
 ━━━━━━━━━━━━━━━━━━━━
 ⚔️ 전투 상황
-{{user}} {{getvar::player_combat_power}}/{{getvar::player_combat_power_max}} | {{getvar::combat_enemy_name}} {{getvar::combat_enemy_hp}}/{{getvar::combat_enemy_power}}
+{{user}} 전투력 {{getvar::player_combat_power}}/{{getvar::player_combat_power_max}}
+{{getvar::combat_enemy_name}} 전투력 {{getvar::combat_enemy_hp}}/{{getvar::combat_enemy_power}}
 ━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -67,8 +86,8 @@ Current Combat Power: {{getvar::player_combat_power_max}}
 
 ## ⚔️ Combat Active
 
-Player: {{getvar::player_combat_power}} / {{getvar::player_combat_power_max}}
-Enemy: {{getvar::combat_enemy_name}} ({{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})
+Player 전투력: {{getvar::player_combat_power}} / {{getvar::player_combat_power_max}}
+Enemy 전투력: {{getvar::combat_enemy_name}} ({{getvar::combat_enemy_hp}} / {{getvar::combat_enemy_power}})
 
 🎲 Dice Roll for this turn: {{roll:1d20}}
 

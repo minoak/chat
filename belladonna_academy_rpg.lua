@@ -196,7 +196,7 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 [Gold:±value] - Money change
 [Item:Add:Name:Qty:Effect] / [Item:Remove:Name:Qty] - Non-consumables(학생증,열쇠) return after use
 [EXP:±value] - +10~100
-[Heal:amount] - HP recovery 20~100
+[Heal:amount] - CP recovery 20~100
 
 ## Effect/Trait Tags - {{user}} ONLY
 [Effect:Add:Name:StatBonus] - Temporary boost ({{user}} only, NOT NPCs)
@@ -2008,8 +2008,8 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
         local playerCpMax = getChatVar(triggerId, "player_combat_power_max") or "0"
 
         userPrompt = userPrompt .. "\n⚔️ Combat Status: ACTIVE\n"
-        userPrompt = userPrompt .. string.format("- Enemy: %s (전투력: %s, HP: %s / %s)\n", enemyName, enemyPower, enemyHp, enemyPower)
-        userPrompt = userPrompt .. string.format("- Player 전투력: %s, HP: %s / %s\n", playerCpMax, playerCp, playerCpMax)
+        userPrompt = userPrompt .. string.format("- Enemy: %s (HP: %s / %s)\n", enemyName, enemyHp, enemyPower)
+        userPrompt = userPrompt .. string.format("- Player CP: %s / %s\n", playerCp, playerCpMax)
     end
 
     -- 플레이어 정보
