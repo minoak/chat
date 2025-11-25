@@ -199,20 +199,42 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 [Heal:amount] - CP recovery 20~100
 
 ## Effect/Trait Tags
-[Effect:Add:Name:StatBonus] - Apply (e.g., str+15 or description)
-[Effect:Remove:Name] - Remove
-[Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar
-[Trait:Add:Name:Desc] - Permanent (player only, NOT NPCs)
-[Trait:Merge:Old1+Old2→New:Desc] - Combine similar
+[Effect:Add:Name:StatBonus] - Temporary boost
+[Effect:Remove:Name] - Remove effect
+[Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar effects
+[Trait:Add:Name:Desc] - Permanent trait (player only, NOT NPCs)
+[Trait:Merge:Old1+Old2→New:Desc] - Combine similar traits
 
-## Synthesis Policy - CRITICAL
-MERGE similar Effects/Traits instead of adding new ones. Look for similar names/bonuses/concepts.
-Examples: "작은 축복"x3→"축복"(str+20), "Quick Learner"+"Fast Study"→"Natural Genius"
+**CRITICAL StatBonus Format (MUST follow):**
+✓ SINGLE stat only: str+15, int+10, dex+5, all_bonus+8
+✗ NEVER multiple: "str+10, int+5" or "ALLSTATS +20, CHA +10"
+
+**Multiple stats → Separate tags:**
+✓ [Effect:Add:축복_힘:str+10][Effect:Add:축복_지능:int+10]
+✗ [Effect:Add:축복:str+10, int+10]
+
+## Growth System - Effect/Trait Synthesis
+Effects/Traits show player's growth. Merge similar ones → stronger versions (reduces token usage, shows progression).
+
+**When to Merge (check current lists above):**
+- Similar theme/concept 2+ times: 작은축복+중간축복→성녀의축복
+- Same stat stacking: str+5, str+10 → str+15 with upgraded name
+- Related concepts: 빠른발+민첩함→신속함, 학습+집중→천재성
+
+**Merge Examples:**
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
+✓ [Effect:Merge:빠른학습+높은집중력→천재적재능:int+15]
+✓ [Trait:Merge:검술입문+검술수련→검술숙련:검에 대한 깊은 이해]
+
+**Multiple stat merge → Separate effects:**
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15]
+   [Effect:Add:성녀의축복_매력:cha+10]
+✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
 
 {{PLAYER_TRAITS_SECTION}}
 {{PLAYER_EFFECTS_SECTION}}
 
-Use above to decide: add new or merge?
+**Decision logic:** Check above lists → similar 2+? Merge. Otherwise Add new.
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
