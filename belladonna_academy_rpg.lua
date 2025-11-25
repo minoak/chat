@@ -4762,9 +4762,10 @@ _G["reroll_auxiliary"] = function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
-    -- 메시지 업데이트
+    -- 메시지 업데이트 (indexed setChat 사용)
+    local full_chat = getFullChat(triggerId)
     local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
-    setChat(triggerId, finalMessage)
+    setChat(triggerId, #full_chat - 1, finalMessage)
 
     alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
     log("✅ 보조 AI 리롤 완료")
