@@ -4624,6 +4624,153 @@ _G["reset_all_stats_to_50"] = function(triggerId)
     return true
 end
 
+-- 보조 AI 리롤 함수
+_G["reroll_auxiliary"] = function(triggerId)
+    log("🎲 보조 AI 리롤 시작")
+
+    -- 현재 메시지 가져오기
+    local message = getCharacterLastMessage(triggerId)
+    if not message then
+        alertError(triggerId, "리롤할 메시지를 찾을 수 없습니다.")
+        return false
+    end
+
+    -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
+    local panelPos = message:find("<Panel>■★", 1, true)
+    if not panelPos then
+        alertError(triggerId, "보조 AI 응답이 없습니다. (Off 모드이거나 첫 턴)")
+        return false
+    end
+
+    -- 메인 모델 응답만 추출 (보조 응답 제거)
+    local mainResponse = message:sub(1, panelPos - 1):gsub("%s+$", "")  -- 끝 공백 제거
+
+    log("📝 메인 응답 길이: " .. #mainResponse)
+
+    -- 스냅샷으로 복원 (이전 태그 효과 롤백)
+    for _, char in ipairs(characters) do
+        restoreSnapshot(triggerId, char)
+    end
+
+    local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+    if rpgEnabled then
+        restoreRpgSnapshot(triggerId)
+    end
+
+    log("↩️ 스냅샷 복원 완료")
+
+    -- 보조모델 다시 호출
+    local auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
+    log("🔄 보조모델 재호출 완료")
+
+    -- 태그 파싱 (메인 + 보조)
+    local combinedSource = mainResponse .. "\n" .. auxiliaryMessage
+
+    -- 상태창 태그 파싱
+    parseStatusWindow(triggerId, combinedSource)
+
+    -- SIN RESET 처리
+    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
+        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+        local gaugeKey = charStorage .. "_sin_" .. sinType
+
+        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+
+        setChatVar(triggerId, countKey, tostring(currentCount + 1))
+        setChatVar(triggerId, gaugeKey, "0")
+
+        for _, char in ipairs(characters) do
+            if char.storage == charStorage then
+                updatePercent(triggerId, char)
+                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
+                    currentCount, currentCount + 1))
+                break
+            end
+        end
+    end
+
+    -- 호감도 파싱
+    for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+        for _, char in ipairs(characters) do
+            if char.display == charName and affinityChanges[feeling] then
+                local key = char.storage .. "_affinity"
+                local current = tonumber(getChatVar(triggerId, key)) or 0
+                local change = affinityChanges[feeling]
+                local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+
+                setChatVar(triggerId, key, tostring(new))
+
+                local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+
+                if char.is_main then
+                    setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                end
+
+                updatePercent(triggerId, char)
+                log(string.format("💕 %s 호감도: %d → %d (%s, %+d)",
+                    char.display, current, new, feeling, change))
+                break
+            end
+        end
+    end
+
+    -- Sin 변화 파싱
+    for charName, sinType, change in combinedSource:gmatch("%[Sin:(%w+):(pos|neg):([%+%-]?%d+)%]") do
+        for _, char in ipairs(characters) do
+            if char.display == charName and char.has_sin then
+                local key = char.storage .. "_sin_" .. sinType
+                local current = tonumber(getChatVar(triggerId, key)) or 0
+                local delta = tonumber(change) or 0
+                local new = clampValue(current + delta, SIN_MIN, SIN_MAX)
+
+                setChatVar(triggerId, key, tostring(new))
+
+                local changeKey = char.storage .. "_change_sin_" .. sinType
+                local prevChange = tonumber(getChatVar(triggerId, changeKey)) or 0
+                setChatVar(triggerId, changeKey, tostring(prevChange + delta))
+
+                updatePercent(triggerId, char)
+                log(string.format("😈 %s %s: %d → %d (%+d)",
+                    char.display, sinType == "pos" and "압력" or "해소",
+                    current, new, delta))
+                break
+            end
+        end
+    end
+
+    -- RPG 태그 파싱
+    if rpgEnabled then
+        parseStatChanges(triggerId, combinedSource)
+        parseGoldChanges(triggerId, combinedSource)
+        parseExpChanges(triggerId, combinedSource)
+        parseHeal(triggerId, combinedSource)
+        parseItems(triggerId, combinedSource)
+        parseTraits(triggerId, combinedSource)
+        parseEffects(triggerId, combinedSource)
+        parseCalendar(triggerId, combinedSource)
+        parseLocation(triggerId, combinedSource)
+    end
+
+    -- UI 업데이트
+    for _, char in ipairs(characters) do
+        updatePercent(triggerId, char)
+    end
+
+    if rpgEnabled then
+        updateRpgDisplayVars(triggerId)
+    end
+
+    -- 메시지 업데이트
+    local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
+    setChat(triggerId, finalMessage)
+
+    alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
+    log("✅ 보조 AI 리롤 완료")
+    return true
+end
+
 -- 스케줄 시작 함수
 _G["start_weekly_schedule"] = function(triggerId)
     local curriculum = getChatVar(triggerId, "current_curriculum") or "선택 안 함"
