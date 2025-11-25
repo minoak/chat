@@ -13,23 +13,11 @@ This system handles all challenge situations:
 
 Current Combat Power: {{getvar::player_combat_power_max}}
 
-## Understanding Combat Power
+## Combat Power Concept
 
-**Combat Power = Comprehensive Battle Capability**
-
-- NOT just "attack power" or "HP" separately
-- Represents: Attack strength + Defense + Stamina + Health combined
-- When damaged: Combat Power decreases (reflects injuries, fatigue, reduced fighting ability)
-- Combat = "Combat Power Exchange" - both sides chip away at each other's total capability
-
-**Why it makes sense:**
-- Wounded fighter → Weaker attacks AND slower movement AND less endurance
-- Combat Power naturally reflects this degradation
-- 500 → 300 means you're bloodied and struggling, not just "lost some HP"
-
-**Key Concept:** 전투력 교환 (Combat Power Exchange)
-- You trade blows, each reducing the opponent's fighting capability
-- First to reach 0 Combat Power loses (knocked out, surrenders, or dies)
+**Combat Power = Total Battle Capability** (Attack + Defense + Health combined)
+- Damaged → Fighting ability decreases (weaker attacks, slower movement, less endurance)
+- Combat = "전투력 교환" - both sides trade damage until one reaches 0
 
 ---
 
