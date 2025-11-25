@@ -414,11 +414,14 @@ end
 function updateEffectDurations(triggerId)
     local effects = getActiveEffects(triggerId)
     local expired = {}
+    local needsSave = false
 
     for i = #effects, 1, -1 do
         local effect = effects[i]
         if effect.duration > 0 then
             effect.duration = effect.duration - 1
+            needsSave = true  -- duration이 감소했으면 저장 필요
+
             if effect.duration == 0 then
                 table.insert(expired, effect.name)
                 table.remove(effects, i)
@@ -426,10 +429,13 @@ function updateEffectDurations(triggerId)
         end
     end
 
-    if #expired > 0 then
+    if needsSave then
         saveActiveEffects(triggerId, effects)
-        for _, name in ipairs(expired) do
-            log("⏰ 효과 만료: " .. name)
+
+        if #expired > 0 then
+            for _, name in ipairs(expired) do
+                log("⏰ 효과 만료: " .. name)
+            end
         end
     end
 end
