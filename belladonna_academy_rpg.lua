@@ -198,12 +198,15 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 [EXP:±value] - +10~100
 [Heal:amount] - CP recovery 20~100
 
-## Effect/Trait Tags
-[Effect:Add:Name:StatBonus] - Temporary boost
+## Effect/Trait Tags - PLAYER ONLY
+[Effect:Add:Name:StatBonus] - Temporary boost (PLAYER only, NOT NPCs)
 [Effect:Remove:Name] - Remove effect
 [Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar effects
-[Trait:Add:Name:Desc] - Permanent trait (player only, NOT NPCs)
+[Trait:Add:Name:Desc] - Permanent trait (PLAYER only, NOT NPCs)
 [Trait:Merge:Old1+Old2→New:Desc] - Combine similar traits
+
+**CRITICAL: Effect/Trait tags are for PLAYER CHARACTER only.**
+**NPC changes (Mirabel gets stronger, Celestia learns magic) → Narrative description ONLY. NO tags.**
 
 **CRITICAL StatBonus Format (MUST follow):**
 ✓ SINGLE stat only: str+15, int+10, dex+5, all_bonus+8
