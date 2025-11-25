@@ -2092,6 +2092,17 @@ function callAuxiliaryModel(triggerId, mainResponse)
             result = result .. "\n<Panel>■★"
         end
 
+        -- 중복 태그 블록 제거: 첫 번째 <Panel>■★ 이후 모든 내용 삭제
+        local panelPos = result:find("<Panel>■★", 1, true)
+        if panelPos then
+            local afterPanel = result:sub(panelPos + 11)  -- "<Panel>■★" 이후 내용
+            if afterPanel:find("%[Affinity:", 1, false) or afterPanel:find("<Panel>", 1, true) then
+                -- 이후에 태그나 Panel이 더 있으면 중복으로 간주, 첫 번째까지만 자름
+                result = result:sub(1, panelPos + 10)  -- "<Panel>■★" 포함
+                log("⚠️ 중복 태그 블록 감지 및 제거")
+            end
+        end
+
         log("✅ 보조모델 응답 수신 완료")
         return result
     else
