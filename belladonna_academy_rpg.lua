@@ -4629,11 +4629,22 @@ _G["reroll_auxiliary"] = function(triggerId)
     log("🎲 보조 AI 리롤 시작")
 
     -- 현재 메시지 가져오기
-    local message = getCharacterLastMessage(triggerId)
-    if not message then
-        alertError(triggerId, "리롤할 메시지를 찾을 수 없습니다.")
+    local full_chat = getFullChat(triggerId)
+    if not full_chat or #full_chat == 0 then
+        alertError(triggerId, "채팅 기록이 없습니다.")
         return false
     end
+
+    local chatIndex = #full_chat  -- 1-based 인덱스
+    local lastMessage = full_chat[chatIndex]
+
+    -- AI 메시지인지 확인
+    if lastMessage.role ~= "char" then
+        alertError(triggerId, "마지막 메시지가 AI 응답이 아닙니다.")
+        return false
+    end
+
+    local message = lastMessage.data
 
     -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
     local panelPos = message:find("<Panel>■★", 1, true)
@@ -4762,10 +4773,9 @@ _G["reroll_auxiliary"] = function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
-    -- 메시지 업데이트 (indexed setChat 사용)
-    local full_chat = getFullChat(triggerId)
+    -- 메시지 업데이트 (indexed setChat 사용, 0-based)
     local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
-    setChat(triggerId, #full_chat - 1, finalMessage)
+    setChat(triggerId, chatIndex - 1, finalMessage)
 
     alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
     log("✅ 보조 AI 리롤 완료")
