@@ -8,7 +8,81 @@
 .rpg-details summary::before {content: '▸ '; display: inline-block; transition: transform 0.2s;}
 .rpg-details[open] summary::before {content: '▾ ';}
 .rpg-details-content {margin-top: 6px;}
+
+/* 주간 스케줄 버튼 */
+.schedule-buttons-container {position: fixed; right: 20px; top: 130px; display: flex; flex-direction: column; gap: 15px; z-index: 1000;}
+.btn-schedule {width: 55px; height: 55px; border-radius: 50%; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; border: 2px solid #8b7355; background: #f5f1e8; overflow: hidden;}
+.btn-schedule::after {content: '📅'; font-size: 26px;}
+#schedule-toggle {display: none;}
+
+/* 주간 스케줄 패널 */
+.schedule-panel {
+    position: fixed; right: 0; top: 0; width: 35%; height: 100vh;
+    background: #f5f1e8; border-left: 3px solid #8b7355;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.3); z-index: 990;
+    overflow-y: auto; padding: 20px; box-sizing: border-box;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+#schedule-toggle:checked ~ .schedule-panel {transform: translateX(0);}
+
+.schedule-panel::-webkit-scrollbar {width: 8px;}
+.schedule-panel::-webkit-scrollbar-thumb {background: #8b7355; border-radius: 4px;}
+.schedule-panel::-webkit-scrollbar-track {background: #f0ebe0;}
+
+@media (max-width: 768px) {
+    .schedule-panel {width: 100%;}
+}
 </style>
+
+<!-- 스케줄 토글 체크박스 -->
+<input type="checkbox" id="schedule-toggle">
+
+<!-- 스케줄 버튼 컨테이너 -->
+<div class="schedule-buttons-container">
+<label for="schedule-toggle" class="btn-schedule"></label>
+</div>
+
+<!-- 주간 스케줄 패널 -->
+<div class="schedule-panel">
+<div style="text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #8b7355;">
+<h1 style="font-size:28px;color:#5d4e37;margin-bottom:10px;font-weight:600;letter-spacing:1px;">📅 주간 스케줄</h1>
+</div>
+
+<div style="margin-bottom:16px;background:rgba(255,255,255,0.9);padding:16px;border-radius:10px;border:2px solid #d4c4a8;">
+<div style="font-size:14px;line-height:2;color:#555;">
+<div style="margin-bottom:10px;"><strong style="color:#5d4e37;">📚 커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
+<div><strong style="color:#5d4e37;">🌟 라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
+</div>
+</div>
+
+<div style="margin-bottom:20px;">
+<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
+<button type="button" risu-trigger="set_curriculum_1" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">정치학</button>
+<button type="button" risu-trigger="set_curriculum_2" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">경제학</button>
+<button type="button" risu-trigger="set_curriculum_3" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">전투술</button>
+<button type="button" risu-trigger="set_curriculum_4" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">예술학</button>
+<button type="button" risu-trigger="set_curriculum_5" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">마법학</button>
+<button type="button" risu-trigger="set_curriculum_6" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">연금술</button>
+<button type="button" risu-trigger="set_curriculum_7" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);grid-column:1/-1;">행정학</button>
+</div>
+
+<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<button type="button" risu-trigger="set_lifestyle_1" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">사교 활동</button>
+<button type="button" risu-trigger="set_lifestyle_2" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">자기개발</button>
+<button type="button" risu-trigger="set_lifestyle_3" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">동아리</button>
+<button type="button" risu-trigger="set_lifestyle_4" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">모험</button>
+<button type="button" risu-trigger="set_lifestyle_5" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);grid-column:1/-1;">휴식</button>
+</div>
+
+<div style="margin-top:18px;">
+<button type="button" risu-trigger="start_weekly_schedule" style="width:100%;padding:12px;background:linear-gradient(135deg,#a67c52,#8b7355);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(139,115,85,0.3);">📅 스케줄 시작</button>
+</div>
+</div>
+</div>
+
 <div class="rpg-status-panel" style="border: 2px solid #a67c52; padding: 8px; margin: 10px auto; background: linear-gradient(135deg, #f9f6f0 0%, #f5f1e8 100%); border-radius: 15px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; color: #333; box-shadow: 0 6px 24px rgba(139, 115, 85, 0.3); max-width: 700px;">
 <div style="text-align: center; font-size: 1em; font-weight: 700; color: #8b7355; margin-bottom: 8px; border-bottom: 2px solid #a67c52; padding-bottom: 6px; letter-spacing: 0.8px;">⚔ RPG STATUS ⚔</div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #d4c4a8;">
@@ -28,35 +102,4 @@
 <details class="rpg-details"><summary>🎒 INVENTORY</summary><div class="rpg-details-content"><div style="display: flex; gap: 8px; flex-wrap: wrap;">{{getvar::player_items_html}}</div></div></details>
 <details class="rpg-details"><summary>✨ ACTIVE EFFECTS</summary><div class="rpg-details-content"><div style="color: #8b7799; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::active_effects_display}}</div></div></details>
 <details class="rpg-details"><summary>🌟 TRAITS</summary><div class="rpg-details-content"><div style="color: #5d4e37; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::player_traits_display}}</div></div></details>
-<details class="rpg-details"><summary>📅 주간 스케줄</summary><div class="rpg-details-content">
-<div style="margin-bottom:16px;background:rgba(255,255,255,0.9);padding:16px;border-radius:10px;border:2px solid #d4c4a8;">
-<div style="font-size:14px;line-height:2;color:#555;">
-<div style="margin-bottom:10px;"><strong style="color:#5d4e37;">📚 커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
-<div><strong style="color:#5d4e37;">🌟 라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
-</div>
-</div>
-<div style="margin-bottom:20px;">
-<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
-<button type="button" risu-trigger="set_curriculum_1" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">정치학</button>
-<button type="button" risu-trigger="set_curriculum_2" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">경제학</button>
-<button type="button" risu-trigger="set_curriculum_3" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">전투술</button>
-<button type="button" risu-trigger="set_curriculum_4" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">예술학</button>
-<button type="button" risu-trigger="set_curriculum_5" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">마법학</button>
-<button type="button" risu-trigger="set_curriculum_6" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">연금술</button>
-<button type="button" risu-trigger="set_curriculum_7" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);grid-column:1/-1;">행정학</button>
-</div>
-<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-<button type="button" risu-trigger="set_lifestyle_1" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">사교 활동</button>
-<button type="button" risu-trigger="set_lifestyle_2" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">자기개발</button>
-<button type="button" risu-trigger="set_lifestyle_3" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">동아리</button>
-<button type="button" risu-trigger="set_lifestyle_4" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">모험</button>
-<button type="button" risu-trigger="set_lifestyle_5" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);grid-column:1/-1;">휴식</button>
-</div>
-<div style="margin-top:18px;">
-<button type="button" risu-trigger="start_weekly_schedule" style="width:100%;padding:12px;background:linear-gradient(135deg,#a67c52,#8b7355);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(139,115,85,0.3);">📅 스케줄 시작</button>
-</div>
-</div>
-</div></details>
 </div>
