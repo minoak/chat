@@ -1,73 +1,62 @@
 <style>
-.rpg-item-button {padding: 8px 16px; background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9em; font-weight: 600; box-shadow: 0 2px 8px rgba(255, 105, 180, 0.3); transition: all 0.2s ease; letter-spacing: 0.3px;}
-.rpg-item-button:hover {background: linear-gradient(135deg, #FFC0CB, #FF69B4); box-shadow: 0 4px 12px rgba(255, 105, 180, 0.5); transform: translateY(-2px);}
-.rpg-item-button:active {background: linear-gradient(135deg, #FF69B4, #FF1493); transform: translateY(0) scale(0.98);}
-.rpg-details {margin-bottom: 6px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #FFE4E1;}
-.rpg-details summary {font-weight: 700; color: #FF69B4; margin-bottom: 6px; font-size: 0.85em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
+.rpg-item-button {padding: 8px 16px; background: linear-gradient(135deg, #a67c52, #8b7355); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9em; font-weight: 600; box-shadow: 0 2px 8px rgba(139, 115, 85, 0.3); transition: all 0.2s ease; letter-spacing: 0.3px;}
+.rpg-item-button:hover {background: linear-gradient(135deg, #b8936d, #8b7355); box-shadow: 0 4px 12px rgba(139, 115, 85, 0.5); transform: translateY(-2px);}
+.rpg-item-button:active {background: linear-gradient(135deg, #8b7355, #6d5d47); transform: translateY(0) scale(0.98);}
+.rpg-details {margin-bottom: 6px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #d4c4a8;}
+.rpg-details summary {font-weight: 700; color: #8b7355; margin-bottom: 6px; font-size: 0.85em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
 .rpg-details summary::-webkit-details-marker {display: none;}
-.rpg-details summary::before {content: '♥ '; display: inline-block; transition: transform 0.2s;}
-.rpg-details[open] summary::before {transform: rotate(90deg);}
+.rpg-details summary::before {content: '▸ '; display: inline-block; transition: transform 0.2s;}
+.rpg-details[open] summary::before {content: '▾ ';}
 .rpg-details-content {margin-top: 6px;}
-.schedule-details {margin-bottom: 10px; padding: 18px; background: rgba(255, 255, 255, 0.8); border-radius: 12px; border: 2px solid #B0BEC5;}
-.schedule-details summary {font-weight: 700; color: #546E7A; margin-bottom: 10px; font-size: 1em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
-.schedule-details summary::-webkit-details-marker {display: none;}
-.schedule-details summary::before {content: '📅 '; display: inline-block; transition: transform 0.2s;}
-.schedule-details[open] summary::before {transform: rotate(90deg);}
-.schedule-details-content {margin-top: 12px;}
-.schedule-btn {position: relative; display: block; width: 100%; padding: 14px 12px; margin-bottom: 0; color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.3s ease; overflow: hidden; letter-spacing: 0.3px;}
-.schedule-btn::before {content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); transition: left 0.5s;}
-.schedule-btn:hover::before {left: 100%;}
-.schedule-btn:hover {transform: translateY(-3px); border-color: white; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.2);}
-.schedule-btn:active {transform: translateY(-1px);}
 </style>
-<div class="rpg-status-panel" style="border: 2px solid #FFB6C1; padding: 8px; margin: 10px auto; background: linear-gradient(135deg, #FFF5F7 0%, #FFE4E8 100%); border-radius: 15px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; color: #333; box-shadow: 0 6px 24px rgba(255, 105, 180, 0.3); max-width: 700px;">
-<div style="text-align: center; font-size: 1em; font-weight: 700; color: #FF69B4; margin-bottom: 8px; border-bottom: 2px solid #FFB6C1; padding-bottom: 6px; letter-spacing: 0.8px;">♥ RPG STATUS ♥</div>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #FFE4E1;">
-<div style="color: #FF69B4; grid-column: 1 / -1;"><strong style="color: #FF1493; font-size: 0.85em;">⚔ COMBAT POWER</strong><div style="display: flex; justify-content: space-between; margin: 3px 0 2px 0; font-size: 0.8em;"><span style="color: #FF69B4;">{{getvar::player_combat_power}}</span><span style="color: #999;">{{getvar::player_combat_power_max}}</span></div><div style="width: 100%; height: 5px; background: #FFE4E1; border-radius: 8px; overflow: hidden; border: 1px solid #FFB6C1;"><div style="width: calc({{getvar::player_combat_power}} / {{getvar::player_combat_power_max}} * 100%); height: 100%; background: linear-gradient(90deg, #FF69B4, #FF1493); border-radius: 8px; transition: width 0.3s;"></div></div></div>
-<div style="color: #666;"><strong style="color: #FF69B4; font-size: 0.85em;">📊 LEVEL</strong><div style="font-size: 1em; font-weight: 700; color: #FF1493; margin-top: 2px;">{{getvar::player_level}}</div></div>
-<div style="color: #666;"><strong style="color: #FFD700; font-size: 0.85em;">💰 GOLD</strong><div style="font-size: 1em; font-weight: 700; color: #FFA500; margin-top: 2px;">{{getvar::player_gold}}</div></div>
-<div style="color: #DA70D6; grid-column: 1 / -1;"><strong style="color: #DA70D6; font-size: 0.85em;">✨ EXPERIENCE</strong><div style="display: flex; justify-content: space-between; margin: 3px 0 2px 0; font-size: 0.8em;"><span style="color: #FF69B4;">{{getvar::player_exp}}</span><span style="color: #999;">{{getvar::player_exp_to_next}}</span></div><div style="width: 100%; height: 5px; background: #FFE4E1; border-radius: 8px; overflow: hidden; border: 1px solid #FFB6C1;"><div style="width: {{getvar::player_exp_percent}}%; height: 100%; background: linear-gradient(90deg, #DA70D6, #FF69B4); border-radius: 8px; transition: width 0.3s;"></div></div></div>
+<div class="rpg-status-panel" style="border: 2px solid #a67c52; padding: 8px; margin: 10px auto; background: linear-gradient(135deg, #f9f6f0 0%, #f5f1e8 100%); border-radius: 15px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; color: #333; box-shadow: 0 6px 24px rgba(139, 115, 85, 0.3); max-width: 700px;">
+<div style="text-align: center; font-size: 1em; font-weight: 700; color: #8b7355; margin-bottom: 8px; border-bottom: 2px solid #a67c52; padding-bottom: 6px; letter-spacing: 0.8px;">⚔ RPG STATUS ⚔</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #d4c4a8;">
+<div style="color: #8b7355; grid-column: 1 / -1;"><strong style="color: #5d4e37; font-size: 0.85em;">⚔ COMBAT POWER</strong><div style="display: flex; justify-content: space-between; margin: 3px 0 2px 0; font-size: 0.8em;"><span style="color: #8b7355;">{{getvar::player_combat_power}}</span><span style="color: #999;">{{getvar::player_combat_power_max}}</span></div><div style="width: 100%; height: 5px; background: #e8dfd0; border-radius: 8px; overflow: hidden; border: 1px solid #d4c4a8;"><div style="width: calc({{getvar::player_combat_power}} / {{getvar::player_combat_power_max}} * 100%); height: 100%; background: linear-gradient(90deg, #a67c52, #8b7355); border-radius: 8px; transition: width 0.3s;"></div></div></div>
+<div style="color: #666;"><strong style="color: #8b7355; font-size: 0.85em;">📊 LEVEL</strong><div style="font-size: 1em; font-weight: 700; color: #5d4e37; margin-top: 2px;">{{getvar::player_level}}</div></div>
+<div style="color: #666;"><strong style="color: #c9a961; font-size: 0.85em;">💰 GOLD</strong><div style="font-size: 1em; font-weight: 700; color: #d4a574; margin-top: 2px;">{{getvar::player_gold}}</div></div>
+<div style="color: #8b7355; grid-column: 1 / -1;"><strong style="color: #8b7355; font-size: 0.85em;">✨ EXPERIENCE</strong><div style="display: flex; justify-content: space-between; margin: 3px 0 2px 0; font-size: 0.8em;"><span style="color: #8b7355;">{{getvar::player_exp}}</span><span style="color: #999;">{{getvar::player_exp_to_next}}</span></div><div style="width: 100%; height: 5px; background: #e8dfd0; border-radius: 8px; overflow: hidden; border: 1px solid #d4c4a8;"><div style="width: {{getvar::player_exp_percent}}%; height: 100%; background: linear-gradient(90deg, #b8936d, #a67c52); border-radius: 8px; transition: width 0.3s;"></div></div></div>
 </div>
 <details class="rpg-details"><summary>★ ATTRIBUTES ★</summary><div class="rpg-details-content"><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-<div style="background: linear-gradient(135deg, #FFE4E1, #FFC0CB); padding: 6px; border-radius: 10px; border: 2px solid #FFB6C1; text-align: center;"><div style="color: #FF1493; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">STR</div><div style="color: #FF69B4; font-size: 1.05em; font-weight: 700;">{{getvar::str_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::str_bonus}})</div></div>
-<div style="background: linear-gradient(135deg, #E0F7FA, #B2EBF2); padding: 6px; border-radius: 10px; border: 2px solid #80DEEA; text-align: center;"><div style="color: #00ACC1; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">INT</div><div style="color: #00BCD4; font-size: 1.05em; font-weight: 700;">{{getvar::int_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::int_bonus}})</div></div>
-<div style="background: linear-gradient(135deg, #F1F8E9, #DCEDC8); padding: 6px; border-radius: 10px; border: 2px solid #AED581; text-align: center;"><div style="color: #689F38; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">DEX</div><div style="color: #8BC34A; font-size: 1.05em; font-weight: 700;">{{getvar::dex_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::dex_bonus}})</div></div>
-<div style="background: linear-gradient(135deg, #FFF9C4, #FFF59D); padding: 6px; border-radius: 10px; border: 2px solid #FFEB3B; text-align: center;"><div style="color: #F57F17; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">CHA</div><div style="color: #FBC02D; font-size: 1.05em; font-weight: 700;">{{getvar::cha_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::cha_bonus}})</div></div>
-<div style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7); padding: 6px; border-radius: 10px; border: 2px solid #CE93D8; text-align: center;"><div style="color: #8E24AA; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">LUK</div><div style="color: #AB47BC; font-size: 1.05em; font-weight: 700;">{{getvar::luk_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::luk_bonus}})</div></div>
-<div style="background: linear-gradient(135deg, #FFEBEE, #FFCDD2); padding: 6px; border-radius: 10px; border: 2px solid #EF9A9A; text-align: center;"><div style="color: #C62828; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">VIT</div><div style="color: #E53935; font-size: 1.05em; font-weight: 700;">{{getvar::vit_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::vit_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #e8d5c4, #d4c4a8); padding: 6px; border-radius: 10px; border: 2px solid #c9b89a; text-align: center;"><div style="color: #8b5a3c; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">STR</div><div style="color: #a67c52; font-size: 1.05em; font-weight: 700;">{{getvar::str_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::str_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #cfd8dc, #b0bec5); padding: 6px; border-radius: 10px; border: 2px solid #90a4ae; text-align: center;"><div style="color: #455a64; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">INT</div><div style="color: #607d8b; font-size: 1.05em; font-weight: 700;">{{getvar::int_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::int_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #d7e3bc, #c5d5a7); padding: 6px; border-radius: 10px; border: 2px solid #aabb97; text-align: center;"><div style="color: #6b7c4a; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">DEX</div><div style="color: #7e8f5e; font-size: 1.05em; font-weight: 700;">{{getvar::dex_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::dex_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #efe6d5, #e8dcc5); padding: 6px; border-radius: 10px; border: 2px solid #d9c8a7; text-align: center;"><div style="color: #9d7d3f; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">CHA</div><div style="color: #c9a961; font-size: 1.05em; font-weight: 700;">{{getvar::cha_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::cha_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #d9cfe3, #c5b8d4); padding: 6px; border-radius: 10px; border: 2px solid #b3a3c7; text-align: center;"><div style="color: #6d5a7c; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">LUK</div><div style="color: #8b7799; font-size: 1.05em; font-weight: 700;">{{getvar::luk_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::luk_bonus}})</div></div>
+<div style="background: linear-gradient(135deg, #e6ccb8, #d9bda5); padding: 6px; border-radius: 10px; border: 2px solid #c9aa8e; text-align: center;"><div style="color: #8b5a3c; font-size: 0.7em; font-weight: 700; margin-bottom: 2px;">VIT</div><div style="color: #a67454; font-size: 1.05em; font-weight: 700;">{{getvar::vit_effective}}</div><div style="color: #999; font-size: 0.6em;">({{getvar::vit_bonus}})</div></div>
 </div></div></details>
 <details class="rpg-details"><summary>🎒 INVENTORY</summary><div class="rpg-details-content"><div style="display: flex; gap: 8px; flex-wrap: wrap;">{{getvar::player_items_html}}</div></div></details>
-<details class="rpg-details"><summary>✨ ACTIVE EFFECTS</summary><div class="rpg-details-content"><div style="color: #9C27B0; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::active_effects_display}}</div></div></details>
-<details class="rpg-details"><summary>🌟 TRAITS</summary><div class="rpg-details-content"><div style="color: #333; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::player_traits_display}}</div></div></details>
-</div>
-<details class="schedule-details"><summary>📅 주간 스케줄</summary><div class="schedule-details-content">
-<div style="margin-bottom:16px;background:rgba(255,255,255,0.9);padding:16px;border-radius:10px;border:2px solid #CFD8DC;">
+<details class="rpg-details"><summary>✨ ACTIVE EFFECTS</summary><div class="rpg-details-content"><div style="color: #8b7799; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::active_effects_display}}</div></div></details>
+<details class="rpg-details"><summary>🌟 TRAITS</summary><div class="rpg-details-content"><div style="color: #5d4e37; line-height: 1.9; font-size: 0.95em; white-space: pre-line;">{{getvar::player_traits_display}}</div></div></details>
+<details class="rpg-details"><summary>📅 주간 스케줄</summary><div class="rpg-details-content">
+<div style="margin-bottom:16px;background:rgba(255,255,255,0.9);padding:16px;border-radius:10px;border:2px solid #d4c4a8;">
 <div style="font-size:14px;line-height:2;color:#555;">
-<div style="margin-bottom:10px;"><strong style="color:#546E7A;">📚 커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
-<div><strong style="color:#546E7A;">🌟 라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
+<div style="margin-bottom:10px;"><strong style="color:#5d4e37;">📚 커리큘럼 (오전):</strong> <span style="color:#333;">{{getvar::current_curriculum}}</span></div>
+<div><strong style="color:#5d4e37;">🌟 라이프스타일 (오후):</strong> <span style="color:#333;">{{getvar::current_lifestyle}}</span></div>
 </div>
 </div>
 <div style="margin-bottom:20px;">
-<div style="font-size:13px;font-weight:700;color:#546E7A;margin-bottom:10px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
+<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">📚 커리큘럼 선택 (오전)</div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
-<button type="button" risu-trigger="set_curriculum_1" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">정치학</button>
-<button type="button" risu-trigger="set_curriculum_2" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">경제학</button>
-<button type="button" risu-trigger="set_curriculum_3" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">전투술</button>
-<button type="button" risu-trigger="set_curriculum_4" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">예술학</button>
-<button type="button" risu-trigger="set_curriculum_5" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">마법학</button>
-<button type="button" risu-trigger="set_curriculum_6" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);">연금술</button>
-<button type="button" risu-trigger="set_curriculum_7" class="schedule-btn" style="background:linear-gradient(135deg,#64B5F6,#42A5F5);grid-column:1/-1;">행정학</button>
+<button type="button" risu-trigger="set_curriculum_1" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">정치학</button>
+<button type="button" risu-trigger="set_curriculum_2" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">경제학</button>
+<button type="button" risu-trigger="set_curriculum_3" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">전투술</button>
+<button type="button" risu-trigger="set_curriculum_4" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">예술학</button>
+<button type="button" risu-trigger="set_curriculum_5" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">마법학</button>
+<button type="button" risu-trigger="set_curriculum_6" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);">연금술</button>
+<button type="button" risu-trigger="set_curriculum_7" style="padding:12px;background:linear-gradient(135deg,#8fa9bd,#78909c);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(120,144,156,0.3);grid-column:1/-1;">행정학</button>
 </div>
-<div style="font-size:13px;font-weight:700;color:#546E7A;margin-bottom:10px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
+<div style="font-size:13px;font-weight:700;color:#5d4e37;margin-bottom:10px;text-align:center;">🌟 라이프스타일 선택 (오후)</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-<button type="button" risu-trigger="set_lifestyle_1" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">사교 활동</button>
-<button type="button" risu-trigger="set_lifestyle_2" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">자기개발</button>
-<button type="button" risu-trigger="set_lifestyle_3" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">동아리</button>
-<button type="button" risu-trigger="set_lifestyle_4" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);">모험</button>
-<button type="button" risu-trigger="set_lifestyle_5" class="schedule-btn" style="background:linear-gradient(135deg,#81C784,#66BB6A);grid-column:1/-1;">휴식</button>
+<button type="button" risu-trigger="set_lifestyle_1" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">사교 활동</button>
+<button type="button" risu-trigger="set_lifestyle_2" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">자기개발</button>
+<button type="button" risu-trigger="set_lifestyle_3" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">동아리</button>
+<button type="button" risu-trigger="set_lifestyle_4" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);">모험</button>
+<button type="button" risu-trigger="set_lifestyle_5" style="padding:12px;background:linear-gradient(135deg,#92a985,#7e8f5e);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(126,143,94,0.3);grid-column:1/-1;">휴식</button>
 </div>
 <div style="margin-top:18px;">
-<button type="button" risu-trigger="start_weekly_schedule" class="schedule-btn" style="background:linear-gradient(135deg,#9575CD,#7E57C2);">📅 스케줄 시작</button>
+<button type="button" risu-trigger="start_weekly_schedule" style="width:100%;padding:12px;background:linear-gradient(135deg,#a67c52,#8b7355);color:white;border:2px solid rgba(255,255,255,0.4);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(139,115,85,0.3);">📅 스케줄 시작</button>
 </div>
 </div>
-</details>
+</div></details>
+</div>
