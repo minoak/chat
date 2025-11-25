@@ -13,11 +13,12 @@ This system handles all challenge situations:
 
 Current Combat Power: {{getvar::player_combat_power_max}}
 
-## Combat Power Concept
+## Challenge System
 
 **Combat Power = Total Battle Capability** (Attack + Defense + Health combined)
+- Applies to all challenges: combat, exams, negotiations, escapes (vs virtual opponent)
 - Damaged → Fighting ability decreases (weaker attacks, slower movement, less endurance)
-- Combat = "전투력 교환" - both sides trade damage until one reaches 0
+- Challenge = "전투력 교환" - both sides trade damage until one reaches 0
 
 ---
 
