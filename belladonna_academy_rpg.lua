@@ -4649,16 +4649,19 @@ _G["reroll_auxiliary"] = function(triggerId)
 
     local message = lastMessage.data
 
+    -- editDisplay에서 추가한 리롤 버튼 제거 (실제 데이터에는 없어야 하지만 안전을 위해)
+    local cleanMessage = message:gsub('<div style="margin%-top:20px.-</div>', "")
+
     -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
-    local panelPos = message:find("<Panel>■★", 1, true)
+    local panelPos = cleanMessage:find("<Panel>■★", 1, true)
     local mainResponse
 
     if panelPos then
         -- 마커가 있으면 기존 메인 응답 추출
-        mainResponse = message:sub(1, panelPos - 1):gsub("%s+$", "")
+        mainResponse = cleanMessage:sub(1, panelPos - 1):gsub("%s+$", "")
     else
         -- 마커가 없으면 메시지 전체를 메인 응답으로 간주 (보조모델 실패/누락 케이스)
-        mainResponse = message:gsub("%s+$", "")
+        mainResponse = cleanMessage:gsub("%s+$", "")
         log("⚠️ <Panel>■★ 마커 없음 - 보조모델 누락된 것으로 간주")
     end
 
