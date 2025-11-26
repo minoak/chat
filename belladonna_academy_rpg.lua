@@ -4899,6 +4899,17 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
+    -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
+    -- 사용자 메시지나 순수 AI 응답(보조모델 없음)은 제외
+    local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
+                               data:find("%[Sin:", 1, false) or
+                               data:find("%[Location:", 1, false) or
+                               data:find("<Panel", 1, true)
+
+    if not hasAuxiliaryOutput then
+        return data
+    end
+
     -- 이미 리롤 버튼이 있으면 중복 추가 방지
     if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
         return data
