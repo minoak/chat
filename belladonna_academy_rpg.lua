@@ -4905,11 +4905,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
-    -- 작은 리롤 버튼 (항상 표시, 성공/실패 무관)
+    -- 작은 리롤 버튼 (LightBoard 스타일 - 얇은 막대 형식)
     local rerollButton = [[
 
-<div style="text-align:right;margin-top:8px;">
-<button type="button" risu-btn="reroll_auxiliary" style="padding:4px 10px;background:#8b7355;color:white;border:1px solid #a67c52;border-radius:4px;font-size:11px;cursor:pointer;opacity:0.7;transition:all 0.2s;" onmouseover="this.style.opacity='1';this.style.background='#a67c52'" onmouseout="this.style.opacity='0.7';this.style.background='#8b7355'">🔄 보조AI 리롤</button>
+<div style="display:flex;justify-content:center;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(139,115,85,0.2);">
+<button type="button" risu-btn="reroll_auxiliary" style="display:inline-flex;align-items:center;gap:6px;padding:6px 16px;background:rgba(139,115,85,0.1);color:#8b7355;border:1px solid rgba(139,115,85,0.3);border-radius:16px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(139,115,85,0.2)';this.style.borderColor='#8b7355'" onmouseout="this.style.background='rgba(139,115,85,0.1)';this.style.borderColor='rgba(139,115,85,0.3)'">
+<span style="font-size:14px;">🔄</span>
+<span>보조 AI 리롤</span>
+</button>
 </div>]]
 
     return data .. rerollButton
