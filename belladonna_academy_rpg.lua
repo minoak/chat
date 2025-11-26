@@ -4901,10 +4901,10 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
-    -- 리롤 버튼 (LightBoard 스타일)
+    -- 리롤 버튼 (우측 하단 배치)
     local rerollButton = [[
 
-<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:center;">
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
 <button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
 </div>]]
 
