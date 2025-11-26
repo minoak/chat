@@ -1,3 +1,5 @@
+@@depth 0
+
 # Noctis - Character Sheet
 
 ---
