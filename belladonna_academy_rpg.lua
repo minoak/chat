@@ -4887,11 +4887,16 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
-    -- 마지막 메시지에만 버튼 표시 (meta.role 체크는 제거)
+    -- 마지막 메시지에만 버튼 표시
     if meta and meta.index ~= nil then
         local chatLength = getChatLength(triggerId)
         local position = meta.index - chatLength
         if position ~= -1 then
+            return data
+        end
+
+        -- 사용자 메시지는 제외 (입력창 등)
+        if meta.role == "user" then
             return data
         end
     end
