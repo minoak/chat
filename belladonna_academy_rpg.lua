@@ -4892,15 +4892,29 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
-    -- 마지막 메시지(-1)가 아니면 버튼 표시 안함
-    local chatLength = getChatLength(triggerId)
-    local position = meta.index - chatLength
-    if position ~= -1 then
+    -- 실제 채팅 배열을 가져와서 정확히 확인
+    local fullChat = getFullChat(triggerId)
+    if not fullChat or #fullChat == 0 then
+        return data
+    end
+
+    -- 마지막 메시지가 맞는지 확인
+    local lastMessage = fullChat[#fullChat]
+    if not lastMessage then
+        return data
+    end
+
+    -- meta.index가 실제 마지막 메시지의 인덱스와 일치하는지 확인
+    if meta.index ~= #fullChat then
+        return data
+    end
+
+    -- 캐릭터 메시지인지 확인 (user 메시지는 제외)
+    if lastMessage.role ~= "char" then
         return data
     end
 
     -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
-    -- 사용자 메시지나 순수 AI 응답(보조모델 없음)은 제외
     local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
                                data:find("%[Sin:", 1, false) or
                                data:find("%[Location:", 1, false) or
