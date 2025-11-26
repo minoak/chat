@@ -4887,18 +4887,21 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
-    -- 마지막 메시지에만 버튼 표시
-    if meta and meta.index ~= nil then
-        local chatLength = getChatLength(triggerId)
-        local position = meta.index - chatLength
-        if position ~= -1 then
-            return data
-        end
+    -- meta 정보가 없으면 버튼 표시 안함 (입력창 등)
+    if not meta or not meta.index then
+        return data
+    end
 
-        -- 사용자 메시지는 제외 (입력창 등)
-        if meta.role == "user" then
-            return data
-        end
+    -- 마지막 메시지(-1)가 아니면 버튼 표시 안함 (백그라운드 중복 방지)
+    local chatLength = getChatLength(triggerId)
+    local position = meta.index - chatLength
+    if position ~= -1 then
+        return data
+    end
+
+    -- 사용자 메시지는 제외
+    if meta.role == "user" then
+        return data
     end
 
     -- 이미 리롤 버튼이 있으면 중복 추가 방지
