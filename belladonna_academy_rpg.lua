@@ -4842,6 +4842,16 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
+    -- 최근 메시지만 처리 (과거 메시지에는 버튼 추가 안함)
+    if meta and meta.index ~= nil then
+        local chatLength = getChatLength(triggerId)
+        local position = meta.index - chatLength
+        -- 마지막 메시지가 아니면 버튼 표시 안함
+        if position ~= -1 then
+            return data
+        end
+    end
+
     -- <Panel>■★ 마커가 있으면 보조모델이 정상 작동 → 리롤 버튼 불필요
     if data:find("<Panel>■★", 1, true) then
         return data
