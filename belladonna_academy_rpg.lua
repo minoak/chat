@@ -4658,12 +4658,51 @@ _G["reroll_auxiliary"] = function(triggerId)
 
     if panelPos then
         -- 마커가 있으면 기존 메인 응답 추출
-        mainResponse = cleanMessage:sub(1, panelPos - 1):gsub("%s+$", "")
+        mainResponse = cleanMessage:sub(1, panelPos - 1)
     else
-        -- 마커가 없으면 메시지 전체를 메인 응답으로 간주 (보조모델 실패/누락 케이스)
-        mainResponse = cleanMessage:gsub("%s+$", "")
-        log("⚠️ <Panel>■★ 마커 없음 - 보조모델 누락된 것으로 간주")
+        -- 마커가 없으면 "<Panel" 또는 첫 번째 태그까지만 추출
+        local partialPanelPos = cleanMessage:find("<Panel", 1, true)
+        local firstTagPos = cleanMessage:find("%[Affinity:", 1, false) or
+                           cleanMessage:find("%[Sin:", 1, false) or
+                           cleanMessage:find("%[Location:", 1, false)
+
+        local cutPos = nil
+        if partialPanelPos and firstTagPos then
+            cutPos = math.min(partialPanelPos, firstTagPos)
+        elseif partialPanelPos then
+            cutPos = partialPanelPos
+        elseif firstTagPos then
+            cutPos = firstTagPos
+        end
+
+        if cutPos then
+            mainResponse = cleanMessage:sub(1, cutPos - 1)
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 시작 위치에서 자름 (pos: " .. cutPos .. ")")
+        else
+            mainResponse = cleanMessage
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 발견 안됨, 전체 사용")
+        end
     end
+
+    -- 보조모델 태그 제거 (혹시 남아있을 수 있으니 한번 더 정리)
+    mainResponse = mainResponse:gsub("%[Affinity:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Sin:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Stat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Gold:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Item:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[EXP:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Heal:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Effect:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Trait:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Combat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Location:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Season:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Week:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
+
+    -- 끝 공백 제거
+    mainResponse = mainResponse:gsub("%s+$", "")
 
     log("📝 메인 응답 길이: " .. #mainResponse)
 
