@@ -4763,8 +4763,7 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseItems(triggerId, combinedSource)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
-        parseCalendar(triggerId, combinedSource)
-        parseLocation(triggerId, combinedSource)
+        parseExams(triggerId, combinedSource)
     end
 
     -- UI 업데이트
