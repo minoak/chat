@@ -4827,3 +4827,54 @@ log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
 log("📅 활동 버튼: activity_combat, activity_magic 등 13개 등록 완료")
 log("📺 editDisplay 리스너: <CombatChoice>, <WeeklyReport> 태그를 HTML로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel/WeeklyReport)")
+
+-- ============================================
+-- 보조 AI 리롤 버튼 표시 (editDisplay)
+-- ============================================
+
+listenEdit("editDisplay", function(triggerId, data, meta)
+    -- <Panel>■★ 마커가 있으면 보조모델이 실행된 메시지
+    if not data:find("<Panel>■★", 1, true) then
+        return data
+    end
+
+    -- 보조모델이 꺼져있으면 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "off"
+    if auxiliaryMode == "off" then
+        return data
+    end
+
+    -- 리롤 버튼 HTML
+    local rerollButton = [[
+
+<div style="margin-top:20px;padding:15px;background:#f5f1e8;border:2px solid #8b7355;border-radius:8px;text-align:center;">
+<button type="button" risu-btn="reroll_auxiliary" style="padding:12px 24px;background:linear-gradient(135deg,#3498db,#2980b9);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(52,152,219,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(52,152,219,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(52,152,219,0.3)'">🎲 보조 AI 리롤</button>
+<p style="font-size:11px;color:#666;margin:8px 0 0 0;">메인 AI 응답은 유지하고 보조 AI 태그만 다시 생성합니다</p>
+</div>]]
+
+    return data .. rerollButton
+end)
+
+-- ============================================
+-- 보조 AI 리롤 버튼 클릭 핸들러
+-- ============================================
+
+onButtonClick = async(function(triggerId, code)
+    if code == "reroll_auxiliary" then
+        -- 재생성 중 표시
+        addChat(triggerId, 'char', '<div style="padding:20px;text-align:center;color:#3498db;font-weight:600;">🎲 보조 AI 재생성 중...</div>')
+
+        -- reroll_auxiliary 함수 호출
+        local success, result = pcall(_G["reroll_auxiliary"], triggerId)
+
+        -- 임시 메시지 제거
+        removeChat(triggerId, -1)
+
+        if not success then
+            alertError(triggerId, "리롤 실패: " .. tostring(result))
+            log("❌ 리롤 실패: " .. tostring(result))
+        end
+    end
+end)
+
+log("🎲 보조 AI 리롤 버튼: editDisplay + onButtonClick 등록 완료")
