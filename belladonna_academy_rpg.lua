@@ -4891,10 +4891,20 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     if meta and meta.index ~= nil then
         local chatLength = getChatLength(triggerId)
         local position = meta.index - chatLength
-        -- 마지막 메시지가 아니면 버튼 표시 안함
+
+        -- 마지막 메시지(-1)이면서 AI 메시지(char)일 때만 버튼 표시
+        -- 사용자가 새 메시지를 입력하면 AI 메시지는 더 이상 -1이 아니므로 버튼 사라짐
         if position ~= -1 then
             return data
         end
+
+        -- AI 메시지가 아니면 버튼 표시 안함
+        if meta.role ~= "char" then
+            return data
+        end
+    else
+        -- meta 정보가 없으면 버튼 표시 안함 (안전장치)
+        return data
     end
 
     -- <Panel>■★ 마커가 있으면 보조모델이 정상 작동 → 리롤 버튼 불필요
