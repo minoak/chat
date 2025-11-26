@@ -4887,12 +4887,21 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return data
     end
 
+    -- 마지막 메시지에만 버튼 표시 (meta.role 체크는 제거)
+    if meta and meta.index ~= nil then
+        local chatLength = getChatLength(triggerId)
+        local position = meta.index - chatLength
+        if position ~= -1 then
+            return data
+        end
+    end
+
     -- 이미 리롤 버튼이 있으면 중복 추가 방지
     if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
         return data
     end
 
-    -- 리롤 버튼 (LightBoard 스타일) - 테스트: 모든 조건 제거
+    -- 리롤 버튼 (LightBoard 스타일)
     local rerollButton = [[
 
 <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:center;">
