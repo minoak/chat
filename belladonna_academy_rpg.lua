@@ -4648,13 +4648,16 @@ _G["reroll_auxiliary"] = function(triggerId)
 
     -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
     local panelPos = message:find("<Panel>■★", 1, true)
-    if not panelPos then
-        alertError(triggerId, "보조 AI 응답이 없습니다. (Off 모드이거나 첫 턴)")
-        return false
-    end
+    local mainResponse
 
-    -- 메인 모델 응답만 추출 (보조 응답 제거)
-    local mainResponse = message:sub(1, panelPos - 1):gsub("%s+$", "")  -- 끝 공백 제거
+    if panelPos then
+        -- 마커가 있으면 기존 메인 응답 추출
+        mainResponse = message:sub(1, panelPos - 1):gsub("%s+$", "")
+    else
+        -- 마커가 없으면 메시지 전체를 메인 응답으로 간주 (보조모델 실패/누락 케이스)
+        mainResponse = message:gsub("%s+$", "")
+        log("⚠️ <Panel>■★ 마커 없음 - 보조모델 누락된 것으로 간주")
+    end
 
     log("📝 메인 응답 길이: " .. #mainResponse)
 
@@ -4841,6 +4844,11 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- <Panel>■★ 마커가 있으면 보조모델이 정상 작동 → 리롤 버튼 불필요
     if data:find("<Panel>■★", 1, true) then
+        return data
+    end
+
+    -- 이미 리롤 버튼이 있으면 중복 추가 방지
+    if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
         return data
     end
 
