@@ -4629,18 +4629,21 @@ _G["reroll_auxiliary"] = function(triggerId)
     log("🎲 보조 AI 리롤 시작")
 
     -- 현재 메시지 가져오기
+    -- 주의: onButtonClick에서 "재생성 중..." 임시 메시지를 추가했으므로
+    -- 실제 AI 응답은 마지막에서 두 번째(-2) 위치에 있음
     local full_chat = getFullChat(triggerId)
-    if not full_chat or #full_chat == 0 then
-        alertError(triggerId, "채팅 기록이 없습니다.")
+    if not full_chat or #full_chat < 2 then
+        alertError(triggerId, "채팅 기록이 부족합니다.")
         return false
     end
 
-    local chatIndex = #full_chat  -- 1-based 인덱스
+    -- 마지막은 임시 메시지, 그 앞이 실제 AI 응답
+    local chatIndex = #full_chat - 1
     local lastMessage = full_chat[chatIndex]
 
     -- AI 메시지인지 확인
     if lastMessage.role ~= "char" then
-        alertError(triggerId, "마지막 메시지가 AI 응답이 아닙니다.")
+        alertError(triggerId, "대상 메시지가 AI 응답이 아닙니다.")
         return false
     end
 
@@ -4775,9 +4778,10 @@ _G["reroll_auxiliary"] = function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
-    -- 메시지 업데이트 (indexed setChat 사용, 0-based)
+    -- 메시지 업데이트 (음수 인덱스 사용)
+    -- -2 = 임시 메시지(-1) 앞의 실제 AI 응답
     local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
-    setChat(triggerId, chatIndex - 1, finalMessage)
+    setChat(triggerId, -2, finalMessage)
 
     alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
     log("✅ 보조 AI 리롤 완료")
