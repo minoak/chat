@@ -4833,23 +4833,24 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 -- ============================================
 
 listenEdit("editDisplay", function(triggerId, data, meta)
-    -- <Panel>■★ 마커가 있으면 보조모델이 실행된 메시지
-    if not data:find("<Panel>■★", 1, true) then
-        return data
-    end
-
     -- 보조모델이 꺼져있으면 버튼 표시 안함
     local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "off"
     if auxiliaryMode == "off" then
         return data
     end
 
+    -- <Panel>■★ 마커가 있으면 보조모델이 정상 작동 → 리롤 버튼 불필요
+    if data:find("<Panel>■★", 1, true) then
+        return data
+    end
+
+    -- 마커가 없다 = 보조모델 실패/누락 → 리롤 버튼 표시
     -- 리롤 버튼 HTML
     local rerollButton = [[
 
 <div style="margin-top:20px;padding:15px;background:#f5f1e8;border:2px solid #8b7355;border-radius:8px;text-align:center;">
-<button type="button" risu-btn="reroll_auxiliary" style="padding:12px 24px;background:linear-gradient(135deg,#3498db,#2980b9);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(52,152,219,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(52,152,219,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(52,152,219,0.3)'">🎲 보조 AI 리롤</button>
-<p style="font-size:11px;color:#666;margin:8px 0 0 0;">메인 AI 응답은 유지하고 보조 AI 태그만 다시 생성합니다</p>
+<button type="button" risu-btn="reroll_auxiliary" style="padding:12px 24px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(231,76,60,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(231,76,60,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(231,76,60,0.3)'">⚠️ 보조 AI 재시도</button>
+<p style="font-size:11px;color:#c0392b;margin:8px 0 0 0;font-weight:600;">보조 AI 응답이 누락되었습니다. 클릭하여 재생성을 시도합니다.</p>
 </div>]]
 
     return data .. rerollButton
