@@ -144,39 +144,6 @@ Tags:
 
 {{/if_pure}}
 
----
-
-# CLUB MEMBERSHIP TAGS
-
-동아리 가입/탈퇴 시 태그 출력.
-
-## 트리거 조건
-
-메인모델이 스토리에서 동아리 가입/탈퇴를 묘사할 때:
-- "주식투자 동아리에 가입했다"
-- "동아리를 탈퇴했다"
-- 미라벨/코델리아와 동아리 관련 대화
-
-## 출력 형식
-
-```
-[Club:Join:stock]   -- 주식투자 동아리 가입
-[Club:Leave:stock]  -- 주식투자 동아리 탈퇴
-```
-
-## 예시
-
-메인모델: "미라벨의 권유로 주식투자 동아리에 가입하게 되었다."
-
-태그:
-```
-[Affinity:Mirabel:like][Sin:Mirabel:neutral]
-[Club:Join:stock]
-<Panel>■★
-```
-
----
-
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
 ---

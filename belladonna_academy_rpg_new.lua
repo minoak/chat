@@ -4853,7 +4853,10 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Week:[^%]]+%]", "")
     data = data:gsub("%[Time:[^%]]+%]", "")
     data = data:gsub("%[Location:[^%]]+%]", "")
-    data = data:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시스템
+    data = data:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시세
+    data = data:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
+    data = data:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
+    data = data:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
 
     -- <Panel> 마커 제거
     data = data:gsub("<Panel>[^<]*", "")
@@ -5880,6 +5883,10 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Week:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시세
+    mainResponse = mainResponse:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
+    mainResponse = mainResponse:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
+    mainResponse = mainResponse:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
 
     -- 끝 공백 제거
     mainResponse = mainResponse:gsub("%s+$", "")

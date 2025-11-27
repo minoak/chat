@@ -16,7 +16,17 @@ A practical investment club connected to Lily Valley's commercial network. While
 
 How to Join: Contact Mirabel directly or check Lily Valley House bulletin board
 
+{{#if_pure {{not_equal::{{getvar::club_stock_joined}}::1}}}}
+
+### Join Tag
+When joining this club, output: `[Club:Join:stock]`
+
+{{/if_pure}}
+
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+
+### Leave Tag
+When leaving this club, output: `[Club:Leave:stock]`
 
 ### Member Activities
 
