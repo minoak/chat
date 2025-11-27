@@ -22,7 +22,7 @@
 
 **가입 방법**: 미라벨에게 직접 문의하거나, 릴리 밸리 하우스 게시판 확인
 
-{{#if_pure {{equal::{{getchatvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
 ### 동아리 활동 (가입자 전용)
 

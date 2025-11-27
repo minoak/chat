@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getchatvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
 # 릴리 벨리 증권시장
 
