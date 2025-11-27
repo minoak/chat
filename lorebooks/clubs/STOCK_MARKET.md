@@ -145,8 +145,7 @@ ACAD - Academia Publishing (Base 100G, Low volatility)
 ## Trade Types
 
 ### Spot Trading
-Standard stock buy/sell.
-Buy with Gold, sell holdings to receive Gold.
+Standard stock buy/sell. Buy with Gold, sell holdings to receive Gold.
 
 ### Leverage Trading
 Trading at 2-5x scale using margin as collateral.
@@ -160,72 +159,57 @@ Unlimited loss potential (if price rises infinitely).
 
 ---
 
-## Main Model Guide
+## Price Output
 
-### Price Output Rules
-
-Output current prices with `<Stock>` tag in exchange-related scenes.
-Format is flexible, but "Ticker: Price, Direction - Reason" structure recommended.
+In exchange-related scenes, output current prices with `<Stock>` tag:
 
 ```
 <Stock>
-LILY: 105G, Rising - Buying increased on major merchant arrival rumors
-IMP: 243G, Falling - Supply concerns following mine accident
-NEP: 98G, Surging - Phase 3 clinical trial success news
-CARA: 82G, Flat - No special news
+LILY: 105G, Rising - Major merchant arrival rumors
+IMP: 243G, Falling - Mine accident concerns
+NEP: 98G, Surging - Phase 3 trial success
+CARA: 82G, Flat - No news
 </Stock>
 ```
 
-### Price Movement Criteria
-
-- Determine naturally in connection with story events
-- Positive news → Related stock rises
-- Negative news → Related stock falls
-- Major events → Sharp rise/fall possible
-- Unrelated stocks show minor movement or stay flat
-
-### Information Quality (Affinity-linked)
-
-Mirabel (LILY, Commerce sector specialist)
-- Affinity 0-30: "Well, I'm not sure..." (vague response)
-- Affinity 30-60: "Trading volume has been increasing lately" (general info)
-- Affinity 60-80: "Personally, it looks promising" (directional hint)
-- Affinity 80+: "It's a secret, but... next week's announcement..." (insider info)
-
-### Narrative Handling Items
-
-Handle these situations through narrative, not system:
-
-Margin Call
-```
-Create tense atmosphere
-→ Explain situation ("Your margin is about to run out")
-→ Present choices (Add funds / Cut losses / Hold)
-→ Drama based on outcome
-```
-
-Big Win/Bankruptcy
-```
-Dramatic moment staging
-→ NPC reactions (Mirabel's evaluation, other members' gazes)
-→ Follow-up effects (debt, reputation, relationship changes)
-```
-
-News/Rumors
-```
-Deliver naturally through dialogue or bulletin boards
-→ "Did you hear? There was an accident at Nepenthes..."
-→ Keep authenticity unclear (guide player judgment)
-```
+Price movements follow story events naturally:
+- Positive news → stock rises
+- Negative news → stock falls
+- Major events → sharp movements
+- Unrelated stocks → minor or flat
 
 ---
 
-## Investment Tips (Club Shared Information)
+## Information Quality
 
-- Beginners: Low volatility stocks like IMP, BANK, HARV recommended
-- Aggressive: High volatility stocks like NEP, MUTA, MUSE
+NPC hints depend on affinity level:
+
+Mirabel (LILY, Commerce sector)
+- Low affinity: Vague responses
+- Medium affinity: General market trends
+- High affinity: Directional hints
+- Very high affinity: Insider information
+
+---
+
+## Narrative Events
+
+Handle dramatically through story:
+
+Margin Call: Tense atmosphere, present choices (add funds / cut losses / hold)
+
+Big Win/Bankruptcy: NPC reactions, reputation effects, relationship changes
+
+News/Rumors: Deliver through dialogue or bulletin boards, keep authenticity unclear
+
+---
+
+## Investment Tips
+
+- Beginners: Low volatility (IMP, BANK, HARV)
+- Aggressive: High volatility (NEP, MUTA, MUSE)
 - Balanced: Sector diversification
-- Leverage: Only when confident, 2x recommended max
+- Leverage: Only when confident, 2x max
 
 "The market is always right. It's your analysis that's wrong." - Mirabel
 
