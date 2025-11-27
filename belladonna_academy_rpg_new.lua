@@ -4630,7 +4630,11 @@ end
 -- 현재 뷰에 따른 주식 패널 HTML 생성
 function generateStockPanelUI(triggerId)
     local clubJoined = getChatVar(triggerId, "club_stock_joined")
-    if clubJoined ~= "1" then return "" end
+    if clubJoined ~= "1" then
+        -- 가입 안 된 경우 자동 가입 (테스트용)
+        setChatVar(triggerId, "club_stock_joined", "1")
+        log("📈 주식 동아리 자동 가입 (테스트)")
+    end
 
     local currentView = getState(triggerId, "stock_current_view") or "board"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "LILY"
