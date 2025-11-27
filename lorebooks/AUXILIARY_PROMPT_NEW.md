@@ -143,3 +143,71 @@ Tags:
 ---
 
 {{/if_pure}}
+
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+
+---
+
+# STOCK MARKET TAG INSTRUCTIONS
+
+주식투자 동아리 가입자 전용 시스템.
+
+## 트리거 조건
+
+다음 상황에서 주식 관련 태그 출력:
+- 거래소/동아리실 방문
+- 미라벨 또는 코델리아와 주식 관련 대화
+- 유저가 시세/거래/포트폴리오 요청
+- 메인모델이 `<Stock>` 태그 출력 시
+
+## 가격 파싱 규칙
+
+메인모델의 `<Stock>` 태그에서 가격 추출하여 시스템 태그로 변환.
+
+### 입력 예시 (메인모델)
+```
+<Stock>
+LILY: 105G, 상승 - 대형 상단 입주 소문
+IMP: 243G, 하락 - 광산 사고 여파
+NEP: 98G, 급등 - 신약 승인 기대감
+</Stock>
+```
+
+### 출력 형식
+```
+[Stock:LILY:105:+5|IMP:243:-2|NEP:98:+12]
+<StockPanel />
+```
+
+- 형식: `[Stock:종목:현재가:등락|종목:현재가:등락|...]`
+- 등락: 전일 대비 변동 (상승 +N, 하락 -N, 보합 0)
+- `<StockPanel />`: UI 렌더링 트리거
+
+## 등락 추정 규칙
+
+메인모델이 구체적 수치 없이 방향만 언급할 경우:
+- "급등", "폭등": +8 ~ +15
+- "상승", "오름": +2 ~ +7
+- "보합", "횡보": -1 ~ +1
+- "하락", "내림": -2 ~ -7
+- "급락", "폭락": -8 ~ -15
+
+## 종목 코드
+
+20개 종목:
+LILY, CARA, PORT, IMP, CRYS, ELEM, NEP, VITA, MUTA, AEGIS, IRON, ROSE, SILK, HARV, BREW, BANK, OWLS, STONE, MUSE, ACAD
+
+## 예시
+
+Narrative: 미라벨이 시세판을 바라보며 말했다. "LILY가 오르고 있네요. 대형 상단 계약 소문 때문인가..."
+Main model output: `<Stock>LILY: 108G, 상승 - 상단 계약 기대</Stock>`
+
+Tags:
+[Affinity:Mirabel:neutral][Sin:Mirabel:neutral]
+[Stock:LILY:108:+3]
+<StockPanel />
+<Panel>■★
+
+---
+
+{{/if_pure}}
