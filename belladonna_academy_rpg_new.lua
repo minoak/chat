@@ -975,41 +975,29 @@ local STOCK_INFO = {
     }
 }
 
--- 주식 태그 파싱: <Stock>LILY (릴리 상사): 105g, 상승 - ...</Stock>
+-- 주식 태그 파싱: [Stock:LILY:105:+5|IMP:243:-2|...]
 function parseStockChanges(triggerId, message)
     -- 동아리 가입 여부 확인
     local clubJoined = getChatVar(triggerId, "club_stock_joined")
     if clubJoined ~= "1" then return end
 
-    -- <Stock>...</Stock> 블록 파싱
-    local stockBlock = message:match("<Stock>(.-)<%/Stock>")
-    if not stockBlock then return end
+    for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
+        -- 각 종목 파싱: LILY:105:+5|IMP:243:-2
+        for entry in stockData:gmatch("([^|]+)") do
+            local ticker, price, change = entry:match("([A-Z]+):(%d+):([%+%-]?%d+)")
+            if ticker and price and change then
+                local priceNum = tonumber(price)
+                local changeNum = tonumber(change)
 
-    -- 각 라인 파싱: TICKER (이름): PRICEg, 트렌드 - 이유
-    for line in stockBlock:gmatch("[^\r\n]+") do
-        -- LILY (릴리 상사): 105g, 상승 - 신규 무역로 개척 소문
-        local ticker, price, trend = line:match("^([A-Z]+)%s*%(.-%): (%d+)g,%s*(%S+)")
+                -- State에 현재가 저장
+                setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+                setState(triggerId, "stock_" .. ticker .. "_change", changeNum)
 
-        if ticker and price and trend then
-            local priceNum = tonumber(price)
-            local prevPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-            local changeNum = priceNum - prevPrice
+                -- 히스토리 업데이트
+                updateStockHistory(triggerId, ticker, priceNum)
 
-            -- 트렌드로 변화 방향 확인 (상승/하락/보합)
-            if trend == "상승" and changeNum <= 0 then
-                changeNum = math.abs(changeNum) > 0 and math.abs(changeNum) or math.random(1, 5)
-            elseif trend == "하락" and changeNum >= 0 then
-                changeNum = changeNum > 0 and -changeNum or -math.random(1, 5)
+                log(string.format("📈 %s: %dG (%+d)", ticker, priceNum, changeNum))
             end
-
-            -- State에 현재가 저장
-            setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
-            setState(triggerId, "stock_" .. ticker .. "_change", changeNum)
-
-            -- 히스토리 업데이트
-            updateStockHistory(triggerId, ticker, priceNum)
-
-            log(string.format("📈 %s: %dG (%+d) [%s]", ticker, priceNum, changeNum, trend))
         end
     end
 end
