@@ -1,0 +1,738 @@
+-- [[ HTML special character processing Helper function ]]
+local function escapeHtml(str)
+  if not str then return "" end
+  str = string.gsub(str, "&", "&amp;")
+  str = string.gsub(str, "<", "&lt;")
+  str = string.gsub(str, ">", "&gt;")
+  return str
+end
+
+-- Stock data structure with company full names
+local STOCK_COMPANIES = {
+    AF = "All Foods",
+    AR = "Arasaka",
+    AS = "Asukage",
+    BI = "Biotechnica",
+    CY = "Cytech",
+    DA = "Darra Poly", 
+    DE = "Delamain",
+    DM = "DMS",
+    DT = "DTR",
+    DY = "Dynalar",
+    EZ = "EZHomes",
+    KT = "Kang Tao",
+    KA = "Kaukaz",
+    KI = "Kiroshi",
+    LA = "Lazarus",
+    MI = "Militech",
+    MO = "MoorE",
+    NC = "NCorp",
+    NP = "NCPD",
+    NE = "Netwatch",
+    NN = "NN54",
+    OA = "Orbital Air",
+    PE = "Petrochem",
+    QI = "QianT",
+    QU = "Quadra",
+    RA = "Raven",
+    RF = "Rayfield",
+    TH = "Thorton",
+    TT = "Trauma Team",
+    TS = "Tsunami",
+    WN = "WNS",
+    ZE = "Zetatech"
+}
+
+-- Base value ranges by company tier (for when no history exists)
+local STOCK_TIERS = {
+    premium = {"AR", "MI", "TT", "RF", "BI", "NE", "OA", "PE"}, -- 500-2000 eddies
+    standard = {"KT", "DE", "NC", "QI", "LA", "KI", "CY", "ZE", "TS", "MO"}, -- 100-500 eddies
+    budget = {"AF", "AS", "DA", "DM", "DT", "DY", "EZ", "KA", "NP", "NN", "QU", "RA", "TH", "WN"} -- 10-100 eddies
+}
+
+-- 1. extractAllSkBlocks function (adapted from NH function)
+local function extractAllSkBlocks(text)
+    local results = {}
+    local i = 1
+    while true do
+        local startIdx, prefixEnd = text:find("SK%[", i)
+        if not startIdx then break end
+        local bracketLevel = 1
+        local endIdx = prefixEnd + 1
+        local searchEnd = #text
+        while endIdx <= searchEnd do
+            local char = text:sub(endIdx, endIdx)
+            if char == "[" then bracketLevel = bracketLevel + 1
+            elseif char == "]" then bracketLevel = bracketLevel - 1 end
+            if bracketLevel == 0 then break end
+            endIdx = endIdx + 1
+        end
+        if bracketLevel == 0 then
+            local contentOnly = text:sub(prefixEnd + 1, endIdx - 1)
+            table.insert(results, { content = contentOnly, rangeStart = startIdx, rangeEnd = endIdx })
+            i = endIdx + 1
+        else
+            i = prefixEnd + 1
+        end
+    end
+    return results
+end
+
+-- 2. getCompanyTier function to determine stock price range
+local function getCompanyTier(stockCode)
+    for tier, companies in pairs(STOCK_TIERS) do
+        for _, code in ipairs(companies) do
+            if code == stockCode then
+                return tier
+            end
+        end
+    end
+    return "standard" -- Default to standard tier if not found
+end
+
+-- 3. generateBasePrice function
+local function generateBasePrice(stockCode)
+    local tier = getCompanyTier(stockCode)
+    local basePrice = 0
+    
+    if tier == "premium" then
+        basePrice = math.random(500, 2000)
+    elseif tier == "standard" then
+        basePrice = math.random(100, 500)
+    else -- budget
+        basePrice = math.random(10, 100)
+    end
+    
+    return basePrice
+end
+
+-- 4. generateRandomChange function
+local function generateRandomChange(currentPrice)
+    local changePercent = math.random(-10, 10) -- -10% to +10% change
+    local change = currentPrice * (changePercent / 100)
+    return math.floor(currentPrice + change)
+end
+
+-- 5. processSkBlock function
+local function processSkBlock(triggerId, raw_content)
+    if not raw_content or raw_content == "" then return "[StockKorp Error: Empty Content]" end
+
+    local stockData = {}
+    local updatedStocks = {}
+    local stockHistory = {}
+
+    -- Parse the stock data from the input
+    local segments = {}
+    local customDate = nil
+    local customTime = nil
+    
+    for seg in string.gmatch(raw_content, "([^|]+)") do
+        table.insert(segments, seg)
+    end
+
+    for _, segment in ipairs(segments) do
+        local stockCode, value = segment:match("^([%u%d_]+):(.+)$")
+        
+        if stockCode and value then
+            -- Trim whitespace
+            value = string.gsub(value, "^%s+", "")
+            value = string.gsub(value, "%s+$", "")
+            
+            -- Check if this is a date or time specifier
+            if stockCode == "SKDATE" then
+                customDate = value
+            elseif stockCode == "SKTIME" then
+                customTime = value
+            else
+                -- Convert to number (if possible)
+                local numPrice = tonumber(value)
+                if numPrice then
+                    stockData[stockCode] = numPrice
+                    
+                    -- If this is a valid stock, mark it as updated
+                    if STOCK_COMPANIES[stockCode] then
+                        updatedStocks[stockCode] = true
+                    end
+                end
+            end
+        end
+    end
+
+    -- For each valid stock code, check if we have history
+    for stockCode, _ in pairs(STOCK_COMPANIES) do
+        -- Try to load history from chat variables
+        local historyVar = getChatVar(triggerId, "stock_" .. stockCode)
+        
+        if historyVar and historyVar ~= "" then
+            -- Parse the history string into a table
+            stockHistory[stockCode] = {}
+            for value in string.gmatch(historyVar, "([^,]+)") do
+                table.insert(stockHistory[stockCode], tonumber(value))
+            end
+        else
+            -- Initialize with empty history
+            stockHistory[stockCode] = {}
+        end
+        
+        -- If this stock wasn't in the current update
+        if not updatedStocks[stockCode] then
+            -- Generate a value if we don't have history
+            if #stockHistory[stockCode] == 0 then
+                stockData[stockCode] = generateBasePrice(stockCode)
+            else
+                -- Use the last value as base and create a random change
+                local lastValue = stockHistory[stockCode][#stockHistory[stockCode]]
+                stockData[stockCode] = generateRandomChange(lastValue)
+            end
+        end
+        
+        -- Ensure we don't go below 1
+        if stockData[stockCode] < 1 then
+            stockData[stockCode] = 1
+        end
+        
+        -- Add the current value to history
+        table.insert(stockHistory[stockCode], stockData[stockCode])
+        
+        -- Keep only the last 10 values
+        if #stockHistory[stockCode] > 10 then
+            local newHistory = {}
+            for i = #stockHistory[stockCode] - 9, #stockHistory[stockCode] do
+                table.insert(newHistory, stockHistory[stockCode][i])
+            end
+            stockHistory[stockCode] = newHistory
+        end
+        
+        -- Save the updated history back to chat variables
+        local historyString = table.concat(stockHistory[stockCode], ",")
+        setChatVar(triggerId, "stock_" .. stockCode, historyString)
+    end
+
+    -- Calculate trends and percentages
+    local stockTrends = {}
+    local stockChanges = {}
+    
+    for stockCode, history in pairs(stockHistory) do
+        if #history >= 2 then
+            local current = history[#history]
+            local previous = history[#history - 1]
+            
+            if current > previous then
+                stockTrends[stockCode] = "up"
+            elseif current < previous then
+                stockTrends[stockCode] = "down"
+            else
+                stockTrends[stockCode] = "stable"
+            end
+            
+            stockChanges[stockCode] = ((current - previous) / previous) * 100
+        else
+            stockTrends[stockCode] = "stable"
+            stockChanges[stockCode] = 0
+        end
+    end
+
+    -- Generate the HTML output
+    local html = {}
+    
+    -- CSS - Cyberpunk stock market theme
+    table.insert(html, [[
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background-color: #0a0a0b;
+    margin: 0;
+    padding: 0;
+    color: #dde6f2;
+}
+
+.stock-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #151628;
+    background-image: 
+        linear-gradient(135deg, rgba(66, 6, 151, 0.05) 0%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(0deg, rgba(21, 22, 40, 0.9), rgba(21, 22, 40, 0.9)),
+        repeating-linear-gradient(45deg, rgba(255, 230, 0, 0.02) 0px, rgba(255, 230, 0, 0.02) 1px, transparent 1px, transparent 10px);
+    box-shadow: 0 0 30px rgba(201, 255, 246, 0.1);
+    border: 1px solid #392e5c;
+    border-radius: 6px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stock-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #fffc00, #ff0050, #00f6ff);
+    z-index: 1;
+}
+
+.stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #392e5c;
+    padding-bottom: 15px;
+}
+
+.stock-header h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+    color: #c9fff6;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(201, 255, 246, 0.5), 0 0 20px rgba(201, 255, 246, 0.3);
+}
+
+.stock-date {
+    font-family: 'Share Tech Mono', monospace;
+    color: #c9fff6;
+    font-size: 14px;
+    text-shadow: 0 0 10px rgba(201, 255, 246, 0.3);
+}
+
+.stock-ticker {
+    border-bottom: 1px solid #392e5c;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    height: 25px;
+}
+
+.stock-ticker-items {
+    display: inline-block;
+    animation: ticker-scroll 30s linear infinite;
+    padding-left: 100%;
+}
+
+@keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+.ticker-item {
+    display: inline-block;
+    margin-right: 30px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.ticker-up {
+    color: #00ff66;
+}
+
+.ticker-down {
+    color: #ff3e5f;
+}
+
+.ticker-stable {
+    color: #c9fff6;
+}
+
+.stock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+    gap: 15px;
+}
+
+.stock-item {
+    background-color: rgba(23, 24, 41, 0.6);
+    border: 1px solid #392e5c;
+    border-radius: 5px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stock-item::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(201, 255, 246, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
+    pointer-events: none;
+}
+
+.stock-corp {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #c9fff6;
+    text-shadow: 0 0 6px rgba(201, 255, 246, 0.3);
+}
+
+.stock-code {
+    font-size: 12px;
+    color: #8792a8;
+    margin-left: 5px;
+}
+
+.stock-price {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.price-up {
+    color: #00ff66;
+    text-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+}
+
+.price-down {
+    color: #ff3e5f;
+    text-shadow: 0 0 8px rgba(255, 62, 95, 0.5);
+}
+
+.price-stable {
+    color: #dde6f2;
+}
+
+.stock-change {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.change-up:before {
+    content: "▲ ";
+}
+
+.change-down:before {
+    content: "▼ ";
+}
+
+.change-stable:before {
+    content: "► ";
+}
+
+.stock-chart {
+    height: 40px;
+    width: 100%;
+    background-color: rgba(29, 31, 54, 0.7);
+    border-radius: 3px;
+    position: relative;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.chart-line {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 2px;
+}
+
+.chart-point {
+    flex: 1;
+    background-color: rgba(201, 255, 246, 0.15);
+    margin: 0 1px;
+    transition: height 0.3s ease;
+}
+
+.chart-line-up .chart-point {
+    background-color: rgba(0, 255, 102, 0.2);
+}
+
+.chart-line-down .chart-point {
+    background-color: rgba(255, 62, 95, 0.2);
+}
+
+.chart-line-stable .chart-point {
+    background-color: rgba(201, 255, 246, 0.15);
+}
+
+.market-summary {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #392e5c;
+    display: flex;
+    justify-content: space-between;
+}
+
+.market-stat {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+}
+
+.market-stat-title {
+    font-size: 14px;
+    color: #8792a8;
+    margin-bottom: 5px;
+}
+
+.market-stat-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.market-up {
+    color: #00ff66;
+}
+
+.market-down {
+    color: #ff3e5f;
+}
+
+.market-neutral {
+    color: #c9fff6;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .stock-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .stock-item {
+        padding: 10px;
+    }
+    
+    .stock-header h1 {
+        font-size: 22px;
+    }
+    
+    .stock-price {
+        font-size: 20px;
+    }
+    
+    .stock-corp {
+        font-size: 13px;
+    }
+    
+    .stock-chart {
+        height: 30px;
+    }
+    
+    .market-stat-value {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stock-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .stock-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .stock-date {
+        margin-top: 5px;
+    }
+}
+</style>
+]])
+
+    -- Get date and time - use custom values if provided, otherwise use system time
+    local displayDate
+    local displayTime
+    
+    if customDate and customTime then
+        displayDate = customDate
+        displayTime = customTime
+        currentDate = displayDate .. " " .. displayTime
+    elseif customDate then
+        displayDate = customDate
+        displayTime = os.date("%H:%M:%S")
+        currentDate = displayDate .. " " .. displayTime
+    elseif customTime then
+        displayDate = os.date("%Y.%m.%d")
+        displayTime = customTime
+        currentDate = displayDate .. " " .. displayTime
+    else
+        currentDate = os.date("%Y.%m.%d %H:%M:%S")
+    end
+    
+    -- Market summary statistics
+    local totalStocks = 0
+    local gainers = 0
+    local decliners = 0
+    
+    for _, trend in pairs(stockTrends) do
+        totalStocks = totalStocks + 1
+        if trend == "up" then
+            gainers = gainers + 1
+        elseif trend == "down" then
+            decliners = decliners + 1
+        end
+    end
+    
+    local marketTrend = "neutral"
+    if gainers > decliners then
+        marketTrend = "up"
+    elseif decliners > gainers then
+        marketTrend = "down"
+    end
+    
+    -- HTML structure - Cyberpunk stock market with details/summary for folding
+    table.insert(html, "{{#if {{greater_equal::{{chat_index}}::{{? {{lastmessageid}}-5}}}}}}")
+    table.insert(html, [[<details><summary style="cursor: pointer; font-family: 'Share Tech Mono', monospace; font-size: 18px; color: #c9fff6; padding: 8px; background: rgba(21, 22, 40, 0.8); border: 1px solid #392e5c; border-radius: 5px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(201, 255, 246, 0.3);">🔽 NIGHT CITY STOCK EXCHANGE</summary><div class="stock-container">]])
+    
+    -- Header
+    table.insert(html, [[<div class="stock-header">]])
+    table.insert(html, [[<h1>Night City Stock Exchange</h1>]])
+    table.insert(html, [[<div class="stock-date">]] .. currentDate .. [[</div>]])
+    table.insert(html, [[</div>]])
+    
+    -- Ticker
+    table.insert(html, [[<div class="stock-ticker"><div class="stock-ticker-items">]])
+    
+    for stockCode, currentPrice in pairs(stockData) do
+        if STOCK_COMPANIES[stockCode] then
+            local trend = stockTrends[stockCode] or "stable"
+            local changeText = ""
+            
+            if stockChanges[stockCode] then
+                local changeValue = stockChanges[stockCode]
+                if changeValue > 0 then
+                    changeText = string.format("+%.1f%%", changeValue)
+                elseif changeValue < 0 then
+                    changeText = string.format("%.1f%%", changeValue)
+                else
+                    changeText = "0.0%"
+                end
+            end
+            
+            local tickerClass = "ticker-" .. trend
+            table.insert(html, [[<span class="ticker-item ]] .. tickerClass .. [[">]] .. stockCode .. [[ ]] .. currentPrice .. [[ (]] .. changeText .. [[)</span>]])
+        end
+    end
+    
+    table.insert(html, [[</div></div>]])
+    
+    -- Stock Grid
+    table.insert(html, [[<div class="stock-grid">]])
+    
+    -- Sort stock codes alphabetically for display
+    local stockCodes = {}
+    for stockCode, _ in pairs(STOCK_COMPANIES) do
+        table.insert(stockCodes, stockCode)
+    end
+    table.sort(stockCodes)
+    
+    for _, stockCode in ipairs(stockCodes) do
+        local currentPrice = stockData[stockCode]
+        local companyName = STOCK_COMPANIES[stockCode]
+        local trend = stockTrends[stockCode] or "stable"
+        local priceClass = "price-" .. trend
+        local changeClass = "change-" .. trend
+        local chartClass = "chart-line-" .. trend
+        
+        -- Generate chart points based on history
+        local chartPoints = {}
+        local maxValue = 0
+        local minValue = math.huge
+        
+        -- Find min and max for charting
+        for _, value in ipairs(stockHistory[stockCode]) do
+            if value > maxValue then maxValue = value end
+            if value < minValue then minValue = value end
+        end
+        
+        local range = maxValue - minValue
+        if range == 0 then range = 1 end -- Avoid division by zero
+        
+        -- Generate chart HTML
+        local chartPointsHtml = {}
+        for _, value in ipairs(stockHistory[stockCode]) do
+            local heightPercentage = ((value - minValue) / range) * 100
+            table.insert(chartPointsHtml, [[<div class="chart-point" style="height: ]] .. heightPercentage .. [[%;"></div>]])
+        end
+        
+        -- Change percentage text
+        local changeText = "0.0%"
+        if stockChanges[stockCode] then
+            local changeValue = stockChanges[stockCode]
+            if changeValue > 0 then
+                changeText = string.format("+%.1f%%", changeValue)
+            elseif changeValue < 0 then
+                changeText = string.format("%.1f%%", changeValue)
+            end
+        end
+        
+        -- Stock item HTML
+        table.insert(html, [[<div class="stock-item">]])
+        table.insert(html, [[<div class="stock-corp">]] .. escapeHtml(companyName) .. [[ <span class="stock-code">]] .. stockCode .. [[</span></div>]])
+        table.insert(html, [[<div class="stock-price ]] .. priceClass .. [[">₳]] .. currentPrice .. [[</div>]])
+        table.insert(html, [[<div class="stock-change ]] .. changeClass .. [[">]] .. changeText .. [[</div>]])
+        table.insert(html, [[<div class="stock-chart"><div class="chart-line ]] .. chartClass .. [[">]] .. table.concat(chartPointsHtml, "") .. [[</div></div>]])
+        table.insert(html, [[</div>]])
+    end
+    
+    table.insert(html, [[</div>]])
+    
+    -- Market Summary
+    table.insert(html, [[<div class="market-summary">]])
+    table.insert(html, [[<div class="market-stat"><div class="market-stat-title">Market Trend</div><div class="market-stat-value market-]] .. marketTrend .. [[">]] .. (marketTrend:gsub("^%l", string.upper)) .. [[</div></div>]])
+    table.insert(html, [[<div class="market-stat"><div class="market-stat-title">Gainers</div><div class="market-stat-value market-up">]] .. gainers .. [[</div></div>]])
+    table.insert(html, [[<div class="market-stat"><div class="market-stat-title">Decliners</div><div class="market-stat-value market-down">]] .. decliners .. [[</div></div>]])
+    table.insert(html, [[<div class="market-stat"><div class="market-stat-title">Stable</div><div class="market-stat-value market-neutral">]] .. (totalStocks - gainers - decliners) .. [[</div></div>]])
+    table.insert(html, [[</div>]])
+    
+    -- Close the main container and details element
+    table.insert(html, [[</div></details>]])
+    table.insert(html, "{{/if}}")
+    return table.concat(html, "\n")
+end
+
+-- Main execution logic
+listenEdit("editDisplay", function(triggerId, data)
+    if not data or data == "" then return "" end
+
+    local replacements = {}
+    local output = ""
+    local lastIndex = 1
+
+    local success, result = pcall(extractAllSkBlocks, data)
+    if success then replacements = result
+    else print("[listenEdit] !!! extractAllSkBlocks Error:", result); return data end
+
+    if replacements and #replacements > 0 then
+        for i, match in ipairs(replacements) do
+            if match.rangeStart > lastIndex then output = output .. data:sub(lastIndex, match.rangeStart - 1) end
+            local processSuccess, processedContent = pcall(processSkBlock, triggerId, match.content)
+            if processSuccess then
+                output = output .. processedContent
+            else
+                -- Log the error and insert a placeholder comment in the output
+                print(string.format("[listenEdit] !!! processSkBlock Error (Block %d): %s", i, processedContent))
+                output = output .. "<!-- StockKorp Block Error -->"
+            end
+            -- Update the index to continue searching after the current block
+            lastIndex = match.rangeEnd + 1
+        end
+    else
+        -- No SK blocks found, ensure lastIndex is 1 so the entire original data is appended later
+        lastIndex = 1
+    end
+
+    -- Append any remaining text after the last processed SK block (or the entire original text if no blocks were found)
+    if lastIndex <= #data then
+        output = output .. data:sub(lastIndex)
+    end
+
+    -- Return the final processed output
+    return output
+end)
