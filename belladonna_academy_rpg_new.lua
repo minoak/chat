@@ -771,6 +771,210 @@ local STOCK_TICKERS = {
     "MUSE", "ACAD"
 }
 
+-- 종목 상세 정보 (기업 정보, 재무 상태)
+local STOCK_INFO = {
+    LILY = {
+        sector = "상업/무역",
+        desc = "릴리 밸리 하우스 직영 종합 상업 플랫폼. 제국 내 최대 규모의 거래소.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "대형 상단 계약, 축제 시즌, 무역 확대",
+        downFactors = "경쟁사, 도적단, 전쟁",
+        insider = "미라벨"
+    },
+    CARA = {
+        sector = "상업/무역",
+        desc = "대륙간 물류 운송 전문. 주요 교역로 독점 운영.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중",
+        upFactors = "교역로 안정, 신규 노선, 계약 확대",
+        downFactors = "도적단, 전쟁, 기후 악화",
+        insider = "상단장"
+    },
+    PORT = {
+        sector = "상업/무역",
+        desc = "제국 항만 시설 운영. 황실 인가 독점 사업.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "해상 무역 증가, 신항 건설",
+        downFactors = "해적, 전염병, 검역 강화",
+        insider = "항만청장"
+    },
+    IMP = {
+        sector = "마법/자원",
+        desc = "황실 직영 마나석 채굴 및 공급. 가장 안정적인 블루칩.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "황실 행사, 마법 수요 증가",
+        downFactors = "광산 사고, 정치 불안",
+        insider = "황실 관료"
+    },
+    CRYS = {
+        sector = "마법/자원",
+        desc = "마법 결정 가공 및 유통. 아카데미 주요 납품업체.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중",
+        upFactors = "아카데미 행사, 마법 연구 붐",
+        downFactors = "원석 부족, 가공 사고",
+        insider = "연구원"
+    },
+    ELEM = {
+        sector = "마법/자원",
+        desc = "정령 계약 기반 에너지 공급. 신사업 분야 선두.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중고",
+        upFactors = "에너지 수요, 신규 계약",
+        downFactors = "정령계 이변, 계약 분쟁",
+        insider = "정령술사"
+    },
+    NEP = {
+        sector = "제약/연금술",
+        desc = "포션, 독/해독제 전문. 라플레시아 하우스 연계.",
+        size = "중형",
+        financial = "위험",
+        volatility = "고",
+        upFactors = "신약 승인, 전염병, 전쟁",
+        downFactors = "부작용 스캔들, 규제 강화",
+        insider = "라플레시아 관계자"
+    },
+    VITA = {
+        sector = "제약/연금술",
+        desc = "치유 물약 전문. 안정적인 수요 기반.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "전쟁, 사고, 전염병",
+        downFactors = "평화 시기, 경쟁사",
+        insider = "치유사"
+    },
+    MUTA = {
+        sector = "제약/연금술",
+        desc = "변이/강화 약물 연구. 회색지대 사업. 고위험 고수익.",
+        size = "소형",
+        financial = "위험",
+        volatility = "초고",
+        upFactors = "불법 실험 성공, 군부 계약",
+        downFactors = "단속, 스캔들, 피해자 발생",
+        insider = "암시장 정보상"
+    },
+    AEGIS = {
+        sector = "군사/보안",
+        desc = "용병 및 경비 서비스. 귀족 호위 전문.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "전쟁, 귀족 분쟁, 치안 악화",
+        downFactors = "평화, 군비 축소",
+        insider = "용병단장"
+    },
+    IRON = {
+        sector = "군사/보안",
+        desc = "무기 및 방어구 제조. 군납 계약 다수.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "군비 확장, 신무기 개발",
+        downFactors = "평화 조약, 수입품",
+        insider = "대장장이 길드"
+    },
+    ROSE = {
+        sector = "사치품/패션",
+        desc = "고급 의류 및 보석. 로즈 하우스 연계. 귀족 사교계 필수.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "사교 시즌, 황실 행사, 유행",
+        downFactors = "경기 침체, 검소 유행",
+        insider = "로즈 하우스 관계자"
+    },
+    SILK = {
+        sector = "사치품/패션",
+        desc = "마법 직물 제조. 안정적인 수출 기업.",
+        size = "소형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "패션 트렌드, 수출 증가",
+        downFactors = "원자재 부족",
+        insider = "직물상"
+    },
+    HARV = {
+        sector = "식품/농업",
+        desc = "대규모 식량 생산. 제국 식량 안보 핵심.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "풍년, 인구 증가",
+        downFactors = "흉작, 해충",
+        insider = "농장주"
+    },
+    BREW = {
+        sector = "식품/농업",
+        desc = "양조 및 음료 생산. 축제 시즌 특수.",
+        size = "소형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "축제, 경기 호황",
+        downFactors = "금주령, 세금 인상",
+        insider = "양조장 주인"
+    },
+    BANK = {
+        sector = "금융/정보",
+        desc = "제국 금융 시스템 핵심. 최고가 최안정 블루칩.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "금리 인상, 경제 성장",
+        downFactors = "금융 위기, 뱅크런",
+        insider = "은행가"
+    },
+    OWLS = {
+        sector = "금융/정보",
+        desc = "정보 및 우편 서비스. 정보망 독점.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중",
+        upFactors = "정보 수요 증가, 신규 노선",
+        downFactors = "검열 강화, 경쟁사",
+        insider = "정보상"
+    },
+    STONE = {
+        sector = "건설/인프라",
+        desc = "대형 건축 및 인프라. 재건 사업 수주.",
+        size = "중형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "재건 사업, 신도시 개발",
+        downFactors = "경기 침체, 재해",
+        insider = "건축가"
+    },
+    MUSE = {
+        sector = "오락/교육",
+        desc = "공연 및 오락 사업. 흥행 여부에 극단적 변동.",
+        size = "소형",
+        financial = "위험",
+        volatility = "고",
+        upFactors = "흥행작, 스타 탄생",
+        downFactors = "흥행 실패, 스캔들",
+        insider = "극단 관계자"
+    },
+    ACAD = {
+        sector = "오락/교육",
+        desc = "마법서 및 교재 출판. 아카데미 공식 납품.",
+        size = "소형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "학술 발견, 베스트셀러",
+        downFactors = "금서 지정, 표절 스캔들",
+        insider = "교수"
+    }
+}
+
 -- 주식 태그 파싱: [Stock:LILY:105:+5|IMP:243:-2|...]
 function parseStockChanges(triggerId, message)
     -- 동아리 가입 여부 확인
@@ -4998,6 +5202,36 @@ function generateStockChartView(triggerId, ticker)
     end
 
     html = html .. "</div>"
+
+    -- 기업 정보 섹션
+    local info = STOCK_INFO[ticker]
+    if info then
+        -- 재무 상태 색상
+        local finColor = info.financial == "안정" and "#26a69a" or (info.financial == "성장" and "#58a6ff" or "#ef5350")
+        -- 변동성 색상
+        local volColor = (info.volatility == "저") and "#26a69a" or ((info.volatility == "중" or info.volatility == "중고") and "#ffd700" or "#ef5350")
+
+        html = html .. string.format([[
+<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
+  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📋 기업 정보</div>
+  <div style='font-size:12px;color:#c9d1d9;line-height:1.5;margin-bottom:10px'>%s</div>
+  <div style='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px'>
+    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:#8b949e'>%s</span>
+    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:#8b949e'>%s</span>
+    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:%s'>재무 %s</span>
+    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:%s'>변동성 %s</span>
+  </div>
+  <div style='font-size:11px;margin-bottom:6px'>
+    <span style='color:#ef5350'>▲</span> <span style='color:#8b949e'>%s</span>
+  </div>
+  <div style='font-size:11px;margin-bottom:6px'>
+    <span style='color:#26a69a'>▼</span> <span style='color:#8b949e'>%s</span>
+  </div>
+  <div style='font-size:11px;color:#6e7681;margin-top:8px'>
+    💡 내부자: <span style='color:#ffd700'>%s</span>
+  </div>
+</div>]], info.desc, info.sector, info.size, finColor, info.financial, volColor, info.volatility, info.upFactors, info.downFactors, info.insider)
+    end
 
     -- 종목 선택 (스크롤 가능)
     html = html .. [[
