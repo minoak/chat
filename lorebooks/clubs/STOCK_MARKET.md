@@ -1,232 +1,232 @@
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
-# 릴리 벨리 증권시장
+# Lily Valley Stock Market
 
-## 시장 개요
+## Market Overview
 
-릴리 밸리 하우스가 운영하는 아카데미 연계 증권 거래 시스템. 실제 제국 경제와 연동되어 있으며, 학생들에게 투자 교육과 실전 경험을 제공한다.
+A securities trading system operated by Lily Valley House in partnership with the academy. Connected to the actual imperial economy, it provides students with investment education and practical experience.
 
-거래 시간: 상시 (단, 정산은 주 단위)
-거래 단위: 1주
-수수료: 없음 (교육 목적)
-
----
-
-## 상장 종목 (20개)
-
-### 상업/무역 섹터
-
-**LILY - 릴리 벨리 거래소** (기준가 100G, 변동성 중)
-- 릴리 밸리 하우스 직영 종합 상업 플랫폼
-- 미라벨 가문과 긴밀한 연결
-- 상승 요인: 대형 상단 계약, 축제 시즌, 무역 확대
-- 하락 요인: 경쟁사 등장, 도적 출몰, 전쟁
-- 내부자: 미라벨 (고호감도 시 힌트 제공)
-
-**CARA - 카라반 연합** (기준가 80G, 변동성 중)
-- 대륙간 물류 운송 기업
-- 상승 요인: 교역로 안정, 신규 노선 개척
-- 하락 요인: 도적단, 전쟁, 기후 악화
-
-**PORT - 항만 공사** (기준가 120G, 변동성 저)
-- 제국 항만 시설 운영
-- 상승 요인: 해상 무역 증가, 신항 건설
-- 하락 요인: 해적, 전염병 검역
-
-### 마법/자원 섹터
-
-**IMP - 황실 마나석 공사** (기준가 250G, 변동성 저)
-- 황실 직영 마나석 채굴/공급
-- 가장 안정적인 종목, 배당 기대
-- 상승 요인: 황실 행사, 마법 수요 증가
-- 하락 요인: 광산 사고, 정치 불안
-
-**CRYS - 크리스탈 웍스** (기준가 150G, 변동성 중)
-- 마법 결정 가공 및 유통
-- 상승 요인: 아카데미 행사, 마법 연구 붐
-- 하락 요인: 원석 부족, 가공 사고
-
-**ELEM - 엘레멘탈 에너지** (기준가 200G, 변동성 중고)
-- 정령 계약 기반 에너지 공급
-- 상승 요인: 에너지 수요 증가, 신규 계약
-- 하락 요인: 정령계 이변, 계약 분쟁
-
-### 제약/연금술 섹터
-
-**NEP - 네펜테스 제약** (기준가 90G, 변동성 고)
-- 포션, 독/해독제 전문 제약사
-- 라플레시아 하우스와 연결
-- 상승 요인: 신약 승인, 전염병, 전쟁
-- 하락 요인: 부작용 스캔들, 규제 강화
-- 내부자: 라플레시아 관계자
-
-**VITA - 비타 힐링** (기준가 110G, 변동성 중)
-- 치유 물약 전문
-- 상승 요인: 전쟁, 사고, 전염병
-- 하락 요인: 평화 시기, 경쟁사
-
-**MUTA - 뮤타겐 연구소** (기준가 60G, 변동성 초고)
-- 변이/강화 약물 연구 (회색 지대)
-- 대박 또는 쪽박
-- 상승 요인: 불법 실험 성공, 군부 계약
-- 하락 요인: 단속, 스캔들, 피해자 발생
-
-### 군사/보안 섹터
-
-**AEGIS - 아이기스 방위** (기준가 180G, 변동성 중)
-- 용병 및 경비 서비스
-- 상승 요인: 전쟁, 귀족 분쟁, 치안 악화
-- 하락 요인: 평화, 군비 축소
-
-**IRON - 아이언포지** (기준가 140G, 변동성 중)
-- 무기 및 방어구 제조
-- 상승 요인: 군비 확장, 신무기 개발
-- 하락 요인: 평화 조약, 수입품
-
-### 사치품/패션 섹터
-
-**ROSE - 로제 하우스** (기준가 220G, 변동성 중)
-- 고급 의류 및 보석
-- 로즈 하우스와 연결
-- 상승 요인: 사교 시즌, 황실 행사, 유행
-- 하락 요인: 경기 침체, 검소 유행
-
-**SILK - 실크로드 직물** (기준가 95G, 변동성 저)
-- 마법 직물 제조
-- 상승 요인: 패션 트렌드, 수출 증가
-- 하락 요인: 원자재 부족
-
-### 식품/농업 섹터
-
-**HARV - 하베스트 농장** (기준가 70G, 변동성 저)
-- 대규모 식량 생산
-- 상승 요인: 풍년, 인구 증가
-- 하락 요인: 흉작, 해충
-
-**BREW - 브루어리 길드** (기준가 85G, 변동성 저)
-- 양조 및 음료 생산
-- 상승 요인: 축제, 경기 호황
-- 하락 요인: 금주령, 세금 인상
-
-### 금융/정보 섹터
-
-**BANK - 대륙 중앙은행** (기준가 300G, 변동성 저)
-- 제국 금융 시스템 핵심
-- 가장 비싼 종목, 가장 안정적
-- 상승 요인: 금리 인상, 경제 성장
-- 하락 요인: 금융 위기, 뱅크런
-
-**OWLS - 올빼미 통신** (기준가 130G, 변동성 중)
-- 정보 및 우편 서비스
-- 상승 요인: 정보 수요 증가, 신규 노선
-- 하락 요인: 검열 강화, 경쟁사
-
-### 건설/인프라 섹터
-
-**STONE - 스톤메이슨 건설** (기준가 160G, 변동성 저)
-- 대형 건축 및 인프라
-- 상승 요인: 재건 사업, 신도시 개발
-- 하락 요인: 경기 침체, 재해
-
-### 오락/교육 섹터
-
-**MUSE - 뮤즈 극단** (기준가 75G, 변동성 고)
-- 공연 및 오락 사업
-- 상승 요인: 흥행작, 스타 탄생
-- 하락 요인: 흥행 실패, 스캔들
-
-**ACAD - 아카데미아 출판** (기준가 100G, 변동성 저)
-- 마법서 및 교재 출판
-- 상승 요인: 학술 발견, 베스트셀러
-- 하락 요인: 금서 지정, 표절 스캔들
+Trading Hours: Always open (settlement is weekly)
+Trading Unit: 1 share
+Commission: None (educational purposes)
 
 ---
 
-## 거래 유형
+## Listed Stocks (20)
 
-### 현물 거래
-일반적인 주식 매수/매도.
-Gold로 매수, 보유 주식 매도 시 Gold 획득.
+### Commerce/Trade Sector
 
-### 레버리지 거래
-증거금을 담보로 2~5배 규모 거래.
-- 2배: 마진콜 라인 -25%
-- 3배: 마진콜 라인 -17%
-- 5배: 마진콜 라인 -10% (파산 위험)
+LILY - Lily Valley Exchange (Base 100G, Medium volatility)
+- Comprehensive commercial platform directly operated by Lily Valley House
+- Close ties to Mirabel's family
+- Rise factors: Major merchant contracts, festival season, trade expansion
+- Fall factors: Competitor emergence, bandit activity, war
+- Insider: Mirabel (hints at high affinity)
 
-### 공매도
-가격 하락에 베팅. 주식을 빌려 매도 후 하락 시 재매수.
-무제한 손실 가능 (가격 무한 상승 시).
+CARA - Caravan Alliance (Base 80G, Medium volatility)
+- Intercontinental logistics company
+- Rise factors: Trade route stability, new route development
+- Fall factors: Bandits, war, bad weather
+
+PORT - Harbor Authority (Base 120G, Low volatility)
+- Imperial port facility operations
+- Rise factors: Maritime trade increase, new port construction
+- Fall factors: Pirates, epidemic quarantine
+
+### Magic/Resources Sector
+
+IMP - Imperial Manastone Corporation (Base 250G, Low volatility)
+- Imperial-operated manastone mining/supply
+- Most stable stock, dividend expected
+- Rise factors: Imperial events, magic demand increase
+- Fall factors: Mine accidents, political instability
+
+CRYS - Crystal Works (Base 150G, Medium volatility)
+- Magic crystal processing and distribution
+- Rise factors: Academy events, magic research boom
+- Fall factors: Raw stone shortage, processing accidents
+
+ELEM - Elemental Energy (Base 200G, Medium-High volatility)
+- Spirit contract-based energy supply
+- Rise factors: Energy demand increase, new contracts
+- Fall factors: Spirit realm anomalies, contract disputes
+
+### Pharmaceutical/Alchemy Sector
+
+NEP - Nepenthes Pharmaceuticals (Base 90G, High volatility)
+- Potion and poison/antidote specialist
+- Connected to Rafflesia House
+- Rise factors: New drug approval, epidemics, war
+- Fall factors: Side effect scandals, regulation tightening
+- Insider: Rafflesia contacts
+
+VITA - Vita Healing (Base 110G, Medium volatility)
+- Healing potion specialist
+- Rise factors: War, accidents, epidemics
+- Fall factors: Peace times, competitors
+
+MUTA - Mutagen Labs (Base 60G, Very High volatility)
+- Mutation/enhancement drug research (gray area)
+- Big win or total loss
+- Rise factors: Illegal experiment success, military contracts
+- Fall factors: Crackdowns, scandals, victim incidents
+
+### Military/Security Sector
+
+AEGIS - Aegis Defense (Base 180G, Medium volatility)
+- Mercenary and security services
+- Rise factors: War, noble disputes, security deterioration
+- Fall factors: Peace, military reduction
+
+IRON - Ironforge (Base 140G, Medium volatility)
+- Weapons and armor manufacturing
+- Rise factors: Military expansion, new weapon development
+- Fall factors: Peace treaties, imports
+
+### Luxury/Fashion Sector
+
+ROSE - Rose House (Base 220G, Medium volatility)
+- High-end clothing and jewelry
+- Connected to Rose House
+- Rise factors: Social season, imperial events, trends
+- Fall factors: Economic recession, frugality trends
+
+SILK - Silk Road Textiles (Base 95G, Low volatility)
+- Magic textile manufacturing
+- Rise factors: Fashion trends, export increase
+- Fall factors: Raw material shortage
+
+### Food/Agriculture Sector
+
+HARV - Harvest Farms (Base 70G, Low volatility)
+- Large-scale food production
+- Rise factors: Good harvest, population growth
+- Fall factors: Bad harvest, pests
+
+BREW - Brewery Guild (Base 85G, Low volatility)
+- Brewing and beverage production
+- Rise factors: Festivals, economic boom
+- Fall factors: Prohibition, tax increase
+
+### Finance/Information Sector
+
+BANK - Continental Central Bank (Base 300G, Low volatility)
+- Core of imperial financial system
+- Most expensive stock, most stable
+- Rise factors: Interest rate hikes, economic growth
+- Fall factors: Financial crisis, bank runs
+
+OWLS - Owl Communications (Base 130G, Medium volatility)
+- Information and postal services
+- Rise factors: Information demand increase, new routes
+- Fall factors: Censorship tightening, competitors
+
+### Construction/Infrastructure Sector
+
+STONE - Stonemason Construction (Base 160G, Low volatility)
+- Large-scale architecture and infrastructure
+- Rise factors: Reconstruction projects, new city development
+- Fall factors: Economic recession, disasters
+
+### Entertainment/Education Sector
+
+MUSE - Muse Theatre (Base 75G, High volatility)
+- Performance and entertainment business
+- Rise factors: Hit shows, star emergence
+- Fall factors: Flops, scandals
+
+ACAD - Academia Publishing (Base 100G, Low volatility)
+- Magic books and textbook publishing
+- Rise factors: Academic discoveries, bestsellers
+- Fall factors: Book banning, plagiarism scandals
 
 ---
 
-## 메인모델 가이드
+## Trade Types
 
-### 가격 출력 규칙
+### Spot Trading
+Standard stock buy/sell.
+Buy with Gold, sell holdings to receive Gold.
 
-거래소 관련 장면에서 `<Stock>` 태그로 현재 시세 출력.
-형식은 자유롭되 **"종목: 가격, 방향 - 이유"** 구조 권장.
+### Leverage Trading
+Trading at 2-5x scale using margin as collateral.
+- 2x: Margin call line -25%
+- 3x: Margin call line -17%
+- 5x: Margin call line -10% (bankruptcy risk)
+
+### Short Selling
+Betting on price decline. Borrow shares to sell, rebuy when price drops.
+Unlimited loss potential (if price rises infinitely).
+
+---
+
+## Main Model Guide
+
+### Price Output Rules
+
+Output current prices with `<Stock>` tag in exchange-related scenes.
+Format is flexible, but "Ticker: Price, Direction - Reason" structure recommended.
 
 ```
 <Stock>
-LILY: 105G, 상승 - 대형 상단 입주 소문에 매수세 증가
-IMP: 243G, 하락 - 광산 사고 여파로 공급 불안
-NEP: 98G, 급등 - 신약 3상 임상 성공 소식
-CARA: 82G, 보합 - 특별한 소식 없음
+LILY: 105G, Rising - Buying increased on major merchant arrival rumors
+IMP: 243G, Falling - Supply concerns following mine accident
+NEP: 98G, Surging - Phase 3 clinical trial success news
+CARA: 82G, Flat - No special news
 </Stock>
 ```
 
-### 가격 변동 기준
+### Price Movement Criteria
 
-- 스토리 이벤트와 연동하여 자연스럽게 결정
-- 긍정 뉴스 → 해당 종목 상승
-- 부정 뉴스 → 해당 종목 하락
-- 대형 이벤트 → 급등/급락 가능
-- 관련 없는 종목은 소폭 변동 또는 보합
+- Determine naturally in connection with story events
+- Positive news → Related stock rises
+- Negative news → Related stock falls
+- Major events → Sharp rise/fall possible
+- Unrelated stocks show minor movement or stay flat
 
-### 정보 품질 (호감도 연동)
+### Information Quality (Affinity-linked)
 
-**미라벨 (LILY, 상업 섹터 전문)**
-- 호감도 0-30: "글쎄요, 저도 잘..." (애매한 답변)
-- 호감도 30-60: "요즘 거래량이 늘고 있어요" (일반 정보)
-- 호감도 60-80: "개인적으로는 유망해 보여요" (방향성 힌트)
-- 호감도 80+: "비밀인데... 다음 주 발표가..." (내부자 정보)
+Mirabel (LILY, Commerce sector specialist)
+- Affinity 0-30: "Well, I'm not sure..." (vague response)
+- Affinity 30-60: "Trading volume has been increasing lately" (general info)
+- Affinity 60-80: "Personally, it looks promising" (directional hint)
+- Affinity 80+: "It's a secret, but... next week's announcement..." (insider info)
 
-### 서사 처리 항목
+### Narrative Handling Items
 
-다음 상황은 시스템이 아닌 서사로 연출:
+Handle these situations through narrative, not system:
 
-**마진콜**
+Margin Call
 ```
-긴박한 분위기 조성
-→ 상황 설명 ("증거금이 바닥나기 직전이다")
-→ 선택지 제시 (추가 입금 / 손절 / 버티기)
-→ 결과에 따른 드라마
-```
-
-**대박/파산**
-```
-극적인 순간 연출
-→ NPC 반응 (미라벨의 평가, 다른 멤버들의 시선)
-→ 후속 영향 (빚, 명성, 관계 변화)
+Create tense atmosphere
+→ Explain situation ("Your margin is about to run out")
+→ Present choices (Add funds / Cut losses / Hold)
+→ Drama based on outcome
 ```
 
-**뉴스/루머**
+Big Win/Bankruptcy
 ```
-자연스럽게 대화나 게시판으로 전달
-→ "들었어? 네펜테스에서 사고가..."
-→ 진위 불명확하게 유지 (플레이어 판단 유도)
+Dramatic moment staging
+→ NPC reactions (Mirabel's evaluation, other members' gazes)
+→ Follow-up effects (debt, reputation, relationship changes)
+```
+
+News/Rumors
+```
+Deliver naturally through dialogue or bulletin boards
+→ "Did you hear? There was an accident at Nepenthes..."
+→ Keep authenticity unclear (guide player judgment)
 ```
 
 ---
 
-## 투자 팁 (동아리 내 공유 정보)
+## Investment Tips (Club Shared Information)
 
-- **초보자**: IMP, BANK, HARV 등 저변동성 종목 추천
-- **공격적**: NEP, MUTA, MUSE 등 고변동성 종목
-- **균형**: 섹터 분산 투자
-- **레버리지**: 확신 있을 때만, 2배까지 권장
+- Beginners: Low volatility stocks like IMP, BANK, HARV recommended
+- Aggressive: High volatility stocks like NEP, MUTA, MUSE
+- Balanced: Sector diversification
+- Leverage: Only when confident, 2x recommended max
 
-"시장은 항상 옳다. 네 분석이 틀린 거지." - 미라벨
+"The market is always right. It's your analysis that's wrong." - Mirabel
 
 {{/if}}

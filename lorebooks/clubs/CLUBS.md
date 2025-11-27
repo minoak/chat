@@ -1,111 +1,111 @@
-# 벨라도나 아카데미 동아리
+# Belladonna Academy Clubs
 
-## 개요
+## Overview
 
-아카데미 내 비공식/공식 동아리 활동. 각 하우스 특성을 반영한 테마 동아리가 존재하며, 타 하우스 학생도 가입 가능.
+Official and unofficial club activities within the academy. Each club reflects the characteristics of its associated house, though students from other houses may join.
 
 ---
 
-## 주식투자 동아리 (릴리 벨리)
+## Stock Investment Club (Lily Valley)
 
-**운영**: 미라벨 폰 골든로즈
-**소속**: 릴리 밸리 하우스 (비공식)
-**장소**: 동쪽 탑 3층 / 거래소 지부
+Operator: Mirabel von Goldenrose
+Affiliation: Lily Valley House (unofficial)
+Location: East Tower 3F / Exchange Branch
 
-릴리 밸리 상업 네트워크와 연결된 실전 투자 동아리. 미라벨이 "교육 목적"으로 운영하지만, 실제로는 그녀의 정보망 확장 수단이기도 하다.
+A practical investment club connected to Lily Valley's commercial network. While Mirabel runs it for "educational purposes," it also serves as a means to expand her information network.
 
-**특징**:
-- 가입 시 시드머니 지급
-- 실제 거래소 시스템 이용
-- 정보 공유 및 투자 전략 논의
-- 수익률 경쟁 (시즌별 순위)
+Features:
+- Seed money provided upon joining
+- Access to actual exchange system
+- Information sharing and investment strategy discussions
+- Profit ranking competition (seasonal)
 
-**가입 방법**: 미라벨에게 직접 문의하거나, 릴리 밸리 하우스 게시판 확인
+How to Join: Contact Mirabel directly or check Lily Valley House bulletin board
 
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
-### 동아리 활동 (가입자 전용)
+### Club Activities (Members Only)
 
-**정기 모임**: 매주 수요일 방과후
-**모임 내용**:
-- 주간 시장 동향 분석
-- 종목별 정보 공유
-- 투자 전략 토론
-- 수익률 발표 및 순위 갱신
+Regular Meetings: Every Wednesday after school
+Meeting Contents:
+- Weekly market trend analysis
+- Stock-specific information sharing
+- Investment strategy discussions
+- Profit announcements and ranking updates
 
-**현재 진행 중인 이벤트**:
-- 시드머니 경쟁: 동일 자금으로 시작, 최종 수익률 대결
-- 승자 혜택: 미라벨의 내부 정보 네트워크 접근권
+Current Events:
+- Seed Money Competition: Start with equal funds, compete for final profit rate
+- Winner's Reward: Access to Mirabel's insider information network
 
-**주요 멤버**:
-- 미라벨 폰 골든로즈 (동아리장)
-- 코델리아 (라이벌 포지션)
-- 기타 릴리 밸리 학생들
+Key Members:
+- Mirabel von Goldenrose (Club President)
+- Cordelia (Rival position)
+- Other Lily Valley students
 
-**암묵적 규칙**:
-- 동아리 내 정보는 외부 유출 금지
-- 미라벨에게 빚지지 않도록 주의
-- 손실은 자기 책임
+Unspoken Rules:
+- No leaking club information externally
+- Be careful not to owe Mirabel favors
+- Losses are your own responsibility
 
 {{/if}}
 
 ---
 
-## 연금술 동아리 (라플레시아)
+## Alchemy Club (Rafflesia)
 
-**운영**: 미정
-**소속**: 라플레시아 하우스
-**장소**: 지하 연금술 실험실
+Operator: TBD
+Affiliation: Rafflesia House
+Location: Underground Alchemy Laboratory
 
-포션 제조와 연금술 연구를 다루는 동아리. 네펜테스 제약과 연결점이 있다는 소문.
+A club focused on potion brewing and alchemy research. Rumored connections to Nepenthes Pharmaceuticals.
 
-**특징**:
-- 포션/약물 제조 실습
-- 희귀 재료 수집 퀘스트
-- 실험 기록 공유
+Features:
+- Potion/drug manufacturing practice
+- Rare material collection quests
+- Experiment record sharing
 
-**가입 방법**: 라플레시아 하우스 교수 추천 필요
-
----
-
-## 결투 동아리 (아코니툼)
-
-**운영**: 미정
-**소속**: 아코니툼 하우스
-**장소**: 훈련장 / 결투 아레나
-
-전투 기술 연마와 토너먼트 참가를 목표로 하는 동아리.
-
-**특징**:
-- 정기 스파링
-- 하우스 간 토너먼트
-- 전투 마법 연구
-
-**가입 방법**: 실력 테스트 통과 필요
+How to Join: Rafflesia House professor recommendation required
 
 ---
 
-## 예술 동아리 (로즈)
+## Duel Club (Aconitum)
 
-**운영**: 미정
-**소속**: 로즈 하우스
-**장소**: 예술관
+Operator: TBD
+Affiliation: Aconitum House
+Location: Training Ground / Duel Arena
 
-음악, 미술, 공연 등 예술 활동을 다루는 동아리.
+A club aimed at honing combat skills and participating in tournaments.
 
-**특징**:
-- 정기 공연/전시
-- 사교 이벤트 기획
-- 귀족 사회 네트워킹
+Features:
+- Regular sparring
+- Inter-house tournaments
+- Combat magic research
 
-**가입 방법**: 오디션 또는 추천
+How to Join: Must pass skill test
 
 ---
 
-## AI 가이드
+## Arts Club (Rose)
 
-동아리 관련 장면에서:
-- 각 동아리의 분위기와 특성 반영
-- 가입 여부에 따른 NPC 태도 차이
-- 동아리 활동은 사이드 스토리로 자연스럽게 연결
-- 강제 이벤트보다 플레이어 선택 중심
+Operator: TBD
+Affiliation: Rose House
+Location: Arts Hall
+
+A club covering music, art, performance, and other artistic activities.
+
+Features:
+- Regular performances/exhibitions
+- Social event planning
+- Noble society networking
+
+How to Join: Audition or recommendation
+
+---
+
+## AI Guide
+
+For club-related scenes:
+- Reflect each club's atmosphere and characteristics
+- NPC attitudes differ based on membership status
+- Club activities naturally connect as side stories
+- Focus on player choice rather than forced events
