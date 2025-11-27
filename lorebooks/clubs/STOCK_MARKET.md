@@ -1,4 +1,4 @@
-@@if club_stock_joined == "1"
+{{#if_pure {{equal::{{getchatvar::club_stock_joined}}::1}}}}
 
 # 릴리 벨리 증권시장
 
@@ -229,4 +229,4 @@ CARA: 82G, 보합 - 특별한 소식 없음
 
 "시장은 항상 옳다. 네 분석이 틀린 거지." - 미라벨
 
-@@endif
+{{/if}}
