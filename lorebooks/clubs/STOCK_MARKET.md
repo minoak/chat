@@ -45,9 +45,10 @@ Base prices and details handled by system.
 
 ## Trading
 
-Spot: Buy/sell with Gold
-Leverage: 2-5x margin (high risk)
-Short: Bet on decline (unlimited loss risk)
+Spot trading only: Buy/sell stocks with Gold at selected price.
+- Select price from order book
+- Prices update after each trade
+- Portfolio tracked automatically
 
 ## Information Quality
 
