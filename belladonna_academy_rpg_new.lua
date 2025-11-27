@@ -1002,6 +1002,85 @@ function parseStockChanges(triggerId, message)
     end
 end
 
+-- 동아리 가입/탈퇴 태그 파싱: [Club:Join:stock] / [Club:Leave:stock]
+function parseClubChanges(triggerId, message)
+    -- 가입
+    for clubType in message:gmatch("%[Club:Join:([^%]]+)%]") do
+        if clubType == "stock" then
+            setChatVar(triggerId, "club_stock_joined", "1")
+            log("📈 주식투자 동아리 가입 (태그)")
+        end
+    end
+
+    -- 탈퇴
+    for clubType in message:gmatch("%[Club:Leave:([^%]]+)%]") do
+        if clubType == "stock" then
+            setChatVar(triggerId, "club_stock_joined", "0")
+            log("📉 주식투자 동아리 탈퇴 (태그)")
+        end
+    end
+end
+
+-- 주식 매매 태그 파싱: [StockBuy:TICKER:PRICE:QTY] / [StockSell:TICKER:PRICE:QTY]
+function parseStockTrades(triggerId, message)
+    local clubJoined = getChatVar(triggerId, "club_stock_joined")
+    if clubJoined ~= "1" then return end
+
+    -- 매수: [StockBuy:LILY:105:10]
+    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+        local cost = priceNum * qtyNum
+
+        if gold >= cost then
+            -- 골드 차감
+            setChatVar(triggerId, "player_gold", tostring(gold - cost))
+
+            -- 보유량 업데이트
+            local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+            local currentAvg = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
+            local totalCost = (currentQty * currentAvg) + cost
+            local newQty = currentQty + qtyNum
+            local newAvg = math.floor(totalCost / newQty)
+
+            setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+            setChatVar(triggerId, "stock_" .. ticker .. "_avg", tostring(newAvg))
+
+            log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
+        else
+            log(string.format("❌ 매수 실패: 골드 부족 (%dG 필요, %dG 보유)", cost, gold))
+        end
+    end
+
+    -- 매도: [StockSell:LILY:110:5]
+    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z]+):(%d+):(%d+)%]") do
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+
+        if currentQty >= qtyNum then
+            -- 보유량 차감
+            local newQty = currentQty - qtyNum
+            setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+
+            -- 골드 추가
+            local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+            local revenue = priceNum * qtyNum
+            setChatVar(triggerId, "player_gold", tostring(gold + revenue))
+
+            -- 전량 매도시 평단가 초기화
+            if newQty == 0 then
+                setChatVar(triggerId, "stock_" .. ticker .. "_avg", "0")
+            end
+
+            log(string.format("📉 매도: %s %d주 @ %dG (+%dG)", ticker, qtyNum, priceNum, revenue))
+        else
+            log(string.format("❌ 매도 실패: 보유량 부족 (%d주 필요, %d주 보유)", qtyNum, currentQty))
+        end
+    end
+end
+
 -- 주가 히스토리 업데이트 (6일 유지)
 function updateStockHistory(triggerId, ticker, newPrice)
     local historyKey = "stock_" .. ticker .. "_history"
@@ -4062,7 +4141,9 @@ function processOutput(triggerId)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
-        parseStockChanges(triggerId, combinedSource)  -- 주식 시스템
+        parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
+        parseStockChanges(triggerId, combinedSource)  -- 주식 시세
+        parseStockTrades(triggerId, combinedSource)   -- 주식 매매
 
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
@@ -5908,7 +5989,9 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
-        parseStockChanges(triggerId, combinedSource)  -- 주식 시스템
+        parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
+        parseStockChanges(triggerId, combinedSource)  -- 주식 시세
+        parseStockTrades(triggerId, combinedSource)   -- 주식 매매
     end
 
     -- UI 업데이트

@@ -144,6 +144,39 @@ Tags:
 
 {{/if_pure}}
 
+---
+
+# CLUB MEMBERSHIP TAGS
+
+동아리 가입/탈퇴 시 태그 출력.
+
+## 트리거 조건
+
+메인모델이 스토리에서 동아리 가입/탈퇴를 묘사할 때:
+- "주식투자 동아리에 가입했다"
+- "동아리를 탈퇴했다"
+- 미라벨/코델리아와 동아리 관련 대화
+
+## 출력 형식
+
+```
+[Club:Join:stock]   -- 주식투자 동아리 가입
+[Club:Leave:stock]  -- 주식투자 동아리 탈퇴
+```
+
+## 예시
+
+메인모델: "미라벨의 권유로 주식투자 동아리에 가입하게 되었다."
+
+태그:
+```
+[Affinity:Mirabel:like][Sin:Mirabel:neutral]
+[Club:Join:stock]
+<Panel>■★
+```
+
+---
+
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
 ---
@@ -198,6 +231,35 @@ Tags:
 | MUTA | 75G | STONE | 115G |
 |      |        | MUSE | 170G |
 |      |        | ACAD | 220G |
+
+## 매매 태그
+
+스토리에서 주식 매매가 발생하면 태그 출력:
+
+```
+[StockBuy:TICKER:PRICE:QTY]   -- 매수
+[StockSell:TICKER:PRICE:QTY]  -- 매도
+```
+
+- TICKER: 종목 코드 (LILY, NEP 등)
+- PRICE: 거래 가격 (정수)
+- QTY: 수량 (정수)
+
+### 매매 트리거
+
+메인모델이 스토리에서 매매를 묘사할 때:
+- "LILY 주식 10주를 샀다"
+- "NEP를 전량 매도했다"
+- "105G에 5주 매수"
+
+### 매매 예시
+
+메인모델: "미라벨의 조언대로 LILY 주식 10주를 105G에 매수했다."
+
+태그:
+```
+[StockBuy:LILY:105:10]
+```
 
 ## 예시
 
