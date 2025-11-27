@@ -4807,69 +4807,99 @@ function generateStockOrderView(triggerId, ticker)
     local orderBook, currentPrice = generateOrderBook(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+    local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+    local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#888")
+    local changeSign = change > 0 and "+" or ""
 
-    local html = string.format(
-        "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"..
-        "<div style='display:flex;justify-content:space-between;align-items:center'>"..
-        "<div><span style='font-size:16px;font-weight:600;color:#ffd700'>%s</span>"..
-        "<span style='font-size:12px;color:#888;margin-left:8px'>%s</span></div>"..
-        "<div style='font-size:14px;color:#e0e0e0'>보유: <span style='color:#ffd700'>%d주</span></div>"..
-        "</div></div>",
-        ticker, name, owned
-    )
+    -- 헤더: 종목 정보
+    local html = string.format([[
+<div style='background:#0d1117;padding:12px 15px;border-radius:8px 8px 0 0;border-bottom:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:center'>
+    <div>
+      <span style='font-size:18px;font-weight:700;color:#fff'>%s</span>
+      <span style='font-size:12px;color:#8b949e;margin-left:8px'>%s</span>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:%s'>%dG</div>
+      <div style='font-size:12px;color:%s'>%s%d%%</div>
+    </div>
+  </div>
+  <div style='margin-top:8px;font-size:12px;color:#8b949e'>보유 <span style='color:#ffd700;font-weight:600'>%d주</span></div>
+</div>]], ticker, name, changeColor, currentPrice, changeColor, changeSign, change, owned)
 
-    -- 호가창 테이블
-    html = html .. "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"
-    html = html .. "<table style='width:100%%;border-collapse:collapse;font-size:12px'>"
+    -- 호가창 본체
+    html = html .. "<div style='background:#0d1117;padding:0'>"
 
-    -- 매도호가 (역순: 높은 가격이 위)
+    -- 컬럼 헤더
+    html = html .. [[
+<div style='display:flex;padding:8px 12px;background:#161b22;font-size:11px;color:#8b949e;border-bottom:1px solid #30363d'>
+  <div style='flex:1;text-align:center'>잔량</div>
+  <div style='flex:1;text-align:center'>가격</div>
+  <div style='flex:1;text-align:center'>잔량</div>
+</div>]]
+
+    -- 매도호가 (역순: 높은 가격이 위) - 파란색 계열
     for i = #orderBook.asks, 1, -1 do
         local ask = orderBook.asks[i]
         local barWidth = math.floor((ask.volume / 60) * 100)
-        html = html .. string.format(
-            "<tr><td style='padding:6px;color:#4CAF50;text-align:right;width:40%%'>%dG</td>"..
-            "<td style='padding:6px;width:60%%'><div style='background:#2d4a3d;height:16px;width:%d%%;border-radius:2px'></div></td>"..
-            "<td style='padding:6px;color:#666;font-size:10px'>%d주</td></tr>",
-            ask.price, barWidth, ask.volume
-        )
+        html = html .. string.format([[
+<div style='display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid #21262d'>
+  <div style='flex:1;position:relative;height:24px'>
+    <div style='position:absolute;right:0;top:0;height:100%%;width:%d%%;background:rgba(38,166,154,0.2);border-radius:2px'></div>
+    <span style='position:relative;z-index:1;font-size:13px;color:#26a69a;font-weight:500;line-height:24px'>%d</span>
+  </div>
+  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:#26a69a'>%dG</div>
+  <div style='flex:1'></div>
+</div>]], barWidth, ask.volume, ask.price)
     end
 
-    -- 현재가
-    html = html .. string.format(
-        "<tr style='background:#3d3d5c'><td colspan='3' style='padding:8px;text-align:center;font-size:14px;font-weight:700;color:#ffd700'>➤ %dG</td></tr>",
-        currentPrice
-    )
+    -- 현재가 강조
+    html = html .. string.format([[
+<div style='display:flex;align-items:center;justify-content:center;padding:10px;background:#1c2128;border-top:2px solid #ffd700;border-bottom:2px solid #ffd700'>
+  <span style='font-size:18px;font-weight:700;color:#ffd700'>%dG</span>
+  <span style='font-size:12px;color:%s;margin-left:8px'>%s%d%%</span>
+</div>]], currentPrice, changeColor, changeSign, change)
 
-    -- 매수호가
+    -- 매수호가 - 빨간색 계열
     for _, bid in ipairs(orderBook.bids) do
         local barWidth = math.floor((bid.volume / 60) * 100)
-        html = html .. string.format(
-            "<tr><td style='padding:6px;color:#ff5252;text-align:right;width:40%%'>%dG</td>"..
-            "<td style='padding:6px;width:60%%'><div style='background:#4a2d3d;height:16px;width:%d%%;border-radius:2px'></div></td>"..
-            "<td style='padding:6px;color:#666;font-size:10px'>%d주</td></tr>",
-            bid.price, barWidth, bid.volume
-        )
+        html = html .. string.format([[
+<div style='display:flex;align-items:center;padding:6px 12px;border-bottom:1px solid #21262d'>
+  <div style='flex:1'></div>
+  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:#ef5350'>%dG</div>
+  <div style='flex:1;position:relative;height:24px;text-align:right'>
+    <div style='position:absolute;left:0;top:0;height:100%%;width:%d%%;background:rgba(239,83,80,0.2);border-radius:2px'></div>
+    <span style='position:relative;z-index:1;font-size:13px;color:#ef5350;font-weight:500;line-height:24px'>%d</span>
+  </div>
+</div>]], bid.price, barWidth, bid.volume)
     end
 
-    html = html .. "</table></div>"
+    html = html .. "</div>"
 
     -- 거래 버튼
-    local btnStyle = "padding:10px 0;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;flex:1"
-    html = html .. "<div style='margin-bottom:10px'>"
-    html = html .. "<div style='font-size:12px;color:#888;margin-bottom:8px'>매수</div>"
-    html = html .. "<div style='display:flex;gap:8px'>"
-    html = html .. string.format("<button type='button' risu-trigger='stock_buy_%s_1' style='%s;background:#ff5252;color:white'>1주</button>", ticker, btnStyle)
-    html = html .. string.format("<button type='button' risu-trigger='stock_buy_%s_5' style='%s;background:#ff5252;color:white'>5주</button>", ticker, btnStyle)
-    html = html .. string.format("<button type='button' risu-trigger='stock_buy_%s_10' style='%s;background:#ff5252;color:white'>10주</button>", ticker, btnStyle)
-    html = html .. "</div></div>"
+    html = html .. [[
+<div style='background:#161b22;padding:12px;border-radius:0 0 8px 8px;border-top:1px solid #30363d'>
+  <div style='display:flex;gap:10px'>
+    <div style='flex:1'>
+      <div style='font-size:11px;color:#8b949e;margin-bottom:6px;text-align:center'>매수</div>
+      <div style='display:flex;gap:4px'>]]
 
-    html = html .. "<div>"
-    html = html .. "<div style='font-size:12px;color:#888;margin-bottom:8px'>매도</div>"
-    html = html .. "<div style='display:flex;gap:8px'>"
-    html = html .. string.format("<button type='button' risu-trigger='stock_sell_%s_1' style='%s;background:#4CAF50;color:white'>1주</button>", ticker, btnStyle)
-    html = html .. string.format("<button type='button' risu-trigger='stock_sell_%s_5' style='%s;background:#4CAF50;color:white'>5주</button>", ticker, btnStyle)
-    html = html .. string.format("<button type='button' risu-trigger='stock_sell_%s_all' style='%s;background:#4CAF50;color:white'>전량</button>", ticker, btnStyle)
-    html = html .. "</div></div>"
+    html = html .. string.format([[
+        <button type='button' risu-trigger='stock_buy_%s_1' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
+        <button type='button' risu-trigger='stock_buy_%s_5' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
+        <button type='button' risu-trigger='stock_buy_%s_10' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>10주</button>
+      </div>
+    </div>
+    <div style='flex:1'>
+      <div style='font-size:11px;color:#8b949e;margin-bottom:6px;text-align:center'>매도</div>
+      <div style='display:flex;gap:4px'>
+        <button type='button' risu-trigger='stock_sell_%s_1' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
+        <button type='button' risu-trigger='stock_sell_%s_5' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
+        <button type='button' risu-trigger='stock_sell_%s_all' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>전량</button>
+      </div>
+    </div>
+  </div>
+</div>]], ticker, ticker, ticker, ticker, ticker, ticker)
 
     return html
 end
