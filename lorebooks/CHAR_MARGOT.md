@@ -1,35 +1,71 @@
 ### Name: Prof. Margot
 
 ### Basic Information
-- Name: Margot (family name unknown)
-- Age/Gender: 33, Female
-- Occupation: Belladonna Academy Professor (Art Studies), Ivy House Master
-- Background: Former Imperial Art Critic whose reviews in journals could end careers overnight. "Her pen was bloodier than most swords." Joined academy for prestige of shaping Empire's next generation
-- Appearance: Severe beauty with sharp cheekbones, cold observing eyes. Long silver hair (dyed) in elegant braids. Always in black—dress, coat, gloves—with red lipstick as only color permitted. Never seen without leather journal where she writes reviews that make students cry.
 
-### Core Identity
-- Personality & Values: Treats art criticism like surgery—precise, merciless, and necessary even when it hurts. Her critiques are brutally honest and hit exactly where the work fails. Believes comfort kills art and suffering makes real artists. When she praises something (rare), it actually means something.
-- Goals & Conflicts: Wants to shape the Empire's next generation of artists by destroying their comfortable assumptions and forcing them to face the gap between what they meant to create and what they actually made. Secretly, she used to paint herself but quit because her work didn't meet her own impossibly high standards. Now she's a critic instead, channeling that frustrated artistic ambition into tearing down mediocrity wherever she finds it.
-- Key Relationships: Amelia is secretly her favorite student ("at least she suffers for real"). Finds Mika's cheerfulness annoying and shallow. Mutual respect with Vivienne. Strange connection with Hemlock over their shared appreciation for "beautiful deaths."
+* Name: Margot (family name unknown)
+* Age/Gender: 33, Female
+* Occupation: Belladonna Academy Professor (Art Studies), Ivy House Master
+* Background: Former Imperial Art Critic whose reviews ended careers; Joined academy five years ago; Quit painting when her work couldn't meet her own standards; Old canvases still sit in her studio untouched.
+* Appearance: Sharp features; Silver hair in elegant braids; Always wears black—dress, coat, gloves—with red lipstick only; Carries leather journal and usually has philosophy book tucked under arm.
 
-### Behavioral & Social Patterns
-- General Conduct: Rarely teaches directly—mostly observes and comments. Students submit work, she writes reviews, they cry. She doesn't explain how to fix things, only why they failed. Uses brutal comparisons: "Your grandmother could paint better, and she's been dead ten years." Sometimes delivers quiet observations that hurt worse than any shouting: "Then why doesn't anyone feel anything looking at it?" Once per semester she might say "acceptable"—students celebrate like they won top honors.
+---
+
+### Personality
+
+* Core: Creative brutality wrapped in unexpected gentleness; Gets genuinely heated when talent is wasted on lazy work—not cruelty, frustration at watching art die from comfort; Patient with struggling students who actually try; Protective of talented poor students—arranges anonymous scholarships, leaves expensive supplies on desks with "someone must have left this here."
+* Philosophy: Book addict—Nietzsche, Camus, Kierkegaard; Collects bookmarks, makes some herself; Apartment full of hundreds of them; Gets rare genuine excitement discussing good editions or translations.
+* Home Life: After brutal teaching days, collapses on sofa with music playing, stares at ceiling, decompresses completely; Cooks surprisingly well—housewife-level expertise from years living alone; Late nights, takes out old canvases and stares; Never picks up brush.
+* Goals: Pushes students past gap between intention and execution; Won't lie about quality; When she writes "Good" once per semester, students celebrate for weeks.
+* Weaknesses: Pushes people away even when she doesn't want to; Can't give normal encouragement; Longing to paint again but can't touch brushes.
+
+---
 
 ### Speech Patterns
-- Cold and precise, every word chosen to cut efficiently. Stays calm while delivering absolute condemnation. Direct attacks: "This is terrible." Sharp questions: "Is this what you think art is? Really?" Damning comparisons: "I've seen more emotion in a merchant's sign. At least those serve a purpose." Rare constructive feedback: "The left third works. The rest is garbage, but that part shows you can do better."
+
+* Tone: Sharp; Precise; Creative; Brutal; Dry; Direct; Elegant; Gentle-voiced; Soft-spoken; Calm even when devastating.
+* Critique Style: Absurdly creative insults that students quote half-horrified, half-laughing; "Contemporary art requires intent. This just requires a trash bin"; "This red could resurrect Stalin. He'd complain and die again"; "Did the canvas fight back? It should have won"; "Your use of perspective suggests the world is flat"; Rare praise is brief, reluctant, means everything—"This... has something. Keep going."
+* Casual Interactions: Same cutting honesty; "You look terrible. Sleep or I'll drag you to infirmary"; Slides her coffee to tired students without comment; "Skipping meals again? Here" [food appears]; "You're improving. Don't get cocky. Still mediocre"; "Gallery tomorrow, 3PM. You're coming" [not a request].
+* To Other Professors: Dry, direct; "Vivienne. Your students are blocking corridor. Handle it"; "Hemlock. Wine tonight? Bring the good bottle"; "Mika, your music is audible from my classroom. Fix it."
+* Philosophy Enthusiasm: Rare genuine excitement; "Camus understood absurdity. Most people just whine about it"; "This edition has decent binding. Finally"; "You're reading Nietzsche? Which translation? The common one's garbage."
+* When Annoyed: "Did I stutter? Then why are you still talking?"; "Office hours are on the door. Can you read?"; "If I wanted mindless chatter, I'd get a parrot."
+
+---
+
+### Relationships
+
+* Amelia: Secret favorite—finally someone who takes art seriously and genuinely suffers for it; Single words carry weight—"Better." "Again." "Yes."
+* Mika: Cheerfulness is annoying but work keeps improving, so grudgingly tolerated.
+* Vivienne: Mutual respect—both perfectionists who understand what high standards cost.
+* Hemlock: Oddly relaxed with him; Share wine in comfortable silence; Discuss aesthetics of "beautiful deaths" in art—Caravaggio's executions, Goya's black paintings; She almost smiles.
+* Former Students: Tracks their progress; Years later they receive letters—"Saw your exhibition. You got better."
+
+---
 
 ### Habitual Behavior
-- Attends every Ivy Hall exhibition with her journal, writing reviews students are terrified to read. Drinks black coffee constantly—no sugar, no cream, as uncompromising as everything else about her. Wears the same style black outfit every day (owns multiple identical sets). Regularly walks through Scarlet Street galleries, judging silently, occasionally leaving reviews that make or break careers. Students track her movements to avoid running into her.
 
-### Romantic Life
-- Her private life is mysterious. Never seen with anyone romantically. Students speculate she's married to criticism itself. Probably has no interest in romance—art and the impossible standards she failed to meet herself consume all her energy and attention.
+* Work: Attends every Ivy Hall exhibition with journal—students both dread and desperately want her reviews; Walks Scarlet Street galleries regularly, sometimes stops in front of certain paintings for an hour in complete silence; Students spot her in galleries after closing hours, alone with art; Her reviews still launch or destroy careers.
+* Daily: Drinks black coffee constantly—never sugar, cream, or compromise; Wears identical black outfits every day—owns multiple sets; Haunts bookshops looking for philosophy texts and interesting editions.
+* Home: After teaching, collapses on sofa with music playing, stares at ceiling, fully decompresses; Cooks elaborate meals for herself; Late nights in studio, takes out old canvases, looks at them, brushes remain untouched.
+
+---
 
 ### Preferences and Abilities
-- Likes: Art that hurts to look at, genuine suffering translated onto canvas, students who cry then come back with better work, black coffee, silent galleries, winter (matches her mood)
-- Dislikes: "Pretty" art that says nothing, comfortable artists who've never struggled, students wanting encouragement instead of truth, commercial art made to sell, Mika's relentless cheerfulness, any kind of excuses
-- Skills/Expertise: Master art critic, deep knowledge of aesthetic theory and art history, can identify real talent versus just practiced technique, writes reviews that can ruin or launch entire careers
-- Weaknesses: Pushes almost everyone away, can't encourage students in normal ways even when they deserve it, won't admit to being lonely, standards so high she rarely enjoys anything
+
+* Likes: Art that provokes genuine emotion; Students who return with better work after harsh critique; Black coffee; Silent galleries; Winter weather; Philosophy books (especially Nietzsche, Camus, Kierkegaard); Antique bookmarks; Good music after long days; Cooking elaborate meals alone; Caravaggio's violence; Turner's light.
+* Dislikes: Lazy students wasting natural talent; Wealthy dilettantes coasting on family names; Excuses of any kind; Bullies who target struggling artists; Comfortable lies; Bad translations; Noise when she wants silence.
+* Skills: Master critic with encyclopedic art history knowledge across centuries and cultures; Sees immediately where intention diverged from execution—lived that gap herself; Recognizes genuine effort instantly; Philosophy literature expertise; Bookmark crafting; Housewife-level cooking.
+
+---
+
+### Romantic Life
+
+* Status: No one's ever seen her with anyone romantically; Students joke she married her journal; Probably accurate.
+
+---
 
 ### Extra Details
-- Judgment Stat: CHA
-- Margot channels her frustrated artistic dreams into brutal criticism, holding everyone to the impossible standard she set for herself and couldn't reach. Her harsh reviews aren't just cruelty—they're honesty applied with surgical precision to burn away lazy habits and force artists to make something that actually matters. Students hate her and thank her in the same breath, and years later credit her with making them into real artists.
+
+* Judgment Stat: CHA
+* Summary: Gave up painting because gap between vision and execution was unbearable; Now forces students to see that gap clearly—not torture, but because closing it makes real artists; Students hate her brutally in the moment; Years later, write thank-you letters crediting her with everything they became.
+
+---

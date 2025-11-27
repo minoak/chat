@@ -103,13 +103,13 @@ local affinityChanges = {
 }
 
 local sinPosChanges = {
-    corrupt = 10,
-    tempt = 5
+    corrupt = 2,
+    tempt = 1
 }
 
 local sinNegChanges = {
-    resist = 5,
-    purify = 10
+    resist = 1,
+    purify = 2
 }
 
 local AFFINITY_MAX = 500
@@ -167,320 +167,95 @@ local expTable = {
 -- ============================================
 
 local AUXILIARY_BASE_PROMPT = [[
+You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative and output tags.
 
-You are the System Judge for Belladonna Academy RPG. Analyze the Main AI's output and generate status tags.
-
-## Your Role
-You read the Main AI's narrative and output structured tags to update game state. You handle:
-- Character relationship changes (Affinity, Sin)
-- RPG mechanics (Stats, Gold, Items, EXP, Traits, Healing, Effects)
-- Combat system (Combat tags, CombatChoice generation)
-- Environment tracking (Season, Week, Day, Time, Location, Weather)
-
-## Mandatory Output Format
-[Affinity:CharacterName:level][Sin:CharacterName:level]
-[Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
-[Heal:amount][Effect:Action:Name:StatBonus][Trait:Name:Description]
-[Combat:EnemyName:Power][Combat:End]
-[Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
+## Output Format
+[Affinity:Name:level][Sin:Name:level]
+[Stat:stat:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
+[Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
+[Combat:Name:Power][Combat:End]
+[Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
 <Panel>■★
 
-## Current Context
-Current environment values are provided below. Output environment tags only when Main AI describes different values.
+## Relationship Tags (Only for Characters in Scene)
+[Affinity:Name:level] - THIS TURN feelings: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
+[Sin:Name:level] - THIS TURN sin: corrupt(+2), tempt(+1), neutral(0), resist(+1), purify(+2)
+Names: [Affinity:Mirabel:like] NOT [Affinity:Mirabel von Goldenrose:like]
 
-## Tag Output Rules
+**CRITICAL: Output tags ONLY for characters who appear in the narrative. Skip characters not mentioned.**
+**Do NOT output neutral tags unless there's a clear emotional shift to neutral state.**
 
-### Character Relationship Tags (Output Every Turn)
+## Environment Tags
+Game State Panel shows current. Output ONLY when Main AI describes changes.
+[Day:요일][Time:시간][Location:장소] - Final arrival only (여러 곳→마지막만)
+[Week:숫자] - Monday new week start only
+[Season:계절] - New semester only
 
-**[Affinity:CharacterName:level]** - Relationship change this turn
-Question: "How did this character's feelings toward {{user}} change THIS TURN?"
+## RPG Tags
+[Stat:stat:±value] - str/int/dex/cha/luk/vit (±1~5 typical, ±10+ major). [StatsEvaluated]시 ± 없이
+[Gold:±value] - Money change
+[Item:Add:Name:Qty:Effect] / [Item:Remove:Name:Qty] - Non-consumables(학생증,열쇠) return after use
+[EXP:±value] - +10~100
+[Heal:amount] - CP recovery 20~100
 
-• love (Major positive +20): Life-changing moment, confession, deep emotional breakthrough
-• like (Moderate positive +15): Genuine kindness, warmth, attraction, pleasant surprise
-• neutral (No change 0): Normal interaction, no emotional shift
-• dislike (Moderate negative -15): Annoyance, disappointment, mild conflict
-• hate (Major negative -20): Betrayal, deep hurt, serious conflict
+## Effect/Trait Tags - {{user}} ONLY
+[Effect:Add:Name:StatBonus] - Temporary boost ({{user}} only, NOT NPCs)
+[Effect:Remove:Name] - Remove effect
+[Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar effects
+[Trait:Add:Name:Desc] - Permanent trait ({{user}} only, NOT NPCs)
+[Trait:Merge:Old1+Old2→New:Desc] - Combine similar traits
 
-**[Sin:CharacterName:level]** - Deadly sin manifestation this turn
-Question: "How did this character's deadly sin manifest THIS TURN?"
+**CRITICAL: Effect/Trait tags are for {{user}} only.**
+**NPC changes (Mirabel gets stronger, Celestia learns magic) → Narrative description ONLY. NO tags.**
 
-Each main character has a deadly sin (Lust, Greed, Envy, etc.). Judge their sin pressure:
+**CRITICAL StatBonus Format (MUST follow):**
+✓ SINGLE stat only: str+15, int+10, dex+5, all_bonus+8
+✗ NEVER multiple: "str+10, int+5" or "ALLSTATS +20, CHA +10"
 
-• corrupt (Heavy indulgence +10): Completely surrendered to sin, lost control
-• tempt (Moderate indulgence +5): Sin influenced their actions clearly
-• neutral (No change 0): Sin dormant or balanced
-• resist (Moderate resistance +5): Fought against their sin, showed restraint
-• purify (Strong overcome +10): Overcame sin through growth, character development
+**Multiple stats → Separate tags:**
+✓ [Effect:Add:축복_힘:str+10][Effect:Add:축복_지능:int+10]
+✗ [Effect:Add:축복:str+10, int+10]
 
-Output affinity and sin for EVERY character who appears in the scene, every turn.
+## Growth System - Effect/Trait Synthesis
+Effects/Traits show player's growth. Merge similar ones → stronger versions (reduces token usage, shows progression).
 
-### Environment Tags (Compare with Current Context)
+**When to Merge (check current lists above):**
+- Similar theme/concept 2+ times: 작은축복+중간축복→성녀의축복
+- Same stat stacking: str+5, str+10 → str+15 with upgraded name
+- Related concepts: 빠른발+민첩함→신속함, 학습+집중→천재성
 
-**[Season:계절]** - Semester/season change
-- Values: 봄 (Spring), 여름 (Summer), 가을 (Fall), 겨울 (Winter)
-- Output when Main AI describes new semester/season
+**Merge Examples:**
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
+✓ [Effect:Merge:빠른학습+높은집중력→천재적재능:int+15]
+✓ [Trait:Merge:검술입문+검술수련→검술숙련:검에 대한 깊은 이해]
 
-**[Week:숫자]** - Week number within semester (1-12)
-- Output when new week starts (Monday morning)
-- See "Weekly Schedule System" below for special rules
+**Multiple stat merge → Separate effects:**
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15]
+   [Effect:Add:성녀의축복_매력:cha+10]
+✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
 
-**[Day:요일명]** - Day of week
-- 월요일=Monday, 화요일=Tuesday, 수요일=Wednesday, 목요일=Thursday, 금요일=Friday, 토요일=Saturday, 일요일=Sunday
-- Output when Main AI describes day change
+{{PLAYER_TRAITS_SECTION}}
+{{PLAYER_EFFECTS_SECTION}}
 
-**[Time:시간]** - Time of day
-- Values: 오전 (morning), 오후 (afternoon), 저녁 (evening), 밤 (night), 심야 (late night)
-- Output when Main AI describes time passing
+**Decision logic:** Check above lists → similar 2+? Merge. Otherwise Add new.
 
-**[Location:장소]** - Current location
-- Output when Main AI describes location change
-- Use location name as written in world lorebooks
+## Combat Tags
+Check Game State for "⚔️ Combat Status: ACTIVE"
+- If ACTIVE: DO NOT output [Combat:Name:Power] again. ONLY [Combat:End] when clearly ends
+- If NOT ACTIVE: MUST output [Combat:Name:Power] when new challenge starts
+- Power guide (player ~400): 150-250(VeryEasy), 250-350(Easy), 350-500(Normal), 500-650(Hard), 650-900+(VeryHard)
+- Works for ANY challenge: combat, exams, negotiations, skills
+- [Combat:End] when resolved. NEVER with <CombatChoice> same turn
 
-**[Weather:날씨]** - Weather conditions (optional)
-- Output when Main AI mentions weather
+## Weekly System
+Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|Stats:changes</WeeklyReport>[Day:금요일][Time:저녁]
+Monday: [Week:X+1][Day:월요일][Time:오전]
+Exams (Week 6,12): [Exam:midterm:87:23]
 
-### RPG System Tags (Output When Events Occur)
-
-**[Stat:stat_id:±value]** - Stat changes from training, events, combat results
-- Stats: str (strength), int (intelligence), dex (dexterity), cha (charisma), luk (luck), vit (vitality)
-- Range: 0-100
-- Typical changes: ±1 to ±5 (training/events), ±10+ (major events)
-- Examples: [Stat:str:+3] [Stat:int:-2] [Stat:dex:+5]
-
-**[Gold:±value]** - Money gained or spent
-- Quest rewards, combat loot: [Gold:+100]
-- Purchases, expenses: [Gold:-50]
-- Only output when gold actually changes
-
-**[Item:Action:Name:Qty:Effect]** - Item acquisition, usage, removal
-- Actions: Add (acquire), Remove (discard/lose)
-- Effects: hp+20, str+5, gold+100 (or empty for key items)
-- Item Return Rules: When {{user}} uses an item, judge if it should be returned
-  - Non-Consumable Items (return after use):
-    - ID cards, keys, phones, tools, equipment, clothing
-    - Items used for showing, presenting, or accessing
-    - Examples: 학생증, 열쇠, 휴대폰, 도구, 장비, 의류
-    - ACTION: Output [Item:Add:ItemName:1] to return it
-  - Consumable Items (destroyed after use):
-    - Potions, food, medicine, ammunition, scrolls, disposables
-    - Items destroyed or consumed in use
-    - Examples: 포션, 음식, 약, 탄약, 소모품
-    - ACTION: Do NOT output Item:Add tag
-- Examples:
-  - Acquiring: [Item:Add:회복포션:1:hp+20]
-  - Using non-consumable: [Item:Add:학생증:1] (return after use)
-  - Discarding: [Item:Remove:낡은열쇠:1]
-
-**[EXP:±value]** - Experience points gained
-- Quest completion, combat victory, skill success
-- Typical values: +10 to +100 depending on task difficulty
-- Example: [EXP:+50]
-
-**[Heal:amount]** - Combat power recovery
-- Rest/sleep: [Heal:20~50]
-- Potion/medicine: [Heal:30~100]
-- Healing magic: [Heal:40~80]
-- Food/meal: [Heal:10~30]
-- Example: [Heal:40]
-
-**[Effect:Action:Name:StatBonus]** - Buffs/debuffs applied or removed
-- Actions: Add (apply buff/debuff), Remove (remove effect)
-- StatBonus format: stat+value (e.g., str+15, int-10)
-- Examples:
-  - [Effect:Add:미라벨의 축복:str+15]
-  - [Effect:Remove:독]
-
-**[Trait:Name:Description]** - Permanent trait acquisition (player only, NOT for NPCs)
-- Only output when {{user}} gains a new permanent trait
-- Example: [Trait:Dragon_Slayer:Defeated a dragon in single combat]
-
-### Combat and Challenge Tags
-
-**[Combat:ChallengeName:PowerValue]** - Challenge/Combat situation starts
-- This system handles ANY challenge requiring dice rolls and choices, not just combat!
-- **Combat scenarios**: [Combat:Goblin:280], [Combat:Dragon:850]
-- **Exam scenarios**: [Combat:중간고사:400], [Combat:마법실기시험:550]
-- **Social challenges**: [Combat:귀족파티협상:320], [Combat:교수설득:450]
-- **Dangerous situations**: [Combat:산사태:600], [Combat:독트랩:280]
-- **Skill challenges**: [Combat:암벽등반:350], [Combat:마법진해독:480]
-
-PowerValue guidelines (player average ~400):
-  - Very Easy challenges: 150-250 (tutorial, simple tasks)
-  - Easy challenges: 250-350 (straightforward obstacles)
-  - Normal challenges: 350-500 (balanced difficulty)
-  - Hard challenges: 500-650 (serious threats)
-  - Very Hard challenges: 650-900+ (extreme danger, boss fights)
-
-MUST generate <CombatChoice> with 6 options immediately after [Combat:] tag.
-
-**[Combat:End]** - Challenge concluded
-- Output when challenge/combat clearly ends (enemy defeated/exam finished/negotiation resolved)
-- Do NOT output if challenge still ongoing
-- NEVER output both [Combat:End] and <CombatChoice> in same turn
-
-## Weekly Schedule System
-
-**금요일 주간 보고서 (Friday weekly report - 1-2 paragraph summary):**
-- Output [Stat:...] tags for described growth
-- Output <WeeklyReport>Week:X|Season:Y|Curriculum:교수명|Lifestyle:활동|Score:점수|Stats:변화</WeeklyReport>
-- DO NOT output [Week:X] tag (week hasn't advanced yet)
-
-**월요일 새 주 시작 (Monday new week start):**
-- Output [Week:X+1] (increment week number)
-- Output [Day:월요일][Time:오전]
-
-**시험 (Week 6, 12):**
-- When Main AI describes exam score/rank: [Exam:midterm:87:23]
-
-Example:
-Friday report: [Stat:int:+2]<WeeklyReport>Week:2|Season:봄|Curriculum:Vivienne|Lifestyle:Social|Score:18|INT:+2</WeeklyReport>
-Monday start: [Week:3][Day:월요일][Time:오전]
-
-## Characters in This Story
+## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
-Examples:
-- Wrong: [Affinity:{{user}}:like] or [Affinity:Mirabel von Goldenrose:like]
-- Right: [Affinity:Mirabel:like]
-
-## Example Outputs
-
-### Example 1: Combat Start
-Main AI: "A goblin jumps out from the bushes, brandishing a rusty sword!"
-
-Your output:
-[Affinity:Cassandra:neutral][Sin:Cassandra:neutral][Combat:Goblin:280]
-<CombatChoice>
-[STR|검으로 베어넘긴다|Easy]
-[DEX|재빠르게 피한 후 반격한다|Normal]
-[INT|약점을 노려 공격한다|Normal]
-[CHA|위협하여 물러서게 한다|Hard]
-[LUK|운에 맡긴다|Very Hard]
-[도주|재빠르게 도망친다|Very Easy]
-</CombatChoice>
-<Panel>■★
-
----
-
-### Example 2: Combat End with Rewards
-Main AI: "You defeat the goblin! Gold coins spill from its pouch. Cassandra watches in approval."
-
-Your output:
-[Affinity:Cassandra:like][Sin:Cassandra:resist][Stat:str:+2][Gold:+300][EXP:+80][Combat:End]
-<Panel>■★
-
----
-
-### Example 3: Weekly Report (Friday)
-Main AI: "Professor Vivienne's rhetoric training sharpened your wit. By Friday evening, you feel noticeably more capable."
-
-Your output:
-[Stat:int:+3][Stat:cha:+2]
-<WeeklyReport>Week:2|Season:봄|Curriculum:Vivienne|Lifestyle:Social|Score:18|INT:+3|CHA:+2</WeeklyReport>
-<Panel>■★
-
----
-
-### Example 4: New Week (Monday)
-Main AI: "Monday morning arrives. Week 3 begins with fresh energy."
-
-Your output:
-[Week:3][Day:월요일][Time:오전]
-<Panel>■★
-
----
-
-## CombatChoice Generation Guide
-
-WHEN TO GENERATE <CombatChoice>:
-- ONLY when Main AI describes an ACTIVE, ONGOING combat/threat situation
-- Enemy is present AND player needs to decide next action
-- Combat has NOT concluded yet
-
-WHEN NOT TO GENERATE <CombatChoice>:
-- Combat already ended (enemy defeated/fled/negotiated)
-- No immediate threat or danger
-- Player is in safe situation
-- Peaceful/narrative moments
-
-### Generation Rules:
-
-When you detect NEW or ONGOING combat situation:
-
-1. [Combat:EnemyName:PowerValue] tag first (only for NEW combat)
-2. <CombatChoice> block immediately after with exactly 6 choices
-
-### Format
-```
-<CombatChoice>
-[STAT|Action description|Difficulty]
-...6 lines total...
-</CombatChoice>
-```
-
-### 6 Choice Structure
-1. [STR|...] - Strength-based action (직접 공격, 힘으로 밀어붙이기)
-2. [DEX|...] - Dexterity-based action (회피, 기습, 민첩한 공격)
-3. [INT|...] - Intelligence-based action (약점 분석, 전술, 마법)
-4. [CHA|...] - Charisma-based action (설득, 위협, 협상)
-5. [LUK|...] - Luck-based action (always "운에 맡긴다")
-6. [TraitName|...] or [도주|...] - Player trait (if applicable) or flee
-
-### Difficulty Determination
-Read Main AI's narrative context:
-- Player advantage (high ground, ambush, enemy wounded) → Easy/Very Easy
-- Balanced fight → Normal
-- Player disadvantage (outnumbered, trapped, injured) → Hard/Very Hard
-
-Base difficulty on enemy power vs player capability (infer from narrative).
-
-### Difficulty Levels
-- Very Easy: Almost guaranteed success (target: 5)
-- Easy: Good chance (target: 10)
-- Normal: Fair challenge (target: 15)
-- Hard: Difficult task (target: 20)
-- Very Hard: Nearly impossible (target: 25)
-
-### Action Description Guidelines
-- STR: 직접적인 물리 공격, 힘을 사용한 행동
-  - Example: "검으로 베어넘긴다", "방패로 밀쳐낸다"
-- DEX: 민첩성, 회피, 기습
-  - Example: "재빠르게 피한 후 반격한다", "그림자를 이용해 기습한다"
-- INT: 지능적 판단, 약점 파악, 마법
-  - Example: "약점을 노려 공격한다", "주변 환경을 이용한다"
-- CHA: 대화, 설득, 위협
-  - Example: "위협하여 물러서게 한다", "협상을 시도한다"
-- LUK: Always "운에 맡긴다" (no variation)
-- 6th choice: Use player trait if relevant to situation, otherwise use "도주" (flee)
-
-### Player Traits Reference
-{{PLAYER_TRAITS_SECTION}}
-
-If player has combat-relevant trait (검술, 마법, 전투 관련), use it for 6th choice.
-If no relevant trait or no traits at all, use: [도주|재빠르게 도망친다|Very Easy]
-
-### Combat End Detection
-
-Output [Combat:End] when:
-- Main AI clearly states combat concluded:
-  - "전투가 끝났다" / "Combat has ended"
-  - "적을 물리쳤다" / "Enemy defeated"
-  - "도망쳤다" / "Fled successfully"
-  - "협상이 성공했다" / "Negotiation succeeded"
-- No ongoing threat or combat action
-
-NEVER output [Combat:End] if:
-- Enemy just appeared (first turn)
-- Combat still ongoing
-- Player in middle of action
-
-CRITICAL RULES:
-- [Combat:End] = Do NOT generate <CombatChoice>
-- <CombatChoice> present = Do NOT output [Combat:End]
-- These are MUTUALLY EXCLUSIVE - never both in same turn
-
----
-
+Always end with <Panel>■★
 ]]
 
 -- ============================================
@@ -553,8 +328,13 @@ function saveActiveEffects(triggerId, effects)
     -- 직렬화: name:type:value:duration:desc|name:type:value:duration:desc|...
     local parts = {}
     for _, effect in ipairs(effects) do
+        -- nil 방어: 모든 필드가 유효한 값인지 확인
         local effectStr = string.format("%s:%s:%d:%d:%s",
-            effect.name, effect.type, effect.value, effect.duration, effect.desc or "")
+            effect.name or "Unknown",
+            effect.type or "display",
+            tonumber(effect.value) or 0,
+            tonumber(effect.duration) or 0,
+            effect.desc or "")
         table.insert(parts, effectStr)
     end
 
@@ -576,18 +356,24 @@ function updateEffectsDisplay(triggerId, effects)
 
     local lines = {}
     for _, effect in ipairs(effects) do
-        local sign = effect.value >= 0 and "+" or ""
-        local durationText = effect.duration > 0 and (effect.duration .. "턴") or "영구"
+        -- nil 방어: value와 duration을 숫자로 보장
+        local effectValue = tonumber(effect.value) or 0
+        local effectDuration = tonumber(effect.duration) or 0
+        local effectName = effect.name or "Unknown"
+        local effectDesc = effect.desc or ""
+
+        local sign = effectValue >= 0 and "+" or ""
+        local durationText = effectDuration > 0 and (effectDuration .. "턴") or "영구"
 
         -- 효과 설명이 있으면: "이름: 설명 (효과, 기간)"
         -- 효과 설명이 없으면: "이름: 효과 (기간)"
         local line
-        if effect.desc and effect.desc ~= "" and effect.desc ~= effect.name then
+        if effectDesc ~= "" and effectDesc ~= effectName then
             line = string.format("%s: %s (%s%d, %s)",
-                effect.name, effect.desc, sign, effect.value, durationText)
+                effectName, effectDesc, sign, effectValue, durationText)
         else
             line = string.format("%s: %s%d (%s)",
-                effect.name, sign, effect.value, durationText)
+                effectName, sign, effectValue, durationText)
         end
 
         table.insert(lines, line)
@@ -653,11 +439,14 @@ end
 function updateEffectDurations(triggerId)
     local effects = getActiveEffects(triggerId)
     local expired = {}
+    local needsSave = false
 
     for i = #effects, 1, -1 do
         local effect = effects[i]
         if effect.duration > 0 then
             effect.duration = effect.duration - 1
+            needsSave = true  -- duration이 감소했으면 저장 필요
+
             if effect.duration == 0 then
                 table.insert(expired, effect.name)
                 table.remove(effects, i)
@@ -665,10 +454,13 @@ function updateEffectDurations(triggerId)
         end
     end
 
-    if #expired > 0 then
+    if needsSave then
         saveActiveEffects(triggerId, effects)
-        for _, name in ipairs(expired) do
-            log("⏰ 효과 만료: " .. name)
+
+        if #expired > 0 then
+            for _, name in ipairs(expired) do
+                log("⏰ 효과 만료: " .. name)
+            end
         end
     end
 end
@@ -812,11 +604,19 @@ function parseStatChanges(triggerId, message)
     local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or oldMaxPower
     local powerRatio = (oldMaxPower > 0) and (currentPower / oldMaxPower) or 1.0
 
-    for statId, changeStr in message:gmatch("%[Stat:(%w+):([%+%-]%d+)%]") do
-        local change = tonumber(changeStr) or 0
+    for statId, changeStr in message:gmatch("%[Stat:(%w+):([%+%-]?%d+)%]") do
         local key = "player_" .. statId:lower()
         local current = tonumber(getChatVar(triggerId, key)) or STAT_DEFAULT
-        local new = clampValue(current + change, STAT_MIN, STAT_MAX)
+        local change, new
+
+        -- ±가 있으면 변화값, 없으면 절대값
+        if changeStr:match("^[%+%-]") then
+            change = tonumber(changeStr) or 0
+            new = clampValue(current + change, STAT_MIN, STAT_MAX)
+        else
+            new = clampValue(tonumber(changeStr) or STAT_DEFAULT, STAT_MIN, STAT_MAX)
+            change = new - current
+        end
 
         setChatVar(triggerId, key, tostring(new))
 
@@ -869,6 +669,7 @@ end
 
 -- 경험치 파싱 및 레벨업 체크
 function parseExpChanges(triggerId, message)
+    -- [EXP:+100] 형식 파싱
     for changeStr in message:gmatch("%[EXP:([%+%-]%d+)%]") do
         local change = tonumber(changeStr) or 0
         local current = tonumber(getChatVar(triggerId, "player_exp")) or 0
@@ -884,6 +685,22 @@ function parseExpChanges(triggerId, message)
 
         if change > 0 then
             checkLevelUp(triggerId)
+        end
+    end
+
+    -- [Level:1] 형식 파싱 (직접 레벨 설정)
+    for levelStr in message:gmatch("%[Level:(%d+)%]") do
+        local newLevel = tonumber(levelStr) or 1
+        local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+
+        if newLevel ~= currentLevel then
+            setState(triggerId, "player_level", newLevel)
+            setChatVar(triggerId, "player_level", tostring(newLevel))
+
+            -- 스냅샷도 즉시 업데이트 (리롤 시 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_player_level", tostring(newLevel))
+
+            log(string.format("⭐ 레벨 설정: %d → %d", currentLevel, newLevel))
         end
     end
 end
@@ -1213,11 +1030,51 @@ end
 
 -- 단일 Trait 파싱
 function parseTrait(triggerId, traitTag)
-    -- 형식: [Trait:Name:Description]
-    local traitName, traitDesc = traitTag:match("%[Trait:([^:]+):([^%]]+)%]")
+    -- 형식 1: [Trait:Add:Name:Description] 또는 [Trait:Name:Description] (하위 호환)
+    -- 형식 2: [Trait:Merge:OldName1+OldName2→NewName:NewDescription]
 
-    if traitName and traitDesc then
+    -- Merge 형식 먼저 체크
+    local mergePart, newName, newDesc = traitTag:match("%[Trait:Merge:([^→]+)→([^:]+):([^%]]+)%]")
+
+    if mergePart and newName and newDesc then
+        -- 합성할 특성 이름들 추출 (+ 또는 x로 구분)
+        local oldNames = {}
+        for name in mergePart:gmatch("[^+x]+") do
+            local trimmed = name:match("^%s*(.-)%s*$")  -- 공백 제거
+            if trimmed and trimmed ~= "" then
+                table.insert(oldNames, trimmed)
+            end
+        end
+
+        -- 기존 특성들 제거
+        local removed = {}
+        for _, oldName in ipairs(oldNames) do
+            if removeTrait(triggerId, oldName) then
+                table.insert(removed, oldName)
+            end
+        end
+
+        -- 새 특성 추가
+        addTrait(triggerId, newName, newDesc)
+
+        if #removed > 0 then
+            log(string.format("🔄 Trait 합성: [%s] → %s", table.concat(removed, " + "), newName))
+        end
+        return
+    end
+
+    -- Add 형식 또는 기존 형식
+    local action, traitName, traitDesc = traitTag:match("%[Trait:([^:]+):([^:]+):([^%]]+)%]")
+
+    if action == "Add" and traitName and traitDesc then
         addTrait(triggerId, traitName, traitDesc)
+        return
+    end
+
+    -- 하위 호환: [Trait:Name:Description]
+    local name, desc = traitTag:match("%[Trait:([^:]+):([^%]]+)%]")
+    if name and desc then
+        addTrait(triggerId, name, desc)
     end
 end
 
@@ -1254,6 +1111,58 @@ function parseEffects(triggerId, message)
 end
 
 function parseEffect(triggerId, tag)
+    -- [Effect:Merge:OldName1+OldName2→NewName:StatBonus] 형식 먼저 체크
+    local mergePart, newName, statBonus = tag:match("%[Effect:Merge:([^→]+)→([^:]+):([^%]]+)%]")
+
+    if mergePart and newName and statBonus then
+        -- 합성할 효과 이름들 추출 (+ 또는 x로 구분)
+        local oldNames = {}
+        for name in mergePart:gmatch("[^+x]+") do
+            local trimmed = name:match("^%s*(.-)%s*$")  -- 공백 제거
+            if trimmed and trimmed ~= "" then
+                table.insert(oldNames, trimmed)
+            end
+        end
+
+        -- 기존 효과들 제거
+        local removed = {}
+        for _, oldName in ipairs(oldNames) do
+            if removeEffect(triggerId, oldName) then
+                table.insert(removed, oldName)
+            end
+        end
+
+        -- 새 효과 추가 (Add와 동일한 로직)
+        local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+
+        if stat and sign and valueStr then
+            local value = tonumber(valueStr) or 0
+            if sign == "-" then
+                value = -value
+            end
+
+            local effectType = stat:lower() .. "_bonus"
+            local desc = newName
+            local duration = 0
+
+            addEffect(triggerId, newName, effectType, value, duration, desc)
+
+            if #removed > 0 then
+                log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d)",
+                    table.concat(removed, " + "), newName, stat:upper(), value))
+            end
+        else
+            -- 표시용 Effect
+            addEffect(triggerId, newName, "display", 0, 0, statBonus)
+
+            if #removed > 0 then
+                log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
+                    table.concat(removed, " + "), newName))
+            end
+        end
+        return
+    end
+
     -- [Effect:Add:Name:StatBonus] 형식 파싱
     local actionAdd, name, statBonus = tag:match("%[Effect:(Add):([^:]+):([^%]]+)%]")
 
@@ -1307,7 +1216,7 @@ function calculateCombatPower(triggerId)
     return power
 end
 
--- 난이도 판정 (비율 기반)
+-- 난이도 판정 (비율 기반) - 엄격한 밸런싱
 function getDifficulty(statPower, enemyPower)
     if enemyPower == 0 then
         return "Very Easy"
@@ -1315,13 +1224,13 @@ function getDifficulty(statPower, enemyPower)
 
     local ratio = statPower / enemyPower
 
-    if ratio >= 2.0 then
+    if ratio >= 2.5 then
         return "Very Easy"
-    elseif ratio >= 1.5 then
+    elseif ratio >= 2.0 then
         return "Easy"
-    elseif ratio >= 1.0 then
+    elseif ratio >= 1.3 then
         return "Normal"
-    elseif ratio >= 0.7 then
+    elseif ratio >= 0.9 then
         return "Hard"
     else
         return "Very Hard"
@@ -1458,34 +1367,22 @@ function getDifficultyTarget(difficulty)
 end
 
 -- 전투 선택지 버튼 클릭 시 실행되는 함수
-function rollCombat(triggerId, choiceNum)
-    -- 전투 활성 여부 확인
-    local combatActive = getChatVar(triggerId, "combat_active")
-    if combatActive ~= "true" then
-        log("⚠️ 전투가 활성화되지 않음")
-        return false
-    end
-
-    -- 선택지 정보 가져오기
-    local stat = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_stat")
-    local desc = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_desc")
-    local diff = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_diff")
-    local enemyPower = tonumber(getChatVar(triggerId, "combat_enemy_power")) or 0
-
-    if not stat or stat == "" then
-        log("⚠️ 유효하지 않은 선택지: " .. choiceNum)
-        return false
-    end
-
-    log(string.format("⚔️ 선택: %d번 - [%s] %s (%s)", choiceNum, stat, desc, diff))
+-- 선택지 주사위 굴림 (combat_active와 독립적으로 작동)
+function rollChoiceDice(triggerId, choiceNum, stat, desc, diff)
+    log(string.format("🎲 선택: %d번 - [%s] %s (%s)", choiceNum, stat, desc, diff))
 
     -- 능력치 이름 표준화
     local statName = stat:lower()
-    if statName == "str" or statName == "dex" or statName == "int" or
-       statName == "cha" or statName == "luk" or statName == "vit" then
+
+    -- Escape/Flee는 LUK으로 처리
+    if statName == "escape" or statName == "flee" or statName == "run" or statName == "도망" then
+        statName = "luk"
+    elseif statName == "str" or statName == "dex" or statName == "int" or
+           statName == "cha" or statName == "luk" or statName == "vit" then
         -- 표준 능력치
     else
-        -- 특성/도주 등 -> LUK으로 처리
+        -- 기타 미인식 능력치 -> LUK으로 처리
+        log(string.format("⚠️ 미인식 능력치 '%s' → LUK으로 처리", stat))
         statName = "luk"
     end
 
@@ -1510,12 +1407,39 @@ function rollCombat(triggerId, choiceNum)
     setChatVar(triggerId, "combat_last_critical", critical and "true" or "false")
     setChatVar(triggerId, "combat_last_fumble", fumble and "true" or "false")
 
-    -- 전투 결과 처리
-    processCombatResult(triggerId, success, critical, fumble, diff, enemyPower)
+    -- 적 추적 시스템이 활성화되어 있으면 전투 결과 처리
+    local combatActive = getChatVar(triggerId, "combat_active")
+    if combatActive == "true" then
+        local enemyPower = tonumber(getChatVar(triggerId, "combat_enemy_power")) or 0
+        processCombatResult(triggerId, success, critical, fumble, diff, enemyPower)
+    end
 
     log(string.format("✅ 주사위 결과: %d + %d = %d → %s", roll, bonus, total, success and "성공" or "실패"))
 
     return true
+end
+
+-- (Legacy) 전투 시스템용 주사위 - 적 추적 시스템 사용 시
+function rollCombat(triggerId, choiceNum)
+    -- 전투 활성 여부 확인
+    local combatActive = getChatVar(triggerId, "combat_active")
+    if combatActive ~= "true" then
+        log("⚠️ 전투가 활성화되지 않음")
+        return false
+    end
+
+    -- 선택지 정보 가져오기
+    local stat = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_stat")
+    local desc = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_desc")
+    local diff = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_diff")
+
+    if not stat or stat == "" then
+        log("⚠️ 유효하지 않은 선택지: " .. choiceNum)
+        return false
+    end
+
+    -- 새 함수로 위임
+    return rollChoiceDice(triggerId, choiceNum, stat, desc, diff)
 end
 
 -- 주사위 굴림 및 체크
@@ -1842,12 +1766,7 @@ function parseCombat(triggerId, tag)
         setState(triggerId, "combat_enemy_hp", 0)
         setState(triggerId, "combat_state", "Neutral")
 
-        -- 전투 선택지 변수 초기화
-        for i = 1, 6 do
-            setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
-            setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
-            setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
-        end
+        -- 선택지는 초기화하지 않음 (선택지 시스템은 전투와 독립적으로 작동)
 
         log(string.format("✅ combat_active 설정: %s", getChatVar(triggerId, "combat_active")))
         return
@@ -1861,10 +1780,15 @@ function parseCombat(triggerId, tag)
 
         log(string.format("⚔️ 전투 발생: %s (파워 %d)", enemyName, enemyPower))
 
-        -- 플레이어 전투력 계산 및 초기화
-        local playerCombatPower = calculateCombatPower(triggerId)
-        setChatVar(triggerId, "player_combat_power", tostring(playerCombatPower))
-        setState(triggerId, "player_combat_power", playerCombatPower)
+        -- 플레이어 전투력: 현재 값 유지, max만 재계산
+        local maxPower = calculateCombatPower(triggerId)
+        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+        -- 현재 전투력이 max보다 높으면 max로 제한
+        if currentPower > maxPower then
+            currentPower = maxPower
+        end
+        setChatVar(triggerId, "player_combat_power", tostring(currentPower))
+        setState(triggerId, "player_combat_power", currentPower)
 
         -- 적 HP 초기화 (파워 = HP)
         setChatVar(triggerId, "combat_enemy_hp", tostring(enemyPower))
@@ -1879,7 +1803,7 @@ function parseCombat(triggerId, tag)
         setState(triggerId, "combat_enemy_name", enemyName)
         setState(triggerId, "combat_enemy_power", enemyPower)
 
-        log(string.format("✅ 플레이어 전투력: %d", playerCombatPower))
+        log(string.format("✅ 플레이어 전투력: %d", currentPower))
         log(string.format("✅ 적 HP: %d", enemyPower))
         log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
 
@@ -1902,6 +1826,13 @@ function parseCombatChoice(triggerId, choiceBlock)
     if not content then return end
 
     log("⚔️ 전투 선택지 파싱 시작")
+
+    -- 기존 선택지 초기화 (이전 전투 데이터 제거)
+    for i = 1, 6 do
+        setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+        setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+        setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+    end
 
     -- 각 선택지 라인 파싱 ([STAT|Description|Difficulty] 형식)
     local choiceIndex = 1
@@ -1935,12 +1866,18 @@ function parseCombatChoice(triggerId, choiceBlock)
             -- 능력치별 이모지
             local emoji = "⚔️"
             local statUpper = stat:upper()
+            local statLower = stat:lower()
+
             if statUpper == "STR" then emoji = "💪"
             elseif statUpper == "DEX" then emoji = "⚡"
             elseif statUpper == "INT" then emoji = "🧠"
             elseif statUpper == "CHA" then emoji = "💬"
             elseif statUpper == "LUK" then emoji = "🍀"
-            else emoji = "🏃" end
+            elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
+                emoji = "🏃"
+            else
+                emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
+            end
 
             -- 난이도별 색상 (그라디언트)
             local gradient = "linear-gradient(135deg, #666 0%%, #888 100%%)"
@@ -1979,6 +1916,14 @@ function parseCombatChoices(triggerId, message)
     local choiceBlock = message:match("(<CombatChoice>.-</CombatChoice>)")
     if choiceBlock then
         parseCombatChoice(triggerId, choiceBlock)
+    else
+        -- 전투 선택지 태그가 없으면 버튼 초기화 (이전 전투 데이터 제거)
+        for i = 1, 6 do
+            setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+        end
+        setChatVar(triggerId, "combat_choices_html", "")
     end
 end
 
@@ -1986,8 +1931,8 @@ end
 -- 보조모델 호출
 -- ============================================
 
--- 보조모델 프롬프트 생성
-function buildAuxiliaryPrompt(triggerId, mainResponse)
+-- 보조모델용 4개 메시지 구조 생성 (system, user, user prefill, assistant prefill)
+function buildAuxiliaryMessages(triggerId, mainResponse)
     -- 플레이어 특성 정보 가져오기
     local traitsDisplay = getChatVar(triggerId, "player_traits_display") or ""
 
@@ -1999,63 +1944,170 @@ function buildAuxiliaryPrompt(triggerId, mainResponse)
         traitsSection = "(No traits yet)"
     end
 
-    -- PLAYER_TRAITS_SECTION 플레이스홀더 치환
-    local prompt = AUXILIARY_BASE_PROMPT:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
+    -- 활성 효과 정보 가져오기
+    local effects = getActiveEffects(triggerId)
+    local effectsSection = ""
 
-    -- 현재 컨텍스트 추가
+    if #effects > 0 then
+        effectsSection = "**Current Active Effects:**\n"
+        for _, effect in ipairs(effects) do
+            -- nil 방어: 모든 필드가 유효한 값인지 확인
+            local effectName = effect.name or "Unknown"
+            local effectType = effect.type or "display"
+            local effectValue = tonumber(effect.value) or 0
+            local effectDesc = effect.desc or ""
+
+            if effectType == "display" then
+                effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
+            else
+                local statName = effectType:gsub("_bonus", ""):upper()
+                effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effectName, statName, effectValue)
+            end
+        end
+    else
+        effectsSection = "(No active effects)"
+    end
+
+    -- SYSTEM 메시지: AUXILIARY_BASE_PROMPT (규칙)
+    local systemPrompt = AUXILIARY_BASE_PROMPT:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
+    systemPrompt = systemPrompt:gsub("{{PLAYER_EFFECTS_SECTION}}", effectsSection)
+
+    -- USER 메시지: 게임 상태 + 메인 AI 응답
+    local userPrompt = "## Current Game State\n"
+    userPrompt = userPrompt .. "===========================================\n"
+
+    -- 현재 게임 상태 정보 수집
     local location = getChatVar(triggerId, "current_location") or "Unknown"
     local time = getChatVar(triggerId, "current_time") or "Unknown"
     local season = getChatVar(triggerId, "current_season") or "봄"
     local week = getChatVar(triggerId, "week_of_season") or "1"
     local dayName = getChatVar(triggerId, "day_of_week_name") or "월요일"
+    local weather = getChatVar(triggerId, "current_weather") or ""
 
-    prompt = prompt .. "\n\n## Current Context:\n"
-    prompt = prompt .. string.format("Season: %s Week %s | Day: %s %s | Location: %s\n", season, week, dayName, time, location)
+    local playerLevel = getState(triggerId, "player_level") or "1"
+    local playerExp = getState(triggerId, "player_exp") or "0"
+    local playerExpMax = getState(triggerId, "player_exp_max") or "100"
+    local playerGold = getState(triggerId, "player_gold") or "0"
+    local activeEffects = getChatVar(triggerId, "active_effects") or ""
 
-    -- 메인 AI 응답 추가
-    prompt = prompt .. "\n## Main AI Response to Analyze:\n"
-    prompt = prompt .. mainResponse
+    -- 환경 정보
+    userPrompt = userPrompt .. "Environment:\n"
+    userPrompt = userPrompt .. string.format("- Season: %s Week %s | Day: %s %s\n", season, week, dayName, time)
+    userPrompt = userPrompt .. string.format("- Location: %s\n", location)
+    if weather ~= "" then
+        userPrompt = userPrompt .. string.format("- Weather: %s\n", weather)
+    end
 
-    -- 캐시 무효화용 고유 ID (v166.3.1 cache fallback 이슈 우회)
+    -- 전투 정보 (전투 중일 때만 표시)
+    local combatActive = getChatVar(triggerId, "combat_active") or "false"
+    if combatActive == "true" then
+        local enemyName = getChatVar(triggerId, "combat_enemy_name") or "Unknown"
+        local enemyHp = getChatVar(triggerId, "combat_enemy_hp") or "0"
+        local enemyPower = getChatVar(triggerId, "combat_enemy_power") or "0"
+        local playerCp = getChatVar(triggerId, "player_combat_power") or "0"
+        local playerCpMax = getChatVar(triggerId, "player_combat_power_max") or "0"
+
+        userPrompt = userPrompt .. "\n⚔️ Combat Status: ACTIVE\n"
+        userPrompt = userPrompt .. string.format("- Enemy: %s (HP: %s / %s)\n", enemyName, enemyHp, enemyPower)
+        userPrompt = userPrompt .. string.format("- Player CP: %s / %s\n", playerCp, playerCpMax)
+    end
+
+    -- 플레이어 정보
+    userPrompt = userPrompt .. "\nPlayer Status:\n"
+    userPrompt = userPrompt .. string.format("- Level: %s | EXP: %s / %s\n", playerLevel, playerExp, playerExpMax)
+    userPrompt = userPrompt .. string.format("- Gold: %s\n", playerGold)
+    if activeEffects ~= "" then
+        userPrompt = userPrompt .. string.format("- Active Effects: %s\n", activeEffects)
+    end
+
+    userPrompt = userPrompt .. "===========================================\n"
+
+    -- 메인 AI 응답 추가 (CombatChoice 블록은 제거 - 보조 모델 혼란 방지)
+    local cleanedResponse = mainResponse:gsub("<CombatChoice>.-</CombatChoice>", "")
+    userPrompt = userPrompt .. "\n## Main AI Response to Analyze:\n"
+    userPrompt = userPrompt .. cleanedResponse
+
+    -- 캐시 무효화용 고유 ID
     local uniqueId = tostring(os.time()) .. "_" .. tostring(math.random(1000000))
-    prompt = prompt .. "\n\n<!-- Request ID: " .. uniqueId .. " -->\n"
+    userPrompt = userPrompt .. "\n\n<!-- Request ID: " .. uniqueId .. " -->"
 
-    prompt = prompt .. "\n## Your Output (tags only):\n"
+    -- USER PREFILL: OOC 지시
+    local userPrefill = "(OOC: Analyze the Main AI Response and output only the relevant tags based on the narrative context. Always end with <Panel>■★)"
 
-    return prompt
+    -- ASSISTANT PREFILL: 응답 시작
+    local assistantPrefill = "[Affinity:"
+
+    -- 4개 메시지 구조 반환
+    return {
+        { role = "system", content = systemPrompt },
+        { role = "user", content = userPrompt },
+        { role = "user", content = userPrefill },
+        { role = "assistant", content = assistantPrefill }
+    }
 end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    local promptText = buildAuxiliaryPrompt(triggerId, mainResponse)
+    -- 모델 선택: 기본값은 off (로어북에서 처리)
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
 
-    -- axLLM()은 메시지 배열 형식을 요구함
-    local messages = {
-        {
-            content = promptText,
-            role = "user"
-        }
-    }
+    -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
+    if mode == "0" then
+        return "<Panel>■★"
+    end
 
-    -- axLLM() 함수로 보조모델 호출
-    local response = axLLM(triggerId, messages)
+    -- 4개 메시지 구조로 프롬프트 생성
+    local success, messages = pcall(buildAuxiliaryMessages, triggerId, mainResponse)
+
+    if not success then
+        log("⚠️ buildAuxiliaryMessages 에러: " .. tostring(messages))
+        return "<Panel>■★"
+    end
+
+    log("📤 보조모델 호출 시작 (4-message structure)")
+
+    local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
 
     -- 에러 체크
     if not response then
-        return ""
+        log("⚠️ 보조모델 호출 실패: response is nil")
+        return "<Panel>■★"
     end
 
     if response.success == false then
-        return ""
+        log("⚠️ 보조모델 호출 실패: " .. tostring(response.result))
+        return "<Panel>■★"
     end
 
-    -- 응답 추출
+    -- 응답 추출 (assistant prefill "[Affinity:"로 시작했으므로 앞에 붙여줌)
     local result = response.result or ""
 
-    if result ~= "" then
+    if type(result) == "string" and result ~= "" then
+        -- assistant prefill을 앞에 붙임
+        result = "[Affinity:" .. result
+
+        -- <Panel> 태그가 있는지 확인 (guard 체크를 위해 필수)
+        if not result:find("<Panel>") then
+            log("⚠️ 보조모델 응답에 <Panel> 태그 없음, 추가함")
+            result = result .. "\n<Panel>■★"
+        end
+
+        -- 중복 태그 블록 제거: 첫 번째 <Panel>■★ 이후 모든 내용 삭제
+        local panelPos = result:find("<Panel>■★", 1, true)
+        if panelPos then
+            local afterPanel = result:sub(panelPos + 11)  -- "<Panel>■★" 이후 내용
+            if afterPanel:find("%[Affinity:", 1, false) or afterPanel:find("<Panel>", 1, true) then
+                -- 이후에 태그나 Panel이 더 있으면 중복으로 간주, 첫 번째까지만 자름
+                result = result:sub(1, panelPos + 10)  -- "<Panel>■★" 포함
+                log("⚠️ 중복 태그 블록 감지 및 제거")
+            end
+        end
+
+        log("✅ 보조모델 응답 수신 완료")
         return result
     else
-        return ""
+        log("⚠️ 보조모델 응답이 비어있거나 잘못된 타입: " .. tostring(result))
+        return "<Panel>■★"
     end
 end
 
@@ -3100,9 +3152,8 @@ function parseStatusWindow(triggerId, message)
         setChatVar(triggerId, "current_weather", weather)
     end
 
-    -- Combat 태그 파싱
+    -- Combat 태그 파싱 (Combat 시작/종료만 - CombatChoice는 메인모델에서 처리)
     parseCombats(triggerId, message)
-    parseCombatChoices(triggerId, message)
 
     if time or location then
         checkScheduleMatch(triggerId)
@@ -3222,6 +3273,13 @@ function onStart(triggerId)
     end
     if not getChatVar(triggerId, "active_event") then
         setChatVar(triggerId, "active_event", "none")
+    end
+
+    -- 보조 AI 모드 초기화 (기본값: off - 로어북 사용)
+    if getState(triggerId, "auxiliary_mode") == nil then
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "Aux")
     end
 
     -- 주간 스케줄 변수 초기화
@@ -3381,55 +3439,53 @@ function onStart(triggerId)
     log("✅ 초기화 완료 (로어북 기준 + RPG 시스템)")
 end
 
-onOutput = async(function(triggerId)
+-- onOutput 중복 실행 방지 플래그
+local isProcessing = false
+
+-- onOutput 메인 처리 로직
+function processOutput(triggerId)
     local message = getCharacterLastMessage(triggerId)
     if not message then
         return
     end
 
-    -- 이미 태그가 추가된 메시지는 스킵 (setChat() 재트리거 방지)
-    if message:find("<Panel>") then
+    -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
+    -- <Panel>■★ 마커가 있으면 이미 보조 출력이 추가된 메시지
+    if message:find("<Panel>■★", 1, true) then
         return
     end
 
     log("📨 새 턴 처리")
 
+    -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
+    parseCombatChoices(triggerId, message)
+
+    -- 리롤 지원: 이전 스냅샷으로 복원 후 새 스냅샷 생성
     for _, char in ipairs(characters) do
-        takeSnapshot(triggerId, char)
+        restoreSnapshot(triggerId, char)  -- 리롤 시 이전 상태로 복원
         clearChanges(triggerId, char)
+        takeSnapshot(triggerId, char)     -- 현재 턴 시작 전 상태 저장
     end
 
     -- RPG 스냅샷 및 변경량 초기화 (RPG 활성화 시에만)
     local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
     if rpgEnabled then
-        takeRpgSnapshot(triggerId)
+        restoreRpgSnapshot(triggerId)  -- 리롤 시 이전 상태로 복원
         clearRpgChanges(triggerId)
+        takeRpgSnapshot(triggerId)     -- 현재 턴 시작 전 상태 저장
     end
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
 
-    -- 디버깅: 보조 AI 출력 확인
-    log("📋 보조 AI 출력:")
-    log(auxiliaryMessage)
+    -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
+    local combinedSource = message .. "\n" .. auxiliaryMessage
 
-    -- 보조 AI 출력을 변수에 저장 (디버깅용)
-    setChatVar(triggerId, "debug_auxiliary_output", auxiliaryMessage)
-
-    -- Combat 태그 포함 여부 확인
-    if auxiliaryMessage:find("%[Combat:") then
-        log("✅ Combat 태그 발견!")
-        setChatVar(triggerId, "debug_combat_tag_found", "true")
-    else
-        log("⚠️ Combat 태그 없음")
-        setChatVar(triggerId, "debug_combat_tag_found", "false")
-    end
-
-    -- 보조모델이 생성한 태그 파싱
-    parseStatusWindow(triggerId, auxiliaryMessage)
+    -- 태그 파싱
+    parseStatusWindow(triggerId, combinedSource)
 
     -- SIN RESET 처리
-    for charStorage, sinType in auxiliaryMessage:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
+    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
         local countKey = charStorage .. "_sin_" .. sinType .. "_count"
         local gaugeKey = charStorage .. "_sin_" .. sinType
 
@@ -3450,7 +3506,7 @@ onOutput = async(function(triggerId)
     end
 
     -- 호감도 파싱
-    for charName, feeling in auxiliaryMessage:gmatch("%[Affinity:(%w+):(%w+)%]") do
+    for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.display == charName and affinityChanges[feeling] then
                 local key = char.storage .. "_affinity"
@@ -3477,7 +3533,7 @@ onOutput = async(function(triggerId)
     end
 
     -- 죄악도 파싱
-    for charName, level in auxiliaryMessage:gmatch("%[Sin:(%w+):(%w+)%]") do
+    for charName, level in combinedSource:gmatch("%[Sin:(%w+):(%w+)%]") do
         for _, char in ipairs(characters) do
             if char.is_main and char.display == charName then
                 if sinPosChanges[level] then
@@ -3519,16 +3575,16 @@ onOutput = async(function(triggerId)
         end
     end
 
-    -- RPG 시스템 파싱 (보조모델 응답에서)
+    -- RPG 시스템 파싱 (태그 소스에서)
     if rpgEnabled then
-        parseStatChanges(triggerId, auxiliaryMessage)
-        parseGoldChanges(triggerId, auxiliaryMessage)
-        parseExpChanges(triggerId, auxiliaryMessage)
-        parseHeal(triggerId, auxiliaryMessage)
-        parseItems(triggerId, auxiliaryMessage)
-        parseTraits(triggerId, auxiliaryMessage)
-        parseEffects(triggerId, auxiliaryMessage)
-        parseExams(triggerId, auxiliaryMessage)
+        parseStatChanges(triggerId, combinedSource)
+        parseGoldChanges(triggerId, combinedSource)
+        parseExpChanges(triggerId, combinedSource)
+        parseHeal(triggerId, combinedSource)
+        parseItems(triggerId, combinedSource)
+        parseTraits(triggerId, combinedSource)
+        parseEffects(triggerId, combinedSource)
+        parseExams(triggerId, combinedSource)
 
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
@@ -3570,9 +3626,9 @@ onOutput = async(function(triggerId)
     if usingItem ~= "" then
         log("🎒 아이템 사용 완료 처리: " .. usingItem)
 
-        -- AI가 아이템을 반환했는지 확인
+        -- AI가 아이템을 반환했는지 확인 (태그 소스에서)
         local returnPattern = "%[Item:Add:" .. usingItem .. ":1[:%]]"
-        local wasReturned = message:find(returnPattern) ~= nil
+        local wasReturned = combinedSource:find(returnPattern) ~= nil
 
         if wasReturned then
             -- 비소모품: 아이템 복원
@@ -3626,9 +3682,34 @@ onOutput = async(function(triggerId)
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     local finalMessage = message .. "\n\n" .. auxiliaryMessage
-    setChat(triggerId, -1, finalMessage)
 
-    log("✅ 턴 처리 완료")
+    -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
+    local chatLength = getChatLength(triggerId)
+    local lastIndex = chatLength - 1
+
+    setChat(triggerId, lastIndex, finalMessage)
+end
+
+-- onOutput 이벤트 핸들러
+onOutput = async(function(triggerId)
+    -- 이미 처리 중이면 스킵 (전송 취소 후 재전송 등의 경우)
+    if isProcessing then
+        log("⚠️ 이미 처리 중 - 스킵")
+        return
+    end
+
+    isProcessing = true
+
+    -- pcall로 에러 발생 시에도 isProcessing 플래그 해제 보장
+    local success, result = pcall(processOutput, triggerId)
+
+    isProcessing = false
+
+    if not success then
+        log("❌ onOutput 에러 발생: " .. tostring(result))
+    else
+        log("✅ 턴 처리 완료")
+    end
 end)
 
 -- ============================================
@@ -3943,23 +4024,32 @@ for i = 1, 15 do
 end
 
 -- 전투 선택지 버튼 등록 (combat_choice_1 ~ combat_choice_6)
+-- 선택지 데이터만 있으면 바로 처리 (적 추적 시스템과 독립적)
 for i = 1, 6 do
     _G["combat_choice_" .. i] = function(triggerId)
+        log(string.format("🎮 전투 선택지 %d번 버튼 클릭", i))
+
         -- 선택한 내용 가져오기
         local stat = getChatVar(triggerId, "combat_choice_" .. i .. "_stat") or ""
         local desc = getChatVar(triggerId, "combat_choice_" .. i .. "_desc") or ""
         local diff = getChatVar(triggerId, "combat_choice_" .. i .. "_diff") or ""
 
-        if stat ~= "" then
-            -- 사용자 메시지로 추가
-            local message = string.format("[%s|%s|%s]", stat, desc, diff)
-            addChat(triggerId, "user", message)
-
-            log(string.format("💬 사용자 메시지 추가: %s", message))
+        if stat == "" then
+            log(string.format("⚠️ 선택지 %d번: 데이터 없음 (파싱 실패)", i))
+            return false
         end
 
-        -- 주사위 굴림
-        rollCombat(triggerId, i)
+        log(string.format("📋 선택지 데이터: stat=%s, desc=%s, diff=%s", stat, desc, diff))
+
+        -- 사용자 메시지로 추가
+        local message = string.format("[%s|%s|%s]", stat, desc, diff)
+        addChat(triggerId, "user", message)
+        log(string.format("💬 사용자 메시지 추가: %s", message))
+
+        -- 주사위 굴림 및 결과 반환
+        local success = rollChoiceDice(triggerId, i, stat, desc, diff)
+        log(string.format("🎲 주사위 결과: %s", success and "성공" or "실패"))
+        return success
     end
 end
 
@@ -4332,12 +4422,18 @@ listenEdit("editDisplay", function(triggerId, data)
                 -- 능력치별 이모지
                 local emoji = "⚔️"
                 local statUpper = stat:upper()
+                local statLower = stat:lower()
+
                 if statUpper == "STR" then emoji = "💪"
                 elseif statUpper == "DEX" then emoji = "⚡"
                 elseif statUpper == "INT" then emoji = "🧠"
                 elseif statUpper == "CHA" then emoji = "💬"
                 elseif statUpper == "LUK" then emoji = "🍀"
-                else emoji = "🏃" end
+                elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
+                    emoji = "🏃"
+                else
+                    emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
+                end
 
                 -- 난이도별 색상 (그라디언트)
                 local gradient = "linear-gradient(135deg, #666 0%, #888 100%)"
@@ -4479,13 +4575,268 @@ for i = 1, 5 do
     end
 end
 
+-- 보조 AI 모델 선택 함수
+_G["set_aux_mode_auxiliary"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+    alertNormal(triggerId, "보조 AI가 [보조 모델]을 사용하도록 설정되었습니다.")
+end
+
+_G["set_aux_mode_main"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
+    alertNormal(triggerId, "보조 AI가 [메인 모델]을 사용하도록 설정되었습니다.")
+end
+
+_G["set_aux_mode_off"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+    alertNormal(triggerId, "보조 AI가 [Off]로 설정되었습니다. 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.")
+end
+
+_G["reset_all_stats_to_50"] = function(triggerId)
+    local stats = {"str", "dex", "int", "cha", "luk", "vit"}
+
+    for _, stat in ipairs(stats) do
+        local key = "player_" .. stat
+        setChatVar(triggerId, key, "50")
+        setState(triggerId, key, 50)
+    end
+
+    -- 레벨도 1로 초기화
+    setChatVar(triggerId, "player_level", "1")
+    setState(triggerId, "player_level", 1)
+    setChatVar(triggerId, "player_exp", "0")
+    setState(triggerId, "player_exp", 0)
+
+    -- 전투력 재계산
+    local maxCombatPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
+    setChatVar(triggerId, "player_combat_power", tostring(maxCombatPower))
+    setState(triggerId, "player_combat_power_max", maxCombatPower)
+    setState(triggerId, "player_combat_power", maxCombatPower)
+
+    alertNormal(triggerId, "모든 스탯이 50으로 초기화되었습니다. (레벨 1, EXP 0)")
+    log("🔄 스탯 초기화: 모든 스탯 50, 레벨 1")
+    return true
+end
+
+-- 보조 AI 리롤 함수
+_G["reroll_auxiliary"] = function(triggerId)
+    log("🎲 보조 AI 리롤 시작")
+
+    -- 현재 메시지 가져오기
+    -- 주의: onButtonClick에서 "재생성 중..." 임시 메시지를 추가했으므로
+    -- 실제 AI 응답은 마지막에서 두 번째(-2) 위치에 있음
+    local full_chat = getFullChat(triggerId)
+    if not full_chat or #full_chat < 2 then
+        alertError(triggerId, "채팅 기록이 부족합니다.")
+        return false
+    end
+
+    -- 마지막은 임시 메시지, 그 앞이 실제 AI 응답
+    local chatIndex = #full_chat - 1
+    local lastMessage = full_chat[chatIndex]
+
+    -- AI 메시지인지 확인
+    if lastMessage.role ~= "char" then
+        alertError(triggerId, "대상 메시지가 AI 응답이 아닙니다.")
+        return false
+    end
+
+    local message = lastMessage.data
+
+    -- editDisplay에서 추가한 리롤 버튼 제거 (실제 데이터에는 없어야 하지만 안전을 위해)
+    local cleanMessage = message:gsub('<div style="margin%-top:20px.-</div>', "")
+
+    -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
+    local panelPos = cleanMessage:find("<Panel>■★", 1, true)
+    local mainResponse
+
+    if panelPos then
+        -- 마커가 있으면 기존 메인 응답 추출
+        mainResponse = cleanMessage:sub(1, panelPos - 1)
+    else
+        -- 마커가 없으면 "<Panel" 또는 첫 번째 태그까지만 추출
+        local partialPanelPos = cleanMessage:find("<Panel", 1, true)
+        local firstTagPos = cleanMessage:find("%[Affinity:", 1, false) or
+                           cleanMessage:find("%[Sin:", 1, false) or
+                           cleanMessage:find("%[Location:", 1, false)
+
+        local cutPos = nil
+        if partialPanelPos and firstTagPos then
+            cutPos = math.min(partialPanelPos, firstTagPos)
+        elseif partialPanelPos then
+            cutPos = partialPanelPos
+        elseif firstTagPos then
+            cutPos = firstTagPos
+        end
+
+        if cutPos then
+            mainResponse = cleanMessage:sub(1, cutPos - 1)
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 시작 위치에서 자름 (pos: " .. cutPos .. ")")
+        else
+            mainResponse = cleanMessage
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 발견 안됨, 전체 사용")
+        end
+    end
+
+    -- 보조모델 태그 제거 (혹시 남아있을 수 있으니 한번 더 정리)
+    mainResponse = mainResponse:gsub("%[Affinity:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Sin:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Stat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Gold:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Item:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[EXP:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Heal:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Effect:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Trait:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Combat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Location:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Season:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Week:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
+
+    -- 끝 공백 제거
+    mainResponse = mainResponse:gsub("%s+$", "")
+
+    log("📝 메인 응답 길이: " .. #mainResponse)
+
+    -- 스냅샷으로 복원 (이전 태그 효과 롤백)
+    for _, char in ipairs(characters) do
+        restoreSnapshot(triggerId, char)
+    end
+
+    local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+    if rpgEnabled then
+        restoreRpgSnapshot(triggerId)
+    end
+
+    log("↩️ 스냅샷 복원 완료")
+
+    -- 보조모델 다시 호출
+    local auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
+    log("🔄 보조모델 재호출 완료")
+
+    -- 태그 파싱 (메인 + 보조)
+    local combinedSource = mainResponse .. "\n" .. auxiliaryMessage
+
+    -- 상태창 태그 파싱
+    parseStatusWindow(triggerId, combinedSource)
+
+    -- SIN RESET 처리
+    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
+        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+        local gaugeKey = charStorage .. "_sin_" .. sinType
+
+        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+
+        setChatVar(triggerId, countKey, tostring(currentCount + 1))
+        setChatVar(triggerId, gaugeKey, "0")
+
+        for _, char in ipairs(characters) do
+            if char.storage == charStorage then
+                updatePercent(triggerId, char)
+                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
+                    currentCount, currentCount + 1))
+                break
+            end
+        end
+    end
+
+    -- 호감도 파싱
+    for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+        for _, char in ipairs(characters) do
+            if char.display == charName and affinityChanges[feeling] then
+                local key = char.storage .. "_affinity"
+                local current = tonumber(getChatVar(triggerId, key)) or 0
+                local change = affinityChanges[feeling]
+                local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+
+                setChatVar(triggerId, key, tostring(new))
+
+                local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+
+                if char.is_main then
+                    setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                end
+
+                updatePercent(triggerId, char)
+                log(string.format("💕 %s 호감도: %d → %d (%s, %+d)",
+                    char.display, current, new, feeling, change))
+                break
+            end
+        end
+    end
+
+    -- Sin 변화 파싱
+    for charName, sinType, change in combinedSource:gmatch("%[Sin:(%w+):(pos|neg):([%+%-]?%d+)%]") do
+        for _, char in ipairs(characters) do
+            if char.display == charName and char.has_sin then
+                local key = char.storage .. "_sin_" .. sinType
+                local current = tonumber(getChatVar(triggerId, key)) or 0
+                local delta = tonumber(change) or 0
+                local new = clampValue(current + delta, SIN_MIN, SIN_MAX)
+
+                setChatVar(triggerId, key, tostring(new))
+
+                local changeKey = char.storage .. "_change_sin_" .. sinType
+                local prevChange = tonumber(getChatVar(triggerId, changeKey)) or 0
+                setChatVar(triggerId, changeKey, tostring(prevChange + delta))
+
+                updatePercent(triggerId, char)
+                log(string.format("😈 %s %s: %d → %d (%+d)",
+                    char.display, sinType == "pos" and "압력" or "해소",
+                    current, new, delta))
+                break
+            end
+        end
+    end
+
+    -- RPG 태그 파싱
+    if rpgEnabled then
+        parseStatChanges(triggerId, combinedSource)
+        parseGoldChanges(triggerId, combinedSource)
+        parseExpChanges(triggerId, combinedSource)
+        parseHeal(triggerId, combinedSource)
+        parseItems(triggerId, combinedSource)
+        parseTraits(triggerId, combinedSource)
+        parseEffects(triggerId, combinedSource)
+        parseExams(triggerId, combinedSource)
+    end
+
+    -- UI 업데이트
+    for _, char in ipairs(characters) do
+        updatePercent(triggerId, char)
+    end
+
+    if rpgEnabled then
+        updateRpgDisplayVars(triggerId)
+    end
+
+    -- 메시지 업데이트 (음수 인덱스 사용)
+    -- -2 = 임시 메시지(-1) 앞의 실제 AI 응답
+    local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
+    setChat(triggerId, -2, finalMessage)
+
+    alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
+    log("✅ 보조 AI 리롤 완료")
+    return true
+end
+
 -- 스케줄 시작 함수
 _G["start_weekly_schedule"] = function(triggerId)
     local curriculum = getChatVar(triggerId, "current_curriculum") or "선택 안 함"
     local lifestyle = getChatVar(triggerId, "current_lifestyle") or "선택 안 함"
 
     local message = string.format(
-        "<-OOC: {{user}}는 선택한 커리큘럼(%s)과 라이프스타일(%s)로 1주일을 시작한다. 이 선택에 따라 1주일간의 활동을 자연스럽게 묘사하세요.->",
+        "<-OOC: {{user}}는 선택한 커리큘럼(%s)과 라이프스타일(%s)로 주간 활동을 진행한다. 현재 요일부터 금요일까지의 주간 요약을 작성하세요.->",
         curriculum, lifestyle
     )
 
@@ -4524,3 +4875,76 @@ log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
 log("📅 활동 버튼: activity_combat, activity_magic 등 13개 등록 완료")
 log("📺 editDisplay 리스너: <CombatChoice>, <WeeklyReport> 태그를 HTML로 변환")
 log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel/WeeklyReport)")
+
+-- ============================================
+-- 보조 AI 리롤 버튼 표시 (editDisplay)
+-- ============================================
+
+listenEdit("editDisplay", function(triggerId, data, meta)
+    -- 보조모델이 꺼져있으면 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "off"
+    if auxiliaryMode == "off" then
+        return data
+    end
+
+    -- meta 정보가 없으면 버튼 표시 안함
+    if not meta or not meta.index then
+        return data
+    end
+
+    -- 마지막 메시지(-1)가 아니면 버튼 표시 안함
+    local chatLength = getChatLength(triggerId)
+    local position = meta.index - chatLength
+    if position ~= -1 then
+        return data
+    end
+
+    -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
+    -- 사용자 메시지나 순수 AI 응답(보조모델 없음)은 제외
+    local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
+                               data:find("%[Sin:", 1, false) or
+                               data:find("%[Location:", 1, false) or
+                               data:find("<Panel", 1, true)
+
+    if not hasAuxiliaryOutput then
+        return data
+    end
+
+    -- 이미 리롤 버튼이 있으면 중복 추가 방지
+    if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
+        return data
+    end
+
+    -- 리롤 버튼 (우측 하단 배치)
+    local rerollButton = [[
+
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
+<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
+</div>]]
+
+    return data .. rerollButton
+end)
+
+-- ============================================
+-- 보조 AI 리롤 버튼 클릭 핸들러
+-- ============================================
+
+onButtonClick = async(function(triggerId, code)
+    if code == "reroll_auxiliary" then
+        -- 재생성 중 표시
+        addChat(triggerId, 'char', '<div style="padding:20px;text-align:center;color:#3498db;font-weight:600;">🎲 보조 AI 재생성 중...</div>')
+
+        -- reroll_auxiliary 함수 호출
+        local success, result = pcall(_G["reroll_auxiliary"], triggerId)
+
+        -- 임시 메시지 제거
+        removeChat(triggerId, -1)
+
+        if not success then
+            alertError(triggerId, "리롤 실패: " .. tostring(result))
+            log("❌ 리롤 실패: " .. tostring(result))
+        end
+    end
+end)
+
+log("🎲 보조 AI 리롤 버튼: editDisplay + onButtonClick 등록 완료")
