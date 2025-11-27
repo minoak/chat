@@ -4640,39 +4640,49 @@ function generateStockPanelUI(triggerId)
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "LILY"
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
 
-    -- 공통 스타일
-    local containerStyle = "max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:15px;background:#1a1a2e;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.3);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e0e0e0;box-sizing:border-box"
-    local headerStyle = "display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #333"
-    local tabBtnStyle = "padding:8px 16px;background:%s;color:%s;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-right:5px"
-
-    local html = string.format("<div style='%s'>", containerStyle)
+    -- 컨테이너 시작
+    local html = [[
+<div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
 
     -- 헤더 (제목 + 보유금)
-    html = html .. string.format("<div style='%s'>", headerStyle)
-    html = html .. "<span style='font-size:18px;font-weight:700;color:#ffd700'>📈 릴리 벨리 증권</span>"
-    html = html .. string.format("<span style='font-size:14px;color:#4CAF50'>💰 %s G</span>", formatNumber(gold))
-    html = html .. "</div>"
+    html = html .. string.format([[
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:1px solid #30363d'>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>📈</span>
+      <span style='font-size:15px;font-weight:600;color:#fff'>릴리 벨리 증권</span>
+    </div>
+    <div style='display:flex;align-items:center;gap:4px'>
+      <span style='font-size:12px;color:#8b949e'>보유</span>
+      <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
+    </div>
+  </div>]], formatNumber(gold))
 
     -- 탭 버튼
-    html = html .. "<div style='margin-bottom:15px;display:flex;flex-wrap:wrap;gap:5px'>"
+    html = html .. [[
+  <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
+
     local tabs = {
-        {id = "board", label = "시세표", icon = "📊"},
-        {id = "chart", label = "차트", icon = "📈"},
-        {id = "order", label = "호가창", icon = "💹"},
-        {id = "asset", label = "내 자산", icon = "💼"}
+        {id = "board", label = "시세"},
+        {id = "chart", label = "차트"},
+        {id = "order", label = "거래"},
+        {id = "asset", label = "자산"}
     }
+
     for _, tab in ipairs(tabs) do
         local isActive = currentView == tab.id
-        local bg = isActive and "#ffd700" or "#333"
-        local fg = isActive and "#1a1a2e" or "#e0e0e0"
-        html = html .. string.format(
-            "<button type='button' risu-trigger='stock_view_%s' style='" .. tabBtnStyle .. "'>%s %s</button>",
-            tab.id, bg, fg, tab.icon, tab.label
-        )
+        if isActive then
+            html = html .. string.format([[
+    <button type='button' risu-trigger='stock_view_%s' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
+        else
+            html = html .. string.format([[
+    <button type='button' risu-trigger='stock_view_%s' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
+        end
     end
+
     html = html .. "</div>"
 
     -- 뷰 내용
+    html = html .. "<div style='background:#0d1117'>"
     if currentView == "board" then
         html = html .. generateStockBoardView(triggerId)
     elseif currentView == "chart" then
@@ -4683,7 +4693,7 @@ function generateStockPanelUI(triggerId)
         html = html .. generateStockAssetView(triggerId)
     end
 
-    html = html .. "</div>"
+    html = html .. "</div></div>"  -- 뷰 컨테이너 + 메인 컨테이너 닫기
     return html
 end
 
@@ -4699,40 +4709,45 @@ end
 
 -- 시세표 뷰
 function generateStockBoardView(triggerId)
-    local html = "<div style='overflow-x:auto'>"
-    html = html .. "<table style='width:100%%;border-collapse:collapse;font-size:13px'>"
-    html = html .. "<tr style='background:#252540;color:#aaa;text-align:left'>"
-    html = html .. "<th style='padding:10px 8px'>종목</th>"
-    html = html .. "<th style='padding:10px 8px;text-align:right'>현재가</th>"
-    html = html .. "<th style='padding:10px 8px;text-align:right'>등락</th>"
-    html = html .. "<th style='padding:10px 8px;text-align:right'>보유</th>"
-    html = html .. "</tr>"
+    -- 컬럼 헤더
+    local html = [[
+<div style='background:#161b22;padding:10px 12px;display:flex;font-size:11px;color:#8b949e;border-bottom:1px solid #30363d'>
+  <div style='flex:2'>종목</div>
+  <div style='flex:1.5;text-align:right'>현재가</div>
+  <div style='flex:1;text-align:right'>등락률</div>
+  <div style='flex:1;text-align:right'>보유</div>
+</div>
+<div style='max-height:400px;overflow-y:auto'>]]
 
     for _, ticker in ipairs(STOCK_TICKERS) do
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        local name = STOCK_NAMES[ticker] or ticker
 
-        -- 등락 색상
-        local changeColor = change > 0 and "#ff5252" or (change < 0 and "#4CAF50" or "#888")
-        local changePrefix = change > 0 and "▲" or (change < 0 and "▼" or "")
-        local changeText = string.format("%s%+d%%", changePrefix, change)
+        -- 등락 색상 (상승 빨강, 하락 청록)
+        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+        local rowBg = owned > 0 and "rgba(255,215,0,0.05)" or "transparent"
 
-        -- 보유량 색상
-        local ownedColor = owned > 0 and "#ffd700" or "#666"
-
-        html = html .. string.format(
-            "<tr style='border-bottom:1px solid #333;cursor:pointer' onclick=\"\">"..
-            "<td style='padding:10px 8px'><button type='button' risu-trigger='stock_select_%s' style='background:none;border:none;color:#e0e0e0;font-size:13px;cursor:pointer;text-align:left'>%s</button></td>"..
-            "<td style='padding:10px 8px;text-align:right;color:#e0e0e0'>%dG</td>"..
-            "<td style='padding:10px 8px;text-align:right;color:%s'>%s</td>"..
-            "<td style='padding:10px 8px;text-align:right;color:%s'>%d주</td>"..
-            "</tr>",
-            ticker, ticker, price, changeColor, changeText, ownedColor, owned
-        )
+        html = html .. string.format([[
+<button type='button' risu-trigger='stock_select_%s' style='display:flex;align-items:center;width:100%%;padding:12px;background:%s;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
+  <div style='flex:2'>
+    <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
+    <div style='font-size:11px;color:#8b949e'>%s</div>
+  </div>
+  <div style='flex:1.5;text-align:right'>
+    <span style='font-size:14px;font-weight:600;color:%s'>%s</span>
+  </div>
+  <div style='flex:1;text-align:right'>
+    <span style='font-size:13px;font-weight:500;color:%s'>%+.1f%%</span>
+  </div>
+  <div style='flex:1;text-align:right'>
+    <span style='font-size:13px;color:%s'>%d</span>
+  </div>
+</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, change, owned > 0 and "#ffd700" or "#8b949e", owned)
     end
 
-    html = html .. "</table></div>"
+    html = html .. "</div>"
     return html
 end
 
@@ -4741,64 +4756,112 @@ function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
     local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-    local changeColor = change > 0 and "#ff5252" or (change < 0 and "#4CAF50" or "#888")
-    local changeText = string.format("%+d%%", change)
+    local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+    local changeSign = change > 0 and "+" or ""
+    local basePrice = STOCK_BASE_PRICES[ticker] or 100
+    local totalChange = price - basePrice
+    local totalPercent = math.floor((price - basePrice) / basePrice * 100)
+    local totalColor = totalChange >= 0 and "#ef5350" or "#26a69a"
 
-    local html = string.format(
-        "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"..
-        "<div style='font-size:16px;font-weight:600;color:#ffd700'>%s</div>"..
-        "<div style='font-size:12px;color:#888;margin-bottom:10px'>%s</div>"..
-        "<div style='font-size:24px;font-weight:700;color:#e0e0e0'>%dG <span style='font-size:14px;color:%s'>%s</span></div>"..
-        "</div>",
-        ticker, name, price, changeColor, changeText
-    )
+    -- 헤더: 종목 정보
+    local html = string.format([[
+<div style='background:#0d1117;padding:16px;border-radius:8px 8px 0 0'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:12px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:28px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:14px;color:%s;margin-top:2px'>%s%d%% 오늘</div>
+    </div>
+  </div>
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, change)
 
-    -- 히스토리 차트 (ASCII 스타일)
+    -- 히스토리 차트
     local historyStr = getChatVar(triggerId, "stock_" .. ticker .. "_history") or ""
     local prices = {}
     for p in historyStr:gmatch("([^,]+)") do
-        table.insert(prices, tonumber(p) or STOCK_BASE_PRICES[ticker])
+        table.insert(prices, tonumber(p) or basePrice)
     end
+    -- 현재가도 추가
+    table.insert(prices, price)
+    while #prices > 6 do table.remove(prices, 1) end
 
-    if #prices > 0 then
+    html = html .. "<div style='background:#0d1117;padding:16px;border-top:1px solid #21262d'>"
+
+    if #prices > 1 then
         local minPrice = math.min(table.unpack(prices))
         local maxPrice = math.max(table.unpack(prices))
         local range = maxPrice - minPrice
         if range == 0 then range = 1 end
+        local chartHeight = 120
 
-        html = html .. "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"
-        html = html .. "<div style='font-size:12px;color:#888;margin-bottom:10px'>6일 차트</div>"
-        html = html .. "<div style='display:flex;align-items:flex-end;height:80px;gap:8px'>"
+        -- 캔들스틱 스타일 차트
+        html = html .. string.format([[
+<div style='position:relative;height:%dpx;margin-bottom:8px'>
+  <div style='position:absolute;left:0;top:0;font-size:10px;color:#8b949e'>%d</div>
+  <div style='position:absolute;left:0;bottom:0;font-size:10px;color:#8b949e'>%d</div>
+  <div style='margin-left:35px;height:100%%;display:flex;align-items:flex-end;gap:4px;border-left:1px solid #30363d;border-bottom:1px solid #30363d;padding:0 8px'>
+]], chartHeight, maxPrice, minPrice)
 
         for i, p in ipairs(prices) do
-            local height = math.floor(((p - minPrice) / range) * 60) + 20
-            local barColor = i == #prices and "#ffd700" or "#4a4a6a"
-            html = html .. string.format(
-                "<div style='flex:1;display:flex;flex-direction:column;align-items:center'>"..
-                "<div style='font-size:10px;color:#888;margin-bottom:4px'>%d</div>"..
-                "<div style='width:100%%;height:%dpx;background:%s;border-radius:4px 4px 0 0'></div>"..
-                "<div style='font-size:9px;color:#666;margin-top:4px'>%d일</div>"..
-                "</div>",
-                p, height, barColor, i
-            )
+            local height = math.floor(((p - minPrice) / range) * (chartHeight - 20)) + 10
+            local prevPrice = prices[i-1] or p
+            local barColor = p >= prevPrice and "#ef5350" or "#26a69a"
+            local isLast = i == #prices
+
+            html = html .. string.format([[
+    <div style='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end'>
+      <div style='width:100%%;max-width:24px;height:%dpx;background:%s;border-radius:2px;%s'></div>
+    </div>]], height, barColor, isLast and "box-shadow:0 0 8px " .. barColor or "")
         end
 
-        html = html .. "</div></div>"
+        html = html .. [[
+  </div>
+</div>
+<div style='margin-left:35px;display:flex;gap:4px;padding:0 8px'>]]
+
+        local dayLabels = {"5일전", "4일전", "3일전", "2일전", "어제", "오늘"}
+        local startIdx = 7 - #prices
+        for i = 1, #prices do
+            html = html .. string.format([[
+  <div style='flex:1;text-align:center;font-size:10px;color:#8b949e'>%s</div>]], dayLabels[startIdx + i - 1] or "")
+        end
+        html = html .. "</div>"
+    else
+        html = html .. "<div style='text-align:center;color:#8b949e;padding:40px'>차트 데이터 없음</div>"
     end
 
-    -- 종목 선택 버튼
-    html = html .. "<div style='display:flex;flex-wrap:wrap;gap:5px'>"
-    for _, t in ipairs(STOCK_TICKERS) do
-        local isSelected = t == ticker
-        local bg = isSelected and "#ffd700" or "#333"
-        local fg = isSelected and "#1a1a2e" or "#888"
-        html = html .. string.format(
-            "<button type='button' risu-trigger='stock_select_%s' style='padding:5px 10px;background:%s;color:%s;border:none;border-radius:4px;font-size:11px;cursor:pointer'>%s</button>",
-            t, bg, fg, t
-        )
-    end
     html = html .. "</div>"
 
+    -- 종목 선택 (스크롤 가능)
+    html = html .. [[
+<div style='background:#161b22;padding:12px;border-radius:0 0 8px 8px;border-top:1px solid #30363d'>
+  <div style='display:flex;gap:6px;overflow-x:auto;padding-bottom:4px'>]]
+
+    for _, t in ipairs(STOCK_TICKERS) do
+        local isSelected = t == ticker
+        local tPrice = getState(triggerId, "stock_" .. t .. "_price") or STOCK_BASE_PRICES[t]
+        local tChange = getState(triggerId, "stock_" .. t .. "_change") or 0
+        local tColor = tChange > 0 and "#ef5350" or (tChange < 0 and "#26a69a" or "#8b949e")
+
+        if isSelected then
+            html = html .. string.format([[
+    <button type='button' risu-trigger='stock_select_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
+      <div style='font-size:12px;font-weight:600;color:#fff'>%s</div>
+      <div style='font-size:11px;color:%s'>%+.1f%%</div>
+    </button>]], t, t, tColor, tChange)
+        else
+            html = html .. string.format([[
+    <button type='button' risu-trigger='stock_select_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
+      <div style='font-size:12px;font-weight:500;color:#8b949e'>%s</div>
+      <div style='font-size:11px;color:%s'>%+.1f%%</div>
+    </button>]], t, t, tColor, tChange)
+        end
+    end
+
+    html = html .. "</div></div>"
     return html
 end
 
@@ -4909,69 +4972,113 @@ function generateStockAssetView(triggerId)
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
     local totalValue = gold
     local totalProfit = 0
+    local stockValue = 0
 
-    local html = string.format(
-        "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"..
-        "<div style='font-size:12px;color:#888'>현금</div>"..
-        "<div style='font-size:24px;font-weight:700;color:#4CAF50'>%s G</div>"..
-        "</div>",
-        formatNumber(gold)
-    )
-
-    -- 보유 종목
-    html = html .. "<div style='background:#252540;padding:15px;border-radius:8px;margin-bottom:15px'>"
-    html = html .. "<div style='font-size:12px;color:#888;margin-bottom:10px'>보유 종목</div>"
-
-    local hasStocks = false
+    -- 먼저 총 계산
+    local holdings = {}
     for _, ticker in ipairs(STOCK_TICKERS) do
         local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
         if owned > 0 then
-            hasStocks = true
             local avgPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avgprice")) or 0
             local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
             local value = currentPrice * owned
             local profit = (currentPrice - avgPrice) * owned
-            local profitPercent = avgPrice > 0 and math.floor((currentPrice - avgPrice) / avgPrice * 100) or 0
-
-            totalValue = totalValue + value
+            stockValue = stockValue + value
             totalProfit = totalProfit + profit
-
-            local profitColor = profit >= 0 and "#ff5252" or "#4CAF50"
-            local profitSign = profit >= 0 and "+" or ""
-
-            html = html .. string.format(
-                "<div style='display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #333'>"..
-                "<div><div style='font-weight:600;color:#e0e0e0'>%s</div>"..
-                "<div style='font-size:11px;color:#666'>%d주 · 평단 %dG</div></div>"..
-                "<div style='text-align:right'><div style='color:#e0e0e0'>%sG</div>"..
-                "<div style='font-size:11px;color:%s'>%s%dG (%s%d%%)</div></div>"..
-                "</div>",
-                ticker, owned, avgPrice, formatNumber(value),
-                profitColor, profitSign, profit, profitSign, profitPercent
-            )
+            table.insert(holdings, {
+                ticker = ticker,
+                name = STOCK_NAMES[ticker] or ticker,
+                owned = owned,
+                avgPrice = avgPrice,
+                currentPrice = currentPrice,
+                value = value,
+                profit = profit,
+                profitPercent = avgPrice > 0 and ((currentPrice - avgPrice) / avgPrice * 100) or 0
+            })
         end
     end
+    totalValue = gold + stockValue
 
-    if not hasStocks then
-        html = html .. "<div style='text-align:center;color:#666;padding:20px'>보유 종목 없음</div>"
+    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#26a69a"
+    local totalProfitSign = totalProfit >= 0 and "+" or ""
+
+    -- 총 자산 헤더 (카드 스타일)
+    local html = string.format([[
+<div style='background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);padding:20px;border-radius:12px;margin-bottom:12px'>
+  <div style='font-size:12px;color:#8b949e;margin-bottom:4px'>총 평가자산</div>
+  <div style='font-size:32px;font-weight:700;color:#fff'>%s<span style='font-size:16px;color:#8b949e;margin-left:4px'>G</span></div>
+  <div style='display:flex;gap:16px;margin-top:12px'>
+    <div>
+      <div style='font-size:11px;color:#8b949e'>총 손익</div>
+      <div style='font-size:16px;font-weight:600;color:%s'>%s%s G</div>
+    </div>
+    <div>
+      <div style='font-size:11px;color:#8b949e'>수익률</div>
+      <div style='font-size:16px;font-weight:600;color:%s'>%s%.1f%%</div>
+    </div>
+  </div>
+</div>]], formatNumber(totalValue), totalProfitColor, totalProfitSign, formatNumber(totalProfit),
+        totalProfitColor, totalProfitSign, stockValue > 0 and (totalProfit / (stockValue - totalProfit) * 100) or 0)
+
+    -- 자산 구성
+    html = html .. [[
+<div style='background:#0d1117;border-radius:8px;overflow:hidden;margin-bottom:12px'>
+  <div style='padding:12px 16px;border-bottom:1px solid #21262d'>
+    <span style='font-size:13px;font-weight:600;color:#fff'>자산 구성</span>
+  </div>
+  <div style='padding:16px'>
+    <div style='display:flex;justify-content:space-between;margin-bottom:12px'>
+      <div style='display:flex;align-items:center;gap:8px'>
+        <div style='width:12px;height:12px;background:#ffd700;border-radius:2px'></div>
+        <span style='font-size:13px;color:#c9d1d9'>현금</span>
+      </div>
+      <span style='font-size:14px;font-weight:600;color:#fff'>]] .. formatNumber(gold) .. [[ G</span>
+    </div>
+    <div style='display:flex;justify-content:space-between'>
+      <div style='display:flex;align-items:center;gap:8px'>
+        <div style='width:12px;height:12px;background:#58a6ff;border-radius:2px'></div>
+        <span style='font-size:13px;color:#c9d1d9'>주식</span>
+      </div>
+      <span style='font-size:14px;font-weight:600;color:#fff'>]] .. formatNumber(stockValue) .. [[ G</span>
+    </div>
+  </div>
+</div>]]
+
+    -- 보유 종목 리스트
+    html = html .. [[
+<div style='background:#0d1117;border-radius:8px;overflow:hidden'>
+  <div style='padding:12px 16px;border-bottom:1px solid #21262d'>
+    <span style='font-size:13px;font-weight:600;color:#fff'>보유 종목</span>
+    <span style='font-size:12px;color:#8b949e;margin-left:8px'>]] .. #holdings .. [[개</span>
+  </div>]]
+
+    if #holdings > 0 then
+        for _, h in ipairs(holdings) do
+            local profitColor = h.profit >= 0 and "#ef5350" or "#26a69a"
+            local profitSign = h.profit >= 0 and "+" or ""
+
+            html = html .. string.format([[
+  <button type='button' risu-trigger='stock_select_%s' style='display:flex;width:100%%;padding:14px 16px;background:transparent;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
+    <div style='flex:1'>
+      <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e'>%s · %d주 · 평단 %sG</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:14px;font-weight:600;color:#fff'>%s G</div>
+      <div style='font-size:12px;color:%s'>%s%s G (%.1f%%)</div>
+    </div>
+  </button>]], h.ticker, h.ticker, h.name, h.owned, formatNumber(h.avgPrice),
+            formatNumber(h.value), profitColor, profitSign, formatNumber(h.profit), h.profitPercent)
+        end
+    else
+        html = html .. [[
+  <div style='padding:40px;text-align:center'>
+    <div style='font-size:14px;color:#8b949e'>보유 종목이 없습니다</div>
+    <div style='font-size:12px;color:#6e7681;margin-top:4px'>시세표에서 종목을 선택해 매수하세요</div>
+  </div>]]
     end
 
     html = html .. "</div>"
-
-    -- 총 자산
-    local totalProfitColor = totalProfit >= 0 and "#ff5252" or "#4CAF50"
-    local totalProfitSign = totalProfit >= 0 and "+" or ""
-    html = html .. string.format(
-        "<div style='background:#3d3d5c;padding:15px;border-radius:8px'>"..
-        "<div style='display:flex;justify-content:space-between'>"..
-        "<div><div style='font-size:12px;color:#888'>총 평가액</div>"..
-        "<div style='font-size:20px;font-weight:700;color:#ffd700'>%s G</div></div>"..
-        "<div style='text-align:right'><div style='font-size:12px;color:#888'>총 손익</div>"..
-        "<div style='font-size:16px;font-weight:600;color:%s'>%s%s G</div></div>"..
-        "</div></div>",
-        formatNumber(totalValue), totalProfitColor, totalProfitSign, formatNumber(totalProfit)
-    )
-
     return html
 end
 
