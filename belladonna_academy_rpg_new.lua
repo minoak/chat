@@ -5078,7 +5078,7 @@ function generateStockOrderView(triggerId, ticker)
         local borderStyle = isSelected and "border:1px solid #58a6ff" or "border-bottom:1px solid #21262d"
 
         html = html .. string.format([[
-<button type='button' risu-trigger='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
+<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
   <div style='flex:1;position:relative;height:24px'>
     <div style='position:absolute;right:0;top:0;height:100%%;width:%d%%;background:rgba(38,166,154,0.2);border-radius:2px'></div>
     <span style='position:relative;z-index:1;font-size:13px;color:#26a69a;font-weight:500;line-height:24px'>%d</span>
@@ -5092,7 +5092,7 @@ function generateStockOrderView(triggerId, ticker)
     local currentSelected = currentPrice == selectedPrice
     local currentBg = currentSelected and "rgba(255,215,0,0.2)" or "#1c2128"
     html = html .. string.format([[
-<button type='button' risu-trigger='stock_price_%d' style='display:flex;width:100%%;align-items:center;justify-content:center;padding:10px;background:%s;border-top:2px solid #ffd700;border-bottom:2px solid #ffd700;cursor:pointer'>
+<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;justify-content:center;padding:10px;background:%s;border-top:2px solid #ffd700;border-bottom:2px solid #ffd700;cursor:pointer'>
   <span style='font-size:18px;font-weight:700;color:#ffd700'>%dG</span>
   <span style='font-size:12px;color:%s;margin-left:8px'>%s%d%% (시장가)</span>
 </button>]], currentPrice, currentBg, currentPrice, changeColor, changeSign, change)
@@ -5105,7 +5105,7 @@ function generateStockOrderView(triggerId, ticker)
         local borderStyle = isSelected and "border:1px solid #58a6ff" or "border-bottom:1px solid #21262d"
 
         html = html .. string.format([[
-<button type='button' risu-trigger='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
+<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
   <div style='flex:1'></div>
   <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:%s'>%dG</div>
   <div style='flex:1;position:relative;height:24px;text-align:right'>
