@@ -4945,9 +4945,18 @@ function generateStockAssetView(triggerId)
     return html
 end
 
-listenEdit("editDisplay", function(triggerId, data)
-    -- 주식 패널 변환
+listenEdit("editDisplay", function(triggerId, data, meta)
+    -- 주식 패널 변환 (마지막 메시지에서만 UI 표시)
     data = data:gsub("<StockPanel%s*/>", function()
+        -- meta가 없거나 마지막 메시지가 아니면 빈 문자열 반환
+        if not meta or not meta.index then
+            return ""
+        end
+        local chatLength = getChatLength(triggerId)
+        local position = meta.index - chatLength
+        if position ~= -1 then
+            return ""  -- 마지막 메시지가 아니면 패널 숨김
+        end
         return generateStockPanelUI(triggerId)
     end)
 
