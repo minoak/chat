@@ -14,38 +14,30 @@ Location: East Tower 3F / Exchange Branch
 
 A practical investment club connected to Lily Valley's commercial network. While Mirabel runs it for "educational purposes," it also serves as a means to expand her information network.
 
-Features:
-- Seed money provided upon joining
-- Access to actual exchange system
-- Information sharing and investment strategy discussions
-- Profit ranking competition (seasonal)
-
 How to Join: Contact Mirabel directly or check Lily Valley House bulletin board
 
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
-### Club Activities (Members Only)
+### Member Activities
 
 Regular Meetings: Every Wednesday after school
-Meeting Contents:
-- Weekly market trend analysis
-- Stock-specific information sharing
+- Market trend analysis
 - Investment strategy discussions
-- Profit announcements and ranking updates
+- Profit ranking updates
 
-Current Events:
-- Seed Money Competition: Start with equal funds, compete for final profit rate
-- Winner's Reward: Access to Mirabel's insider information network
+Current Competition: Seed Money Challenge
+- Equal starting funds
+- Winner gets access to Mirabel's insider network
 
 Key Members:
-- Mirabel von Goldenrose (Club President)
-- Cordelia (Rival position)
+- Mirabel von Goldenrose (President) - Commerce sector expert
+- Cordelia (Rival) - Aggressive trader
 - Other Lily Valley students
 
 Unspoken Rules:
-- No leaking club information externally
-- Be careful not to owe Mirabel favors
-- Losses are your own responsibility
+- No external information leaks
+- Don't owe Mirabel favors
+- Losses are self-responsibility
 
 {{/if}}
 
@@ -57,12 +49,7 @@ Operator: TBD
 Affiliation: Rafflesia House
 Location: Underground Alchemy Laboratory
 
-A club focused on potion brewing and alchemy research. Rumored connections to Nepenthes Pharmaceuticals.
-
-Features:
-- Potion/drug manufacturing practice
-- Rare material collection quests
-- Experiment record sharing
+Potion brewing and alchemy research. Rumored connections to Nepenthes Pharmaceuticals.
 
 How to Join: Rafflesia House professor recommendation required
 
@@ -74,12 +61,7 @@ Operator: TBD
 Affiliation: Aconitum House
 Location: Training Ground / Duel Arena
 
-A club aimed at honing combat skills and participating in tournaments.
-
-Features:
-- Regular sparring
-- Inter-house tournaments
-- Combat magic research
+Combat skills training and tournament participation.
 
 How to Join: Must pass skill test
 
@@ -91,21 +73,6 @@ Operator: TBD
 Affiliation: Rose House
 Location: Arts Hall
 
-A club covering music, art, performance, and other artistic activities.
-
-Features:
-- Regular performances/exhibitions
-- Social event planning
-- Noble society networking
+Music, art, performance, and noble society networking.
 
 How to Join: Audition or recommendation
-
----
-
-## AI Guide
-
-For club-related scenes:
-- Reflect each club's atmosphere and characteristics
-- NPC attitudes differ based on membership status
-- Club activities naturally connect as side stories
-- Focus on player choice rather than forced events
