@@ -846,7 +846,7 @@ function generateOrderBook(triggerId, ticker)
     return orderBook, currentPrice
 end
 
--- 현물 매수
+-- 현물 매수 (채팅 안 넘어감, 가격 갱신)
 function stockBuy(triggerId, ticker, quantity)
     local price = getState(triggerId, "stock_" .. ticker .. "_price")
     if not price then
@@ -857,12 +857,13 @@ function stockBuy(triggerId, ticker, quantity)
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
 
     if gold < cost then
-        addChat(triggerId, "user", string.format("골드가 부족합니다. (필요: %dG, 보유: %dG)", cost, gold))
+        alertError(triggerId, string.format("골드 부족 (필요: %dG, 보유: %dG)", cost, gold))
         return false
     end
 
     -- Gold 차감
     setChatVar(triggerId, "player_gold", tostring(gold - cost))
+    setState(triggerId, "player_gold", gold - cost)
 
     -- 보유량 및 평균매수가 계산
     local ownedKey = "stock_" .. ticker .. "_owned"
@@ -880,15 +881,16 @@ function stockBuy(triggerId, ticker, quantity)
     setChatVar(triggerId, ownedKey, tostring(newOwned))
     setChatVar(triggerId, avgKey, tostring(newAvg))
 
-    addChat(triggerId, "user", string.format("%s %d주를 %dG에 매수했습니다. (평단: %dG)",
-        ticker, quantity, price, newAvg))
-    log(string.format("📈 매수: %s %d주 @ %dG | 보유: %d주, 평단: %dG",
-        ticker, quantity, price, newOwned, newAvg))
+    alertNormal(triggerId, string.format("📈 %s %d주 매수 @ %dG (평단: %dG)", ticker, quantity, price, newAvg))
+    log(string.format("📈 매수: %s %d주 @ %dG | 보유: %d주, 평단: %dG", ticker, quantity, price, newOwned, newAvg))
+
+    -- 거래 후 가격 변동 생성
+    refreshStockPrices(triggerId, ticker, "buy")
 
     return true
 end
 
--- 현물 매도
+-- 현물 매도 (채팅 안 넘어감, 가격 갱신)
 function stockSell(triggerId, ticker, quantity)
     local ownedKey = "stock_" .. ticker .. "_owned"
     local owned = tonumber(getChatVar(triggerId, ownedKey)) or 0
@@ -899,7 +901,7 @@ function stockSell(triggerId, ticker, quantity)
     end
 
     if owned < quantity or quantity <= 0 then
-        addChat(triggerId, "user", string.format("매도할 수량이 부족합니다. (보유: %d주)", owned))
+        alertError(triggerId, string.format("매도 수량 부족 (보유: %d주)", owned))
         return false
     end
 
@@ -913,6 +915,7 @@ function stockSell(triggerId, ticker, quantity)
 
     -- Gold 증가
     setChatVar(triggerId, "player_gold", tostring(gold + revenue))
+    setState(triggerId, "player_gold", gold + revenue)
 
     -- 보유량 감소
     local newOwned = owned - quantity
@@ -928,12 +931,74 @@ function stockSell(triggerId, ticker, quantity)
     local profit = (price - avgPrice) * quantity
     local profitStr = profit >= 0 and string.format("+%dG", profit) or string.format("%dG", profit)
 
-    addChat(triggerId, "user", string.format("%s %d주를 %dG에 매도했습니다. (손익: %s)",
-        ticker, quantity, price, profitStr))
-    log(string.format("📉 매도: %s %d주 @ %dG | 손익: %s | 남은 보유: %d주",
-        ticker, quantity, price, profitStr, newOwned))
+    alertNormal(triggerId, string.format("📉 %s %d주 매도 @ %dG (손익: %s)", ticker, quantity, price, profitStr))
+    log(string.format("📉 매도: %s %d주 @ %dG | 손익: %s | 남은 보유: %d주", ticker, quantity, price, profitStr, newOwned))
+
+    -- 거래 후 가격 변동 생성
+    refreshStockPrices(triggerId, ticker, "sell")
 
     return true
+end
+
+-- 주식 가격 갱신 (거래 후 보조모델 호출)
+function refreshStockPrices(triggerId, tradedTicker, tradeType)
+    log("📊 주식 가격 갱신 시작: " .. tradedTicker .. " (" .. tradeType .. ")")
+
+    -- 현재 모든 종목 가격 수집
+    local currentPrices = {}
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+        currentPrices[ticker] = price
+    end
+
+    -- 가격 변동 생성 (의사 난수 기반)
+    local seed = os.time() + (string.byte(tradedTicker, 1) or 0)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        -- 변동성 계수
+        local volatility = {
+            MUTA = 0.08, NEP = 0.06, MUSE = 0.06,
+            ELEM = 0.05, ROSE = 0.04, CRYS = 0.04,
+            LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03,
+            VITA = 0.03, ACAD = 0.02, SILK = 0.02,
+            IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02
+        }
+        local vol = volatility[ticker] or 0.03
+
+        -- 거래된 종목은 거래 방향에 따라 영향
+        local basePrice = currentPrices[ticker]
+        local change = 0
+
+        if ticker == tradedTicker then
+            -- 거래 종목: 매수=상승 압력, 매도=하락 압력
+            local direction = (tradeType == "buy") and 1 or -1
+            change = math.floor(basePrice * vol * (0.5 + math.random() * 0.5) * direction)
+        else
+            -- 다른 종목: 랜덤 변동
+            seed = (seed * 1103515245 + 12345) % 2147483648
+            local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
+            change = math.floor(basePrice * vol * rand)
+        end
+
+        -- 가격 업데이트 (최소 1G 보장)
+        local newPrice = math.max(1, basePrice + change)
+        local changePercent = math.floor((change / basePrice) * 100)
+
+        setState(triggerId, "stock_" .. ticker .. "_price", newPrice)
+        setState(triggerId, "stock_" .. ticker .. "_change", changePercent)
+
+        -- 히스토리 업데이트
+        local historyKey = "stock_" .. ticker .. "_history"
+        local historyStr = getChatVar(triggerId, historyKey) or ""
+        local history = {}
+        for p in historyStr:gmatch("([^,]+)") do
+            table.insert(history, p)
+        end
+        table.insert(history, tostring(basePrice))
+        while #history > 5 do table.remove(history, 1) end
+        setChatVar(triggerId, historyKey, table.concat(history, ","))
+    end
+
+    log("📊 주식 가격 갱신 완료")
 end
 
 -- 레벨업 체크 및 처리
@@ -4693,7 +4758,15 @@ function generateStockPanelUI(triggerId)
         html = html .. generateStockAssetView(triggerId)
     end
 
-    html = html .. "</div></div>"  -- 뷰 컨테이너 + 메인 컨테이너 닫기
+    html = html .. "</div>"  -- 뷰 컨테이너 닫기
+
+    -- 하단 버튼 영역 (거래 종료)
+    html = html .. [[
+  <div style='padding:12px 16px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px'>
+    <button type='button' risu-trigger='stock_exit' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
+  </div>
+</div>]]  -- 메인 컨테이너 닫기
+
     return html
 end
 
@@ -5750,6 +5823,34 @@ end
 _G["stock_view_asset"] = function(triggerId)
     setState(triggerId, "stock_current_view", "asset")
     log("💼 주식 뷰 전환: 내 자산")
+end
+
+-- 거래 종료 버튼 (스토리 진행)
+_G["stock_exit"] = function(triggerId)
+    -- 포트폴리오 요약 생성
+    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    local totalValue = gold
+    local holdings = {}
+
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        if owned > 0 then
+            local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+            local value = owned * price
+            totalValue = totalValue + value
+            table.insert(holdings, string.format("%s %d주", ticker, owned))
+        end
+    end
+
+    local summary = string.format("거래를 마쳤다. (총 자산: %dG", totalValue)
+    if #holdings > 0 then
+        summary = summary .. ", 보유: " .. table.concat(holdings, ", ")
+    end
+    summary = summary .. ")"
+
+    -- OOC 메시지로 스토리 진행 유도
+    addChat(triggerId, "user", "<-OOC: " .. summary .. " 유저가 거래소에서 나와 다음 활동을 진행한다.->")
+    log("🚪 주식 거래 종료: " .. summary)
 end
 
 -- 종목 선택 버튼 (20개 종목)
