@@ -1099,8 +1099,47 @@ function parseStockTrades(triggerId, message)
     end
 end
 
--- 주가 히스토리 업데이트 (6일 유지)
-function updateStockHistory(triggerId, ticker, newPrice)
+-- 주가 히스토리 초기화 (12개 캔들용 기본값 생성)
+function initStockHistory(triggerId, ticker)
+    local historyKey = "stock_" .. ticker .. "_history"
+    local existing = getChatVar(triggerId, historyKey)
+
+    -- 이미 히스토리가 있으면 스킵
+    if existing and existing ~= "" then
+        return
+    end
+
+    local basePrice = STOCK_BASE_PRICES[ticker] or 100
+    local volatility = {
+        MUTA = 0.08, NEP = 0.06, MUSE = 0.06,
+        ELEM = 0.05, ROSE = 0.04, CRYS = 0.04,
+        LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03,
+        VITA = 0.03, ACAD = 0.02, SILK = 0.02,
+        IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02
+    }
+    local vol = volatility[ticker] or 0.03
+
+    -- 12개 기본 가격 생성 (기준가 주변 랜덤 변동)
+    local prices = {}
+    local seed = 0
+    for i = 1, #ticker do
+        seed = seed + string.byte(ticker, i) * i
+    end
+
+    local price = basePrice
+    for i = 1, 12 do
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
+        local change = math.floor(price * vol * rand)
+        price = math.max(1, price + change)
+        table.insert(prices, tostring(price))
+    end
+
+    setChatVar(triggerId, historyKey, table.concat(prices, ","))
+end
+
+-- 주가 히스토리에 새 가격 추가 (12개 유지)
+function addPriceToHistory(triggerId, ticker, newPrice)
     local historyKey = "stock_" .. ticker .. "_history"
     local history = getChatVar(triggerId, historyKey) or ""
     local prices = {}
@@ -1113,12 +1152,27 @@ function updateStockHistory(triggerId, ticker, newPrice)
     -- 새 가격 추가
     table.insert(prices, tostring(newPrice))
 
-    -- 6일만 유지
-    while #prices > 6 do
+    -- 12개만 유지
+    while #prices > 12 do
         table.remove(prices, 1)
     end
 
     setChatVar(triggerId, historyKey, table.concat(prices, ","))
+end
+
+-- 주가 히스토리 가져오기 (없으면 초기화)
+function getStockHistory(triggerId, ticker)
+    initStockHistory(triggerId, ticker)
+
+    local historyKey = "stock_" .. ticker .. "_history"
+    local history = getChatVar(triggerId, historyKey) or ""
+    local prices = {}
+
+    for price in history:gmatch("([^,]+)") do
+        table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+    end
+
+    return prices
 end
 
 -- 호가창 자동 생성
@@ -1302,16 +1356,8 @@ function refreshStockPrices(triggerId, tradedTicker, tradeType)
         setState(triggerId, "stock_" .. ticker .. "_price", newPrice)
         setState(triggerId, "stock_" .. ticker .. "_change", changePercent)
 
-        -- 히스토리 업데이트
-        local historyKey = "stock_" .. ticker .. "_history"
-        local historyStr = getChatVar(triggerId, historyKey) or ""
-        local history = {}
-        for p in historyStr:gmatch("([^,]+)") do
-            table.insert(history, p)
-        end
-        table.insert(history, tostring(basePrice))
-        while #history > 5 do table.remove(history, 1) end
-        setChatVar(triggerId, historyKey, table.concat(history, ","))
+        -- 히스토리 업데이트 (12개 캔들용)
+        addPriceToHistory(triggerId, ticker, newPrice)
     end
 
     log("📊 주식 가격 갱신 완료")
@@ -5201,69 +5247,51 @@ function generateStockBoardView(triggerId)
     return html
 end
 
--- OHLC 캔들 데이터 생성 (12개 캔들)
+-- OHLC 캔들 데이터 생성 (실제 히스토리 기반)
 function generateCandleData(triggerId, ticker, currentPrice)
     local candles = {}
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
-    -- 티커별 시드 생성 (일관된 패턴용)
-    local seed = 0
-    for i = 1, #ticker do
-        seed = seed + string.byte(ticker, i) * i
+    -- 실제 가격 히스토리 가져오기
+    local history = getStockHistory(triggerId, ticker)
+
+    -- 히스토리가 부족하면 현재가로 채우기
+    while #history < 12 do
+        table.insert(history, 1, history[1] or currentPrice)
     end
 
-    -- 변동성 계수 (종목별)
+    -- 변동성 계수 (심지 길이용)
     local volatility = {
-        MUTA = 0.08, NEP = 0.06, MUSE = 0.06,  -- 고변동성
-        ELEM = 0.05, ROSE = 0.04, CRYS = 0.04, -- 중고변동성
-        LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03, -- 중변동성
-        VITA = 0.03, ACAD = 0.02, SILK = 0.02, -- 중저변동성
-        IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02 -- 저변동성
+        MUTA = 0.08, NEP = 0.06, MUSE = 0.06,
+        ELEM = 0.05, ROSE = 0.04, CRYS = 0.04,
+        LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03,
+        VITA = 0.03, ACAD = 0.02, SILK = 0.02,
+        IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02
     }
     local vol = volatility[ticker] or 0.03
 
-    -- 현재 가격에서 역산하여 과거 캔들 생성
-    local price = currentPrice
-    local tempCandles = {}
+    -- 히스토리로 캔들 생성
+    for i = 1, math.min(#history, 12) do
+        local close = history[i]
+        local open = (i > 1) and history[i - 1] or close
 
-    for i = 12, 1, -1 do
-        -- 시간대별 시드
-        local timeSeed = seed + i * 17
+        -- 고가/저가 계산 (시가/종가 범위 + 약간의 심지)
+        local range = math.abs(close - open)
+        local wickSize = math.max(range * 0.3, basePrice * vol * 0.2)
 
-        -- 의사 난수 (결정적)
-        local function pseudoRand(s)
-            s = (s * 1103515245 + 12345) % 2147483648
-            return (s % 1000) / 1000 - 0.5
-        end
+        local high = math.max(open, close) + math.floor(wickSize * math.random())
+        local low = math.min(open, close) - math.floor(wickSize * math.random())
+        low = math.max(1, low)  -- 최소 1G
 
-        local rand1 = pseudoRand(timeSeed)
-        local rand2 = pseudoRand(timeSeed + 1)
-        local rand3 = pseudoRand(timeSeed + 2)
-        local rand4 = pseudoRand(timeSeed + 3)
-
-        -- OHLC 계산
-        local change = rand1 * vol * basePrice
-        local open = price - change
-        local close = price
-
-        -- 고가/저가 (시가/종가 범위를 벗어남)
-        local wickUp = math.abs(rand2) * vol * basePrice * 0.5
-        local wickDown = math.abs(rand3) * vol * basePrice * 0.5
-        local high = math.max(open, close) + wickUp
-        local low = math.min(open, close) - wickDown
-
-        table.insert(tempCandles, 1, {
+        table.insert(candles, {
             open = math.floor(open),
             high = math.floor(high),
             low = math.floor(low),
             close = math.floor(close)
         })
-
-        -- 다음 캔들을 위해 가격 업데이트
-        price = open
     end
 
-    return tempCandles
+    return candles
 end
 
 -- 차트 뷰 (12캔들 OHLC 차트)
