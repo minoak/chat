@@ -175,7 +175,8 @@ You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative a
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:Name:Power][Combat:End]
 [Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
-<Panel>■★
+[Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
+<StockPanel /><Panel>■★
 
 ## Relationship Tags (Only for Characters in Scene)
 [Affinity:Name:level] - THIS TURN feelings: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
@@ -251,6 +252,22 @@ Check Game State for "⚔️ Combat Status: ACTIVE"
 Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|Stats:changes</WeeklyReport>[Day:금요일][Time:저녁]
 Monday: [Week:X+1][Day:월요일][Time:오전]
 Exams (Week 6,12): [Exam:midterm:87:23]
+
+## Stock Market Tags (Stock Club Members Only)
+When Main AI outputs `<Stock>` tag, generate stock price tags:
+[Stock:TICKER:PRICE:CHANGE|...] - Multiple stocks separated by |
+- TICKER: Stock code (LILY, NEP, IMP, etc.)
+- PRICE: Current price in G (positive integer)
+- CHANGE: Price change from previous (+N, -N, or 0)
+
+[StockBuy:TICKER:PRICE:QTY] - When player buys stock
+[StockSell:TICKER:PRICE:QTY] - When player sells stock
+<StockPanel /> - Always output after [Stock:...] tag
+
+**Price hints from Main AI's <Stock> content:**
+- "급등/폭등": +8~+15, "상승/오름": +2~+7
+- "보합/횡보": -1~+1
+- "하락/내림": -2~-7, "급락/폭락": -8~-15
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
@@ -2574,6 +2591,12 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     userPrompt = userPrompt .. string.format("- Gold: %s\n", playerGold)
     if activeEffects ~= "" then
         userPrompt = userPrompt .. string.format("- Active Effects: %s\n", activeEffects)
+    end
+
+    -- 주식 동아리 가입 정보
+    local stockClubJoined = getChatVar(triggerId, "club_stock_joined") or "0"
+    if stockClubJoined == "1" then
+        userPrompt = userPrompt .. "- 📈 Stock Club: MEMBER (output [Stock:...] tags when <Stock> appears)\n"
     end
 
     userPrompt = userPrompt .. "===========================================\n"
