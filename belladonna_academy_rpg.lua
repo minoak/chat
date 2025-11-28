@@ -103,13 +103,13 @@ local affinityChanges = {
 }
 
 local sinPosChanges = {
-    corrupt = 2,
-    tempt = 1
+    resist = 1,
+    purify = 2
 }
 
 local sinNegChanges = {
-    resist = 1,
-    purify = 2
+    corrupt = 2,
+    tempt = 1
 }
 
 local AFFINITY_MAX = 500
