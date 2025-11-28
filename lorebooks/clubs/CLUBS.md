@@ -49,7 +49,7 @@ Unspoken Rules:
 - Don't owe Mirabel favors
 - Losses are self-responsibility
 
-{{/if}}
+{{/if_pure}}
 
 ---
 

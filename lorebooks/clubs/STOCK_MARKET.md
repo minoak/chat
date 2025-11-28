@@ -60,4 +60,4 @@ NPC hints scale with affinity:
 
 Mirabel specializes in commerce sector (LILY, CARA, PORT).
 
-{{/if}}
+{{/if_pure}}
