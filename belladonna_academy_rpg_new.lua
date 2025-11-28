@@ -2691,9 +2691,11 @@ end
 function callAuxiliaryModel(triggerId, mainResponse)
     -- 모델 선택: 기본값은 off (로어북에서 처리)
     local mode = getState(triggerId, "auxiliary_mode") or "0"
+    log("🔍 보조모델 호출 - mode: " .. tostring(mode))
 
     -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
     if mode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드")
         return "<Panel>■★"
     end
 
@@ -2705,7 +2707,8 @@ function callAuxiliaryModel(triggerId, mainResponse)
         return "<Panel>■★"
     end
 
-    log("📤 보조모델 호출 시작 (4-message structure)")
+    local modelType = (mode == "1") and "메인모델" or "보조모델"
+    log("📤 " .. modelType .. " 호출 시작 (mode=" .. mode .. ")")
 
     local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
 
@@ -3916,11 +3919,19 @@ function onStart(triggerId)
         setChatVar(triggerId, "active_event", "none")
     end
 
-    -- 보조 AI 모드 초기화 (기본값: off - 로어북 사용)
-    if getState(triggerId, "auxiliary_mode") == nil then
+    -- 보조 AI 모드 초기화 (기본값: aux 모델 사용)
+    -- 유효한 값: "0" (off), "1" (main), "2" (aux)
+    local currentAuxMode = getState(triggerId, "auxiliary_mode")
+    if currentAuxMode ~= "0" and currentAuxMode ~= "1" and currentAuxMode ~= "2" then
+        -- nil이거나 유효하지 않은 값이면 기본값 "2"로 초기화
         setState(triggerId, "auxiliary_mode", "2")
         setChatVar(triggerId, "auxiliary_mode", "2")
         setChatVar(triggerId, "auxiliary_mode_text", "Aux")
+        log("🔧 보조 AI 모드 초기화: " .. tostring(currentAuxMode) .. " → 2 (Aux)")
+    else
+        -- 유효한 값이 있으면 chatVar도 동기화
+        setChatVar(triggerId, "auxiliary_mode", currentAuxMode)
+        log("🔧 보조 AI 모드 로드: " .. currentAuxMode)
     end
 
     -- 주간 스케줄 변수 초기화
@@ -4085,18 +4096,22 @@ local isProcessing = false
 
 -- onOutput 메인 처리 로직
 function processOutput(triggerId)
+    log("🔄 processOutput 시작")
+
     local message = getCharacterLastMessage(triggerId)
     if not message then
+        log("⚠️ processOutput: 메시지 없음")
         return
     end
 
     -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
     -- <Panel>■★ 마커가 있으면 이미 보조 출력이 추가된 메시지
     if message:find("<Panel>■★", 1, true) then
+        log("⏭️ processOutput: 이미 처리된 메시지 - 스킵")
         return
     end
 
-    log("📨 새 턴 처리")
+    log("📨 새 턴 처리 (메시지 길이: " .. #message .. ")")
 
     -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
     parseCombatChoices(triggerId, message)
@@ -4118,6 +4133,7 @@ function processOutput(triggerId)
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+    log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
@@ -4339,6 +4355,7 @@ function processOutput(triggerId)
     local lastIndex = chatLength - 1
 
     setChat(triggerId, lastIndex, finalMessage)
+    log("✅ processOutput 완료 - 메시지 업데이트됨 (index: " .. lastIndex .. ")")
 end
 
 -- onOutput 이벤트 핸들러
@@ -6257,9 +6274,9 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 -- ============================================
 
 listenEdit("editDisplay", function(triggerId, data, meta)
-    -- 보조모델이 꺼져있으면 버튼 표시 안함
-    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "off"
-    if auxiliaryMode == "off" then
+    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
+    if auxiliaryMode == "0" then
         return data
     end
 
