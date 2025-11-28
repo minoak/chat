@@ -75,6 +75,10 @@ When depicting the scene:
 - Steps toward economic domination of the Empire
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:mirabel_pos]
+
 {{/if}}
 
 ### Celestia - Pride Pressure
@@ -113,6 +117,10 @@ When depicting the scene:
 - Relationship with {{user}} (based on context)
 - Steps toward rebellion and imperial ascension
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:celestia_pos]
 
 {{/if}}
 
@@ -153,6 +161,10 @@ When depicting the scene:
 - Steps toward becoming a sword demon and most wanted criminal
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:cassandra_pos]
+
 {{/if}}
 
 ### Evangeline - Lust Pressure
@@ -191,6 +203,10 @@ When depicting the scene:
 - Relationship with {{user}} (based on context)
 - Steps toward becoming the Empire's shadow power
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:evangeline_pos]
 
 {{/if}}
 
@@ -231,6 +247,10 @@ When depicting the scene:
 - Steps toward dictatorship
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:amelia_pos]
+
 {{/if}}
 
 ### Nepenthes - Gluttony Pressure
@@ -269,6 +289,10 @@ When depicting the scene:
 - Relationship with {{user}} (based on context)
 - Steps toward becoming a drug lord
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:nepenthes_pos]
 
 {{/if}}
 
@@ -309,6 +333,10 @@ When depicting the scene:
 - Steps toward becoming the ice witch
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:lilith_pos]
+
 {{/if}}
 
 ### Aurelia - Corruption Pressure
@@ -347,6 +375,10 @@ When depicting the scene:
 - Relationship with {{user}} (based on context)
 - Steps toward becoming The Pit's slave
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:aurelia_pos]
 
 {{/if}}
 
@@ -389,6 +421,10 @@ When depicting the scene:
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:mirabel_neg]
+
 {{/if}}
 
 ### Celestia - Pride Relief
@@ -427,6 +463,10 @@ When depicting the scene:
 - She chooses to give up perfection
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:celestia_neg]
 
 {{/if}}
 
@@ -467,6 +507,10 @@ When depicting the scene:
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:cassandra_neg]
+
 {{/if}}
 
 ### Evangeline - Lust Relief
@@ -505,6 +549,10 @@ When depicting the scene:
 - She chooses to break the 3-day rule
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:evangeline_neg]
 
 {{/if}}
 
@@ -545,6 +593,10 @@ When depicting the scene:
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:amelia_neg]
+
 {{/if}}
 
 ### Nepenthes - Gluttony Relief
@@ -583,6 +635,10 @@ When depicting the scene:
 - She chooses to stop collecting souls
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:nepenthes_neg]
 
 {{/if}}
 
@@ -623,6 +679,10 @@ When depicting the scene:
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
 
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:lilith_neg]
+
 {{/if}}
 
 ### Aurelia - Corruption Relief
@@ -661,5 +721,9 @@ When depicting the scene:
 - She chooses to reject destructive desires
 - Cost and meaning of that choice
 - End with: [Scene end: Return to present]
+
+CRITICAL - MUST OUTPUT THESE CLOSING TAGS (copy exactly):
+[SIN_EVENT_END]
+[SIN_RESET:aurelia_neg]
 
 {{/if}}
