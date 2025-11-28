@@ -1158,7 +1158,8 @@ function stockBuy(triggerId, ticker, quantity)
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
 
     if gold < cost then
-        alertError(triggerId, string.format("골드 부족 (필요: %dG, 보유: %dG)", cost, gold))
+        setState(triggerId, "stock_last_trade_type", "error")
+        setState(triggerId, "stock_last_trade_msg", string.format("❌ 골드 부족 (필요: %dG, 보유: %dG)", cost, gold))
         return false
     end
 
@@ -1182,7 +1183,13 @@ function stockBuy(triggerId, ticker, quantity)
     setChatVar(triggerId, ownedKey, tostring(newOwned))
     setChatVar(triggerId, avgKey, tostring(newAvg))
 
-    alertNormal(triggerId, string.format("📈 %s %d주 매수 @ %dG (평단: %dG)", ticker, quantity, price, newAvg))
+    -- 거래 결과를 상태에 저장 (UI에서 표시용)
+    setState(triggerId, "stock_last_trade_type", "buy")
+    setState(triggerId, "stock_last_trade_ticker", ticker)
+    setState(triggerId, "stock_last_trade_qty", quantity)
+    setState(triggerId, "stock_last_trade_price", price)
+    setState(triggerId, "stock_last_trade_msg", string.format("📈 %s %d주 매수 @ %dG (평단: %dG)", ticker, quantity, price, newAvg))
+
     log(string.format("📈 매수: %s %d주 @ %dG | 보유: %d주, 평단: %dG", ticker, quantity, price, newOwned, newAvg))
 
     -- 거래 후 가격 변동 생성
@@ -1202,7 +1209,8 @@ function stockSell(triggerId, ticker, quantity)
     end
 
     if owned < quantity or quantity <= 0 then
-        alertError(triggerId, string.format("매도 수량 부족 (보유: %d주)", owned))
+        setState(triggerId, "stock_last_trade_type", "error")
+        setState(triggerId, "stock_last_trade_msg", string.format("❌ 매도 수량 부족 (보유: %d주)", owned))
         return false
     end
 
@@ -1232,7 +1240,14 @@ function stockSell(triggerId, ticker, quantity)
     local profit = (price - avgPrice) * quantity
     local profitStr = profit >= 0 and string.format("+%dG", profit) or string.format("%dG", profit)
 
-    alertNormal(triggerId, string.format("📉 %s %d주 매도 @ %dG (손익: %s)", ticker, quantity, price, profitStr))
+    -- 거래 결과를 상태에 저장 (UI에서 표시용)
+    setState(triggerId, "stock_last_trade_type", "sell")
+    setState(triggerId, "stock_last_trade_ticker", ticker)
+    setState(triggerId, "stock_last_trade_qty", quantity)
+    setState(triggerId, "stock_last_trade_price", price)
+    setState(triggerId, "stock_last_trade_profit", profit)
+    setState(triggerId, "stock_last_trade_msg", string.format("📉 %s %d주 매도 @ %dG (손익: %s)", ticker, quantity, price, profitStr))
+
     log(string.format("📉 매도: %s %d주 @ %dG | 손익: %s | 남은 보유: %d주", ticker, quantity, price, profitStr, newOwned))
 
     -- 거래 후 가격 변동 생성
@@ -5465,6 +5480,28 @@ function generateStockOrderView(triggerId, ticker)
     end
 
     html = html .. "</div>"
+
+    -- 거래 결과 메시지 표시
+    local tradeMsg = getState(triggerId, "stock_last_trade_msg")
+    local tradeType = getState(triggerId, "stock_last_trade_type")
+    if tradeMsg and tradeMsg ~= "" then
+        local msgColor = "#58a6ff"  -- 기본 파란색
+        local msgBg = "rgba(88,166,255,0.1)"
+        if tradeType == "buy" then
+            msgColor = "#ef5350"  -- 매수 빨간색
+            msgBg = "rgba(239,83,80,0.1)"
+        elseif tradeType == "sell" then
+            msgColor = "#26a69a"  -- 매도 청록색
+            msgBg = "rgba(38,166,154,0.1)"
+        elseif tradeType == "error" then
+            msgColor = "#f0ad4e"  -- 에러 노란색
+            msgBg = "rgba(240,173,78,0.1)"
+        end
+        html = html .. string.format([[
+<div style='background:%s;padding:10px 12px;border-left:3px solid %s;margin:8px 12px;border-radius:4px'>
+  <div style='font-size:13px;color:%s;font-weight:500'>%s</div>
+</div>]], msgBg, msgColor, msgColor, tradeMsg)
+    end
 
     -- 거래 버튼 (선택 가격 표시)
     html = html .. string.format([[
