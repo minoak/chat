@@ -5648,19 +5648,18 @@ function generateStockAssetView(triggerId)
 end
 
 listenEdit("editDisplay", function(triggerId, data, meta)
-    -- 주식 패널 변환 (마지막 메시지에서만 UI 표시)
-    data = data:gsub("<StockPanel%s*/>", function()
-        -- meta가 없거나 마지막 메시지가 아니면 빈 문자열 반환
-        if not meta or not meta.index then
-            return ""
-        end
+    -- 주식 패널: 태그가 있는지 확인 후 제거
+    local hasStockPanel = data:find("<StockPanel%s*/>")
+    data = data:gsub("<StockPanel%s*/>", "")
+
+    -- 마지막 메시지이고 태그가 있었다면 패널 UI 추가
+    if hasStockPanel and meta and meta.index then
         local chatLength = getChatLength(triggerId)
-        local position = meta.index - chatLength
-        if position ~= -1 then
-            return ""  -- 마지막 메시지가 아니면 패널 숨김
+        -- 마지막 메시지 체크 (chatLength - 1: 0-indexed 기준)
+        if meta.index >= chatLength - 1 then
+            data = data .. generateStockPanelUI(triggerId)
         end
-        return generateStockPanelUI(triggerId)
-    end)
+    end
 
     -- 전투 선택지 변환 (모바일 반응형)
     data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
