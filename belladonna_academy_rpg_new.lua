@@ -4040,23 +4040,30 @@ function processOutput(triggerId)
     -- 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
 
-    -- SIN RESET 처리
-    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
-        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
-        local gaugeKey = charStorage .. "_sin_" .. sinType
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
 
-        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
 
-        setChatVar(triggerId, countKey, tostring(currentCount + 1))
-        setChatVar(triggerId, gaugeKey, "0")
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
 
-        for _, char in ipairs(characters) do
-            if char.storage == charStorage then
-                updatePercent(triggerId, char)
-                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
-                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
-                    currentCount, currentCount + 1))
-                break
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "압력" or "해소",
+                        currentCount, currentCount + 1))
+                    break
+                end
             end
         end
     end
@@ -5915,23 +5922,30 @@ _G["reroll_auxiliary"] = function(triggerId)
     -- 상태창 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
 
-    -- SIN RESET 처리
-    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
-        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
-        local gaugeKey = charStorage .. "_sin_" .. sinType
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
 
-        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
 
-        setChatVar(triggerId, countKey, tostring(currentCount + 1))
-        setChatVar(triggerId, gaugeKey, "0")
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
 
-        for _, char in ipairs(characters) do
-            if char.storage == charStorage then
-                updatePercent(triggerId, char)
-                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
-                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
-                    currentCount, currentCount + 1))
-                break
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "압력" or "해소",
+                        currentCount, currentCount + 1))
+                    break
+                end
             end
         end
     end
