@@ -309,25 +309,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::mirabel_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::mirabel_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::mirabel_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::mirabel_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::mirabel_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::mirabel_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::mirabel_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::mirabel_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -360,25 +360,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::celestia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::celestia_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::celestia_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::celestia_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::celestia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::celestia_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::celestia_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::celestia_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -411,25 +411,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::cassandra_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::cassandra_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::cassandra_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::cassandra_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::cassandra_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::cassandra_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::cassandra_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::cassandra_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -462,25 +462,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::evangeline_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::evangeline_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::evangeline_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::evangeline_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::evangeline_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::evangeline_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::evangeline_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::evangeline_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -513,25 +513,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::amelia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::amelia_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::amelia_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::amelia_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::amelia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::amelia_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::amelia_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::amelia_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -564,25 +564,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::nepenthes_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::nepenthes_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::nepenthes_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::nepenthes_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::nepenthes_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::nepenthes_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::nepenthes_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::nepenthes_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -615,25 +615,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::lilith_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::lilith_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::lilith_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::lilith_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::lilith_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::lilith_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::lilith_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::lilith_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
@@ -666,25 +666,25 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 <div class="sin-thermometer">
 <div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::aurelia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::aurelia_sin_pos}}</div>
+<div class="sin-gauge-pressure" style="width:{{getvar::aurelia_sin_neg_percent}}%;"></div>
+<div class="sin-value-left">{{getvar::aurelia_sin_neg}}</div>
 </div>
 <div class="sin-icon-center">😈</div>
 <div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::aurelia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::aurelia_sin_neg}}</div>
+<div class="sin-gauge-relief" style="width:{{getvar::aurelia_sin_pos_percent}}%;"></div>
+<div class="sin-value-right">{{getvar::aurelia_sin_pos}}</div>
 </div>
 </div>
 <div class="sin-controls-row">
 <div class="sin-control-group">
 <span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_15">+15</button>
 </div>
 <div class="sin-control-group">
 <span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_15">+15</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_5">+5</button>
+<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_15">+15</button>
 </div>
 </div>
 </div>
