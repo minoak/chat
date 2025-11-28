@@ -4914,25 +4914,25 @@ local function convertWeeklyReport(content)
         end
     end
 
-    -- 점수에 따른 등급 결정 (S/A/B/C/D)
+    -- 점수에 따른 등급 결정 (S/A/B/C/D) - 100점 만점
     local score = tonumber(data.Score or "0")
     local grade = "D"
     local gradeEmoji = "📝"
     local gradeText = "다음에 더 잘할 수 있어요"
 
-    if score >= 25 then
+    if score >= 90 then
         grade = "S"
         gradeEmoji = "🏆"
         gradeText = "완벽해요!"
-    elseif score >= 20 then
+    elseif score >= 70 then
         grade = "A"
         gradeEmoji = "⭐"
         gradeText = "훌륭해요!"
-    elseif score >= 15 then
+    elseif score >= 50 then
         grade = "B"
         gradeEmoji = "✨"
         gradeText = "잘했어요!"
-    elseif score >= 10 then
+    elseif score >= 30 then
         grade = "C"
         gradeEmoji = "💫"
         gradeText = "괜찮아요"
@@ -5912,12 +5912,15 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Location:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Season:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Week:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Day:[^%]]+%]", "")  -- 요일 태그
     mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시세
     mainResponse = mainResponse:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
     mainResponse = mainResponse:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
     mainResponse = mainResponse:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
+    mainResponse = mainResponse:gsub("<WeeklyReport>.-</WeeklyReport>", "")  -- 주간 보고서
+    mainResponse = mainResponse:gsub("<StockPanel%s*/>", "")  -- 주식 패널
 
     -- 끝 공백 제거
     mainResponse = mainResponse:gsub("%s+$", "")
