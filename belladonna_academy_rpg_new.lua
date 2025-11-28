@@ -1012,7 +1012,7 @@ function parseStockChanges(triggerId, message)
                 setState(triggerId, "stock_" .. ticker .. "_change", changeNum)
 
                 -- 히스토리 업데이트
-                updateStockHistory(triggerId, ticker, priceNum)
+                addPriceToHistory(triggerId, ticker, priceNum)
 
                 log(string.format("📈 %s: %dG (%+d)", ticker, priceNum, changeNum))
             end
@@ -2689,8 +2689,8 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    -- 모델 선택: State 우선, 없으면 ChatVar, 그래도 없으면 기본값 "2" (Aux 모드)
-    local mode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "2"
+    -- 모델 선택: State 우선, 없으면 ChatVar, 그래도 없으면 기본값 "0" (Off 모드 = 로어북)
+    local mode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
     log("🔍 보조모델 호출 - mode: " .. tostring(mode))
 
     -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
@@ -6275,7 +6275,7 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
-    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "2"
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
     if auxiliaryMode == "0" then
         return data
     end
