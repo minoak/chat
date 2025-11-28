@@ -5656,11 +5656,15 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     local hasStockPanel = data:find("<StockPanel%s*/>")
     data = data:gsub("<StockPanel%s*/>", "")
 
-    -- 마지막 메시지이고 태그가 있었다면 패널 UI 추가
-    if hasStockPanel and meta and meta.index then
-        local chatLength = getChatLength(triggerId)
-        -- 마지막 메시지 체크 (chatLength - 1: 0-indexed 기준)
-        if meta.index >= chatLength - 1 then
+    -- 태그가 있었다면 패널 UI 추가
+    if hasStockPanel then
+        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
+        local shouldShow = true
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            shouldShow = (meta.index >= chatLength - 1)
+        end
+        if shouldShow then
             data = data .. generateStockPanelUI(triggerId)
         end
     end
