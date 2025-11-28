@@ -274,34 +274,34 @@ Performance evaluation:
 {{setvar::performance_score::{{math: {{getvar::player_int}} + {{roll:1d20}} }}}}
 {{/if_pure}}
 {{getvar::performance_score}}
-- Stat changes based on performance (use judgment: 25+=+3~5, 20-24=+2~3, 15-19=+1~2, 10-14=+1, 9-=0)
+- Stat changes based on performance (use judgment: 90+=+3~5, 70-89=+2~3, 50-69=+1~2, 30-49=+1, 29-=0)
 
-이번 주의 점수는 {{getvar::performance_score}}점입니다.
+이번 주의 점수는 {{getvar::performance_score}}점입니다. (100점 만점)
 
 각 점수 구간별 의미:
 
-{{#if_pure {{greater_equal::{{getvar::performance_score}}::25}}}}
-S Grade (25+) 🏆: 이번 주 모든 일이 잘 풀렸음. 능력은 자신의 한계 이상으로 뽐냈으며 주변은 사용자에게서 빛나는 가능성을 발견함. 운조차 사용자를 도와주는 한 주였음.
+{{#if_pure {{greater_equal::{{getvar::performance_score}}::90}}}}
+S Grade (90+) 🏆: 이번 주 모든 일이 잘 풀렸음. 능력은 자신의 한계 이상으로 뽐냈으며 주변은 사용자에게서 빛나는 가능성을 발견함. 운조차 사용자를 도와주는 한 주였음.
 → Everything went perfectly this week. The student exceeded their own limits, and everyone around saw their shining potential. Even luck was on their side.
 {{/if_pure}}
 
-{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::20}}::{{less_equal::{{getvar::performance_score}}::24}}}}}}
-A Grade (20-24) ⭐: 이번 주 대체로 순조로웠음. 자신의 능력을 충분히 발휘했고, 노력이 확실한 성과로 이어졌음. 교수와 주변 학생들이 성장을 인정해줌.
+{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::70}}::{{less_equal::{{getvar::performance_score}}::89}}}}}}
+A Grade (70-89) ⭐: 이번 주 대체로 순조로웠음. 자신의 능력을 충분히 발휘했고, 노력이 확실한 성과로 이어졌음. 교수와 주변 학생들이 성장을 인정해줌.
 → The week went smoothly overall. The student demonstrated their abilities well, and their efforts yielded clear results. Professors and peers acknowledged their growth.
 {{/if_pure}}
 
-{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::15}}::{{less_equal::{{getvar::performance_score}}::19}}}}}}
-B Grade (15-19) ✨: 이번 주가 무난하게 흘러갔음. 특별히 뛰어나진 않았지만 성실하게 따라갔고, 조금씩 발전하는 느낌이 있었음. 평범하지만 나쁘지 않은 한 주.
+{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::50}}::{{less_equal::{{getvar::performance_score}}::69}}}}}}
+B Grade (50-69) ✨: 이번 주가 무난하게 흘러갔음. 특별히 뛰어나진 않았지만 성실하게 따라갔고, 조금씩 발전하는 느낌이 있었음. 평범하지만 나쁘지 않은 한 주.
 → The week passed without major issues. Nothing exceptional, but the student kept up diligently and felt gradual improvement. An ordinary but decent week.
 {{/if_pure}}
 
-{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::10}}::{{less_equal::{{getvar::performance_score}}::14}}}}}}
-C Grade (10-14) 💫: 이번 주가 힘들고 버거웠음. 수업 내용을 따라가기 어려웠고, 운도 따라주지 않았음. 간신히 낙제를 면했지만 성장보단 버티기에 급급했던 한 주.
+{{#if_pure {{and::{{greater_equal::{{getvar::performance_score}}::30}}::{{less_equal::{{getvar::performance_score}}::49}}}}}}
+C Grade (30-49) 💫: 이번 주가 힘들고 버거웠음. 수업 내용을 따라가기 어려웠고, 운도 따라주지 않았음. 간신히 낙제를 면했지만 성장보단 버티기에 급급했던 한 주.
 → The week was difficult and overwhelming. The student struggled to keep up with classes, and luck wasn't on their side. Barely avoided failing, focused more on surviving than growing.
 {{/if_pure}}
 
-{{#if_pure {{less_equal::{{getvar::performance_score}}::9}}}}
-D Grade (9-) 📝: 이번 주가 완전히 망했음. 수업을 전혀 이해하지 못했고, 모든 일이 꼬였음. 교수는 실망했고, 자신도 좌절감을 느낌. 운도 최악이었던 참담한 한 주.
+{{#if_pure {{less_equal::{{getvar::performance_score}}::29}}}}
+D Grade (29-) 📝: 이번 주가 완전히 망했음. 수업을 전혀 이해하지 못했고, 모든 일이 꼬였음. 교수는 실망했고, 자신도 좌절감을 느낌. 운도 최악이었던 참담한 한 주.
 → The week was a complete disaster. The student understood nothing in class, and everything went wrong. The professor was disappointed, and the student felt defeated. Even luck turned its back - a disastrous week.
 {{/if_pure}}
 
@@ -434,12 +434,12 @@ Lifestyle Bonus:
 - Adventure: High returns when taking risks
 - Rest: Recovery, preparation for next week
 
-### Judgment Results
-- 25+: Outstanding achievement (maximum growth)
-- 20-24: Excellent achievement (high growth)
-- 15-19: Good achievement (medium growth)
-- 10-14: Minimal achievement (minimum growth)
-- 9 or below: Failure (no growth, word of comfort)
+### Judgment Results (100점 만점)
+- 90+: Outstanding achievement (maximum growth)
+- 70-89: Excellent achievement (high growth)
+- 50-69: Good achievement (medium growth)
+- 30-49: Minimal achievement (minimum growth)
+- 29 or below: Failure (no growth, word of comfort)
 
 ### Include When Writing Weekly Report
 Naturally describe stat changes based on judgment results.

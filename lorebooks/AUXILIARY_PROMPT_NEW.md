@@ -19,7 +19,8 @@ After your narrative response, output structured tags to update game state.
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
 [Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
-<Panel>■★
+[Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
+<StockPanel /><Panel>■★
 
 ---
 
