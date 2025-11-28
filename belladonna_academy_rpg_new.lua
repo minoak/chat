@@ -6275,7 +6275,7 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
-    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "2"
     if auxiliaryMode == "0" then
         return data
     end
