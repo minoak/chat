@@ -5134,10 +5134,10 @@ function generateStockPanelUI(triggerId)
         local isActive = currentView == tab.id
         if isActive then
             html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
+    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
         else
             html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
+    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
         end
     end
 
@@ -5160,7 +5160,7 @@ function generateStockPanelUI(triggerId)
     -- 하단 버튼 영역 (거래 종료)
     html = html .. [[
   <div style='padding:12px 16px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px'>
-    <button type='button' risu-btn='stock_exit' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
+    <button type='button' risu-btn='stock_exit' onclick='event.stopPropagation();' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
   </div>
 </div>]]  -- 메인 컨테이너 닫기
 
@@ -5243,7 +5243,7 @@ function generateStockBoardView(triggerId)
         local rowBg = owned > 0 and "rgba(255,215,0,0.05)" or "transparent"
 
         html = html .. string.format([[
-<button type='button' risu-btn='stock_select_%s' style='display:flex;align-items:center;width:100%%;padding:12px;background:%s;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
+<button type='button' risu-btn='stock_select_%s' onclick='event.stopPropagation();' style='display:flex;align-items:center;width:100%%;padding:12px;background:%s;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
   <div style='flex:2'>
     <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
     <div style='font-size:11px;color:#8b949e'>%s</div>
@@ -5605,17 +5605,17 @@ function generateStockOrderView(triggerId, ticker)
       <div style='display:flex;gap:4px'>]], lowestAsk)
 
     html = html .. string.format([[
-        <button type='button' risu-btn='stock_buy_%s_1' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
-        <button type='button' risu-btn='stock_buy_%s_5' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
-        <button type='button' risu-btn='stock_buy_%s_10' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>10주</button>
+        <button type='button' risu-btn='stock_buy_%s_1' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
+        <button type='button' risu-btn='stock_buy_%s_5' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
+        <button type='button' risu-btn='stock_buy_%s_10' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>10주</button>
       </div>
     </div>
     <div style='flex:1'>
       <div style='font-size:11px;color:#26a69a;margin-bottom:6px;text-align:center;font-weight:600'>매도 @ %dG</div>
       <div style='display:flex;gap:4px'>
-        <button type='button' risu-btn='stock_sell_%s_1' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
-        <button type='button' risu-btn='stock_sell_%s_5' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
-        <button type='button' risu-btn='stock_sell_%s_all' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>전량</button>
+        <button type='button' risu-btn='stock_sell_%s_1' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
+        <button type='button' risu-btn='stock_sell_%s_5' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
+        <button type='button' risu-btn='stock_sell_%s_all' onclick='event.stopPropagation();' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>전량</button>
       </div>
     </div>
   </div>
@@ -5715,7 +5715,7 @@ function generateStockAssetView(triggerId)
             local profitSign = h.profit >= 0 and "+" or ""
 
             html = html .. string.format([[
-  <button type='button' risu-btn='stock_select_%s' style='display:flex;width:100%%;padding:14px 16px;background:transparent;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
+  <button type='button' risu-btn='stock_select_%s' onclick='event.stopPropagation();' style='display:flex;width:100%%;padding:14px 16px;background:transparent;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
     <div style='flex:1'>
       <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
       <div style='font-size:11px;color:#8b949e'>%s · %d주 · 평단 %sG</div>
