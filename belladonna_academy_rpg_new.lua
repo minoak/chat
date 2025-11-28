@@ -5531,7 +5531,7 @@ function generateStockOrderView(triggerId, ticker)
       </div>
     </div>
   </div>
-</div>]], lowestAsk, ticker, ticker, ticker, highestBid, ticker, ticker, ticker)
+</div>]], ticker, ticker, ticker, highestBid, ticker, ticker, ticker)
 
     return html
 end
