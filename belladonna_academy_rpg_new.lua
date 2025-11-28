@@ -249,7 +249,8 @@ Check Game State for "⚔️ Combat Status: ACTIVE"
 - [Combat:End] when resolved. NEVER with <CombatChoice> same turn
 
 ## Weekly System
-Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|Stats:changes</WeeklyReport>[Day:금요일][Time:저녁]
+Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|INT:+N|STR:+N|...</WeeklyReport>[Day:금요일][Time:저녁]
+- Stats as individual fields: INT:+3|STR:+2|CHA:+1 (only stats that changed)
 Monday: [Week:X+1][Day:월요일][Time:오전]
 Exams (Week 6,12): [Exam:midterm:87:23]
 
