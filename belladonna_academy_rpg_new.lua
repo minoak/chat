@@ -1149,10 +1149,10 @@ end
 
 -- 현물 매수 (채팅 안 넘어감, 가격 갱신)
 function stockBuy(triggerId, ticker, quantity)
-    -- 선택 가격 우선, 없으면 현재가
-    local selectedPrice = getState(triggerId, "stock_selected_price")
+    -- 현실적 거래: 매도호가 중 최저가로 매수 (현재가 + 1)
     local marketPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-    local price = selectedPrice or marketPrice
+    local lowestAsk = marketPrice + 1  -- 최저 매도호가
+    local price = lowestAsk
 
     local cost = price * quantity
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
@@ -1214,10 +1214,10 @@ function stockSell(triggerId, ticker, quantity)
         return false
     end
 
-    -- 선택 가격 우선, 없으면 현재가
-    local selectedPrice = getState(triggerId, "stock_selected_price")
+    -- 현실적 거래: 매수호가 중 최고가로 매도 (현재가 - 1)
     local marketPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-    local price = selectedPrice or marketPrice
+    local highestBid = marketPrice - 1  -- 최고 매수호가
+    local price = highestBid
 
     local revenue = price * quantity
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
@@ -5376,13 +5376,13 @@ function generateStockChartView(triggerId, ticker)
 
         if isSelected then
             html = html .. string.format([[
-    <button type='button' risu-btn='stock_select_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
+    <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:600;color:#fff'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
     </button>]], t, t, tColor, tChange)
         else
             html = html .. string.format([[
-    <button type='button' risu-btn='stock_select_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
+    <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:500;color:#8b949e'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
     </button>]], t, t, tColor, tChange)
@@ -5401,7 +5401,10 @@ function generateStockOrderView(triggerId, ticker)
     local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
     local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#888")
     local changeSign = change > 0 and "+" or ""
-    local selectedPrice = getState(triggerId, "stock_selected_price") or currentPrice
+
+    -- 현실적 거래 가격: 매수는 최저 매도호가, 매도는 최고 매수호가
+    local lowestAsk = currentPrice + 1  -- 매수 체결가
+    local highestBid = currentPrice - 1  -- 매도 체결가
 
     -- 헤더: 종목 정보
     local html = string.format([[
@@ -5418,9 +5421,9 @@ function generateStockOrderView(triggerId, ticker)
   </div>
   <div style='margin-top:8px;display:flex;justify-content:space-between;font-size:12px'>
     <span style='color:#8b949e'>보유 <span style='color:#ffd700;font-weight:600'>%d주</span></span>
-    <span style='color:#8b949e'>선택가 <span style='color:#58a6ff;font-weight:600'>%dG</span></span>
+    <span style='color:#8b949e'>스프레드 <span style='color:#58a6ff;font-weight:600'>%dG</span></span>
   </div>
-</div>]], ticker, name, changeColor, currentPrice, changeColor, changeSign, change, owned, selectedPrice)
+</div>]], ticker, name, changeColor, currentPrice, changeColor, changeSign, change, owned, lowestAsk - highestBid)
 
     -- 호가창 본체
     html = html .. "<div style='background:#0d1117;padding:0'>"
@@ -5428,55 +5431,57 @@ function generateStockOrderView(triggerId, ticker)
     -- 컬럼 헤더
     html = html .. [[
 <div style='display:flex;padding:8px 12px;background:#161b22;font-size:11px;color:#8b949e;border-bottom:1px solid #30363d'>
-  <div style='flex:1;text-align:center'>잔량</div>
-  <div style='flex:1;text-align:center'>가격 (클릭 선택)</div>
-  <div style='flex:1;text-align:center'>잔량</div>
+  <div style='flex:1;text-align:center'>매도잔량</div>
+  <div style='flex:1;text-align:center'>호가</div>
+  <div style='flex:1;text-align:center'>매수잔량</div>
 </div>]]
 
-    -- 매도호가 (역순: 높은 가격이 위) - 클릭 가능
+    -- 매도호가 (역순: 높은 가격이 위)
     for i = #orderBook.asks, 1, -1 do
         local ask = orderBook.asks[i]
         local barWidth = math.floor((ask.volume / 60) * 100)
-        local isSelected = ask.price == selectedPrice
-        local bgColor = isSelected and "rgba(88,166,255,0.15)" or "transparent"
-        local borderStyle = isSelected and "border:1px solid #58a6ff" or "border-bottom:1px solid #21262d"
+        local isLowestAsk = (ask.price == lowestAsk)
+        local bgColor = isLowestAsk and "rgba(239,83,80,0.15)" or "transparent"
+        local borderStyle = isLowestAsk and "border:1px solid #ef5350" or "border-bottom:1px solid #21262d"
+        local priceColor = isLowestAsk and "#ef5350" or "#26a69a"
+        local label = isLowestAsk and " ◀매수" or ""
 
         html = html .. string.format([[
-<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
+<div style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s'>
   <div style='flex:1;position:relative;height:24px'>
     <div style='position:absolute;right:0;top:0;height:100%%;width:%d%%;background:rgba(38,166,154,0.2);border-radius:2px'></div>
     <span style='position:relative;z-index:1;font-size:13px;color:#26a69a;font-weight:500;line-height:24px'>%d</span>
   </div>
-  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:%s'>%dG</div>
+  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:%s'>%dG%s</div>
   <div style='flex:1'></div>
-</button>]], ask.price, borderStyle, bgColor, barWidth, ask.volume, isSelected and "#58a6ff" or "#26a69a", ask.price)
+</div>]], borderStyle, bgColor, barWidth, ask.volume, priceColor, ask.price, label)
     end
 
-    -- 현재가 강조 (클릭 가능)
-    local currentSelected = currentPrice == selectedPrice
-    local currentBg = currentSelected and "rgba(255,215,0,0.2)" or "#1c2128"
+    -- 현재가 강조
     html = html .. string.format([[
-<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;justify-content:center;padding:10px;background:%s;border-top:2px solid #ffd700;border-bottom:2px solid #ffd700;cursor:pointer'>
+<div style='display:flex;width:100%%;align-items:center;justify-content:center;padding:10px;background:#1c2128;border-top:2px solid #ffd700;border-bottom:2px solid #ffd700'>
   <span style='font-size:18px;font-weight:700;color:#ffd700'>%dG</span>
-  <span style='font-size:12px;color:%s;margin-left:8px'>%s%d%% (시장가)</span>
-</button>]], currentPrice, currentBg, currentPrice, changeColor, changeSign, change)
+  <span style='font-size:12px;color:%s;margin-left:8px'>%s%d%% (현재가)</span>
+</div>]], currentPrice, changeColor, changeSign, change)
 
-    -- 매수호가 - 클릭 가능
+    -- 매수호가
     for _, bid in ipairs(orderBook.bids) do
         local barWidth = math.floor((bid.volume / 60) * 100)
-        local isSelected = bid.price == selectedPrice
-        local bgColor = isSelected and "rgba(88,166,255,0.15)" or "transparent"
-        local borderStyle = isSelected and "border:1px solid #58a6ff" or "border-bottom:1px solid #21262d"
+        local isHighestBid = (bid.price == highestBid)
+        local bgColor = isHighestBid and "rgba(38,166,154,0.15)" or "transparent"
+        local borderStyle = isHighestBid and "border:1px solid #26a69a" or "border-bottom:1px solid #21262d"
+        local priceColor = isHighestBid and "#26a69a" or "#ef5350"
+        local label = isHighestBid and "매도▶ " or ""
 
         html = html .. string.format([[
-<button type='button' risu-btn='stock_price_%d' style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s;cursor:pointer'>
+<div style='display:flex;width:100%%;align-items:center;padding:6px 12px;%s;background:%s'>
   <div style='flex:1'></div>
-  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:%s'>%dG</div>
+  <div style='flex:1;text-align:center;font-size:14px;font-weight:600;color:%s'>%s%dG</div>
   <div style='flex:1;position:relative;height:24px;text-align:right'>
     <div style='position:absolute;left:0;top:0;height:100%%;width:%d%%;background:rgba(239,83,80,0.2);border-radius:2px'></div>
     <span style='position:relative;z-index:1;font-size:13px;color:#ef5350;font-weight:500;line-height:24px'>%d</span>
   </div>
-</button>]], bid.price, borderStyle, bgColor, isSelected and "#58a6ff" or "#ef5350", bid.price, barWidth, bid.volume)
+</div>]], borderStyle, bgColor, priceColor, label, bid.price, barWidth, bid.volume)
     end
 
     html = html .. "</div>"
@@ -5503,14 +5508,13 @@ function generateStockOrderView(triggerId, ticker)
 </div>]], msgBg, msgColor, msgColor, tradeMsg)
     end
 
-    -- 거래 버튼 (선택 가격 표시)
+    -- 거래 버튼 (매수가/매도가 표시)
     html = html .. string.format([[
 <div style='background:#161b22;padding:12px;border-radius:0 0 8px 8px;border-top:1px solid #30363d'>
-  <div style='text-align:center;font-size:12px;color:#58a6ff;margin-bottom:8px;font-weight:500'>거래가: %dG</div>
   <div style='display:flex;gap:10px'>
     <div style='flex:1'>
-      <div style='font-size:11px;color:#8b949e;margin-bottom:6px;text-align:center'>매수</div>
-      <div style='display:flex;gap:4px'>]], selectedPrice)
+      <div style='font-size:11px;color:#ef5350;margin-bottom:6px;text-align:center;font-weight:600'>매수 @ %dG</div>
+      <div style='display:flex;gap:4px'>]], lowestAsk)
 
     html = html .. string.format([[
         <button type='button' risu-btn='stock_buy_%s_1' style='flex:1;padding:10px 0;background:#ef5350;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
@@ -5519,7 +5523,7 @@ function generateStockOrderView(triggerId, ticker)
       </div>
     </div>
     <div style='flex:1'>
-      <div style='font-size:11px;color:#8b949e;margin-bottom:6px;text-align:center'>매도</div>
+      <div style='font-size:11px;color:#26a69a;margin-bottom:6px;text-align:center;font-weight:600'>매도 @ %dG</div>
       <div style='display:flex;gap:4px'>
         <button type='button' risu-btn='stock_sell_%s_1' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>1주</button>
         <button type='button' risu-btn='stock_sell_%s_5' style='flex:1;padding:10px 0;background:#26a69a;color:white;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer'>5주</button>
@@ -5527,7 +5531,7 @@ function generateStockOrderView(triggerId, ticker)
       </div>
     </div>
   </div>
-</div>]], ticker, ticker, ticker, ticker, ticker, ticker)
+</div>]], lowestAsk, ticker, ticker, ticker, highestBid, ticker, ticker, ticker)
 
     return html
 end
@@ -6248,17 +6252,22 @@ onButtonClick = async(function(triggerId, code)
         log("📊 주식 탭 전환: " .. viewId)
     end
 
-    -- 주식 종목 선택 핸들러
+    -- 주식 종목 선택 핸들러 (시세표에서 클릭 - 거래 화면으로 이동)
     local selectTicker = code:match("^stock_select_([A-Z]+)$")
     if selectTicker then
         setState(triggerId, "stock_selected_ticker", selectTicker)
         setState(triggerId, "stock_current_view", "order")
-        -- 선택 가격 초기화 (종목 변경시)
-        local currentPrice = getState(triggerId, "stock_" .. selectTicker .. "_price") or STOCK_BASE_PRICES[selectTicker]
-        setState(triggerId, "stock_selected_price", currentPrice)
         -- 거래 메시지 초기화
         setState(triggerId, "stock_last_trade_msg", "")
-        log("📌 종목 선택: " .. selectTicker)
+        log("📌 종목 선택 (거래): " .. selectTicker)
+    end
+
+    -- 차트 종목 선택 핸들러 (차트에서 클릭 - 차트만 변경)
+    local chartTicker = code:match("^stock_chart_([A-Z]+)$")
+    if chartTicker then
+        setState(triggerId, "stock_selected_ticker", chartTicker)
+        -- 차트 뷰 유지, 거래 화면으로 이동하지 않음
+        log("📊 차트 종목 변경: " .. chartTicker)
     end
 
     -- 주식 패널 종료 핸들러
