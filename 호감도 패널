@@ -893,6 +893,19 @@ body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;ov
 </div>
 
 <div style="margin-bottom:25px;">
+<h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">💕 호감도 시스템</h3>
+<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">호감도 시스템을 활성화/비활성화합니다. OFF 시 호감도 태그가 파싱되지 않습니다.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+<button type="button" risu-trigger="set_affinity_on" style="padding:14px 20px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(233,30,99,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(233,30,99,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(233,30,99,0.3)'">💕 ON</button>
+<button type="button" risu-trigger="set_affinity_off" style="padding:14px 20px;background:linear-gradient(135deg,#95a5a6,#7f8c8d);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(149,165,166,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(149,165,166,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(149,165,166,0.3)'">💔 OFF</button>
+</div>
+<div style="padding:10px;background:#f5f1e8;border-radius:6px;text-align:center;border:1px solid #d4c4a8;">
+<span style="font-size:13px;color:#666;">현재 설정: </span>
+<span style="font-weight:700;color:#5d4e37;font-size:14px;">{{getvar::affinity_system_text}}</span>
+</div>
+</div>
+
+<div style="margin-bottom:25px;">
 <h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">📊 스탯 초기화</h3>
 <p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">모든 스탯을 50으로, 레벨을 1로 초기화합니다. (EXP 0, 전투력 자동 재계산)</p>
 <button type="button" risu-trigger="reset_all_stats_to_50" style="width:100%;padding:14px 20px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(231,76,60,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(231,76,60,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(231,76,60,0.3)'">🔄 스탯 초기화 (50)</button>
