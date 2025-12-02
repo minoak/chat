@@ -3934,6 +3934,19 @@ function onStart(triggerId)
         log("🔧 보조 AI 모드 로드: " .. currentAuxMode)
     end
 
+    -- 호감도 시스템 초기화 (기본값: 활성화)
+    local currentAffinitySystem = getState(triggerId, "affinity_system_enabled")
+    if currentAffinitySystem ~= "true" and currentAffinitySystem ~= "false" then
+        setState(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_text", "ON")
+        log("💕 호감도 시스템 초기화: ON")
+    else
+        setChatVar(triggerId, "affinity_system_enabled", currentAffinitySystem)
+        setChatVar(triggerId, "affinity_system_text", currentAffinitySystem == "true" and "ON" or "OFF")
+        log("💕 호감도 시스템 로드: " .. currentAffinitySystem)
+    end
+
     -- 주간 스케줄 변수 초기화
     if not getState(triggerId, "weekly_schedule_display") then
         local defaultSchedule = "=== 이번 주 계획 ===\n\n아직 스케줄이 설정되지 않았습니다.\n'스케줄 조정' 버튼을 눌러 계획을 세워보세요!"
@@ -4169,29 +4182,32 @@ function processOutput(triggerId)
         end
     end
 
-    -- 호감도 파싱
-    for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
-        for _, char in ipairs(characters) do
-            if char.display == charName and affinityChanges[feeling] then
-                local key = char.storage .. "_affinity"
-                local current = tonumber(getChatVar(triggerId, key)) or 0
-                local change = affinityChanges[feeling]
-                local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+    -- 호감도 파싱 (시스템 활성화 시에만)
+    local affinityEnabled = getChatVar(triggerId, "affinity_system_enabled")
+    if affinityEnabled ~= "false" then  -- 기본값은 활성화
+        for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+            for _, char in ipairs(characters) do
+                if char.display == charName and affinityChanges[feeling] then
+                    local key = char.storage .. "_affinity"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = affinityChanges[feeling]
+                    local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
 
-                setChatVar(triggerId, key, tostring(new))
+                    setChatVar(triggerId, key, tostring(new))
 
-                local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
-                setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
 
-                if char.is_main then
-                    setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    if char.is_main then
+                        setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    end
+
+                    updatePercent(triggerId, char)
+
+                    log(string.format("%s %s 호감도 %+d (%s) | 현재: %d",
+                        char.icon, char.display, change, feeling, new))
+                    break
                 end
-
-                updatePercent(triggerId, char)
-
-                log(string.format("%s %s 호감도 %+d (%s) | 현재: %d",
-                    char.icon, char.display, change, feeling, new))
-                break
             end
         end
     end
@@ -5973,6 +5989,23 @@ _G["set_aux_mode_off"] = function(triggerId)
     alertNormal(triggerId, "보조 AI가 [Off]로 설정되었습니다. 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.")
 end
 
+-- 호감도 시스템 ON/OFF
+_G["set_affinity_on"] = function(triggerId)
+    setState(triggerId, "affinity_system_enabled", "true")
+    setChatVar(triggerId, "affinity_system_enabled", "true")
+    setChatVar(triggerId, "affinity_system_text", "ON")
+    alertNormal(triggerId, "호감도 시스템이 활성화되었습니다.")
+    log("💕 호감도 시스템 ON")
+end
+
+_G["set_affinity_off"] = function(triggerId)
+    setState(triggerId, "affinity_system_enabled", "false")
+    setChatVar(triggerId, "affinity_system_enabled", "false")
+    setChatVar(triggerId, "affinity_system_text", "OFF")
+    alertNormal(triggerId, "호감도 시스템이 비활성화되었습니다. 호감도 태그가 출력되지 않습니다.")
+    log("💔 호감도 시스템 OFF")
+end
+
 _G["reset_all_stats_to_50"] = function(triggerId)
     local stats = {"str", "dex", "int", "cha", "luk", "vit"}
 
@@ -6139,28 +6172,31 @@ _G["reroll_auxiliary"] = function(triggerId)
         end
     end
 
-    -- 호감도 파싱
-    for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
-        for _, char in ipairs(characters) do
-            if char.display == charName and affinityChanges[feeling] then
-                local key = char.storage .. "_affinity"
-                local current = tonumber(getChatVar(triggerId, key)) or 0
-                local change = affinityChanges[feeling]
-                local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+    -- 호감도 파싱 (시스템 활성화 시에만)
+    local affinityEnabled = getChatVar(triggerId, "affinity_system_enabled")
+    if affinityEnabled ~= "false" then
+        for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+            for _, char in ipairs(characters) do
+                if char.display == charName and affinityChanges[feeling] then
+                    local key = char.storage .. "_affinity"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = affinityChanges[feeling]
+                    local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
 
-                setChatVar(triggerId, key, tostring(new))
+                    setChatVar(triggerId, key, tostring(new))
 
-                local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
-                setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
 
-                if char.is_main then
-                    setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    if char.is_main then
+                        setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    end
+
+                    updatePercent(triggerId, char)
+                    log(string.format("💕 %s 호감도: %d → %d (%s, %+d)",
+                        char.display, current, new, feeling, change))
+                    break
                 end
-
-                updatePercent(triggerId, char)
-                log(string.format("💕 %s 호감도: %d → %d (%s, %+d)",
-                    char.display, current, new, feeling, change))
-                break
             end
         end
     end

@@ -39,12 +39,14 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 
 ### Relationship Tags (Output Every Turn)
 
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}
 [Affinity:CharacterName:level] - How feelings changed THIS TURN
 - love (+20): Life-changing moment, confession, deep breakthrough
 - like (+15): Genuine kindness, warmth, pleasant surprise
 - neutral (0): No emotional shift
 - dislike (-15): Annoyance, disappointment, mild conflict
 - hate (-20): Betrayal, deep hurt, serious conflict
+{{/if_pure}}
 
 [Sin:CharacterName:level] - Sin manifestation THIS TURN
 - corrupt (+2): Completely surrendered to sin
