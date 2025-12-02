@@ -14,7 +14,8 @@ After your narrative response, output structured tags to update game state.
 
 ## Mandatory Output Format
 
-[Affinity:CharacterName:level][Sin:CharacterName:level]
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}
+[Affinity:CharacterName:level]{{/if_pure}}[Sin:CharacterName:level]
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
@@ -139,7 +140,7 @@ Use first name only in tags: [Affinity:Mirabel:like] NOT [Affinity:Mirabel von G
 Narrative: "A goblin appears, brandishing a rusty blade! Cassandra cheers as you strike it down."
 
 Tags:
-[Affinity:Cassandra:like][Sin:Cassandra:neutral]
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}[Affinity:Cassandra:like]{{/if_pure}}[Sin:Cassandra:neutral]
 [Combat:Goblin:280][Combat:End][EXP:+30]
 <Panel>■★
 
