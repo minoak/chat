@@ -245,7 +245,7 @@ NEP (네펜데스 제약): 88g, 하락 - 부작용 스캔들
 
 보조모델 태그 출력:
 ```
-[Affinity:Mirabel:neutral][Sin:Mirabel:neutral]
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}[Affinity:Mirabel:neutral]{{/if_pure}}[Sin:Mirabel:neutral]
 [Stock:LILY:105:+5|NEP:88:-2|IMP:251:+1|ROSE:198:-2]
 <StockPanel />
 <Panel>■★
