@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>벨라도나 아카데미 - 관계 설정</title>
+<style>
+.bella-ui-widget{all:initial;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:block;width:100%;max-width:900px;box-sizing:border-box;margin:0}
+.bella-ui-widget *{margin:0;padding:0;box-sizing:border-box}
+.bella-ui-wrapper{background:#1a1a1f;min-height:200px;display:flex;flex-direction:column;padding:16px 20px;position:relative;border-radius:12px;color:#f5f5f7;border:1px solid#2c2c35;box-shadow:0 0 20px rgba(139,92,246,0.1)}
+.bella-ui-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:8px;color:#f5f5f7;letter-spacing:-0.5px;text-shadow:0 0 10px rgba(139,92,246,0.3)}
+.bella-ui-subtitle{font-size:11px;font-weight:500;color:#a0a0ab;margin-bottom:16px;text-align:center;letter-spacing:0.3px}
+.bella-ui-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;background:#25252d;padding:4px;border-radius:10px}
+.bella-ui-tab-radio{position:absolute;opacity:0;pointer-events:none}
+.bella-ui-tab-btn{padding:8px 16px;background:transparent;color:#a0a0ab;cursor:pointer;font-size:12px;font-weight:600;border-radius:8px;transition:all 0.2s ease;white-space:nowrap}
+.bella-ui-tab-btn:hover{background:#2c2c35;color:#f5f5f7}
+#tab-mirabel:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-celestia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-cassandra:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-evangeline:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-amelia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-nepenthes:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-lilith:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+#tab-aurelia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+.bella-ui-content-wrapper{position:relative;min-height:320px}
+.bella-ui-content-container{display:none}
+#tab-mirabel:checked ~ .bella-ui-content-wrapper .bella-ui-content-mirabel{display:block}
+#tab-celestia:checked ~ .bella-ui-content-wrapper .bella-ui-content-celestia{display:block}
+#tab-cassandra:checked ~ .bella-ui-content-wrapper .bella-ui-content-cassandra{display:block}
+#tab-evangeline:checked ~ .bella-ui-content-wrapper .bella-ui-content-evangeline{display:block}
+#tab-amelia:checked ~ .bella-ui-content-wrapper .bella-ui-content-amelia{display:block}
+#tab-nepenthes:checked ~ .bella-ui-content-wrapper .bella-ui-content-nepenthes{display:block}
+#tab-lilith:checked ~ .bella-ui-content-wrapper .bella-ui-content-lilith{display:block}
+#tab-aurelia:checked ~ .bella-ui-content-wrapper .bella-ui-content-aurelia{display:block}
+.bella-stat-section{background:#25252d;border-radius:10px;padding:16px;margin-bottom:16px;border:1px solid #35354a}
+.bella-stat-title{font-size:14px;font-weight:700;margin-bottom:16px;text-align:center;color:#f5f5f7}
+.bella-stat-group{margin-bottom:16px}
+.bella-stat-label{font-size:13px;font-weight:600;color:#f5f5f7;margin-bottom:8px;display:block}
+.bella-stat-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.bella-stat-buttons.sin-buttons{grid-template-columns:repeat(2,1fr)}
+.bella-stat-btn{padding:8px 4px;background:#2c2c35;color:#f5f5f7;border:1px solid #35354a;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s ease}
+.bella-stat-btn:hover{background:#35354a;transform:translateY(-1px)}
+.bella-stat-btn.negative{background:#dc2626;color:white;border:1px solid #ef4444}
+.bella-stat-btn.positive{background:#ec4899;color:white;border:1px solid #f472b6}
+.bella-stat-btn.pressure{background:#c85a54;color:white;border:1px solid #9b4a4a}
+.bella-stat-btn.relief{background:#4a9bb8;color:white;border:1px solid #5ab88a}
+.bella-scenario-section{background:#25252d;border-radius:10px;padding:16px;border:1px solid #35354a}
+.bella-scenario-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.bella-scenario-btn{padding:12px 16px;background:#2c2c35;color:#f5f5f7;border:1px solid #35354a;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:8px}
+.bella-scenario-btn:hover{background:#8b5cf6;color:#ffffff;transform:translateY(-2px)}
+.bella-common-section{background:#25252d;border-radius:10px;padding:16px;margin-top:16px;border:1px solid #35354a}
+.bella-common-title{font-size:13px;font-weight:700;margin-bottom:12px;text-align:center;color:#f5f5f7}
+@media(max-width:600px){.bella-ui-wrapper{padding:12px}.bella-scenario-grid{grid-template-columns:1fr}.bella-stat-buttons{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="bella-ui-widget">
+<div class="bella-ui-wrapper">
+<h1 class="bella-ui-title">🌺 벨라도나 아카데미 🌺</h1>
+<div class="bella-ui-subtitle">캐릭터를 선택하고 초기 관계를 설정하세요</div>
+
+<input type="radio" name="tab" id="tab-mirabel" class="bella-ui-tab-radio" checked>
+<input type="radio" name="tab" id="tab-celestia" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-cassandra" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-evangeline" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-amelia" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-nepenthes" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-lilith" class="bella-ui-tab-radio">
+<input type="radio" name="tab" id="tab-aurelia" class="bella-ui-tab-radio">
+
+<div class="bella-ui-tabs">
+<label for="tab-mirabel" class="bella-ui-tab-btn">💰 미라벨</label>
+<label for="tab-celestia" class="bella-ui-tab-btn">👑 셀레스티아</label>
+<label for="tab-cassandra" class="bella-ui-tab-btn">⚔️ 카산드라</label>
+<label for="tab-evangeline" class="bella-ui-tab-btn">💋 에반젤린</label>
+<label for="tab-amelia" class="bella-ui-tab-btn">🎨 아멜리아</label>
+<label for="tab-nepenthes" class="bella-ui-tab-btn">🧪 네펜테스</label>
+<label for="tab-lilith" class="bella-ui-tab-btn">📱 릴리스</label>
+<label for="tab-aurelia" class="bella-ui-tab-btn">☀️ 아우렐리아</label>
+</div>
+
+<div class="bella-ui-content-wrapper">
+
+<!-- 미라벨 -->
+<div class="bella-ui-content-container bella-ui-content-mirabel">
+<div class="bella-stat-section">
+<div class="bella-stat-title">💰 미라벨 폰 골든로제</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_mirabel_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_mirabel_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_mirabel_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_mirabel_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 탐욕 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_mirabel_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_mirabel_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 탐욕 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_mirabel_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_mirabel_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting1"><span>💸</span><span>채무 수금</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting2"><span>🛍️</span><span>함께 쇼핑</span></button>
+</div>
+</div>
+</div>
+
+<!-- 셀레스티아 -->
+<div class="bella-ui-content-container bella-ui-content-celestia">
+<div class="bella-stat-section">
+<div class="bella-stat-title">👑 셀레스티아 폰 실버크라운</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_celestia_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_celestia_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_celestia_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_celestia_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 오만 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_celestia_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_celestia_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 오만 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_celestia_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_celestia_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting3"><span>☕</span><span>티타임</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting4"><span>🌃</span><span>변장 만남</span></button>
+</div>
+</div>
+</div>
+
+<!-- 카산드라 -->
+<div class="bella-ui-content-container bella-ui-content-cassandra">
+<div class="bella-stat-section">
+<div class="bella-stat-title">⚔️ 카산드라 폰 울프하트</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_cassandra_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_cassandra_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_cassandra_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_cassandra_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 분노 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_cassandra_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_cassandra_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 분노 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_cassandra_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_cassandra_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting5"><span>💪</span><span>함께 운동</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting6"><span>📚</span><span>만화 구매</span></button>
+</div>
+</div>
+</div>
+
+<!-- 에반젤린 -->
+<div class="bella-ui-content-container bella-ui-content-evangeline">
+<div class="bella-stat-section">
+<div class="bella-stat-title">💋 에반젤린 폰 포이즌로즈</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_evangeline_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_evangeline_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_evangeline_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_evangeline_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 색욕 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_evangeline_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_evangeline_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 색욕 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_evangeline_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_evangeline_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting7"><span>🍾</span><span>클럽 만남</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting8"><span>👑</span><span>호스트 클럽</span></button>
+</div>
+</div>
+</div>
+
+<!-- 아멜리아 -->
+<div class="bella-ui-content-container bella-ui-content-amelia">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🎨 아멜리아 폰 샤덴프로이데</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_amelia_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_amelia_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_amelia_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_amelia_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 질투 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_amelia_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_amelia_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 질투 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_amelia_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_amelia_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting9"><span>👀</span><span>몰래 관찰</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting10"><span>🏠</span><span>방콕 모드</span></button>
+</div>
+</div>
+</div>
+
+<!-- 네펜테스 -->
+<div class="bella-ui-content-container bella-ui-content-nepenthes">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🧪 네펜테스 폰 도르미엔</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_nepenthes_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_nepenthes_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_nepenthes_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_nepenthes_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 폭식 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_nepenthes_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_nepenthes_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 폭식 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_nepenthes_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_nepenthes_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting11"><span>🧪</span><span>연금술 과외</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting12"><span>🌿</span><span>비밀 정원</span></button>
+</div>
+</div>
+</div>
+
+<!-- 릴리스 -->
+<div class="bella-ui-content-container bella-ui-content-lilith">
+<div class="bella-stat-section">
+<div class="bella-stat-title">📱 릴리스 폰 트라움샤텐</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_lilith_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_lilith_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_lilith_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_lilith_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 나태 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_lilith_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_lilith_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 나태 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_lilith_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_lilith_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting13"><span>🏪</span><span>편의점 조우</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting14"><span>🎮</span><span>학교에서</span></button>
+</div>
+</div>
+</div>
+
+<!-- 아우렐리아 -->
+<div class="bella-ui-content-container bella-ui-content-aurelia">
+<div class="bella-stat-section">
+<div class="bella-stat-title">☀️ 아우렐리아 폰 골든크라운</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_aurelia_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_aurelia_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_aurelia_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_aurelia_plus_100">+100</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">😈 타락 - 압력</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_aurelia_sin_pos_plus_5">+5</button>
+<button type="button" class="bella-stat-btn pressure" risu-trigger="adjust_aurelia_sin_pos_plus_15">+15</button>
+</div>
+</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">✨ 타락 - 해소</span>
+<div class="bella-stat-buttons sin-buttons">
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_aurelia_sin_neg_plus_5">+5</button>
+<button type="button" class="bella-stat-btn relief" risu-trigger="adjust_aurelia_sin_neg_plus_15">+15</button>
+</div>
+</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting15"><span>👑</span><span>황실 접견</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting16"><span>🌙</span><span>The Pit 목격</span></button>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- 공통 시작 옵션 -->
+<div class="bella-common-section">
+<div class="bella-common-title">🎲 공통 시작 옵션</div>
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="random_start">
+<span>🎲</span><span>랜덤 시작</span>
+</button>
+<button type="button" class="bella-scenario-btn" risu-trigger="free_start">
+<span>✨</span><span>자유 시작</span>
+</button>
+</div>
+</div>
+
+</div>
+</div>
+</body>
+</html>
