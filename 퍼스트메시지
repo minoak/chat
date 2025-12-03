@@ -10,20 +10,35 @@
 .bella-ui-wrapper{background:#1a1a1f;min-height:200px;display:flex;flex-direction:column;padding:16px 20px;position:relative;border-radius:12px;color:#f5f5f7;border:1px solid#2c2c35;box-shadow:0 0 20px rgba(139,92,246,0.1)}
 .bella-ui-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:8px;color:#f5f5f7;letter-spacing:-0.5px;text-shadow:0 0 10px rgba(139,92,246,0.3)}
 .bella-ui-subtitle{font-size:11px;font-weight:500;color:#a0a0ab;margin-bottom:16px;text-align:center;letter-spacing:0.3px}
+
+/* 상위 카테고리 탭 (메인/서브) */
+.bella-category-tabs{display:flex;gap:8px;margin-bottom:12px;justify-content:center}
+.bella-category-radio{position:absolute;opacity:0;pointer-events:none}
+.bella-category-btn{padding:10px 24px;background:#25252d;color:#a0a0ab;cursor:pointer;font-size:13px;font-weight:700;border-radius:10px;transition:all 0.2s ease;border:1px solid #35354a}
+.bella-category-btn:hover{background:#2c2c35;color:#f5f5f7}
+#cat-main:checked + label{background:#8b5cf6;color:#ffffff;border-color:#8b5cf6;box-shadow:0 2px 10px rgba(139,92,246,0.4)}
+#cat-sub:checked + label{background:#ec4899;color:#ffffff;border-color:#ec4899;box-shadow:0 2px 10px rgba(236,72,153,0.4)}
+
+/* 캐릭터 탭 컨테이너 */
+.bella-main-chars,.bella-sub-chars{display:none}
+#cat-main:checked ~ .bella-main-chars{display:block}
+#cat-sub:checked ~ .bella-sub-chars{display:block}
+
 .bella-ui-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;background:#25252d;padding:4px;border-radius:10px}
 .bella-ui-tab-radio{position:absolute;opacity:0;pointer-events:none}
-.bella-ui-tab-btn{padding:8px 16px;background:transparent;color:#a0a0ab;cursor:pointer;font-size:12px;font-weight:600;border-radius:8px;transition:all 0.2s ease;white-space:nowrap}
+.bella-ui-tab-btn{padding:8px 14px;background:transparent;color:#a0a0ab;cursor:pointer;font-size:11px;font-weight:600;border-radius:8px;transition:all 0.2s ease;white-space:nowrap}
 .bella-ui-tab-btn:hover{background:#2c2c35;color:#f5f5f7}
-#tab-mirabel:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-celestia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-cassandra:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-evangeline:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-amelia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-nepenthes:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-lilith:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
-#tab-aurelia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+
+/* 메인 캐릭터 탭 스타일 */
+#tab-mirabel:checked + label,#tab-celestia:checked + label,#tab-cassandra:checked + label,#tab-evangeline:checked + label,#tab-amelia:checked + label,#tab-nepenthes:checked + label,#tab-lilith:checked + label,#tab-aurelia:checked + label{background:#8b5cf6;color:#ffffff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+
+/* 서브 캐릭터 탭 스타일 */
+#tab-cordelia:checked + label,#tab-suah:checked + label,#tab-adelheid:checked + label,#tab-rosalie:checked + label,#tab-mika:checked + label,#tab-clover:checked + label,#tab-noctis:checked + label,#tab-pennywise:checked + label,#tab-vivienne:checked + label,#tab-scar:checked + label,#tab-robert:checked + label,#tab-margot:checked + label,#tab-lydia:checked + label,#tab-hemlock:checked + label,#tab-margaret:checked + label{background:#ec4899;color:#ffffff;box-shadow:0 2px 8px rgba(236,72,153,0.3)}
+
 .bella-ui-content-wrapper{position:relative;min-height:320px}
 .bella-ui-content-container{display:none}
+
+/* 메인 캐릭터 콘텐츠 표시 */
 #tab-mirabel:checked ~ .bella-ui-content-wrapper .bella-ui-content-mirabel{display:block}
 #tab-celestia:checked ~ .bella-ui-content-wrapper .bella-ui-content-celestia{display:block}
 #tab-cassandra:checked ~ .bella-ui-content-wrapper .bella-ui-content-cassandra{display:block}
@@ -32,6 +47,24 @@
 #tab-nepenthes:checked ~ .bella-ui-content-wrapper .bella-ui-content-nepenthes{display:block}
 #tab-lilith:checked ~ .bella-ui-content-wrapper .bella-ui-content-lilith{display:block}
 #tab-aurelia:checked ~ .bella-ui-content-wrapper .bella-ui-content-aurelia{display:block}
+
+/* 서브 캐릭터 콘텐츠 표시 */
+#tab-cordelia:checked ~ .bella-ui-content-wrapper .bella-ui-content-cordelia{display:block}
+#tab-suah:checked ~ .bella-ui-content-wrapper .bella-ui-content-suah{display:block}
+#tab-adelheid:checked ~ .bella-ui-content-wrapper .bella-ui-content-adelheid{display:block}
+#tab-rosalie:checked ~ .bella-ui-content-wrapper .bella-ui-content-rosalie{display:block}
+#tab-mika:checked ~ .bella-ui-content-wrapper .bella-ui-content-mika{display:block}
+#tab-clover:checked ~ .bella-ui-content-wrapper .bella-ui-content-clover{display:block}
+#tab-noctis:checked ~ .bella-ui-content-wrapper .bella-ui-content-noctis{display:block}
+#tab-pennywise:checked ~ .bella-ui-content-wrapper .bella-ui-content-pennywise{display:block}
+#tab-vivienne:checked ~ .bella-ui-content-wrapper .bella-ui-content-vivienne{display:block}
+#tab-scar:checked ~ .bella-ui-content-wrapper .bella-ui-content-scar{display:block}
+#tab-robert:checked ~ .bella-ui-content-wrapper .bella-ui-content-robert{display:block}
+#tab-margot:checked ~ .bella-ui-content-wrapper .bella-ui-content-margot{display:block}
+#tab-lydia:checked ~ .bella-ui-content-wrapper .bella-ui-content-lydia{display:block}
+#tab-hemlock:checked ~ .bella-ui-content-wrapper .bella-ui-content-hemlock{display:block}
+#tab-margaret:checked ~ .bella-ui-content-wrapper .bella-ui-content-margaret{display:block}
+
 .bella-stat-section{background:#25252d;border-radius:10px;padding:16px;margin-bottom:16px;border:1px solid #35354a}
 .bella-stat-title{font-size:14px;font-weight:700;margin-bottom:16px;text-align:center;color:#f5f5f7}
 .bella-stat-group{margin-bottom:16px}
@@ -50,7 +83,9 @@
 .bella-scenario-btn:hover{background:#8b5cf6;color:#ffffff;transform:translateY(-2px)}
 .bella-common-section{background:#25252d;border-radius:10px;padding:16px;margin-top:16px;border:1px solid #35354a}
 .bella-common-title{font-size:13px;font-weight:700;margin-bottom:12px;text-align:center;color:#f5f5f7}
-@media(max-width:600px){.bella-ui-wrapper{padding:12px}.bella-scenario-grid{grid-template-columns:1fr}.bella-stat-buttons{grid-template-columns:repeat(2,1fr)}}
+.bella-scenario-grid.common-grid{grid-template-columns:repeat(3,1fr)}
+.bella-placeholder{text-align:center;color:#6b6b7b;padding:40px 20px;font-size:13px}
+@media(max-width:600px){.bella-ui-wrapper{padding:12px}.bella-scenario-grid{grid-template-columns:1fr}.bella-scenario-grid.common-grid{grid-template-columns:1fr}.bella-stat-buttons{grid-template-columns:repeat(2,1fr)}.bella-ui-tab-btn{padding:6px 10px;font-size:10px}}
 </style>
 </head>
 <body>
@@ -59,14 +94,24 @@
 <h1 class="bella-ui-title">🌺 벨라도나 아카데미 🌺</h1>
 <div class="bella-ui-subtitle">캐릭터를 선택하고 초기 관계를 설정하세요</div>
 
-<input type="radio" name="tab" id="tab-mirabel" class="bella-ui-tab-radio" checked>
-<input type="radio" name="tab" id="tab-celestia" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-cassandra" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-evangeline" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-amelia" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-nepenthes" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-lilith" class="bella-ui-tab-radio">
-<input type="radio" name="tab" id="tab-aurelia" class="bella-ui-tab-radio">
+<!-- 상위 카테고리 탭 -->
+<input type="radio" name="category" id="cat-main" class="bella-category-radio" checked>
+<input type="radio" name="category" id="cat-sub" class="bella-category-radio">
+<div class="bella-category-tabs">
+<label for="cat-main" class="bella-category-btn">⭐ 메인 캐릭터</label>
+<label for="cat-sub" class="bella-category-btn">🌙 서브 캐릭터</label>
+</div>
+
+<!-- 메인 캐릭터 섹션 -->
+<div class="bella-main-chars">
+<input type="radio" name="main-tab" id="tab-mirabel" class="bella-ui-tab-radio" checked>
+<input type="radio" name="main-tab" id="tab-celestia" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-cassandra" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-evangeline" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-amelia" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-nepenthes" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-lilith" class="bella-ui-tab-radio">
+<input type="radio" name="main-tab" id="tab-aurelia" class="bella-ui-tab-radio">
 
 <div class="bella-ui-tabs">
 <label for="tab-mirabel" class="bella-ui-tab-btn">💰 미라벨</label>
@@ -370,13 +415,268 @@
 </div>
 
 </div>
+</div>
+
+<!-- 서브 캐릭터 섹션 -->
+<div class="bella-sub-chars">
+<input type="radio" name="sub-tab" id="tab-cordelia" class="bella-ui-tab-radio" checked>
+<input type="radio" name="sub-tab" id="tab-suah" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-adelheid" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-rosalie" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-mika" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-clover" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-noctis" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-pennywise" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-vivienne" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-scar" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-robert" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-margot" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-lydia" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-hemlock" class="bella-ui-tab-radio">
+<input type="radio" name="sub-tab" id="tab-margaret" class="bella-ui-tab-radio">
+
+<div class="bella-ui-tabs">
+<label for="tab-cordelia" class="bella-ui-tab-btn">💎 코델리아</label>
+<label for="tab-suah" class="bella-ui-tab-btn">🎀 수아</label>
+<label for="tab-adelheid" class="bella-ui-tab-btn">🗡️ 아델하이드</label>
+<label for="tab-rosalie" class="bella-ui-tab-btn">🌹 로잘리</label>
+<label for="tab-mika" class="bella-ui-tab-btn">🐱 미카</label>
+<label for="tab-clover" class="bella-ui-tab-btn">🍀 클로버</label>
+<label for="tab-noctis" class="bella-ui-tab-btn">🌙 녹티스</label>
+<label for="tab-pennywise" class="bella-ui-tab-btn">🎪 페니와이즈</label>
+<label for="tab-vivienne" class="bella-ui-tab-btn">💅 비비안</label>
+<label for="tab-scar" class="bella-ui-tab-btn">🔥 스카</label>
+<label for="tab-robert" class="bella-ui-tab-btn">📚 로버트</label>
+<label for="tab-margot" class="bella-ui-tab-btn">🦇 마고트</label>
+<label for="tab-lydia" class="bella-ui-tab-btn">📖 리디아</label>
+<label for="tab-hemlock" class="bella-ui-tab-btn">🌿 헴록</label>
+<label for="tab-margaret" class="bella-ui-tab-btn">🎭 마가렛</label>
+</div>
+
+<div class="bella-ui-content-wrapper">
+
+<!-- 코델리아 -->
+<div class="bella-ui-content-container bella-ui-content-cordelia">
+<div class="bella-stat-section">
+<div class="bella-stat-title">💎 코델리아</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting17"><span>💎</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting18"><span>💎</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 수아 -->
+<div class="bella-ui-content-container bella-ui-content-suah">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🎀 수아</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting19"><span>🎀</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting20"><span>🎀</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 아델하이드 -->
+<div class="bella-ui-content-container bella-ui-content-adelheid">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🗡️ 아델하이드</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting21"><span>🗡️</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting22"><span>🗡️</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 로잘리 -->
+<div class="bella-ui-content-container bella-ui-content-rosalie">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🌹 로잘리</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting23"><span>🌹</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting24"><span>🌹</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 미카 -->
+<div class="bella-ui-content-container bella-ui-content-mika">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🐱 미카</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting25"><span>🐱</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting26"><span>🐱</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 클로버 -->
+<div class="bella-ui-content-container bella-ui-content-clover">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🍀 클로버</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting27"><span>🍀</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting28"><span>🍀</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 녹티스 -->
+<div class="bella-ui-content-container bella-ui-content-noctis">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🌙 녹티스</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting29"><span>🌙</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting30"><span>🌙</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 페니와이즈 -->
+<div class="bella-ui-content-container bella-ui-content-pennywise">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🎪 페니와이즈</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting31"><span>🎪</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting32"><span>🎪</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 비비안 -->
+<div class="bella-ui-content-container bella-ui-content-vivienne">
+<div class="bella-stat-section">
+<div class="bella-stat-title">💅 비비안</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting33"><span>💅</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting34"><span>💅</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 스카 -->
+<div class="bella-ui-content-container bella-ui-content-scar">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🔥 스카</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting35"><span>🔥</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting36"><span>🔥</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 로버트 -->
+<div class="bella-ui-content-container bella-ui-content-robert">
+<div class="bella-stat-section">
+<div class="bella-stat-title">📚 로버트</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting37"><span>📚</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting38"><span>📚</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 마고트 -->
+<div class="bella-ui-content-container bella-ui-content-margot">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🦇 마고트</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting39"><span>🦇</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting40"><span>🦇</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 리디아 -->
+<div class="bella-ui-content-container bella-ui-content-lydia">
+<div class="bella-stat-section">
+<div class="bella-stat-title">📖 리디아</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting41"><span>📖</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting42"><span>📖</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 헴록 -->
+<div class="bella-ui-content-container bella-ui-content-hemlock">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🌿 헴록</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting43"><span>🌿</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting44"><span>🌿</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+<!-- 마가렛 -->
+<div class="bella-ui-content-container bella-ui-content-margaret">
+<div class="bella-stat-section">
+<div class="bella-stat-title">🎭 마가렛</div>
+<div class="bella-placeholder">시나리오 준비 중...</div>
+</div>
+<div class="bella-scenario-section">
+<div class="bella-scenario-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting45"><span>🎭</span><span>시나리오 1</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting46"><span>🎭</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+
+</div>
+</div>
 
 <!-- 공통 시작 옵션 -->
 <div class="bella-common-section">
-<div class="bella-common-title">🎲 공통 시작 옵션</div>
-<div class="bella-scenario-grid">
-<button type="button" class="bella-scenario-btn" risu-trigger="random_start">
-<span>🎲</span><span>랜덤 시작</span>
+<div class="bella-common-title">🎯 공통 시작 옵션</div>
+<div class="bella-scenario-grid common-grid">
+<button type="button" class="bella-scenario-btn" risu-trigger="entrance_ceremony">
+<span>🎓</span><span>입학식</span>
+</button>
+<button type="button" class="bella-scenario-btn" risu-trigger="year2_semester">
+<span>📅</span><span>2학년의 새학기</span>
 </button>
 <button type="button" class="bella-scenario-btn" risu-trigger="free_start">
 <span>✨</span><span>자유 시작</span>
