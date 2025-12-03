@@ -1,5 +1,7 @@
 @@depth 0
 
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}
+
 # AFFINITY & BEHAVIOR MATRIX
 
 ## Core Rule
@@ -2144,3 +2146,5 @@ Complete devotion expressed through enthusiastic intimacy. "너한테는 진짜�
 
 {{/}}
 {{/if}}
+
+{{/if_pure}}

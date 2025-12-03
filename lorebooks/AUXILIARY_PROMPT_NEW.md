@@ -14,12 +14,14 @@ After your narrative response, output structured tags to update game state.
 
 ## Mandatory Output Format
 
-[Affinity:CharacterName:level][Sin:CharacterName:level]
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}
+[Affinity:CharacterName:level]{{/if_pure}}[Sin:CharacterName:level]
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
 [Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
-<Panel>■★
+[Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
+<StockPanel /><Panel>■★
 
 ---
 
@@ -38,12 +40,14 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 
 ### Relationship Tags (Output Every Turn)
 
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}
 [Affinity:CharacterName:level] - How feelings changed THIS TURN
 - love (+20): Life-changing moment, confession, deep breakthrough
 - like (+15): Genuine kindness, warmth, pleasant surprise
 - neutral (0): No emotional shift
 - dislike (-15): Annoyance, disappointment, mild conflict
 - hate (-20): Betrayal, deep hurt, serious conflict
+{{/if_pure}}
 
 [Sin:CharacterName:level] - Sin manifestation THIS TURN
 - corrupt (+2): Completely surrendered to sin
@@ -136,9 +140,116 @@ Use first name only in tags: [Affinity:Mirabel:like] NOT [Affinity:Mirabel von G
 Narrative: "A goblin appears, brandishing a rusty blade! Cassandra cheers as you strike it down."
 
 Tags:
-[Affinity:Cassandra:like][Sin:Cassandra:neutral]
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}[Affinity:Cassandra:like]{{/if_pure}}[Sin:Cassandra:neutral]
 [Combat:Goblin:280][Combat:End][EXP:+30]
 <Panel>■★
+
+---
+
+{{/if_pure}}
+
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+
+---
+
+# STOCK MARKET TAG INSTRUCTIONS
+
+주식투자 동아리 가입자 전용 시스템.
+
+## 트리거 조건
+
+메인모델이 `<Stock>` 태그를 출력하면 주식 관련 태그를 생성해야 함.
+`<Stock>` 태그는 "지금 주식 시세를 업데이트하라"는 신호임.
+
+## 출력 형식
+
+```
+[Stock:종목:현재가:등락|종목:현재가:등락|...]
+<StockPanel />
+```
+
+- 형식: `[Stock:TICKER:PRICE:CHANGE|...]`
+- 현재가: 양의 정수 (G 단위)
+- 등락: 전일 대비 변동 (+N 상승, -N 하락, 0 보합)
+- `<StockPanel />`: UI 렌더링 트리거 (필수)
+
+## 가격 생성 규칙
+
+메인모델의 `<Stock>` 태그 내용에서 힌트를 참고하여 가격 생성:
+
+1. **언급된 종목**: 메인모델이 언급한 종목은 해당 방향으로 가격 변동
+2. **미언급 종목**: 랜덤하게 소폭 변동 (-3 ~ +3)
+3. **기준가**: 각 종목별 기준가 참고
+
+### 등락 범위 (메인모델 힌트 기반)
+- "급등", "폭등": +8 ~ +15
+- "상승", "오름": +2 ~ +7
+- "보합", "횡보": -1 ~ +1
+- "하락", "내림": -2 ~ -7
+- "급락", "폭락": -8 ~ -15
+
+### 기준가 (20개 종목)
+| 종목 | 기준가 | 종목 | 기준가 |
+|------|--------|------|--------|
+| LILY | 100G | AEGIS | 150G |
+| CARA | 85G | IRON | 140G |
+| PORT | 120G | ROSE | 200G |
+| IMP | 250G | SILK | 95G |
+| CRYS | 180G | HARV | 70G |
+| ELEM | 160G | BREW | 80G |
+| NEP | 90G | BANK | 300G |
+| VITA | 110G | OWLS | 130G |
+| MUTA | 75G | STONE | 115G |
+|      |        | MUSE | 170G |
+|      |        | ACAD | 220G |
+
+## 매매 태그
+
+스토리에서 주식 매매가 발생하면 태그 출력:
+
+```
+[StockBuy:TICKER:PRICE:QTY]   -- 매수
+[StockSell:TICKER:PRICE:QTY]  -- 매도
+```
+
+- TICKER: 종목 코드 (LILY, NEP 등)
+- PRICE: 거래 가격 (정수)
+- QTY: 수량 (정수)
+
+### 매매 트리거
+
+메인모델이 스토리에서 매매를 묘사할 때:
+- "LILY 주식 10주를 샀다"
+- "NEP를 전량 매도했다"
+- "105G에 5주 매수"
+
+### 매매 예시
+
+메인모델: "미라벨의 조언대로 LILY 주식 10주를 105G에 매수했다."
+
+태그:
+```
+[StockBuy:LILY:105:10]
+```
+
+## 예시
+
+메인모델 출력:
+```
+미라벨이 시세판을 바라보며 말했다. "LILY가 오르고 있네요."
+<Stock>
+LILY (릴리 상사): 105g, 상승 - 대형 상단 계약 소문
+NEP (네펜데스 제약): 88g, 하락 - 부작용 스캔들
+</Stock>
+```
+
+보조모델 태그 출력:
+```
+{{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}[Affinity:Mirabel:neutral]{{/if_pure}}[Sin:Mirabel:neutral]
+[Stock:LILY:105:+5|NEP:88:-2|IMP:251:+1|ROSE:198:-2]
+<StockPanel />
+<Panel>■★
+```
 
 ---
 
