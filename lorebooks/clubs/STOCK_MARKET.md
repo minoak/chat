@@ -58,6 +58,6 @@ NPC hints scale with affinity:
 - High: Directional hints
 - Very high: Insider info
 
-Mirabel specializes in commerce sector (LILY, CARA, PORT).
+Pennywise specializes in market trends and insider information.
 
 {{/if_pure}}
