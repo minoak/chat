@@ -249,6 +249,65 @@ end
 - 실제 기업 연상되는 이름 사용
 - STONKS-9800 스타일 (Komami, Panasenic 등)
 - 벨라도나 세계관에 맞게 변형
+- **나스닥 기업 + 판타지 조합**
+
+### 종목 리스트 (20개)
+
+#### 마도공학 (Tech) - 4개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| TESLAM | Tesla | 뇌전 마도공학 |
+| NVIDIUM | Nvidia | 성스러운 연산석 |
+| ARCMED | AMD | 마도 연산 공방 |
+| INTELLUM | Intel | 지성의 결정체 |
+
+#### 대상회 (Commerce) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| AMAZONIA | Amazon | 대삼림 물류 길드 |
+| APPELLE | Apple | 금단의 사과 상회 |
+
+#### 환상술 (Entertainment/SNS) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| METARIX | Meta | 환상계 마법진 |
+| NETHRYX | Netflix | 수정구 영상술 |
+
+#### 연금술 (Pharma) - 3개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| PFIZARA | Pfizer | 연금술 제약 |
+| MUTAGEN | Moderna | 변이 연구소 |
+| VITALIS | J&J | 생명력 영약 |
+
+#### 금융 (Finance) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| GOLDMANE | Goldman Sachs | 황금갈기 금고 |
+| MORGANITE | JP Morgan | 보석 금융단 |
+
+#### 군수 (Military) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| AEGIS | Lockheed Martin | 방패의 공방 |
+| IRONFORGE | Boeing | 철의 대장간 |
+
+#### 럭셔리 (Luxury) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| GUCCIEL | Gucci | 천사의 직물 |
+| LUXORIA | LVMH | 사치의 성채 |
+
+#### 식품 (Food) - 2개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| STARBREW | Starbucks | 별빛 양조장 |
+| HARVESTIA | Nestle | 수확의 축복 |
+
+#### 건설 (Construction) - 1개
+| 종목 | 패러디 원본 | 설명 |
+|------|------------|------|
+| STONECRAFT | Caterpillar | 석공 길드 |
 
 ### 주갤식 드립 활용
 | 용어 | 활용 예시 |
