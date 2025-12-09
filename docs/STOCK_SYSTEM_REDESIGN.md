@@ -414,6 +414,66 @@ end
 | 선택 무게 | 실패 = 캐릭터에게 미안 |
 | 주갤 드립 | 성공/실패 모두 재미 |
 
+### 이벤트 트리거 (주간 스케줄 연동)
+기존 주간 스케줄 시스템에 조건부로 경영 이벤트 추가
+
+```markdown
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::stock_event_pending}}::1}}}}
+
+[
+OOC: 주식 동아리 활동 중. 이번 주 경영 이벤트를 트리거하세요.
+- 캐릭터가 플레이어에게 경영 안건 제시
+- 선택지 제공 후 결과 태그 출력
+]
+
+{{/if_pure}}
+{{/if_pure}}
+```
+
+### 성공/실패 판정 (변수 기반)
+AI 자율 판단 대신 **변수 기반 확률**로 판정
+
+```
+기본 성공률: 50%
+
+보정 요소:
++ market_share / 10  (점유율 높으면 유리)
++ brand_value / 20   (브랜드 가치)
++ economic_cycle     (호황: +10, 불황: -10)
+- debt / 100         (부채 높으면 불리)
+
+예: 점유율 30%, 브랜드 50, 호황, 부채 200
+= 50 + 3 + 2.5 + 10 - 2 = 63.5% 성공률
+```
+
+**태그 출력 형식:**
+```
+성공: <-Stock|SUCCESS|market_share+5|price+10->
+실패: <-Stock|FAIL|cash-500|price-15->
+```
+
+### 목표 (샌드박스)
+- 특정 엔딩 조건 없음
+- 자유롭게 경영 플레이
+- 돈 벌어도 OK, 망해도 OK
+- **재미가 목표** (성공도 웃기고, 실패도 웃기게)
+
+### 로어북 파일 구조
+```
+lorebooks/clubs/
+├── STOCK_CLUB.md           ← 공통 시스템, 기업 선택
+├── STOCK_GOLDMANE.md       ← 미라벨 기업 이벤트
+├── STOCK_LUXORIA.md        ← 코델리아 기업 이벤트
+└── STOCK_PFIZARA.md        ← 네펜테스 기업 이벤트
+```
+
+**활성화 조건:**
+- STOCK_CLUB.md: `club_stock_joined == 1`
+- STOCK_GOLDMANE.md: `player_company == "GOLDMANE"`
+- STOCK_LUXORIA.md: `player_company == "LUXORIA"`
+- STOCK_PFIZARA.md: `player_company == "PFIZARA"`
+
 ---
 
 ## 10. 구현 체크리스트 (업데이트)
@@ -422,14 +482,18 @@ end
 - [x] 설계 문서 작성
 - [x] 동아리 부장 변경 (미라벨 → 페니와이즈)
 - [x] 종목 리스트 패러디화 (20개)
+- [x] Capitalism 스타일 경영 시스템 설계
+- [x] 이벤트 트리거/판정/목표 확정
 
 ### 진행 필요
-- [ ] STOCK_MARKET.md 업데이트
-- [ ] Lua 스크립트 정리 (거래 로직 제거, 경영 변수 구조)
+- [ ] 로어북: STOCK_CLUB.md (공통)
+- [ ] 로어북: STOCK_GOLDMANE.md (미라벨)
+- [ ] 로어북: STOCK_LUXORIA.md (코델리아)
+- [ ] 로어북: STOCK_PFIZARA.md (네펜테스)
+- [ ] Lua 스크립트 정리 (경영 변수 구조)
 - [ ] 차트 정규식/HTML 추가
 - [ ] AI 지침 추가 (AUXILIARY_PROMPT)
-- [ ] 경고 수치 시스템 구현
-- [ ] 기업-캐릭터 연동 로어북
+- [ ] 주간 스케줄 연동
 
 ---
 
@@ -438,3 +502,4 @@ end
 - 2025-12-03: 차트 디스플레이 시스템 추가
 - 2025-12-05: 개편 방향 확정 (Lua 거래 제거, 선택지 기반, 주갤 드립)
 - 2025-12-09: Capitalism 스타일 경영 시스템 추가
+- 2025-12-09: 이벤트 트리거(주간 스케줄), 판정(변수 기반), 목표(샌드박스) 확정
