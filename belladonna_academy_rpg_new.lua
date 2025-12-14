@@ -5478,6 +5478,83 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
     end
 
+    -- 개별 종목 차트 카드: <StockChart:TICKER />
+    data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
+        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
+        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 색상 결정
+        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+        local changeSign = change > 0 and "+" or ""
+        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터 (최근 8개)
+        local history = getStockHistory(triggerId, ticker)
+        local miniChart = ""
+        if #history >= 2 then
+            local minP, maxP = history[1], history[1]
+            for _, p in ipairs(history) do
+                if p < minP then minP = p end
+                if p > maxP then maxP = p end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = change >= 0 and "#ef5350" or "#26a69a"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%d%% %s</div>
+    </div>
+  </div>
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, change, arrow, miniChart)
+
+        return html
+    end)
+
+    -- 간단 시세 인라인: <StockQuote:TICKER />
+    data = data:gsub("<StockQuote:([A-Z]+)%s*/>", function(ticker)
+        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
+        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+        local name = STOCK_NAMES[ticker] or ticker
+
+        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+        local changeSign = change > 0 and "+" or ""
+        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
+
+        local html = string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#161b22;padding:4px 10px;border-radius:6px;font-size:13px;border:1px solid #30363d'>
+  <span style='color:#fff;font-weight:600'>%s</span>
+  <span style='color:#8b949e'>%sG</span>
+  <span style='color:%s;font-weight:500'>%s%d%% %s</span>
+</span>]], ticker, formatNumber(price), changeColor, changeSign, change, arrow)
+
+        return html
+    end)
+
     -- 전투 선택지 변환 (모바일 반응형)
     data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
         local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
