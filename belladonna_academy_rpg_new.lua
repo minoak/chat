@@ -257,7 +257,7 @@ Exams (Week 6,12): [Exam:midterm:87:23]
 ## Stock Market Tags (Stock Club Members Only)
 When Main AI outputs `<Stock>` tag, generate stock price tags:
 [Stock:TICKER:PRICE:CHANGE|...] - Multiple stocks separated by |
-- TICKER: Stock code (LILY, NEP, IMP, etc.)
+- TICKER: Stock code (GOLDMANE, PFIZARA, TESLAM, etc.)
 - PRICE: Current price in G (positive integer)
 - CHANGE: Price change from previous (+N, -N, or 0)
 
@@ -750,257 +750,286 @@ end
 -- 주식 시스템 (Stock Market System)
 -- ============================================
 
--- 종목 기준가 데이터
+-- 종목 기준가 데이터 (새 패러디 종목)
 local STOCK_BASE_PRICES = {
-    LILY = 100, CARA = 80, PORT = 120,
-    IMP = 250, CRYS = 150, ELEM = 200,
-    NEP = 90, VITA = 110, MUTA = 60,
-    AEGIS = 180, IRON = 140,
-    ROSE = 220, SILK = 95,
-    HARV = 70, BREW = 85,
-    BANK = 300, OWLS = 130,
-    STONE = 160,
-    MUSE = 75, ACAD = 100
+    -- 핵심 종목 (캐릭터 연결)
+    GOLDMANE = 280,   -- 황금갈기 금고 (Goldman Sachs) - 미라벨
+    LUXORIA = 220,    -- 사치의 성채 (LVMH) - 코델리아
+    PFIZARA = 120,    -- 연금술 제약 (Pfizer) - 네펜테스
+    -- 마도공학 (Tech)
+    TESLAM = 180,     -- 뇌전 마도공학 (Tesla)
+    NVIDIUM = 300,    -- 성스러운 연산석 (Nvidia)
+    ARCMED = 95,      -- 마도 연산 공방 (AMD)
+    INTELLUM = 140,   -- 지성의 결정체 (Intel)
+    -- 대상회 (Commerce)
+    AMAZONIA = 160,   -- 대삼림 물류 길드 (Amazon)
+    APPELLE = 250,    -- 금단의 사과 상회 (Apple)
+    -- 환상술 (Entertainment)
+    METARIX = 110,    -- 환상계 마법진 (Meta)
+    NETHRYX = 130,    -- 수정구 영상술 (Netflix)
+    -- 제약/바이오
+    MUTAGEN = 75,     -- 변이 연구소 (Moderna)
+    VITALIS = 100,    -- 생명력 영약 (J&J)
+    -- 금융
+    MORGANITE = 320,  -- 보석 금융단 (JP Morgan)
+    -- 방산/제조
+    AEGIS = 150,      -- 방패의 공방 (Lockheed Martin)
+    IRONFORGE = 135,  -- 철의 대장간 (Boeing)
+    -- 럭셔리/소비재
+    GUCCIEL = 190,    -- 천사의 직물 (Gucci)
+    STARBREW = 85,    -- 별빛 양조장 (Starbucks)
+    HARVESTIA = 90,   -- 수확의 축복 (Nestle)
+    -- 건설
+    STONECRAFT = 105  -- 석공 길드 (Caterpillar)
 }
 
 -- 종목 이름 데이터
 local STOCK_NAMES = {
-    LILY = "릴리 벨리 거래소", CARA = "카라반 연합", PORT = "항만 공사",
-    IMP = "황실 마나석 공사", CRYS = "크리스탈 웍스", ELEM = "엘레멘탈 에너지",
-    NEP = "네펜테스 제약", VITA = "비타 힐링", MUTA = "뮤타겐 연구소",
-    AEGIS = "아이기스 방위", IRON = "아이언포지",
-    ROSE = "로제 하우스", SILK = "실크로드 직물",
-    HARV = "하베스트 농장", BREW = "브루어리 길드",
-    BANK = "대륙 중앙은행", OWLS = "올빼미 통신",
-    STONE = "스톤메이슨 건설",
-    MUSE = "뮤즈 극단", ACAD = "아카데미아 출판"
+    GOLDMANE = "황금갈기 금고", LUXORIA = "사치의 성채", PFIZARA = "연금술 제약",
+    TESLAM = "뇌전 마도공학", NVIDIUM = "성스러운 연산석", ARCMED = "마도 연산 공방", INTELLUM = "지성의 결정체",
+    AMAZONIA = "대삼림 물류 길드", APPELLE = "금단의 사과 상회",
+    METARIX = "환상계 마법진", NETHRYX = "수정구 영상술",
+    MUTAGEN = "변이 연구소", VITALIS = "생명력 영약",
+    MORGANITE = "보석 금융단",
+    AEGIS = "방패의 공방", IRONFORGE = "철의 대장간",
+    GUCCIEL = "천사의 직물", STARBREW = "별빛 양조장", HARVESTIA = "수확의 축복",
+    STONECRAFT = "석공 길드"
 }
 
 -- 종목 목록 (순서 보장용)
 local STOCK_TICKERS = {
-    "LILY", "CARA", "PORT",
-    "IMP", "CRYS", "ELEM",
-    "NEP", "VITA", "MUTA",
-    "AEGIS", "IRON",
-    "ROSE", "SILK",
-    "HARV", "BREW",
-    "BANK", "OWLS",
-    "STONE",
-    "MUSE", "ACAD"
+    -- 핵심 (캐릭터 연결)
+    "GOLDMANE", "LUXORIA", "PFIZARA",
+    -- 마도공학
+    "TESLAM", "NVIDIUM", "ARCMED", "INTELLUM",
+    -- 대상회
+    "AMAZONIA", "APPELLE",
+    -- 환상술
+    "METARIX", "NETHRYX",
+    -- 제약/바이오
+    "MUTAGEN", "VITALIS",
+    -- 금융
+    "MORGANITE",
+    -- 방산/제조
+    "AEGIS", "IRONFORGE",
+    -- 럭셔리/소비재
+    "GUCCIEL", "STARBREW", "HARVESTIA",
+    -- 건설
+    "STONECRAFT"
 }
 
 -- 종목 상세 정보 (기업 정보, 재무 상태)
 local STOCK_INFO = {
-    LILY = {
-        sector = "상업/무역",
-        desc = "릴리 밸리 하우스 직영 종합 상업 플랫폼. 제국 내 최대 규모의 거래소.",
+    GOLDMANE = {
+        sector = "금융",
+        desc = "황금갈기 금고. 대륙 최대 금융 그룹. 미라벨 家 소유.",
         size = "대형",
         financial = "안정",
         volatility = "중",
-        upFactors = "대형 상단 계약, 축제 시즌, 무역 확대",
-        downFactors = "경쟁사, 도적단, 전쟁",
+        upFactors = "금리 인상, 대출 수요, M&A",
+        downFactors = "금융 위기, 규제 강화",
         insider = "미라벨"
     },
-    CARA = {
-        sector = "상업/무역",
-        desc = "대륙간 물류 운송 전문. 주요 교역로 독점 운영.",
-        size = "중형",
-        financial = "성장",
-        volatility = "중",
-        upFactors = "교역로 안정, 신규 노선, 계약 확대",
-        downFactors = "도적단, 전쟁, 기후 악화",
-        insider = "상단장"
-    },
-    PORT = {
-        sector = "상업/무역",
-        desc = "제국 항만 시설 운영. 황실 인가 독점 사업.",
+    LUXORIA = {
+        sector = "럭셔리",
+        desc = "사치의 성채. 최고급 명품 브랜드 복합체. 코델리아 家 소유.",
         size = "대형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "해상 무역 증가, 신항 건설",
-        downFactors = "해적, 전염병, 검역 강화",
-        insider = "항만청장"
-    },
-    IMP = {
-        sector = "마법/자원",
-        desc = "황실 직영 마나석 채굴 및 공급. 가장 안정적인 블루칩.",
-        size = "대형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "황실 행사, 마법 수요 증가",
-        downFactors = "광산 사고, 정치 불안",
-        insider = "황실 관료"
-    },
-    CRYS = {
-        sector = "마법/자원",
-        desc = "마법 결정 가공 및 유통. 아카데미 주요 납품업체.",
-        size = "중형",
-        financial = "성장",
-        volatility = "중",
-        upFactors = "아카데미 행사, 마법 연구 붐",
-        downFactors = "원석 부족, 가공 사고",
-        insider = "연구원"
-    },
-    ELEM = {
-        sector = "마법/자원",
-        desc = "정령 계약 기반 에너지 공급. 신사업 분야 선두.",
-        size = "중형",
-        financial = "성장",
-        volatility = "중고",
-        upFactors = "에너지 수요, 신규 계약",
-        downFactors = "정령계 이변, 계약 분쟁",
-        insider = "정령술사"
-    },
-    NEP = {
-        sector = "제약/연금술",
-        desc = "포션, 독/해독제 전문. 라플레시아 하우스 연계.",
-        size = "중형",
-        financial = "위험",
-        volatility = "고",
-        upFactors = "신약 승인, 전염병, 전쟁",
-        downFactors = "부작용 스캔들, 규제 강화",
-        insider = "라플레시아 관계자"
-    },
-    VITA = {
-        sector = "제약/연금술",
-        desc = "치유 물약 전문. 안정적인 수요 기반.",
-        size = "중형",
-        financial = "안정",
-        volatility = "중",
-        upFactors = "전쟁, 사고, 전염병",
-        downFactors = "평화 시기, 경쟁사",
-        insider = "치유사"
-    },
-    MUTA = {
-        sector = "제약/연금술",
-        desc = "변이/강화 약물 연구. 회색지대 사업. 고위험 고수익.",
-        size = "소형",
-        financial = "위험",
-        volatility = "초고",
-        upFactors = "불법 실험 성공, 군부 계약",
-        downFactors = "단속, 스캔들, 피해자 발생",
-        insider = "암시장 정보상"
-    },
-    AEGIS = {
-        sector = "군사/보안",
-        desc = "용병 및 경비 서비스. 귀족 호위 전문.",
-        size = "중형",
-        financial = "안정",
-        volatility = "중",
-        upFactors = "전쟁, 귀족 분쟁, 치안 악화",
-        downFactors = "평화, 군비 축소",
-        insider = "용병단장"
-    },
-    IRON = {
-        sector = "군사/보안",
-        desc = "무기 및 방어구 제조. 군납 계약 다수.",
-        size = "중형",
-        financial = "안정",
-        volatility = "중",
-        upFactors = "군비 확장, 신무기 개발",
-        downFactors = "평화 조약, 수입품",
-        insider = "대장장이 길드"
-    },
-    ROSE = {
-        sector = "사치품/패션",
-        desc = "고급 의류 및 보석. 로즈 하우스 연계. 귀족 사교계 필수.",
-        size = "중형",
         financial = "안정",
         volatility = "중",
         upFactors = "사교 시즌, 황실 행사, 유행",
         downFactors = "경기 침체, 검소 유행",
-        insider = "로즈 하우스 관계자"
+        insider = "코델리아"
     },
-    SILK = {
-        sector = "사치품/패션",
-        desc = "마법 직물 제조. 안정적인 수출 기업.",
-        size = "소형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "패션 트렌드, 수출 증가",
-        downFactors = "원자재 부족",
-        insider = "직물상"
-    },
-    HARV = {
-        sector = "식품/농업",
-        desc = "대규모 식량 생산. 제국 식량 안보 핵심.",
-        size = "대형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "풍년, 인구 증가",
-        downFactors = "흉작, 해충",
-        insider = "농장주"
-    },
-    BREW = {
-        sector = "식품/농업",
-        desc = "양조 및 음료 생산. 축제 시즌 특수.",
-        size = "소형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "축제, 경기 호황",
-        downFactors = "금주령, 세금 인상",
-        insider = "양조장 주인"
-    },
-    BANK = {
-        sector = "금융/정보",
-        desc = "제국 금융 시스템 핵심. 최고가 최안정 블루칩.",
-        size = "대형",
-        financial = "안정",
-        volatility = "저",
-        upFactors = "금리 인상, 경제 성장",
-        downFactors = "금융 위기, 뱅크런",
-        insider = "은행가"
-    },
-    OWLS = {
-        sector = "금융/정보",
-        desc = "정보 및 우편 서비스. 정보망 독점.",
+    PFIZARA = {
+        sector = "제약",
+        desc = "연금술 제약. 포션 및 신약 개발. 네펜테스 家 연계.",
         size = "중형",
         financial = "성장",
-        volatility = "중",
-        upFactors = "정보 수요 증가, 신규 노선",
-        downFactors = "검열 강화, 경쟁사",
-        insider = "정보상"
+        volatility = "고",
+        upFactors = "신약 승인, 임상 성공, 전염병",
+        downFactors = "부작용 스캔들, 임상 실패",
+        insider = "네펜테스"
     },
-    STONE = {
-        sector = "건설/인프라",
-        desc = "대형 건축 및 인프라. 재건 사업 수주.",
+    TESLAM = {
+        sector = "마도공학",
+        desc = "뇌전 마도공학. 혁신적 마법 에너지 기업. 변동성 높음.",
+        size = "대형",
+        financial = "성장",
+        volatility = "고",
+        upFactors = "신기술 발표, 수주 계약",
+        downFactors = "생산 차질, 경쟁사",
+        insider = "공학자"
+    },
+    NVIDIUM = {
+        sector = "마도공학",
+        desc = "성스러운 연산석. 마법 연산 장치 독점. 최고가주.",
+        size = "대형",
+        financial = "성장",
+        volatility = "중고",
+        upFactors = "AI 마법 붐, 신제품",
+        downFactors = "공급 부족, 규제",
+        insider = "연구원"
+    },
+    ARCMED = {
+        sector = "마도공학",
+        desc = "마도 연산 공방. NVIDIUM의 경쟁사. 가성비 노선.",
+        size = "중형",
+        financial = "성장",
+        volatility = "고",
+        upFactors = "시장 점유율 확대, 신제품",
+        downFactors = "기술 격차, 적자",
+        insider = "기술자"
+    },
+    INTELLUM = {
+        sector = "마도공학",
+        desc = "지성의 결정체. 범용 마법 칩 제조. 안정적 수익.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "수요 증가, 배당",
+        downFactors = "경쟁 심화, 구조조정",
+        insider = "간부"
+    },
+    AMAZONIA = {
+        sector = "상업/물류",
+        desc = "대삼림 물류 길드. 대륙 최대 배송망. 모든 것을 판다.",
+        size = "대형",
+        financial = "성장",
+        volatility = "중",
+        upFactors = "소비 증가, 물류 확장",
+        downFactors = "규제, 인건비 상승",
+        insider = "상단장"
+    },
+    APPELLE = {
+        sector = "마도공학",
+        desc = "금단의 사과 상회. 고급 마도 기기 제조. 프리미엄 브랜드.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "신제품 출시, 열성 팬층",
+        downFactors = "혁신 부재, 경쟁사",
+        insider = "직원"
+    },
+    METARIX = {
+        sector = "환상술",
+        desc = "환상계 마법진. 가상현실 플랫폼. 논란 많음.",
+        size = "대형",
+        financial = "위험",
+        volatility = "고",
+        upFactors = "메타버스 붐, 사용자 증가",
+        downFactors = "프라이버시 논란, 사용자 이탈",
+        insider = "개발자"
+    },
+    NETHRYX = {
+        sector = "환상술",
+        desc = "수정구 영상술. 환상 스트리밍 서비스. 콘텐츠가 핵심.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중고",
+        upFactors = "인기 콘텐츠, 구독자 증가",
+        downFactors = "콘텐츠 실패, 경쟁 심화",
+        insider = "제작자"
+    },
+    MUTAGEN = {
+        sector = "제약/바이오",
+        desc = "변이 연구소. 최첨단 바이오 연구. 고위험 고수익.",
+        size = "중형",
+        financial = "위험",
+        volatility = "초고",
+        upFactors = "임상 성공, FDA 승인",
+        downFactors = "임상 실패, 자금 부족",
+        insider = "연구원"
+    },
+    VITALIS = {
+        sector = "제약",
+        desc = "생명력 영약. 대중적 치료제 생산. 안정적 배당.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "건강 관심 증가, 인구 고령화",
+        downFactors = "소송, 리콜",
+        insider = "치유사"
+    },
+    MORGANITE = {
+        sector = "금융",
+        desc = "보석 금융단. 투자은행 명가. GOLDMANE의 라이벌.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "IB 실적, 금리 인상",
+        downFactors = "트레이딩 손실, 스캔들",
+        insider = "은행가"
+    },
+    AEGIS = {
+        sector = "방산",
+        desc = "방패의 공방. 최첨단 방어 마법 장비 제조.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "전쟁, 군비 확장, 수주",
+        downFactors = "평화 조약, 예산 삭감",
+        insider = "장군"
+    },
+    IRONFORGE = {
+        sector = "제조",
+        desc = "철의 대장간. 대형 운송 수단 및 장비 제조.",
+        size = "대형",
+        financial = "위험",
+        volatility = "중고",
+        upFactors = "대형 수주, 신모델",
+        downFactors = "품질 문제, 사고",
+        insider = "대장장이"
+    },
+    GUCCIEL = {
+        sector = "럭셔리",
+        desc = "천사의 직물. 고급 의류 및 잡화. 패션 아이콘.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "패션위크, 셀럽 착용",
+        downFactors = "트렌드 변화, 짝퉁",
+        insider = "디자이너"
+    },
+    STARBREW = {
+        sector = "소비재",
+        desc = "별빛 양조장. 마법 음료 체인. 어디서나 볼 수 있다.",
         size = "중형",
         financial = "안정",
         volatility = "저",
-        upFactors = "재건 사업, 신도시 개발",
-        downFactors = "경기 침체, 재해",
-        insider = "건축가"
+        upFactors = "신메뉴, 매장 확장",
+        downFactors = "경쟁사, 원자재 가격",
+        insider = "바리스타"
     },
-    MUSE = {
-        sector = "오락/교육",
-        desc = "공연 및 오락 사업. 흥행 여부에 극단적 변동.",
-        size = "소형",
-        financial = "위험",
-        volatility = "고",
-        upFactors = "흥행작, 스타 탄생",
-        downFactors = "흥행 실패, 스캔들",
-        insider = "극단 관계자"
-    },
-    ACAD = {
-        sector = "오락/교육",
-        desc = "마법서 및 교재 출판. 아카데미 공식 납품.",
-        size = "소형",
+    HARVESTIA = {
+        sector = "소비재",
+        desc = "수확의 축복. 식품 및 생활용품 대기업. 필수재.",
+        size = "대형",
         financial = "안정",
         volatility = "저",
-        upFactors = "학술 발견, 베스트셀러",
-        downFactors = "금서 지정, 표절 스캔들",
-        insider = "교수"
+        upFactors = "소비 증가, 인수합병",
+        downFactors = "원자재 가격, 소송",
+        insider = "농장주"
+    },
+    STONECRAFT = {
+        sector = "건설",
+        desc = "석공 길드. 대형 건설 장비 및 인프라. 경기 민감.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "인프라 투자, 재건 사업",
+        downFactors = "경기 침체, 금리 인상",
+        insider = "건축가"
     }
 }
 
--- 주식 태그 파싱: [Stock:LILY:105:+5|IMP:243:-2|...]
+-- 주식 태그 파싱: [Stock:GOLDMANE:280:+5|PFIZARA:120:-2|...]
 function parseStockChanges(triggerId, message)
     -- 동아리 가입 여부 확인
     local clubJoined = getChatVar(triggerId, "club_stock_joined")
     if clubJoined ~= "1" then return end
 
     for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
-        -- 각 종목 파싱: LILY:105:+5|IMP:243:-2
+        -- 각 종목 파싱: GOLDMANE:280:+5|PFIZARA:120:-2
         for entry in stockData:gmatch("([^|]+)") do
             local ticker, price, change = entry:match("([A-Z]+):(%d+):([%+%-]?%d+)")
             if ticker and price and change then
@@ -1044,7 +1073,7 @@ function parseStockTrades(triggerId, message)
     local clubJoined = getChatVar(triggerId, "club_stock_joined")
     if clubJoined ~= "1" then return end
 
-    -- 매수: [StockBuy:LILY:105:10]
+    -- 매수: [StockBuy:GOLDMANE:280:10]
     for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
@@ -1071,7 +1100,7 @@ function parseStockTrades(triggerId, message)
         end
     end
 
-    -- 매도: [StockSell:LILY:110:5]
+    -- 매도: [StockSell:GOLDMANE:290:5]
     for ticker, price, qty in message:gmatch("%[StockSell:([A-Z]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
@@ -1113,11 +1142,11 @@ function initStockHistory(triggerId, ticker)
 
     -- 종목별 변동성 (더 드라마틱하게 증가)
     local volatility = {
-        MUTA = 0.15, NEP = 0.12, MUSE = 0.12,
-        ELEM = 0.10, ROSE = 0.08, CRYS = 0.08,
-        LILY = 0.06, CARA = 0.06, AEGIS = 0.06, IRON = 0.06, OWLS = 0.06,
-        VITA = 0.06, ACAD = 0.05, SILK = 0.05,
-        IMP = 0.05, PORT = 0.05, HARV = 0.05, BREW = 0.05, BANK = 0.04, STONE = 0.05
+        MUTAGEN = 0.15, PFIZARA = 0.12, METARIX = 0.12,
+        TESLAM = 0.10, ARCMED = 0.08, NVIDIUM = 0.08,
+        GOLDMANE = 0.06, LUXORIA = 0.06, AEGIS = 0.06, IRONFORGE = 0.06, VITALIS = 0.06,
+        NETHRYX = 0.06, STONECRAFT = 0.05, MORGANITE = 0.05,
+        INTELLUM = 0.05, AMAZONIA = 0.05, HARVESTIA = 0.05, STARBREW = 0.05, GUCCIEL = 0.04, APPELLE = 0.05
     }
     local vol = volatility[ticker] or 0.06
 
@@ -4954,7 +4983,7 @@ function generateStockPanelUI(triggerId)
     end
 
     local currentView = getState(triggerId, "stock_current_view") or "board"
-    local selectedTicker = getState(triggerId, "stock_selected_ticker") or "LILY"
+    local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
 
     -- 컨테이너 시작
@@ -5131,11 +5160,11 @@ function generateCandleData(triggerId, ticker, currentPrice)
 
     -- 변동성 계수 (심지 길이용)
     local volatility = {
-        MUTA = 0.08, NEP = 0.06, MUSE = 0.06,
-        ELEM = 0.05, ROSE = 0.04, CRYS = 0.04,
-        LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03,
-        VITA = 0.03, ACAD = 0.02, SILK = 0.02,
-        IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02
+        MUTAGEN = 0.08, PFIZARA = 0.06, METARIX = 0.06,
+        TESLAM = 0.05, ARCMED = 0.04, NVIDIUM = 0.04,
+        GOLDMANE = 0.03, LUXORIA = 0.03, AEGIS = 0.03, IRONFORGE = 0.03, VITALIS = 0.03,
+        NETHRYX = 0.03, STONECRAFT = 0.02, MORGANITE = 0.02,
+        INTELLUM = 0.02, AMAZONIA = 0.02, HARVESTIA = 0.02, STARBREW = 0.02, GUCCIEL = 0.015, APPELLE = 0.02
     }
     local vol = volatility[ticker] or 0.03
 
@@ -6259,15 +6288,15 @@ end
 
 -- 종목 선택 버튼 (20개 종목)
 local stockTickers = {
-    "LILY", "CARA", "PORT",
-    "IMP", "CRYS", "ELEM",
-    "NEP", "VITA", "MUTA",
-    "AEGIS", "IRON",
-    "ROSE", "SILK",
-    "HARV", "BREW",
-    "BANK", "OWLS",
-    "STONE",
-    "MUSE", "ACAD"
+    "GOLDMANE", "LUXORIA", "PFIZARA",
+    "TESLAM", "NVIDIUM", "ARCMED", "INTELLUM",
+    "AMAZONIA", "APPELLE",
+    "METARIX", "NETHRYX",
+    "MUTAGEN", "VITALIS",
+    "MORGANITE",
+    "AEGIS", "IRONFORGE",
+    "GUCCIEL", "STARBREW", "HARVESTIA",
+    "STONECRAFT"
 }
 
 for _, ticker in ipairs(stockTickers) do
