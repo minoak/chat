@@ -1140,13 +1140,13 @@ function initStockHistory(triggerId, ticker)
 
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
-    -- 종목별 변동성 (더 드라마틱하게 증가)
+    -- 종목별 변동성 (적절한 수준으로 조정)
     local volatility = {
-        MUTAGEN = 0.15, PFIZARA = 0.12, METARIX = 0.12,
-        TESLAM = 0.10, ARCMED = 0.08, NVIDIUM = 0.08,
-        GOLDMANE = 0.06, LUXORIA = 0.06, AEGIS = 0.06, IRONFORGE = 0.06, VITALIS = 0.06,
-        NETHRYX = 0.06, STONECRAFT = 0.05, MORGANITE = 0.05,
-        INTELLUM = 0.05, AMAZONIA = 0.05, HARVESTIA = 0.05, STARBREW = 0.05, GUCCIEL = 0.04, APPELLE = 0.05
+        MUTAGEN = 0.08, PFIZARA = 0.06, METARIX = 0.06,
+        TESLAM = 0.05, ARCMED = 0.04, NVIDIUM = 0.04,
+        GOLDMANE = 0.03, LUXORIA = 0.03, AEGIS = 0.03, IRONFORGE = 0.03, VITALIS = 0.03,
+        NETHRYX = 0.03, STONECRAFT = 0.025, MORGANITE = 0.025,
+        INTELLUM = 0.025, AMAZONIA = 0.025, HARVESTIA = 0.025, STARBREW = 0.025, GUCCIEL = 0.02, APPELLE = 0.025
     }
     local vol = volatility[ticker] or 0.06
 
@@ -1156,15 +1156,15 @@ function initStockHistory(triggerId, ticker)
         seed = seed + string.byte(ticker, i) * i * 17
     end
 
-    -- 트렌드 방향 결정 (상승/하락/횡보)
+    -- 트렌드 방향 결정 (상승/하락/횡보) - 완만하게 조정
     seed = (seed * 1103515245 + 12345) % 2147483648
-    local trendType = seed % 5  -- 0: 강상승, 1: 약상승, 2: 횡보, 3: 약하락, 4: 강하락
+    local trendType = seed % 5  -- 0: 상승, 1: 약상승, 2: 횡보, 3: 약하락, 4: 하락
     local trendBias = 0
-    if trendType == 0 then trendBias = 0.3
-    elseif trendType == 1 then trendBias = 0.15
+    if trendType == 0 then trendBias = 0.15
+    elseif trendType == 1 then trendBias = 0.08
     elseif trendType == 2 then trendBias = 0
-    elseif trendType == 3 then trendBias = -0.15
-    else trendBias = -0.3 end
+    elseif trendType == 3 then trendBias = -0.08
+    else trendBias = -0.15 end
 
     -- 12개 기본 가격 생성 (트렌드 + 랜덤 변동)
     local prices = {}
@@ -5222,12 +5222,13 @@ function generateStockChartView(triggerId, ticker)
     html = html .. "<div style='background:#0d1117;padding:16px;border-top:1px solid #21262d'>"
 
     if #candles > 0 then
-        -- 전체 범위 계산
-        local minPrice = candles[1].low
-        local maxPrice = candles[1].high
+        -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+        local minPrice = math.floor(basePrice * 0.80)
+        local maxPrice = math.floor(basePrice * 1.20)
+        -- 실제 데이터가 범위를 벗어나면 확장
         for _, c in ipairs(candles) do
-            if c.low < minPrice then minPrice = c.low end
-            if c.high > maxPrice then maxPrice = c.high end
+            if c.low < minPrice then minPrice = c.low - 5 end
+            if c.high > maxPrice then maxPrice = c.high + 5 end
         end
         local range = maxPrice - minPrice
         if range == 0 then range = 1 end
@@ -5538,12 +5539,16 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
         -- 미니 차트 데이터 (최근 8개)
         local history = getStockHistory(triggerId, ticker)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
         local miniChart = ""
         if #history >= 2 then
-            local minP, maxP = history[1], history[1]
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
             for _, p in ipairs(history) do
-                if p < minP then minP = p end
-                if p > maxP then maxP = p end
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
             end
             local range = maxP - minP
             if range == 0 then range = 1 end
