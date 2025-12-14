@@ -1110,28 +1110,46 @@ function initStockHistory(triggerId, ticker)
     end
 
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
-    local volatility = {
-        MUTA = 0.08, NEP = 0.06, MUSE = 0.06,
-        ELEM = 0.05, ROSE = 0.04, CRYS = 0.04,
-        LILY = 0.03, CARA = 0.03, AEGIS = 0.03, IRON = 0.03, OWLS = 0.03,
-        VITA = 0.03, ACAD = 0.02, SILK = 0.02,
-        IMP = 0.02, PORT = 0.02, HARV = 0.02, BREW = 0.02, BANK = 0.015, STONE = 0.02
-    }
-    local vol = volatility[ticker] or 0.03
 
-    -- 12개 기본 가격 생성 (기준가 주변 랜덤 변동)
-    local prices = {}
-    local seed = 0
+    -- 종목별 변동성 (더 드라마틱하게 증가)
+    local volatility = {
+        MUTA = 0.15, NEP = 0.12, MUSE = 0.12,
+        ELEM = 0.10, ROSE = 0.08, CRYS = 0.08,
+        LILY = 0.06, CARA = 0.06, AEGIS = 0.06, IRON = 0.06, OWLS = 0.06,
+        VITA = 0.06, ACAD = 0.05, SILK = 0.05,
+        IMP = 0.05, PORT = 0.05, HARV = 0.05, BREW = 0.05, BANK = 0.04, STONE = 0.05
+    }
+    local vol = volatility[ticker] or 0.06
+
+    -- 시드 생성 (티커 기반 + 시간)
+    local seed = os.time()
     for i = 1, #ticker do
-        seed = seed + string.byte(ticker, i) * i
+        seed = seed + string.byte(ticker, i) * i * 17
     end
 
+    -- 트렌드 방향 결정 (상승/하락/횡보)
+    seed = (seed * 1103515245 + 12345) % 2147483648
+    local trendType = seed % 5  -- 0: 강상승, 1: 약상승, 2: 횡보, 3: 약하락, 4: 강하락
+    local trendBias = 0
+    if trendType == 0 then trendBias = 0.3
+    elseif trendType == 1 then trendBias = 0.15
+    elseif trendType == 2 then trendBias = 0
+    elseif trendType == 3 then trendBias = -0.15
+    else trendBias = -0.3 end
+
+    -- 12개 기본 가격 생성 (트렌드 + 랜덤 변동)
+    local prices = {}
     local price = basePrice
+
     for i = 1, 12 do
         seed = (seed * 1103515245 + 12345) % 2147483648
         local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
-        local change = math.floor(price * vol * rand)
-        price = math.max(1, price + change)
+
+        -- 트렌드 + 노이즈
+        local change = math.floor(price * vol * (rand + trendBias))
+        price = math.max(math.floor(basePrice * 0.5), price + change)  -- 최소 기준가의 50%
+        price = math.min(math.floor(basePrice * 2.0), price)  -- 최대 기준가의 200%
+
         table.insert(prices, tostring(price))
     end
 
