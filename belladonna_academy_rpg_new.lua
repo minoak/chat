@@ -1270,15 +1270,15 @@ function initStockHistory(triggerId, ticker)
 
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
-    -- 종목별 변동성 (적절한 수준으로 조정)
+    -- 종목별 변동성
     local volatility = {
-        MUTAGEN = 0.08, PFIZARA = 0.06, METARIX = 0.06,
-        TESLAM = 0.05, ARCMED = 0.04, NVIDIUM = 0.04,
-        GOLDMANE = 0.03, LUXORIA = 0.03, AEGIS = 0.03, IRONFORGE = 0.03, VITALIS = 0.03,
-        NETHRYX = 0.03, STONECRAFT = 0.025, MORGANITE = 0.025,
-        INTELLUM = 0.025, AMAZONIA = 0.025, HARVESTIA = 0.025, STARBREW = 0.025, GUCCIEL = 0.02, APPELLE = 0.025
+        MUTAGEN = 0.12, PFIZARA = 0.10, METARIX = 0.10,
+        TESLAM = 0.08, ARCMED = 0.07, NVIDIUM = 0.07,
+        GOLDMANE = 0.05, LUXORIA = 0.05, AEGIS = 0.05, IRONFORGE = 0.05, VITALIS = 0.06,
+        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04,
+        INTELLUM = 0.04, AMAZONIA = 0.04, HARVESTIA = 0.04, STARBREW = 0.04, GUCCIEL = 0.03, APPELLE = 0.04
     }
-    local vol = volatility[ticker] or 0.06
+    local vol = volatility[ticker] or 0.08
 
     -- 시드 생성 (티커 기반 + 시간)
     local seed = os.time()
@@ -1286,17 +1286,12 @@ function initStockHistory(triggerId, ticker)
         seed = seed + string.byte(ticker, i) * i * 17
     end
 
-    -- 트렌드 방향 결정 (상승/하락/횡보) - 완만하게 조정
+    -- 파동 패턴 결정 (더 다양한 움직임)
     seed = (seed * 1103515245 + 12345) % 2147483648
-    local trendType = seed % 5  -- 0: 상승, 1: 약상승, 2: 횡보, 3: 약하락, 4: 하락
-    local trendBias = 0
-    if trendType == 0 then trendBias = 0.15
-    elseif trendType == 1 then trendBias = 0.08
-    elseif trendType == 2 then trendBias = 0
-    elseif trendType == 3 then trendBias = -0.08
-    else trendBias = -0.15 end
+    local pattern = seed % 6
+    -- 0: 상승 후 하락, 1: 하락 후 상승, 2: 급등, 3: 급락, 4: 횡보 후 급등, 5: 횡보 후 급락
 
-    -- 12개 기본 가격 생성 (트렌드 + 랜덤 변동)
+    -- 12개 기본 가격 생성 (파동 패턴 + 랜덤 변동)
     local prices = {}
     local price = basePrice
 
@@ -1304,9 +1299,30 @@ function initStockHistory(triggerId, ticker)
         seed = (seed * 1103515245 + 12345) % 2147483648
         local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
 
-        -- 트렌드 + 노이즈
-        local change = math.floor(price * vol * (rand + trendBias))
-        price = math.max(math.floor(basePrice * 0.5), price + change)  -- 최소 기준가의 50%
+        -- 패턴별 움직임
+        local trendBias = 0
+        local localVol = vol
+
+        if pattern == 0 then  -- 상승 후 하락
+            if i <= 6 then trendBias = 0.4 else trendBias = -0.5 end
+        elseif pattern == 1 then  -- 하락 후 상승
+            if i <= 6 then trendBias = -0.4 else trendBias = 0.5 end
+        elseif pattern == 2 then  -- 급등
+            trendBias = 0.3 + (i / 12) * 0.3
+            localVol = vol * 1.5
+        elseif pattern == 3 then  -- 급락
+            trendBias = -0.3 - (i / 12) * 0.3
+            localVol = vol * 1.5
+        elseif pattern == 4 then  -- 횡보 후 급등
+            if i <= 8 then trendBias = rand * 0.2 else trendBias = 0.6; localVol = vol * 2 end
+        elseif pattern == 5 then  -- 횡보 후 급락
+            if i <= 8 then trendBias = rand * 0.2 else trendBias = -0.6; localVol = vol * 2 end
+        end
+
+        -- 가격 변동 계산
+        local change = math.floor(price * localVol * (rand + trendBias))
+        price = price + change
+        price = math.max(math.floor(basePrice * 0.5), price)  -- 최소 기준가의 50%
         price = math.min(math.floor(basePrice * 2.0), price)  -- 최대 기준가의 200%
 
         table.insert(prices, tostring(price))
@@ -5292,27 +5308,50 @@ function generateCandleData(triggerId, ticker, currentPrice)
         table.insert(history, 1, history[1] or currentPrice)
     end
 
-    -- 변동성 계수 (심지 길이용)
+    -- 변동성 계수 (심지 길이용) - 더 크게 조정
     local volatility = {
-        MUTAGEN = 0.08, PFIZARA = 0.06, METARIX = 0.06,
-        TESLAM = 0.05, ARCMED = 0.04, NVIDIUM = 0.04,
-        GOLDMANE = 0.03, LUXORIA = 0.03, AEGIS = 0.03, IRONFORGE = 0.03, VITALIS = 0.03,
-        NETHRYX = 0.03, STONECRAFT = 0.02, MORGANITE = 0.02,
-        INTELLUM = 0.02, AMAZONIA = 0.02, HARVESTIA = 0.02, STARBREW = 0.02, GUCCIEL = 0.015, APPELLE = 0.02
+        MUTAGEN = 0.12, PFIZARA = 0.10, METARIX = 0.10,
+        TESLAM = 0.08, ARCMED = 0.07, NVIDIUM = 0.07,
+        GOLDMANE = 0.05, LUXORIA = 0.05, AEGIS = 0.05, IRONFORGE = 0.05, VITALIS = 0.06,
+        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04,
+        INTELLUM = 0.04, AMAZONIA = 0.04, HARVESTIA = 0.04, STARBREW = 0.04, GUCCIEL = 0.03, APPELLE = 0.04
     }
-    local vol = volatility[ticker] or 0.03
+    local vol = volatility[ticker] or 0.06
+
+    -- 시드 생성 (일관성 있는 랜덤)
+    local seed = os.time() + (string.byte(ticker, 1) or 65) * 1000
 
     -- 히스토리로 캔들 생성
     for i = 1, math.min(#history, 12) do
         local close = history[i]
         local open = (i > 1) and history[i - 1] or close
 
-        -- 고가/저가 계산 (시가/종가 범위 + 약간의 심지)
-        local range = math.abs(close - open)
-        local wickSize = math.max(range * 0.3, basePrice * vol * 0.2)
+        -- 캔들 몸통 크기
+        local bodySize = math.abs(close - open)
 
-        local high = math.max(open, close) + math.floor(wickSize * math.random())
-        local low = math.min(open, close) - math.floor(wickSize * math.random())
+        -- 시드 기반 랜덤 (0~1)
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand1 = (seed % 1000) / 1000
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand2 = (seed % 1000) / 1000
+
+        -- 심지 크기 계산 (더 다양하게)
+        -- 최소 심지: 기준가의 1%, 최대: 변동성의 2배
+        local minWick = basePrice * 0.01
+        local maxWick = basePrice * vol * 2
+
+        local upperWick = minWick + (maxWick - minWick) * rand1
+        local lowerWick = minWick + (maxWick - minWick) * rand2
+
+        -- 도지(십자형) 캔들: 시가=종가인 경우 심지만 있음
+        if bodySize < basePrice * 0.005 then
+            upperWick = upperWick * 1.5
+            lowerWick = lowerWick * 1.5
+        end
+
+        -- 고가/저가 계산
+        local high = math.max(open, close) + math.floor(upperWick)
+        local low = math.min(open, close) - math.floor(lowerWick)
         low = math.max(1, low)  -- 최소 1G
 
         table.insert(candles, {
