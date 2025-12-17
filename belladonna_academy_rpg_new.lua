@@ -5592,9 +5592,9 @@ function generateStockAssetView(triggerId)
     -- 먼저 총 계산
     local holdings = {}
     for _, ticker in ipairs(STOCK_TICKERS) do
-        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         if owned > 0 then
-            local avgPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avgprice")) or 0
+            local avgPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
             local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
             local value = currentPrice * owned
             local profit = (currentPrice - avgPrice) * owned
