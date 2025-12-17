@@ -4983,7 +4983,35 @@ listenEdit("editRequest", function(triggerId, data)
     end)
     data = data:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
     data = data:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
-    data = data:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
+
+    -- 동아리 가입/탈퇴 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[Club:Join:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+            -- 다른 동아리 추가 가능
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#1a472a;border-left:4px solid #2ea043;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#7ee787">📋 <b>%s</b> 가입!</div>', clubName)
+    end)
+    data = data:gsub("%[Club:Leave:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#3d1f1f;border-left:4px solid #f85149;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#ffa198">📋 <b>%s</b> 탈퇴</div>', clubName)
+    end)
+
+    -- StatsEvaluated 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[StatsEvaluated%]", '<div style="background:#2d1f3d;border-left:4px solid #a371f7;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#d2a8ff">✨ <b>능력 평가 완료!</b></div>')
+
+    -- Market 태그 → 시장 뉴스 디스플레이 변환
+    data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
+        local changeNum = tonumber(change) or 0
+        local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
+        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
+        local sign = changeNum > 0 and "+" or ""
+        return string.format('<div style="background:#1a1f2e;border-left:4px solid #58a6ff;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#c9d1d9">📰 <span style="color:#8b949e">릴리벨리 지수</span> <span style="color:#fff;font-weight:600">%s</span> <span style="color:%s">%s%s%.1f%%</span> │ %s</div>', index, color, arrow, sign, changeNum, news)
+    end)
 
     -- <Panel> 마커 제거
     data = data:gsub("<Panel>[^<]*", "")
@@ -6065,10 +6093,10 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Day:[^%]]+%]", "")  -- 요일 태그
     mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
-    -- [Stock:...] 태그는 editDisplay에서 티커 디스플레이로 변환하므로 유지
+    -- 아래 태그들은 editDisplay에서 디스플레이 변환하므로 유지:
+    -- [Stock:...], [Club:...], [StatsEvaluated], [Market:...]
     mainResponse = mainResponse:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
     mainResponse = mainResponse:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
-    mainResponse = mainResponse:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
     mainResponse = mainResponse:gsub("<WeeklyReport>.-</WeeklyReport>", "")  -- 주간 보고서
     mainResponse = mainResponse:gsub("<StockPanel%s*/>", "")  -- 주식 패널
 
