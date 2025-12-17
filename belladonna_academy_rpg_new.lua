@@ -1270,28 +1270,18 @@ function initStockHistory(triggerId, ticker)
 
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
-    -- 종목별 변동성
-    local volatility = {
-        MUTAGEN = 0.12, PFIZARA = 0.10, METARIX = 0.10,
-        TESLAM = 0.08, ARCMED = 0.07, NVIDIUM = 0.07,
-        GOLDMANE = 0.05, LUXORIA = 0.05, AEGIS = 0.05, IRONFORGE = 0.05, VITALIS = 0.06,
-        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04,
-        INTELLUM = 0.04, AMAZONIA = 0.04, HARVESTIA = 0.04, STARBREW = 0.04, GUCCIEL = 0.03, APPELLE = 0.04
-    }
-    local vol = volatility[ticker] or 0.08
-
     -- 시드 생성 (티커 기반 + 시간)
     local seed = os.time()
     for i = 1, #ticker do
         seed = seed + string.byte(ticker, i) * i * 17
     end
 
-    -- 파동 패턴 결정 (더 다양한 움직임)
+    -- 파동 패턴 결정
     seed = (seed * 1103515245 + 12345) % 2147483648
     local pattern = seed % 6
     -- 0: 상승 후 하락, 1: 하락 후 상승, 2: 급등, 3: 급락, 4: 횡보 후 급등, 5: 횡보 후 급락
 
-    -- 12개 기본 가격 생성 (파동 패턴 + 랜덤 변동)
+    -- 12개 기본 가격 생성
     local prices = {}
     local price = basePrice
 
@@ -1299,36 +1289,50 @@ function initStockHistory(triggerId, ticker)
         seed = (seed * 1103515245 + 12345) % 2147483648
         local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
 
-        -- 패턴별 움직임
-        local trendBias = 0
-        local localVol = vol
+        -- 패턴별 변동률 (기준가 대비 % 변동)
+        local changePercent = 0
 
         if pattern == 0 then  -- 상승 후 하락
-            if i <= 6 then trendBias = 0.4 else trendBias = -0.5 end
+            if i <= 6 then
+                changePercent = 2 + rand * 2  -- +1% ~ +3%
+            else
+                changePercent = -2.5 + rand * 2  -- -3.5% ~ -1.5%
+            end
         elseif pattern == 1 then  -- 하락 후 상승
-            if i <= 6 then trendBias = -0.4 else trendBias = 0.5 end
+            if i <= 6 then
+                changePercent = -2 + rand * 2
+            else
+                changePercent = 2.5 + rand * 2
+            end
         elseif pattern == 2 then  -- 급등
-            trendBias = 0.3 + (i / 12) * 0.3
-            localVol = vol * 1.5
+            changePercent = 1.5 + rand * 1.5 + (i * 0.2)  -- 점점 가속
         elseif pattern == 3 then  -- 급락
-            trendBias = -0.3 - (i / 12) * 0.3
-            localVol = vol * 1.5
+            changePercent = -1.5 + rand * 1.5 - (i * 0.2)
         elseif pattern == 4 then  -- 횡보 후 급등
-            if i <= 8 then trendBias = rand * 0.2 else trendBias = 0.6; localVol = vol * 2 end
+            if i <= 8 then
+                changePercent = rand * 1.5
+            else
+                changePercent = 3 + rand * 2
+            end
         elseif pattern == 5 then  -- 횡보 후 급락
-            if i <= 8 then trendBias = rand * 0.2 else trendBias = -0.6; localVol = vol * 2 end
+            if i <= 8 then
+                changePercent = rand * 1.5
+            else
+                changePercent = -3 + rand * 2
+            end
         end
 
-        -- 가격 변동 계산
-        local change = math.floor(price * localVol * (rand + trendBias))
+        -- 가격 변동 적용 (기준가 기반 %)
+        local change = math.floor(basePrice * changePercent / 100)
         price = price + change
-        price = math.max(math.floor(basePrice * 0.5), price)  -- 최소 기준가의 50%
-        price = math.min(math.floor(basePrice * 2.0), price)  -- 최대 기준가의 200%
+        price = math.max(math.floor(basePrice * 0.7), price)  -- 최소 70%
+        price = math.min(math.floor(basePrice * 1.4), price)  -- 최대 140%
 
         table.insert(prices, tostring(price))
     end
 
     setChatVar(triggerId, historyKey, table.concat(prices, ","))
+    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern)
 end
 
 -- 주가 히스토리에 새 가격 추가 (12개 유지)
