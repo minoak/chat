@@ -5369,7 +5369,7 @@ function generateCandleData(triggerId, ticker, currentPrice)
     return candles
 end
 
--- 차트 뷰 (라인 그래프)
+-- 차트 뷰 (증권사 스타일 라인 그래프)
 function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
@@ -5380,23 +5380,23 @@ function generateStockChartView(triggerId, ticker)
 
     -- 헤더: 종목 정보
     local html = string.format([[
-<div style='background:#0d1117;padding:16px;border-radius:8px 8px 0 0'>
+<div style='background:#131722;padding:16px;border-radius:8px 8px 0 0;border:1px solid #2a2e39;border-bottom:none'>
   <div style='display:flex;justify-content:space-between;align-items:flex-start'>
     <div>
-      <div style='font-size:20px;font-weight:700;color:#fff'>%s</div>
-      <div style='font-size:12px;color:#8b949e;margin-top:2px'>%s</div>
+      <div style='font-size:18px;font-weight:700;color:#d1d4dc'>%s</div>
+      <div style='font-size:11px;color:#787b86;margin-top:2px'>%s · 릴리벨리</div>
     </div>
     <div style='text-align:right'>
-      <div style='font-size:28px;font-weight:700;color:#fff'>%s</div>
-      <div style='font-size:14px;color:%s;margin-top:2px'>%s%d%% 오늘</div>
+      <div style='font-size:24px;font-weight:700;color:%s'>%s<span style='font-size:14px;color:#787b86'>G</span></div>
+      <div style='font-size:12px;color:%s;margin-top:2px'>%s%d%%</div>
     </div>
   </div>
-</div>]], ticker, name, formatNumber(price), changeColor, changeSign, change)
+</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, change)
 
     -- 가격 히스토리 가져오기
     local history = getStockHistory(triggerId, ticker)
 
-    html = html .. "<div style='background:#0d1117;padding:16px;border-top:1px solid #21262d'>"
+    html = html .. "<div style='background:#131722;padding:12px;border:1px solid #2a2e39;border-top:none'>"
 
     if #history >= 2 then
         -- Y축 범위 계산
@@ -5406,19 +5406,20 @@ function generateStockChartView(triggerId, ticker)
             if p < minPrice then minPrice = p end
             if p > maxPrice then maxPrice = p end
         end
-        -- 최소 범위 보장
-        if maxPrice - minPrice < basePrice * 0.1 then
-            local mid = (maxPrice + minPrice) / 2
-            minPrice = mid - basePrice * 0.05
-            maxPrice = mid + basePrice * 0.05
-        end
+        -- 여유 공간 추가
+        local padding = (maxPrice - minPrice) * 0.1
+        if padding < 5 then padding = 5 end
+        minPrice = minPrice - padding
+        maxPrice = maxPrice + padding
         local range = maxPrice - minPrice
         if range == 0 then range = 1 end
 
-        local chartWidth = 280
-        local chartHeight = 120
+        local chartWidth = 300
+        local chartHeight = 140
+        local openPrice = history[1]
+        local closePrice = history[#history]
 
-        -- SVG 라인 그래프
+        -- SVG 라인 포인트 계산
         local points = {}
         for i, p in ipairs(history) do
             local x = (i - 1) * (chartWidth / (#history - 1))
@@ -5426,43 +5427,109 @@ function generateStockChartView(triggerId, ticker)
             table.insert(points, string.format("%.1f,%.1f", x, y))
         end
 
-        -- 현재가 기준 상승/하락 색상
-        local lineColor = (history[#history] >= history[1]) and "#ef5350" or "#26a69a"
+        -- 색상 결정
+        local lineColor = (closePrice >= openPrice) and "#26a69a" or "#ef5350"
+        local isUp = closePrice >= openPrice
 
-        -- 그라데이션 영역용 폴리곤
+        -- 그라데이션 영역
         local areaPoints = "0," .. chartHeight .. " " .. table.concat(points, " ") .. " " .. chartWidth .. "," .. chartHeight
 
+        -- 시가 Y위치
+        local openY = chartHeight - ((openPrice - minPrice) / range * chartHeight)
+        -- 현재가 Y위치
+        local closeY = chartHeight - ((closePrice - minPrice) / range * chartHeight)
+
+        -- 그리드 Y값들 (5개 라인)
+        local gridLines = ""
+        local priceLabels = ""
+        for i = 0, 4 do
+            local y = (chartHeight / 4) * i
+            local priceAtY = maxPrice - (range * i / 4)
+            gridLines = gridLines .. string.format([[<line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='#2a2e39' stroke-width='1'/>]], y, chartWidth, y)
+        end
+
         html = html .. string.format([[
-<div style='position:relative;height:%dpx;margin-bottom:8px'>
-  <div style='position:absolute;left:0;top:0;font-size:10px;color:#8b949e'>%d</div>
-  <div style='position:absolute;left:0;bottom:0;font-size:10px;color:#8b949e'>%d</div>
-  <div style='margin-left:35px'>
-    <svg width='%d' height='%d' style='overflow:visible'>
+<div style='display:flex'>
+  <div style='width:45px;display:flex;flex-direction:column;justify-content:space-between;padding-right:8px'>
+    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
+    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
+    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
+    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
+    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
+  </div>
+  <div style='flex:1;position:relative'>
+    <svg width='%d' height='%d' style='display:block'>
       <defs>
-        <linearGradient id='grad_%s' x1='0%%' y1='0%%' x2='0%%' y2='100%%'>
-          <stop offset='0%%' style='stop-color:%s;stop-opacity:0.3'/>
+        <linearGradient id='chartGrad_%s' x1='0%%' y1='0%%' x2='0%%' y2='100%%'>
+          <stop offset='0%%' style='stop-color:%s;stop-opacity:0.4'/>
           <stop offset='100%%' style='stop-color:%s;stop-opacity:0.05'/>
         </linearGradient>
       </defs>
-      <polygon points='%s' fill='url(#grad_%s)'/>
-      <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
-      <circle cx='%.1f' cy='%.1f' r='4' fill='%s' stroke='#0d1117' stroke-width='2'/>
+      <!-- 그리드 라인 -->
+      %s
+      <!-- 시가 기준선 -->
+      <line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='#787b86' stroke-width='1' stroke-dasharray='4,4' opacity='0.5'/>
+      <!-- 영역 채우기 -->
+      <polygon points='%s' fill='url(#chartGrad_%s)'/>
+      <!-- 메인 라인 -->
+      <polyline points='%s' fill='none' stroke='%s' stroke-width='2'/>
+      <!-- 현재가 수평선 -->
+      <line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='%s' stroke-width='1' stroke-dasharray='2,2'/>
+      <!-- 현재가 점 -->
+      <circle cx='%d' cy='%.1f' r='4' fill='%s'/>
+      <circle cx='%d' cy='%.1f' r='6' fill='%s' opacity='0.3'/>
     </svg>
+    <!-- 현재가 라벨 -->
+    <div style='position:absolute;right:-5px;top:%.1fpx;transform:translateY(-50%%);background:%s;padding:2px 6px;border-radius:3px;font-size:10px;color:#fff;font-weight:600'>%d</div>
   </div>
-</div>]], chartHeight, math.floor(maxPrice), math.floor(minPrice),
+</div>]],
+        math.floor(maxPrice),
+        math.floor(maxPrice - range * 0.25),
+        math.floor(maxPrice - range * 0.5),
+        math.floor(maxPrice - range * 0.75),
+        math.floor(minPrice),
         chartWidth, chartHeight, ticker, lineColor, lineColor,
+        gridLines,
+        openY, chartWidth, openY,
         areaPoints, ticker,
         table.concat(points, " "), lineColor,
-        chartWidth, chartHeight - ((history[#history] - minPrice) / range * chartHeight), lineColor)
+        closeY, chartWidth, closeY, lineColor,
+        chartWidth, closeY, lineColor,
+        chartWidth, closeY, lineColor,
+        closeY - 10, lineColor, math.floor(closePrice))
 
         -- 시간 라벨
-        html = html .. "<div style='margin-left:35px;display:flex;justify-content:space-between'>"
-        html = html .. "<span style='font-size:9px;color:#8b949e'>9시</span>"
-        html = html .. "<span style='font-size:9px;color:#8b949e'>15시</span>"
-        html = html .. "<span style='font-size:9px;color:#8b949e'>19시</span>"
-        html = html .. "</div>"
+        html = html .. [[
+<div style='display:flex;margin-top:8px;padding-left:45px'>
+  <div style='flex:1;font-size:9px;color:#787b86'>09:00</div>
+  <div style='flex:1;text-align:center;font-size:9px;color:#787b86'>12:00</div>
+  <div style='flex:1;text-align:center;font-size:9px;color:#787b86'>15:00</div>
+  <div style='flex:1;text-align:right;font-size:9px;color:#787b86'>18:00</div>
+</div>]]
+
+        -- 거래 정보 바
+        html = html .. string.format([[
+<div style='display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid #2a2e39'>
+  <div>
+    <div style='font-size:9px;color:#787b86'>시가</div>
+    <div style='font-size:12px;color:#d1d4dc'>%d</div>
+  </div>
+  <div>
+    <div style='font-size:9px;color:#787b86'>고가</div>
+    <div style='font-size:12px;color:#ef5350'>%d</div>
+  </div>
+  <div>
+    <div style='font-size:9px;color:#787b86'>저가</div>
+    <div style='font-size:12px;color:#26a69a'>%d</div>
+  </div>
+  <div>
+    <div style='font-size:9px;color:#787b86'>기준가</div>
+    <div style='font-size:12px;color:#787b86'>%d</div>
+  </div>
+</div>]], math.floor(openPrice), math.floor(maxPrice - padding), math.floor(minPrice + padding), basePrice)
+
     else
-        html = html .. "<div style='text-align:center;color:#8b949e;padding:40px'>차트 데이터 없음</div>"
+        html = html .. "<div style='text-align:center;color:#787b86;padding:40px'>차트 데이터 없음</div>"
     end
 
     html = html .. "</div>"
