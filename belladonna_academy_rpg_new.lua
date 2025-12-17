@@ -750,7 +750,6 @@ local STOCK_BASE_PRICES = {
     GOLDMANE = 280,   -- 황금갈기 금고 (Goldman Sachs) - 미라벨
     LUXORIA = 220,    -- 사치의 성채 (LVMH) - 코델리아
     PFIZARA = 120,    -- 연금술 제약 (Pfizer) - 네펜테스
-    LILY = 100,       -- 릴리 벨리 거래소 (종합 상업/물류)
     -- 마도공학 (Tech)
     TESLAM = 180,     -- 뇌전 마도공학 (Tesla)
     NVIDIUM = 300,    -- 성스러운 연산석 (Nvidia)
@@ -780,7 +779,7 @@ local STOCK_BASE_PRICES = {
 
 -- 종목 이름 데이터
 local STOCK_NAMES = {
-    GOLDMANE = "황금갈기 금고", LUXORIA = "사치의 성채", PFIZARA = "연금술 제약", LILY = "릴리 벨리 거래소",
+    GOLDMANE = "황금갈기 금고", LUXORIA = "사치의 성채", PFIZARA = "연금술 제약",
     TESLAM = "뇌전 마도공학", NVIDIUM = "성스러운 연산석", ARCMED = "마도 연산 공방", INTELLUM = "지성의 결정체",
     AMAZONIA = "대삼림 물류 길드", APPELLE = "금단의 사과 상회",
     METARIX = "환상계 마법진", NETHRYX = "수정구 영상술",
@@ -794,7 +793,7 @@ local STOCK_NAMES = {
 -- 종목 목록 (순서 보장용)
 local STOCK_TICKERS = {
     -- 핵심 (캐릭터 연결)
-    "GOLDMANE", "LUXORIA", "PFIZARA", "LILY",
+    "GOLDMANE", "LUXORIA", "PFIZARA",
     -- 마도공학
     "TESLAM", "NVIDIUM", "ARCMED", "INTELLUM",
     -- 대상회
@@ -844,16 +843,6 @@ local STOCK_INFO = {
         upFactors = "신약 승인, 임상 성공, 전염병",
         downFactors = "부작용 스캔들, 임상 실패",
         insider = "네펜테스"
-    },
-    LILY = {
-        sector = "상업/물류",
-        desc = "릴리 벨리 거래소. 종합 상업 및 물류 허브. 축제와 상단 계약.",
-        size = "중형",
-        financial = "안정",
-        volatility = "중",
-        upFactors = "대형 상단 입주, 축제 시즌, 무역 활성화",
-        downFactors = "경기 침체, 물류 차질, 경쟁 거래소",
-        insider = "상인"
     },
     TESLAM = {
         sector = "마도공학",
@@ -5322,7 +5311,7 @@ function generateCandleData(triggerId, ticker, currentPrice)
         MUTAGEN = 0.12, PFIZARA = 0.10, METARIX = 0.10,
         TESLAM = 0.08, ARCMED = 0.07, NVIDIUM = 0.07,
         GOLDMANE = 0.05, LUXORIA = 0.05, AEGIS = 0.05, IRONFORGE = 0.05, VITALIS = 0.06,
-        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04, LILY = 0.05,
+        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04,
         INTELLUM = 0.04, AMAZONIA = 0.04, HARVESTIA = 0.04, STARBREW = 0.04, GUCCIEL = 0.03, APPELLE = 0.04
     }
     local vol = volatility[ticker] or 0.06
