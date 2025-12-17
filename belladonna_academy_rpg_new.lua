@@ -261,7 +261,8 @@ When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
 - [Club:Join:...], [Club:Leave:...] - Club membership
-- [Stock:...] - Stock prices (Main AI outputs this)
+- [Stock:...] - Stock prices
+- [StockBuy:...], [StockSell:...] - Stock trades
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
@@ -5730,6 +5731,46 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- StatsEvaluated 태그 → 알림 디스플레이 변환
     data = data:gsub("%[StatsEvaluated%]", '<div style="background:#2d1f3d;border-left:4px solid #a371f7;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#d2a8ff">✨ <b>능력 평가 완료!</b></div>')
+
+    -- 주식 매수 태그 → 매수 알림 디스플레이 변환
+    data = data:gsub("%[StockBuy:([A-Z]+):(%d+):(%d+)%]", function(ticker, price, qty)
+        local name = STOCK_NAMES[ticker] or ticker
+        local total = tonumber(price) * tonumber(qty)
+        return string.format([[
+<div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="background:#ef5350;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">매수</span>
+    <span style="color:#ef5350;font-size:14px;font-weight:600">%s</span>
+    <span style="color:#8b949e;font-size:12px">%s</span>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="color:#c9d1d9;font-size:13px">
+      <span style="color:#8b949e">수량</span> <b>%s주</b> × <span style="color:#8b949e">단가</span> <b>%sG</b>
+    </div>
+    <div style="color:#ef5350;font-size:16px;font-weight:700">-%sG</div>
+  </div>
+</div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
+    end)
+
+    -- 주식 매도 태그 → 매도 알림 디스플레이 변환
+    data = data:gsub("%[StockSell:([A-Z]+):(%d+):(%d+)%]", function(ticker, price, qty)
+        local name = STOCK_NAMES[ticker] or ticker
+        local total = tonumber(price) * tonumber(qty)
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1a2d2a 0%%,#121a18 100%%);border:1px solid #26a69a;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(38,166,154,0.2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="background:#26a69a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">매도</span>
+    <span style="color:#26a69a;font-size:14px;font-weight:600">%s</span>
+    <span style="color:#8b949e;font-size:12px">%s</span>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="color:#c9d1d9;font-size:13px">
+      <span style="color:#8b949e">수량</span> <b>%s주</b> × <span style="color:#8b949e">단가</span> <b>%sG</b>
+    </div>
+    <div style="color:#26a69a;font-size:16px;font-weight:700">+%sG</div>
+  </div>
+</div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
+    end)
 
     -- Market 태그 → 시장 뉴스 디스플레이 변환
     data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
