@@ -258,6 +258,11 @@ Exams (Week 6,12): [Exam:midterm:87:23]
 When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 <StockPanel /> - Display stock trading panel
 
+## Tags NOT to Output (Main AI handles these)
+Do NOT output these tags - Main AI already outputs them:
+- [Club:Join:...], [Club:Leave:...] - Club membership
+- [Stock:...] - Stock prices (Main AI outputs this)
+
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
