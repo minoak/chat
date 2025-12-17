@@ -254,21 +254,9 @@ Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:
 Monday: [Week:X+1][Day:월요일][Time:오전]
 Exams (Week 6,12): [Exam:midterm:87:23]
 
-## Stock Market Tags (Stock Club Members Only)
-When Main AI outputs `<Stock>` tag, generate stock price tags:
-[Stock:TICKER:PRICE:CHANGE|...] - Multiple stocks separated by |
-- TICKER: Stock code (GOLDMANE, PFIZARA, TESLAM, etc.)
-- PRICE: Current price in G (positive integer)
-- CHANGE: Price change from previous (+N, -N, or 0)
-
-[StockBuy:TICKER:PRICE:QTY] - When player buys stock
-[StockSell:TICKER:PRICE:QTY] - When player sells stock
-<StockPanel /> - Always output after [Stock:...] tag
-
-**Price hints from Main AI's <Stock> content:**
-- "급등/폭등": +8~+15, "상승/오름": +2~+7
-- "보합/횡보": -1~+1
-- "하락/내림": -2~-7, "급락/폭락": -8~-15
+## Stock Panel (Stock Club Members Only)
+When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
+<StockPanel /> - Display stock trading panel
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
