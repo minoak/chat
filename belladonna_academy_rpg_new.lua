@@ -6238,9 +6238,7 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
     -- 아래 태그들은 editDisplay에서 디스플레이 변환하므로 유지:
-    -- [Stock:...], [Club:...], [StatsEvaluated], [Market:...]
-    mainResponse = mainResponse:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
-    mainResponse = mainResponse:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
+    -- [Stock:...], [Club:...], [StatsEvaluated], [Market:...], [StockBuy:...], [StockSell:...]
     mainResponse = mainResponse:gsub("<WeeklyReport>.-</WeeklyReport>", "")  -- 주간 보고서
     mainResponse = mainResponse:gsub("<StockPanel%s*/>", "")  -- 주식 패널
 
