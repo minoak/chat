@@ -5369,7 +5369,7 @@ function generateCandleData(triggerId, ticker, currentPrice)
     return candles
 end
 
--- 차트 뷰 (12캔들 OHLC 차트)
+-- 차트 뷰 (라인 그래프)
 function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
@@ -5393,86 +5393,73 @@ function generateStockChartView(triggerId, ticker)
   </div>
 </div>]], ticker, name, formatNumber(price), changeColor, changeSign, change)
 
-    -- OHLC 캔들 차트
-    local candles = generateCandleData(triggerId, ticker, price)
+    -- 가격 히스토리 가져오기
+    local history = getStockHistory(triggerId, ticker)
 
     html = html .. "<div style='background:#0d1117;padding:16px;border-top:1px solid #21262d'>"
 
-    if #candles > 0 then
-        -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
-        local minPrice = math.floor(basePrice * 0.80)
-        local maxPrice = math.floor(basePrice * 1.20)
-        -- 실제 데이터가 범위를 벗어나면 확장
-        for _, c in ipairs(candles) do
-            if c.low < minPrice then minPrice = c.low - 5 end
-            if c.high > maxPrice then maxPrice = c.high + 5 end
+    if #history >= 2 then
+        -- Y축 범위 계산
+        local minPrice = history[1]
+        local maxPrice = history[1]
+        for _, p in ipairs(history) do
+            if p < minPrice then minPrice = p end
+            if p > maxPrice then maxPrice = p end
+        end
+        -- 최소 범위 보장
+        if maxPrice - minPrice < basePrice * 0.1 then
+            local mid = (maxPrice + minPrice) / 2
+            minPrice = mid - basePrice * 0.05
+            maxPrice = mid + basePrice * 0.05
         end
         local range = maxPrice - minPrice
         if range == 0 then range = 1 end
-        local chartHeight = 140
 
-        -- 가격 라벨 영역
+        local chartWidth = 280
+        local chartHeight = 120
+
+        -- SVG 라인 그래프
+        local points = {}
+        for i, p in ipairs(history) do
+            local x = (i - 1) * (chartWidth / (#history - 1))
+            local y = chartHeight - ((p - minPrice) / range * chartHeight)
+            table.insert(points, string.format("%.1f,%.1f", x, y))
+        end
+
+        -- 현재가 기준 상승/하락 색상
+        local lineColor = (history[#history] >= history[1]) and "#ef5350" or "#26a69a"
+
+        -- 그라데이션 영역용 폴리곤
+        local areaPoints = "0," .. chartHeight .. " " .. table.concat(points, " ") .. " " .. chartWidth .. "," .. chartHeight
+
         html = html .. string.format([[
 <div style='position:relative;height:%dpx;margin-bottom:8px'>
   <div style='position:absolute;left:0;top:0;font-size:10px;color:#8b949e'>%d</div>
-  <div style='position:absolute;left:0;top:50%%;transform:translateY(-50%%);font-size:10px;color:#8b949e'>%d</div>
   <div style='position:absolute;left:0;bottom:0;font-size:10px;color:#8b949e'>%d</div>
-  <div style='margin-left:40px;height:100%%;position:relative;border-left:1px solid #30363d;border-bottom:1px solid #30363d'>
-    <div style='position:absolute;top:0;left:0;right:0;border-top:1px dashed #21262d'></div>
-    <div style='position:absolute;top:50%%;left:0;right:0;border-top:1px dashed #21262d'></div>
-]], chartHeight, maxPrice, math.floor((maxPrice + minPrice) / 2), minPrice)
-
-        -- 캔들 렌더링
-        local candleWidth = math.floor(100 / #candles)
-        for i, c in ipairs(candles) do
-            local isUp = c.close >= c.open
-            local color = isUp and "#ef5350" or "#26a69a"
-
-            -- 위치 계산 (상단 기준)
-            local highY = math.floor(((maxPrice - c.high) / range) * chartHeight)
-            local lowY = math.floor(((maxPrice - c.low) / range) * chartHeight)
-            local bodyTop = math.floor(((maxPrice - math.max(c.open, c.close)) / range) * chartHeight)
-            local bodyBottom = math.floor(((maxPrice - math.min(c.open, c.close)) / range) * chartHeight)
-            local bodyHeight = math.max(bodyBottom - bodyTop, 2)
-
-            local leftPos = (i - 1) * candleWidth + candleWidth * 0.15
-            local isLast = i == #candles
-
-            -- 심지 (위아래)
-            html = html .. string.format([[
-    <div style='position:absolute;left:%.1f%%;width:1px;top:%dpx;height:%dpx;background:%s'></div>
-]], leftPos + candleWidth * 0.35, highY, lowY - highY, color)
-
-            -- 캔들 몸통
-            html = html .. string.format([[
-    <div style='position:absolute;left:%.1f%%;width:%.1f%%;top:%dpx;height:%dpx;background:%s;border-radius:1px;%s'></div>
-]], leftPos, candleWidth * 0.7, bodyTop, bodyHeight, color, isLast and "box-shadow:0 0 6px " .. color or "")
-        end
-
-        html = html .. [[
+  <div style='margin-left:35px'>
+    <svg width='%d' height='%d' style='overflow:visible'>
+      <defs>
+        <linearGradient id='grad_%s' x1='0%%' y1='0%%' x2='0%%' y2='100%%'>
+          <stop offset='0%%' style='stop-color:%s;stop-opacity:0.3'/>
+          <stop offset='100%%' style='stop-color:%s;stop-opacity:0.05'/>
+        </linearGradient>
+      </defs>
+      <polygon points='%s' fill='url(#grad_%s)'/>
+      <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+      <circle cx='%.1f' cy='%.1f' r='4' fill='%s' stroke='#0d1117' stroke-width='2'/>
+    </svg>
   </div>
-</div>]]
+</div>]], chartHeight, math.floor(maxPrice), math.floor(minPrice),
+        chartWidth, chartHeight, ticker, lineColor, lineColor,
+        areaPoints, ticker,
+        table.concat(points, " "), lineColor,
+        chartWidth, chartHeight - ((history[#history] - minPrice) / range * chartHeight), lineColor)
 
         -- 시간 라벨
-        html = html .. "<div style='margin-left:40px;display:flex'>"
-        local timeLabels = {"9시", "", "11시", "", "13시", "", "15시", "", "17시", "", "19시", ""}
-        for i = 1, #candles do
-            html = html .. string.format([[
-  <div style='flex:1;text-align:center;font-size:9px;color:#8b949e'>%s</div>]], timeLabels[i] or "")
-        end
-        html = html .. "</div>"
-
-        -- 거래량 바 (시뮬레이션)
-        html = html .. "<div style='margin-left:40px;height:30px;display:flex;align-items:flex-end;gap:1px;margin-top:8px;border-top:1px solid #21262d;padding-top:8px'>"
-        for i, c in ipairs(candles) do
-            local isUp = c.close >= c.open
-            local color = isUp and "rgba(239,83,80,0.5)" or "rgba(38,166,154,0.5)"
-            -- 거래량 높이 (변동폭 기반 시뮬레이션)
-            local volHeight = math.abs(c.close - c.open) / range * 100 + 20
-            volHeight = math.min(volHeight, 100)
-            html = html .. string.format([[
-  <div style='flex:1;height:%.0f%%;background:%s;border-radius:1px 1px 0 0'></div>]], volHeight, color)
-        end
+        html = html .. "<div style='margin-left:35px;display:flex;justify-content:space-between'>"
+        html = html .. "<span style='font-size:9px;color:#8b949e'>9시</span>"
+        html = html .. "<span style='font-size:9px;color:#8b949e'>15시</span>"
+        html = html .. "<span style='font-size:9px;color:#8b949e'>19시</span>"
         html = html .. "</div>"
     else
         html = html .. "<div style='text-align:center;color:#8b949e;padding:40px'>차트 데이터 없음</div>"
