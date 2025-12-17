@@ -1022,6 +1022,105 @@ local STOCK_INFO = {
     }
 }
 
+-- ============================================
+-- 시장 지수 시스템 (릴리벨리 지수)
+-- ============================================
+
+-- 시장 지수 기준값
+local MARKET_BASE_INDEX = 1000
+
+-- 시장 레벨 정의
+local MARKET_LEVELS = {
+    { name = "Crisis", min = 0, max = 850, label = "폭락", color = "#dc3545" },
+    { name = "Bear", min = 850, max = 950, label = "약세", color = "#fd7e14" },
+    { name = "Stable", min = 950, max = 1050, label = "안정", color = "#6c757d" },
+    { name = "Bull", min = 1050, max = 1150, label = "강세", color = "#28a745" },
+    { name = "Boom", min = 1150, max = 9999, label = "호황", color = "#17a2b8" }
+}
+
+-- 시장 레벨 계산
+function getMarketLevel(index)
+    for _, level in ipairs(MARKET_LEVELS) do
+        if index >= level.min and index < level.max then
+            return level
+        end
+    end
+    return MARKET_LEVELS[3]  -- 기본: Stable
+end
+
+-- 시장 지수 초기화
+function initMarketIndex(triggerId)
+    local currentIndex = getState(triggerId, "market_index")
+    if not currentIndex then
+        setState(triggerId, "market_index", MARKET_BASE_INDEX)
+        setState(triggerId, "market_change", 0)
+        setState(triggerId, "market_news", "시장이 안정적으로 운영되고 있습니다.")
+        log("📊 시장 지수 초기화: " .. MARKET_BASE_INDEX)
+    end
+end
+
+-- 시장 지수 태그 파싱: [Market:1050:+2.5:뉴스 내용]
+function parseMarketIndex(triggerId, message)
+    local clubJoined = getChatVar(triggerId, "club_stock_joined")
+    if clubJoined ~= "1" then return end
+
+    for indexStr, changeStr, news in message:gmatch("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]") do
+        local index = tonumber(indexStr)
+        local change = tonumber(changeStr)
+
+        if index and change then
+            setState(triggerId, "market_index", index)
+            setState(triggerId, "market_change", change)
+            setState(triggerId, "market_news", news)
+            setState(triggerId, "market_update_time", os.time())
+
+            local level = getMarketLevel(index)
+            log(string.format("📊 시장 지수: %d (%+.1f%%) - %s [%s]", index, change, level.label, news))
+        end
+    end
+end
+
+-- 시장 패널 UI 생성
+function generateMarketPanel(triggerId)
+    local index = getState(triggerId, "market_index") or MARKET_BASE_INDEX
+    local change = getState(triggerId, "market_change") or 0
+    local news = getState(triggerId, "market_news") or "시장 뉴스 없음"
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = getChatVar(triggerId, "week_of_season") or "1"
+
+    local level = getMarketLevel(index)
+    local changeColor = change >= 0 and "#ef5350" or "#26a69a"
+    local changeSign = change >= 0 and "+" or ""
+    local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
+
+    local html = string.format([[
+<div style="background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border-radius:12px;padding:16px;margin:12px 0;border:1px solid #30363d;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">📊</span>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff">릴리벨리 지수</div>
+        <div style="font-size:11px;color:#8b949e">%s학기 %s주차</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:24px;font-weight:700;color:#fff">%s</div>
+      <div style="font-size:14px;font-weight:600;color:%s">%s%s%.1f%% %s</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <span style="padding:4px 10px;background:%s;border-radius:6px;font-size:12px;font-weight:600;color:#fff">%s</span>
+    <span style="font-size:12px;color:#8b949e">%s</span>
+  </div>
+  <div style="background:#21262d;border-radius:8px;padding:10px 12px">
+    <div style="font-size:11px;color:#58a6ff;margin-bottom:4px">📰 최신 뉴스</div>
+    <div style="font-size:13px;color:#c9d1d9;line-height:1.4">%s</div>
+  </div>
+</div>]], season, week, formatNumber(index), changeColor, changeSign, arrow, change, level.color, level.label, level.name, news)
+
+    return html
+end
+
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5|PFIZARA:120:-2|...]
 function parseStockChanges(triggerId, message)
     -- 동아리 가입 여부 확인
@@ -4136,6 +4235,7 @@ function processOutput(triggerId)
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
 
         -- 턴마다 효과 duration 감소
         updateEffectDurations(triggerId)
@@ -5509,6 +5609,23 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return ""  -- 태그 제거
     end)
 
+    -- 시장 지수 패널: <MarketPanel /> (최신 채팅에만 표시)
+    local hasMarketPanel = data:find("<MarketPanel%s*/>")
+    data = data:gsub("<MarketPanel%s*/>", "")
+
+    if hasMarketPanel then
+        local shouldShow = true
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            shouldShow = (meta.index >= chatLength - 1)
+        end
+        if shouldShow then
+            -- 시장 지수 초기화 (없으면)
+            initMarketIndex(triggerId)
+            data = generateMarketPanel(triggerId) .. data
+        end
+    end
+
     -- 주식 패널: 태그가 있는지 확인 후 제거
     local hasStockPanel = data:find("<StockPanel%s*/>")
     data = data:gsub("<StockPanel%s*/>", "")
@@ -6042,6 +6159,7 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
     end
 
     -- UI 업데이트
