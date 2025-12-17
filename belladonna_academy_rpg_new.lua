@@ -1121,6 +1121,37 @@ function generateMarketPanel(triggerId)
     return html
 end
 
+-- 주식 시세 변동 인라인 티커 생성: [Stock:TICKER:PRICE:CHANGE|...] → 티커 디스플레이
+function generateStockTicker(stockData)
+    local items = {}
+
+    for entry in stockData:gmatch("([^|]+)") do
+        local ticker, price, change = entry:match("([A-Z]+):(%d+):([%+%-]?%d+)")
+        if ticker and price and change then
+            local changeNum = tonumber(change) or 0
+            local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
+            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
+            local sign = changeNum > 0 and "+" or ""
+            local name = STOCK_NAMES[ticker] or ticker
+
+            table.insert(items, string.format(
+                '<span style="color:%s;font-weight:600">%s</span> <span style="color:#fff">%sG</span> <span style="color:%s">%s%s%d%%</span>',
+                "#58a6ff", ticker, price, color, arrow, sign, changeNum
+            ))
+        end
+    end
+
+    if #items == 0 then return "" end
+
+    local html = string.format([[
+<div style="background:#161b22;border-radius:8px;padding:10px 14px;margin:8px 0;border:1px solid #30363d;font-size:13px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+  <span style="color:#8b949e;font-size:11px">📊 시세</span>
+  %s
+</div>]], table.concat(items, ' <span style="color:#30363d">│</span> '))
+
+    return html
+end
+
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5|PFIZARA:120:-2|...]
 function parseStockChanges(triggerId, message)
     -- 동아리 가입 여부 확인
@@ -4946,7 +4977,10 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Week:[^%]]+%]", "")
     data = data:gsub("%[Time:[^%]]+%]", "")
     data = data:gsub("%[Location:[^%]]+%]", "")
-    data = data:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시세
+    -- 주식 시세 태그 → 티커 디스플레이 변환
+    data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
+        return generateStockTicker(stockData)
+    end)
     data = data:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
     data = data:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
     data = data:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
@@ -6031,7 +6065,7 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Day:[^%]]+%]", "")  -- 요일 태그
     mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
-    mainResponse = mainResponse:gsub("%[Stock:[^%]]+%]", "")  -- 주식 시세
+    -- [Stock:...] 태그는 editDisplay에서 티커 디스플레이로 변환하므로 유지
     mainResponse = mainResponse:gsub("%[StockBuy:[^%]]+%]", "")  -- 주식 매수
     mainResponse = mainResponse:gsub("%[StockSell:[^%]]+%]", "")  -- 주식 매도
     mainResponse = mainResponse:gsub("%[Club:[^%]]+%]", "")  -- 동아리 가입/탈퇴
