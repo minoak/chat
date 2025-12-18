@@ -148,7 +148,7 @@ Tags:
 
 {{/if_pure}}
 
-{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 
 ---
 
@@ -253,4 +253,4 @@ NEP (네펜데스 제약): 88g, 하락 - 부작용 스캔들
 
 ---
 
-{{/if_pure}}
+{{/if_pure}}{{/if_pure}}
