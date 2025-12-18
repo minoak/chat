@@ -1178,6 +1178,7 @@ function parseClubChanges(triggerId, message)
     for clubType in message:gmatch("%[Club:Join:([^%]]+)%]") do
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "1")
+            setState(triggerId, "club_stock_joined", "1")
             log("📈 주식투자 동아리 가입 (태그)")
         end
     end
@@ -1186,6 +1187,7 @@ function parseClubChanges(triggerId, message)
     for clubType in message:gmatch("%[Club:Leave:([^%]]+)%]") do
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "0")
+            setState(triggerId, "club_stock_joined", "0")
             log("📉 주식투자 동아리 탈퇴 (태그)")
         end
     end
@@ -4434,25 +4436,37 @@ listenEdit("editInput", function(triggerId, data)
     local currentAuxMode = getState(triggerId, "auxiliary_mode")
     if currentAuxMode == "0" or currentAuxMode == "1" or currentAuxMode == "2" then
         setChatVar(triggerId, "auxiliary_mode", currentAuxMode)
+        -- auxiliary_mode_text도 동기화
+        if currentAuxMode == "2" then
+            setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+        elseif currentAuxMode == "1" then
+            setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
+        else
+            setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+        end
     else
         -- 기본값 "2" (보조모델 사용)
         setState(triggerId, "auxiliary_mode", "2")
         setChatVar(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
     end
 
     -- 호감도 시스템 변수도 동기화
     local currentAffinitySystem = getState(triggerId, "affinity_system_enabled")
     if currentAffinitySystem == "true" or currentAffinitySystem == "false" then
         setChatVar(triggerId, "affinity_system_enabled", currentAffinitySystem)
+        setChatVar(triggerId, "affinity_system_text", currentAffinitySystem == "true" and "ON" or "OFF")
     else
         setState(triggerId, "affinity_system_enabled", "true")
         setChatVar(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_text", "ON")
     end
 
-    -- 주식 동아리 가입 상태 동기화
-    local stockJoined = getState(triggerId, "club_stock_joined")
+    -- 주식 동아리 가입 상태 동기화 (setChatVar와 setState 모두 확인)
+    local stockJoined = getState(triggerId, "club_stock_joined") or getChatVar(triggerId, "club_stock_joined")
     if stockJoined then
         setChatVar(triggerId, "club_stock_joined", stockJoined)
+        setState(triggerId, "club_stock_joined", stockJoined)
     end
 
     if data:match("^/reset") then
@@ -5164,10 +5178,11 @@ end
 
 -- 현재 뷰에 따른 주식 패널 HTML 생성
 function generateStockPanelUI(triggerId)
-    local clubJoined = getChatVar(triggerId, "club_stock_joined")
+    local clubJoined = getChatVar(triggerId, "club_stock_joined") or getState(triggerId, "club_stock_joined")
     if clubJoined ~= "1" then
         -- 가입 안 된 경우 자동 가입 (테스트용)
         setChatVar(triggerId, "club_stock_joined", "1")
+        setState(triggerId, "club_stock_joined", "1")
         log("📈 주식 동아리 자동 가입 (테스트)")
     end
 
@@ -6685,12 +6700,14 @@ end
 -- 동아리 가입 버튼 (테스트용)
 _G["join_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "1")
+    setState(triggerId, "club_stock_joined", "1")
     alertNormal(triggerId, "📈 주식투자 동아리에 가입했습니다!")
     log("📈 주식투자 동아리 가입 완료")
 end
 
 _G["leave_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "0")
+    setState(triggerId, "club_stock_joined", "0")
     alertNormal(triggerId, "📉 주식투자 동아리에서 탈퇴했습니다.")
     log("📉 주식투자 동아리 탈퇴 완료")
 end
