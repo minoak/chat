@@ -1054,8 +1054,8 @@ end
 
 -- 시장 지수 태그 파싱: [Market:1050:+2.5:뉴스 내용]
 function parseMarketIndex(triggerId, message)
-    local clubJoined = getChatVar(triggerId, "club_stock_joined")
-    if clubJoined ~= "1" then return end
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then return end
 
     for indexStr, changeStr, news in message:gmatch("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]") do
         local index = tonumber(indexStr)
@@ -1147,9 +1147,9 @@ end
 
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5|PFIZARA:120:-2|...]
 function parseStockChanges(triggerId, message)
-    -- 동아리 가입 여부 확인
-    local clubJoined = getChatVar(triggerId, "club_stock_joined")
-    if clubJoined ~= "1" then return end
+    -- 주식 시스템 활성화 여부 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then return end
 
     for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
         -- 각 종목 파싱: GOLDMANE:280:+5|PFIZARA:120:-2
@@ -1179,6 +1179,9 @@ function parseClubChanges(triggerId, message)
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "1")
             setState(triggerId, "club_stock_joined", "1")
+            -- 주식 시스템 활성화
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
             log("📈 주식투자 동아리 가입 (태그)")
         end
     end
@@ -1188,6 +1191,14 @@ function parseClubChanges(triggerId, message)
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "0")
             setState(triggerId, "club_stock_joined", "0")
+            -- 경영 참여 중이 아니면 주식 시스템도 비활성화
+            local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
+            local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
+            local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
+            if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
+                setChatVar(triggerId, "stock_system_enabled", "0")
+                setState(triggerId, "stock_system_enabled", "0")
+            end
             log("📉 주식투자 동아리 탈퇴 (태그)")
         end
     end
@@ -1195,8 +1206,8 @@ end
 
 -- 주식 매매 태그 파싱: [StockBuy:TICKER:PRICE:QTY] / [StockSell:TICKER:PRICE:QTY]
 function parseStockTrades(triggerId, message)
-    local clubJoined = getChatVar(triggerId, "club_stock_joined")
-    if clubJoined ~= "1" then return end
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then return end
 
     -- 매수: [StockBuy:GOLDMANE:280:10]
     for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
@@ -2660,10 +2671,10 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
         userPrompt = userPrompt .. string.format("- Active Effects: %s\n", activeEffects)
     end
 
-    -- 주식 동아리 가입 정보
-    local stockClubJoined = getChatVar(triggerId, "club_stock_joined") or "0"
-    if stockClubJoined == "1" then
-        userPrompt = userPrompt .. "- 📈 Stock Club: MEMBER (output [Stock:...] tags when <Stock> appears)\n"
+    -- 주식 시스템 활성화 정보
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    if stockEnabled == "1" then
+        userPrompt = userPrompt .. "- 📈 Stock System: ENABLED (output [Stock:...] tags when <Stock> appears)\n"
     end
 
     userPrompt = userPrompt .. "===========================================\n"
@@ -4469,6 +4480,13 @@ listenEdit("editInput", function(triggerId, data)
         setState(triggerId, "club_stock_joined", stockJoined)
     end
 
+    -- 주식 시스템 활성화 상태 동기화
+    local stockEnabled = getState(triggerId, "stock_system_enabled") or getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled then
+        setChatVar(triggerId, "stock_system_enabled", stockEnabled)
+        setState(triggerId, "stock_system_enabled", stockEnabled)
+    end
+
     if data:match("^/reset") then
         for _, char in ipairs(characters) do
             setChatVar(triggerId, char.storage .. "_affinity", "0")
@@ -5178,11 +5196,11 @@ end
 
 -- 현재 뷰에 따른 주식 패널 HTML 생성
 function generateStockPanelUI(triggerId)
-    local clubJoined = getChatVar(triggerId, "club_stock_joined") or getState(triggerId, "club_stock_joined")
-    if clubJoined ~= "1" then
-        -- 가입 안 된 경우 자동 가입 (테스트용)
-        setChatVar(triggerId, "club_stock_joined", "1")
-        setState(triggerId, "club_stock_joined", "1")
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then
+        -- 주식 시스템 미활성화 시 자동 활성화 (테스트용)
+        setChatVar(triggerId, "stock_system_enabled", "1")
+        setState(triggerId, "stock_system_enabled", "1")
         log("📈 주식 동아리 자동 가입 (테스트)")
     end
 
@@ -6701,6 +6719,9 @@ end
 _G["join_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "1")
     setState(triggerId, "club_stock_joined", "1")
+    -- 주식 시스템도 활성화
+    setChatVar(triggerId, "stock_system_enabled", "1")
+    setState(triggerId, "stock_system_enabled", "1")
     alertNormal(triggerId, "📈 주식투자 동아리에 가입했습니다!")
     log("📈 주식투자 동아리 가입 완료")
 end
@@ -6708,6 +6729,14 @@ end
 _G["leave_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "0")
     setState(triggerId, "club_stock_joined", "0")
+    -- 경영 참여 중이 아니면 주식 시스템도 비활성화
+    local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
+    local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
+    local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
+    if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
+        setChatVar(triggerId, "stock_system_enabled", "0")
+        setState(triggerId, "stock_system_enabled", "0")
+    end
     alertNormal(triggerId, "📉 주식투자 동아리에서 탈퇴했습니다.")
     log("📉 주식투자 동아리 탈퇴 완료")
 end

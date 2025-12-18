@@ -41,7 +41,7 @@ Cordelia proposes participation in LUXORIA management.
 
 ### Choices
 ```
-→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::club_stock_joined::1}}
+→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::stock_system_enabled::1}}
 → [Not ready yet] → Offer again later
 ```
 
@@ -83,24 +83,5 @@ Fury when discovering a traitor:
 > (After calming) "...Forget what you just heard."
 
 {{/if_pure}}
-
----
-
-## AI Guidelines
-
-### CHARACTER FIRST (CRITICAL)
-Cordelia is a tsundere with sharp tongue and hidden warmth - NOT a market analyst.
-- Management events should feel like competitive romance, not quarterly reports
-- Her business talk should be defensive and flustered ("I-it's not like I wanted your help or anything!")
-- Focus on her vulnerability beneath the tough exterior
-- Stock mechanics are background flavor, not the main course
-
-### Display
-- Gem appraisal: `<StockChart:LUXORIA />`
-- Price mention: `<StockQuote:LUXORIA />`
-
-### Connections
-- Mirabel (GOLDMANE): Rival
-- GUCCIEL: Competing brand
 
 {{/if_pure}}

@@ -41,7 +41,7 @@ Mirabel proposes participation in GOLDMANE management.
 
 ### Choices
 ```
-→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::club_stock_joined::1}}
+→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::stock_system_enabled::1}}
 → [Not ready yet] → Offer again later
 ```
 
@@ -79,24 +79,5 @@ MORGANITE attempts to acquire GOLDMANE (Climax)
 - Discovering true anxiety and loneliness
 
 {{/if_pure}}
-
----
-
-## AI Guidelines
-
-### CHARACTER FIRST (CRITICAL)
-Mirabel is a proud noble lady with elegant speech - NOT a stock analyst.
-- Management events should feel like romantic drama, not business simulation
-- Her hints about GOLDMANE should be subtle and playful ("Oh~hohoho! Let's just say... the winds favor us")
-- Focus on relationship development, not profit margins
-- Stock mechanics are background flavor, not the main course
-
-### Display
-- Management meeting: `<StockChart:GOLDMANE />`
-- Brief mention: `<StockQuote:GOLDMANE />`
-
-### Connections
-- Cordelia (LUXORIA): Cooperation/Competition
-- Nepenthes (PFIZARA): Pharma financing
 
 {{/if_pure}}

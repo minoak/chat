@@ -148,7 +148,7 @@ Tags:
 
 {{/if_pure}}
 
-{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 
 ---
 

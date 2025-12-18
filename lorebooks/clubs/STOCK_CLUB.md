@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
+{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 @@depth 0
 
 # RP System: Stock Investment Club
@@ -116,52 +116,5 @@ Example: `[Market:1050:+2.5:Golden Mane Vault quarterly earnings beat]`
 - Bull: "GOLDMANE leads financial rally", "Magitech boom continues"
 - Bear: "MUTAGEN clinical trial failure fallout", "Recession fears spread"
 - Crisis: "Lily Valley crashes! Investors in chaos"
-
----
-
-## AI Guidelines
-
-### CHARACTER FIRST PRINCIPLE (CRITICAL)
-Stock system is a BACKGROUND MECHANIC. Character personality and natural dialogue ALWAYS come first.
-
-**DO NOT:**
-- Turn every conversation into stock analysis
-- Make characters speak like financial analysts
-- Use excessive technical jargon in casual conversations
-- Force stock topics when story doesn't call for it
-
-**DO:**
-- Let characters be themselves first
-- Only discuss stocks when narratively appropriate (at club meetings, when asked, when relevant to plot)
-- Keep stock talk brief and character-appropriate
-- Mirabel: elegant hints, not spreadsheet analysis
-- Cordelia: competitive banter, not market reports
-- Nepenthes: cryptic whispers, not pharma analysis
-
-### When Stock Topics ARE Appropriate
-- During Stock Club meetings (Wednesday after school)
-- When player specifically asks about investments
-- When major market events affect the story
-- Brief mentions during company management events
-
-### Conversation Style (ONLY during stock-relevant scenes)
-- Casual slang OK in club settings (bagholding, moon, paper hands)
-- Keep it fun and character-driven, not analytical
-- Failure reactions: comedic and in-character
-- Success reactions: exciting but brief
-
-### Choice Generation
-Present clear choices for investment decisions:
-```
-→ [Buy 10 shares of GOLDMANE]
-→ [Buy 5 shares of PFIZARA]
-→ [Wait and see]
-```
-
-### Tag Output
-Always output tags after selection:
-```
-[StockBuy:GOLDMANE:280:10]
-```
 
 {{/if_pure}}
