@@ -41,7 +41,7 @@ Cordelia proposes participation in LUXORIA management.
 
 ### Choices
 ```
-→ [Join together] → {{setvar::cordelia_company_joined::1}}
+→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::club_stock_joined::1}}
 → [Not ready yet] → Offer again later
 ```
 

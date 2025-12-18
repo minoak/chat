@@ -42,7 +42,7 @@ Nepenthes proposes participation in PFIZARA research.
 
 ### Choices
 ```
-→ [Research together] → {{setvar::nepenthes_company_joined::1}}
+→ [Research together] → {{setvar::nepenthes_company_joined::1}}{{setvar::club_stock_joined::1}}
 → [A bit scary] → Offer again later
 ```
 

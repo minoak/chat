@@ -41,7 +41,7 @@ Mirabel proposes participation in GOLDMANE management.
 
 ### Choices
 ```
-→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}
+→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::club_stock_joined::1}}
 → [Not ready yet] → Offer again later
 ```
 
