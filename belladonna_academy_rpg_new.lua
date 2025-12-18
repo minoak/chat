@@ -4429,6 +4429,32 @@ end)
 -- ============================================
 
 listenEdit("editInput", function(triggerId, data)
+    -- 로어북 평가 전에 auxiliary_mode 변수 동기화
+    -- editInput은 메시지 전송 전에 실행되므로 로어북이 올바른 값을 읽을 수 있음
+    local currentAuxMode = getState(triggerId, "auxiliary_mode")
+    if currentAuxMode == "0" or currentAuxMode == "1" or currentAuxMode == "2" then
+        setChatVar(triggerId, "auxiliary_mode", currentAuxMode)
+    else
+        -- 기본값 "2" (보조모델 사용)
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
+    end
+
+    -- 호감도 시스템 변수도 동기화
+    local currentAffinitySystem = getState(triggerId, "affinity_system_enabled")
+    if currentAffinitySystem == "true" or currentAffinitySystem == "false" then
+        setChatVar(triggerId, "affinity_system_enabled", currentAffinitySystem)
+    else
+        setState(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_enabled", "true")
+    end
+
+    -- 주식 동아리 가입 상태 동기화
+    local stockJoined = getState(triggerId, "club_stock_joined")
+    if stockJoined then
+        setChatVar(triggerId, "club_stock_joined", stockJoined)
+    end
+
     if data:match("^/reset") then
         for _, char in ipairs(characters) do
             setChatVar(triggerId, char.storage .. "_affinity", "0")
