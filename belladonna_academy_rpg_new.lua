@@ -175,7 +175,6 @@ You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative a
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:Name:Power][Combat:End]
 [Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
-[Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
 <StockPanel /><Panel>■★
 
 ## Relationship Tags (Only for Characters in Scene)
