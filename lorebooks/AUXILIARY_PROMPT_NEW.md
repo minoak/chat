@@ -19,7 +19,7 @@ After your narrative response, output structured tags to update game state.
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
-[Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
+[Season:Season][Week:WeekNum][Day:DayName][Time:TimeOfDay][Location:Place][Weather:Weather]
 [Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
 <StockPanel /><Panel>■★
 
@@ -32,7 +32,7 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 - When player has multiple similar Effects or Traits, prioritize MERGING over adding new ones
 - Look for opportunities to synthesize: similar names, overlapping bonuses, related concepts
 - Merged effects/traits should be noticeably stronger than individual components
-- Example: "작은 축복" x3 → "축복" (stronger), "Quick Learner" + "Fast Study" → "Natural Genius"
+- Example: "Minor Blessing" x3 → "Blessing" (stronger), "Quick Learner" + "Fast Study" → "Natural Genius"
 
 ---
 
@@ -60,12 +60,12 @@ Output for characters in this scene.
 
 ### Environment Tags
 
-[Season:봄/여름/가을/겨울] - When describing new semester/season
-[Week:숫자] - When new week starts (Monday morning)
-[Day:요일명] - Final arrival day only (여러 날 지났으면 마지막 요일만)
-[Time:오전/오후/저녁/밤/심야] - Final arrival time only (마지막 시간대만)
-[Location:장소] - Final arrival location only (마지막 장소만)
-[Weather:날씨] - Optional, when you mention weather
+[Season:Spring/Summer/Fall/Winter] - When describing new semester/season
+[Week:Number] - When new week starts (Monday morning)
+[Day:DayName] - Final arrival day only (if multiple days passed, output only the last day)
+[Time:Morning/Afternoon/Evening/Night/Midnight] - Final arrival time only (output only the last time period)
+[Location:Place] - Final arrival location only (output only the last location)
+[Weather:Weather] - Optional, when you mention weather
 
 ### RPG Tags (When Events Occur)
 
@@ -79,16 +79,16 @@ Output for characters in this scene.
 - Add: Acquire item, Remove: Discard/lose item
 - Consumables (potions, food): Don't return after use
 - Non-consumables (keys, ID cards): Return after use with [Item:Add:Name:1]
-- Example: [Item:Add:회복포션:1:hp+20]
+- Example: [Item:Add:Healing Potion:1:hp+20]
 
 [EXP:±value] - Experience gained (+10 to +100 typical)
 
 [Heal:amount] - Combat power recovery (rest 20~50, potion 30~100, food 10~30)
 
 [Effect:Action:Name:StatBonus] - Buffs/debuffs
-- Add: 효과 적용, Remove: 효과 제거 (시간 경과, 조건 종료 시)
-- Merge: 같은 종류 효과 합성 → 상위 효과로 진화
-- Example: [Effect:Add:작은 축복:str+5], [Effect:Merge:작은 축복x3→축복:str+20]
+- Add: Apply effect, Remove: Remove effect (when time expires or condition ends)
+- Merge: Combine same type effects → evolve to higher tier effect
+- Example: [Effect:Add:Minor Blessing:str+5], [Effect:Merge:Minor Blessing x3→Blessing:str+20]
 
 [Trait:Action:Name:Description] - Permanent traits ({{user}} only, not NPCs)
 - Add: New trait acquired
@@ -114,15 +114,15 @@ CRITICAL: You MUST output combat start/end tags. Main model handles narration an
 
 ## Weekly Schedule
 
-Friday Report (월~금 요약):
-- [Stat:...]: 주간 누적만
-- <WeeklyReport>Week:X|Season:Y|Curriculum:교수명|Lifestyle:활동|Score:{{getvar::performance_score}}|Stats:변화</WeeklyReport>
-- [Day:금요일][Time:저녁]
+Friday Report (Mon-Fri summary):
+- [Stat:...]: Weekly cumulative only
+- <WeeklyReport>Week:X|Season:Y|Curriculum:ProfessorName|Lifestyle:Activity|Score:{{getvar::performance_score}}|Stats:Changes</WeeklyReport>
+- [Day:Friday][Time:Evening]
 - Don't output [Week] tag
 
 Monday Start:
 - [Week:X+1] (increment)
-- [Day:월요일][Time:오전]
+- [Day:Monday][Time:Morning]
 
 Exams (Week 4, 8, 12):
 - [Exam:midterm:87:23] when describing score/rank
@@ -154,43 +154,43 @@ Tags:
 
 # STOCK MARKET TAG INSTRUCTIONS
 
-주식투자 동아리 가입자 전용 시스템.
+Stock Investment Club members only system.
 
-## 트리거 조건
+## Trigger Condition
 
-메인모델이 `<Stock>` 태그를 출력하면 주식 관련 태그를 생성해야 함.
-`<Stock>` 태그는 "지금 주식 시세를 업데이트하라"는 신호임.
+When main model outputs `<Stock>` tag, generate stock-related tags.
+`<Stock>` tag signals "update stock prices now".
 
-## 출력 형식
+## Output Format
 
 ```
-[Stock:종목:현재가:등락|종목:현재가:등락|...]
+[Stock:TICKER:PRICE:CHANGE|TICKER:PRICE:CHANGE|...]
 <StockPanel />
 ```
 
-- 형식: `[Stock:TICKER:PRICE:CHANGE|...]`
-- 현재가: 양의 정수 (G 단위)
-- 등락: 전일 대비 변동 (+N 상승, -N 하락, 0 보합)
-- `<StockPanel />`: UI 렌더링 트리거 (필수)
+- Format: `[Stock:TICKER:PRICE:CHANGE|...]`
+- PRICE: Positive integer (in Gold)
+- CHANGE: Daily change (+N up, -N down, 0 unchanged)
+- `<StockPanel />`: UI rendering trigger (required)
 
-## 가격 생성 규칙
+## Price Generation Rules
 
-메인모델의 `<Stock>` 태그 내용에서 힌트를 참고하여 가격 생성:
+Generate prices based on hints from main model's `<Stock>` tag content:
 
-1. **언급된 종목**: 메인모델이 언급한 종목은 해당 방향으로 가격 변동
-2. **미언급 종목**: 랜덤하게 소폭 변동 (-3 ~ +3)
-3. **기준가**: 각 종목별 기준가 참고
+1. **Mentioned stocks**: Move prices in the direction main model mentioned
+2. **Unmentioned stocks**: Random small fluctuation (-3 ~ +3)
+3. **Base prices**: Refer to each stock's base price
 
-### 등락 범위 (메인모델 힌트 기반)
-- "급등", "폭등": +8 ~ +15
-- "상승", "오름": +2 ~ +7
-- "보합", "횡보": -1 ~ +1
-- "하락", "내림": -2 ~ -7
-- "급락", "폭락": -8 ~ -15
+### Change Ranges (based on main model hints)
+- "surge", "skyrocket": +8 ~ +15
+- "rise", "up": +2 ~ +7
+- "stable", "sideways": -1 ~ +1
+- "fall", "down": -2 ~ -7
+- "plunge", "crash": -8 ~ -15
 
-### 기준가 (20개 종목)
-| 종목 | 기준가 | 종목 | 기준가 |
-|------|--------|------|--------|
+### Base Prices (20 stocks)
+| Ticker | Base | Ticker | Base |
+|--------|------|--------|------|
 | LILY | 100G | AEGIS | 150G |
 | CARA | 85G | IRON | 140G |
 | PORT | 120G | ROSE | 200G |
@@ -200,50 +200,50 @@ Tags:
 | NEP | 90G | BANK | 300G |
 | VITA | 110G | OWLS | 130G |
 | MUTA | 75G | STONE | 115G |
-|      |        | MUSE | 170G |
-|      |        | ACAD | 220G |
+|      |      | MUSE | 170G |
+|      |      | ACAD | 220G |
 
-## 매매 태그
+## Trade Tags
 
-스토리에서 주식 매매가 발생하면 태그 출력:
+Output tags when stock trades occur in the story:
 
 ```
-[StockBuy:TICKER:PRICE:QTY]   -- 매수
-[StockSell:TICKER:PRICE:QTY]  -- 매도
+[StockBuy:TICKER:PRICE:QTY]   -- Buy
+[StockSell:TICKER:PRICE:QTY]  -- Sell
 ```
 
-- TICKER: 종목 코드 (LILY, NEP 등)
-- PRICE: 거래 가격 (정수)
-- QTY: 수량 (정수)
+- TICKER: Stock code (LILY, NEP, etc.)
+- PRICE: Trade price (integer)
+- QTY: Quantity (integer)
 
-### 매매 트리거
+### Trade Triggers
 
-메인모델이 스토리에서 매매를 묘사할 때:
-- "LILY 주식 10주를 샀다"
-- "NEP를 전량 매도했다"
-- "105G에 5주 매수"
+When main model describes trades in the story:
+- "Bought 10 shares of LILY"
+- "Sold all NEP shares"
+- "Purchased 5 shares at 105G"
 
-### 매매 예시
+### Trade Example
 
-메인모델: "미라벨의 조언대로 LILY 주식 10주를 105G에 매수했다."
+Main model: "Following Mirabel's advice, I bought 10 shares of LILY at 105G."
 
-태그:
+Tags:
 ```
 [StockBuy:LILY:105:10]
 ```
 
-## 예시
+## Full Example
 
-메인모델 출력:
+Main model output:
 ```
-미라벨이 시세판을 바라보며 말했다. "LILY가 오르고 있네요."
+Mirabel looked at the stock board and said, "LILY is going up."
 <Stock>
-LILY (릴리 상사): 105g, 상승 - 대형 상단 계약 소문
-NEP (네펜데스 제약): 88g, 하락 - 부작용 스캔들
+LILY (Lily Trading Co.): 105g, rising - Large merchant contract rumors
+NEP (Nepenthes Pharma): 88g, falling - Side effect scandal
 </Stock>
 ```
 
-보조모델 태그 출력:
+Auxiliary model tag output:
 ```
 {{#if_pure {{not_equal::{{getvar::affinity_system_enabled}}::false}}}}[Affinity:Mirabel:neutral]{{/if_pure}}[Sin:Mirabel:neutral]
 [Stock:LILY:105:+5|NEP:88:-2|IMP:251:+1|ROSE:198:-2]
