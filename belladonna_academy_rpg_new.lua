@@ -2855,6 +2855,14 @@ function takeRpgSnapshot(triggerId)
     setChatVar(triggerId, "snapshot_combat_enemy_name", getChatVar(triggerId, "combat_enemy_name") or "")
     setChatVar(triggerId, "snapshot_combat_enemy_power", getChatVar(triggerId, "combat_enemy_power") or "0")
     setChatVar(triggerId, "snapshot_combat_state", getChatVar(triggerId, "combat_state") or "Neutral")
+
+    -- Stock Holdings (주식 보유량)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local qty = getChatVar(triggerId, "stock_" .. ticker .. "_qty") or "0"
+        local avg = getChatVar(triggerId, "stock_" .. ticker .. "_avg") or "0"
+        setChatVar(triggerId, "snapshot_stock_" .. ticker .. "_qty", qty)
+        setChatVar(triggerId, "snapshot_stock_" .. ticker .. "_avg", avg)
+    end
 end
 
 -- RPG 변수 복원
@@ -2942,6 +2950,14 @@ function restoreRpgSnapshot(triggerId)
     local combatState = getChatVar(triggerId, "snapshot_combat_state") or "Neutral"
     setChatVar(triggerId, "combat_state", combatState)
     setState(triggerId, "combat_state", combatState)
+
+    -- Stock Holdings (주식 보유량)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local qty = getChatVar(triggerId, "snapshot_stock_" .. ticker .. "_qty") or "0"
+        local avg = getChatVar(triggerId, "snapshot_stock_" .. ticker .. "_avg") or "0"
+        setChatVar(triggerId, "stock_" .. ticker .. "_qty", qty)
+        setChatVar(triggerId, "stock_" .. ticker .. "_avg", avg)
+    end
 
     log("🔄 RPG 스냅샷 복원 완료")
 end
