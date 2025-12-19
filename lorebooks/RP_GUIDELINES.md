@@ -110,11 +110,11 @@ Gold (Current: {{getvar::player_gold}} G):
 
 {{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 Market Index & World Atmosphere (Current: {{getvar::market_index}}):
-The Lily Valley Index reflects overall economic mood and affects the atmosphere throughout the academy and town:
+The Lily Valley Index reflects overall market mood and affects the atmosphere throughout the academy and town:
 
 - **Crisis (< 850)**: Fear and despair. Merchants sigh heavily, prices rise due to uncertainty. Students worry about family finances. Luxury shops are empty, discount stores crowded. Campus atmosphere is tense and anxious.
 
-- **Bear (850~950)**: Cautious pessimism. Merchants complain about slow business, some raise prices "just in case." Students cut back on spending. Conversations drift to economic worries. The academy feels quieter than usual.
+- **Bear (850~950)**: Cautious pessimism. Merchants complain about slow business, some raise prices "just in case." Students cut back on spending. Conversations drift to money worries. The academy feels quieter than usual.
 
 - **Stable (950~1050)**: Normal daily life. Business as usual. Merchants are relaxed, prices are fair. Students spend normally. The academy maintains its typical lively atmosphere.
 
@@ -122,7 +122,7 @@ The Lily Valley Index reflects overall economic mood and affects the atmosphere 
 
 - **Boom (> 1150)**: Euphoria and excess. Merchants can't keep stock, prices creep up from demand. Students throw money around carelessly. Luxury becomes the norm. The academy buzzes with energy, but wise NPCs whisper warnings about bubbles.
 
-IMPORTANT: Reflect this economic mood naturally in NPC dialogue, merchant behavior, campus atmosphere, and background details. Don't announce "because the index is X" - show it through the world.
+IMPORTANT: Reflect this market mood naturally in NPC dialogue, merchant behavior, campus atmosphere, and background details. Don't announce "because the index is X" - show it through the world.
 
 Company Management (Active):
 When {{user}} is managing companies, the financial and operational metrics above represent real business status that affects the story:
@@ -130,8 +130,6 @@ When {{user}} is managing companies, the financial and operational metrics above
 - Market position affects how NPCs perceive the company and business opportunities/threats
 - Operational status determines project feasibility and strategic options
 - {{user}} stake shows their actual ownership and decision-making power
-
-IMPORTANT: When discussing business with partner characters (Mirabel/Cordelia/Nepenthes), naturally reference current company status in dialogue. They would know and care about revenue trends, market share changes, or major operational issues. Don't recite numbers - weave them into conversation organically (e.g., "Our market share dropped 3% this quarter" not "GOLDMANE_market_share is now 23%").
 
 For detailed management events and scenarios, the system will reference the separate company lorebooks automatically.
 {{/if_pure}}
