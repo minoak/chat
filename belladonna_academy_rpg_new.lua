@@ -391,6 +391,14 @@ Do NOT output these tags - Main AI already outputs them:
 - [Stock:...] - Stock prices (only when stock system enabled)
 - [StockBuy:...], [StockSell:...] - Stock trades (only when stock system enabled)
 
+## Stock System Auto-Activation
+
+If Main AI narrative involves stock trading, stock investment, market activities, or stock-related dialogue AND current stock_system_enabled is NOT 1:
+Output: [StockSystem:Enable]
+
+Detection keywords: stock, invest, trade, market, ticker, shares, portfolio, securities, exchange, Lily Valley Securities
+This allows flexible stock system activation from any story context.
+
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
@@ -1662,6 +1670,18 @@ function parseStockChanges(triggerId, message)
     end
 end
 
+-- 주식 시스템 활성화 태그 파싱: [StockSystem:Enable]
+function parseStockSystemEnable(triggerId, message)
+    if message:match("%[StockSystem:Enable%]") then
+        local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if currentEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (보조 모델 감지)")
+        end
+    end
+end
+
 -- 동아리 가입/탈퇴 태그 파싱: [Club:Join:stock] / [Club:Leave:stock]
 function parseClubChanges(triggerId, message)
     -- 가입
@@ -1669,9 +1689,6 @@ function parseClubChanges(triggerId, message)
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "1")
             setState(triggerId, "club_stock_joined", "1")
-            -- 주식 시스템 활성화
-            setChatVar(triggerId, "stock_system_enabled", "1")
-            setState(triggerId, "stock_system_enabled", "1")
             log("📈 주식투자 동아리 가입 (태그)")
         end
     end
@@ -1681,14 +1698,6 @@ function parseClubChanges(triggerId, message)
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "0")
             setState(triggerId, "club_stock_joined", "0")
-            -- 경영 참여 중이 아니면 주식 시스템도 비활성화
-            local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
-            local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
-            local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
-            if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
-                setChatVar(triggerId, "stock_system_enabled", "0")
-                setState(triggerId, "stock_system_enabled", "0")
-            end
             log("📉 주식투자 동아리 탈퇴 (태그)")
         end
     end
@@ -4807,6 +4816,7 @@ function processOutput(triggerId)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
@@ -6941,6 +6951,7 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
