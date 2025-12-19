@@ -193,7 +193,20 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 
 ## RPG Tags
 [Stat:stat:±value] - str/int/dex/cha/luk/vit (±1~5 typical, ±10+ major). [StatsEvaluated]시 ± 없이
-[Gold:±value] - Money change
+
+[Gold:±value] - ONLY when {{user}} ACTUALLY spends or receives money
+- ✓ Bought item: [Gold:-50]
+- ✓ Received reward: [Gold:+100]
+- ✗ NPC mentions price: NO TAG
+- ✗ {{user}} asks "How much?": NO TAG
+- CRITICAL: Mentioned prices ≠ actual transactions
+
+[Damage:amount] - Combat power loss from damage/injury
+- Output when {{user}} takes damage in combat
+- Output when {{user}} gets injured from events/accidents
+- Amount: Estimated CP loss (20~100 typical, 150~300 severe, 400+ critical)
+- Works with existing [Heal:amount] for recovery
+
 [Item:Add:Name:Qty:Effect] / [Item:Remove:Name:Qty] - Non-consumables(학생증,열쇠) return after use
 [EXP:±value] - +10~100
 [Heal:amount] - CP recovery 20~100
@@ -378,6 +391,13 @@ Check Game State for "⚔️ Combat Status: ACTIVE"
 - Power guide (player ~400): 150-250(VeryEasy), 250-350(Easy), 350-500(Normal), 500-650(Hard), 650-900+(VeryHard)
 - Works for ANY challenge: combat, exams, negotiations, skills
 - [Combat:End] when resolved. NEVER with <CombatChoice> same turn
+
+**Combat Damage Tracking**: During active combat, output [Damage:amount] when {{user}} takes hits/damage
+- Check combat choice results (failure, partial success with cost)
+- Estimate damage based on enemy power and outcome severity
+- Example: Failed STR check vs 500 power enemy → [Damage:80]
+- Example: Successful but risky action → [Damage:30]
+- CRITICAL: Combat damage must be tracked, combat power should NOT stay at max during fights
 
 ## Weekly System
 Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|INT:+N|STR:+N|...</WeeklyReport>[Day:금요일][Time:저녁]
@@ -1049,6 +1069,29 @@ function parseHeal(triggerId, message)
     end
 end
 
+-- 전투력 피해 파싱
+function parseDamage(triggerId, message)
+    for amountStr in message:gmatch("%[Damage:(%d+)%]") do
+        local damageAmount = tonumber(amountStr) or 0
+
+        -- 현재 전투력과 최대 전투력
+        local maxPower = calculateCombatPower(triggerId)
+        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+
+        -- 피해 적용 (0 미만 불가)
+        local newPower = math.max(0, currentPower - damageAmount)
+        local actualDamage = currentPower - newPower
+
+        setChatVar(triggerId, "player_combat_power", tostring(newPower))
+        setState(triggerId, "player_combat_power", newPower)
+
+        log(string.format("💔 전투력 손실 -%d | 현재: %d/%d", actualDamage, newPower, maxPower))
+
+        -- 피해 후 부상 상태 업데이트
+        updateInjuryEffect(triggerId)
+    end
+end
+
 -- ============================================
 -- 주식 시스템 (Stock Market System)
 -- ============================================
@@ -1708,6 +1751,9 @@ function parseStockTrades(triggerId, message)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
     if stockEnabled ~= "1" then return end
 
+    -- 이전 실패 메시지 초기화
+    setChatVar(triggerId, "stock_trade_error", "")
+
     -- 매수: [StockBuy:GOLDMANE:280:10]
     for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
@@ -1731,6 +1777,11 @@ function parseStockTrades(triggerId, message)
 
             log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
         else
+            -- 골드 부족 실패
+            local stockName = STOCK_NAMES[ticker] or ticker
+            local errorMsg = string.format("💰 주식 매수 실패: %s %d주를 매수하려면 %dG가 필요하지만 %dG만 보유하고 있습니다.",
+                stockName, qtyNum, cost, gold)
+            setChatVar(triggerId, "stock_trade_error", errorMsg)
             log(string.format("❌ 매수 실패: 골드 부족 (%dG 필요, %dG 보유)", cost, gold))
         end
     end
@@ -1758,6 +1809,11 @@ function parseStockTrades(triggerId, message)
 
             log(string.format("📉 매도: %s %d주 @ %dG (+%dG)", ticker, qtyNum, priceNum, revenue))
         else
+            -- 보유량 부족 실패
+            local stockName = STOCK_NAMES[ticker] or ticker
+            local errorMsg = string.format("💰 주식 매도 실패: %s %d주를 매도하려면 %d주가 필요하지만 %d주만 보유하고 있습니다.",
+                stockName, qtyNum, qtyNum, currentQty)
+            setChatVar(triggerId, "stock_trade_error", errorMsg)
             log(string.format("❌ 매도 실패: 보유량 부족 (%d주 필요, %d주 보유)", qtyNum, currentQty))
         end
     end
@@ -4812,6 +4868,7 @@ function processOutput(triggerId)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
         parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
         parseItems(triggerId, combinedSource)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
@@ -5569,6 +5626,7 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Item:[^%]]+%]", "")
     data = data:gsub("%[EXP:[^%]]+%]", "")
     data = data:gsub("%[Heal:[^%]]+%]", "")
+    data = data:gsub("%[Damage:[^%]]+%]", "")
     data = data:gsub("%[Effect:[^%]]+%]", "")
     data = data:gsub("%[Trait:[^%]]+%]", "")
     data = data:gsub("%[Combat:[^%]]+%]", "")
@@ -6358,6 +6416,15 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 </div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
     end)
 
+    -- 주식 거래 실패 메시지 표시
+    local tradeError = getChatVar(triggerId, "stock_trade_error") or ""
+    if tradeError ~= "" then
+        data = data .. string.format([[
+<div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
+  <div style="color:#ef5350;font-size:14px;font-weight:600">%s</div>
+</div>]], tradeError)
+    end
+
     -- Market 태그 → 시장 뉴스 디스플레이 변환
     data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
         local changeNum = tonumber(change) or 0
@@ -6819,6 +6886,7 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Item:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[EXP:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Heal:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Damage:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Effect:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Trait:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Combat:[^%]]+%]", "")
@@ -6947,6 +7015,7 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
         parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
         parseItems(triggerId, combinedSource)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
