@@ -1,50 +1,47 @@
 {{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 @@depth 0
 
-# RP System: Stock Investment Club
+# Stock Investment Club
+
+Stock Investment Club story and member benefits. For trading system mechanics, see STOCK_SYSTEM.md
 
 ## Club Information
 - President: Pennywise
 - Activity: Lily Valley Securities Investment
-- Trading Method: Choice-based (no button trading)
+- Members: Cordelia, other Lily Valley students
+- Location: East Tower 3F / Exchange Branch
+
+A practical investment club connected to Lily Valley's commercial network. While Pennywise runs it for "educational purposes," it also serves as a means to expand the club's information network.
 
 ---
 
-## Stock List (20 stocks)
+## Club Activities
 
-### Core Stocks (Character-linked)
-| Ticker | Name | Sector | Connection |
-|--------|------|--------|------------|
-| GOLDMANE | Golden Mane Vault | Finance | Mirabel's Family |
-| LUXORIA | Citadel of Luxury | Luxury | Cordelia's Family |
-| PFIZARA | Alchemy Pharmaceuticals | Pharma | Nepenthes' Family |
+### Regular Meetings
+Every Wednesday after school
+- Market trend analysis
+- Investment strategy discussions
+- Profit ranking updates
 
-### General Stocks
-| Ticker | Name | Sector |
-|--------|------|--------|
-| TESLAM | Thunder Magitech | Tech |
-| NVIDIUM | Holy Computing Crystal | Tech |
-| ARCMED | Arcane Computing Workshop | Tech |
-| INTELLUM | Crystal of Intellect | Tech |
-| AMAZONIA | Great Forest Logistics Guild | Commerce |
-| APPELLE | Forbidden Apple Trading Co. | Commerce |
-| METARIX | Phantasmal Magic Circle | Illusion |
-| NETHRYX | Crystal Ball Broadcasting | Illusion |
-| MUTAGEN | Mutation Research Lab | Biotech |
-| VITALIS | Life Force Elixir | Biotech |
-| MORGANITE | Gemstone Finance Group | Finance |
-| AEGIS | Shield Workshop | Defense |
-| IRONFORGE | Iron Smithy | Manufacturing |
-| GUCCIEL | Angel's Textile | Luxury |
-| STARBREW | Starlight Brewery | Consumer |
-| HARVESTIA | Blessing of Harvest | Consumer |
-| STONECRAFT | Stonemason Guild | Construction |
+### Current Competition
+Seed Money Challenge
+- Equal starting funds for all members
+- Winner gets access to Pennywise's insider network
+- Losses are self-responsibility
+
+### Club Culture
+Unspoken Rules:
+- No external information leaks
+- Don't owe Pennywise favors
+- Trust is earned through results
 
 ---
 
 ## Insider Information System
 
-### Information Quality Levels (Affinity-based)
+Club members gain access to character-specific market insights based on affinity level.
+
+### Information Quality Levels
 | Level | Affinity | Info Quality |
 |-------|----------|--------------|
 | Hostile | < 0 | False info, misleading |
@@ -52,69 +49,40 @@
 | Friendly | 100~200 | Directional hints ("Looks bullish") |
 | Trusted | 200+ | Specific info ("Contract announcement next week") |
 
-### Mirabel
+### Mirabel von Goldenrose
 - Level: {{#if_pure {{? {{getvar::mirabel_affinity}} < 0}}}}Hostile{{/if_pure}}{{#if_pure {{? ({{getvar::mirabel_affinity}} >= 0) & ({{getvar::mirabel_affinity}} < 100)}}}}Neutral{{/if_pure}}{{#if_pure {{? ({{getvar::mirabel_affinity}} >= 100) & ({{getvar::mirabel_affinity}} < 200)}}}}Friendly{{/if_pure}}{{#if_pure {{? {{getvar::mirabel_affinity}} >= 200}}}}Trusted{{/if_pure}}
 - Value: {{getvar::mirabel_affinity}}
-- Specialty: GOLDMANE, MORGANITE (Finance)
+- Specialty: GOLDMANE, MORGANITE (Finance sector)
+- Insight style: Precise, data-driven analysis
 
-### Cordelia
+### Cordelia von Edelstein
 - Level: {{#if_pure {{? {{getvar::cordelia_affinity}} < 0}}}}Hostile{{/if_pure}}{{#if_pure {{? ({{getvar::cordelia_affinity}} >= 0) & ({{getvar::cordelia_affinity}} < 100)}}}}Neutral{{/if_pure}}{{#if_pure {{? ({{getvar::cordelia_affinity}} >= 100) & ({{getvar::cordelia_affinity}} < 200)}}}}Friendly{{/if_pure}}{{#if_pure {{? {{getvar::cordelia_affinity}} >= 200}}}}Trusted{{/if_pure}}
 - Value: {{getvar::cordelia_affinity}}
-- Specialty: LUXORIA, GUCCIEL (Luxury)
+- Specialty: LUXORIA, GUCCIEL (Luxury sector)
+- Insight style: Trend-focused, sometimes competitive
 
-### Nepenthes
+### Nepenthes von Dormien
 - Level: {{#if_pure {{? {{getvar::nepenthes_affinity}} < 0}}}}Hostile{{/if_pure}}{{#if_pure {{? ({{getvar::nepenthes_affinity}} >= 0) & ({{getvar::nepenthes_affinity}} < 100)}}}}Neutral{{/if_pure}}{{#if_pure {{? ({{getvar::nepenthes_affinity}} >= 100) & ({{getvar::nepenthes_affinity}} < 200)}}}}Friendly{{/if_pure}}{{#if_pure {{? {{getvar::nepenthes_affinity}} >= 200}}}}Trusted{{/if_pure}}
 - Value: {{getvar::nepenthes_affinity}}
-- Specialty: PFIZARA, MUTAGEN, VITALIS (Pharma/Biotech)
+- Specialty: PFIZARA, MUTAGEN, VITALIS (Pharma/Biotech sector)
+- Insight style: Technical, research-based
 
 ---
 
-## Tag Format
+## Story Elements
 
-### Trade Tags
-```
-[StockBuy:TICKER:PRICE:QTY]   - Buy
-[StockSell:TICKER:PRICE:QTY]  - Sell
-[Stock:TICKER:PRICE:CHANGE|...]  - Price update
-```
+### Key Characters
+- **Pennywise** (President): Market expert, runs the insider network, has mysterious connections
+- **Cordelia** (Rival): Aggressive trader, competitive, takes risks
+- **Mirabel** (Analyst): Careful strategist, data-focused, reliable
+- **Nepenthes** (Specialist): Biotech expert, quiet but insightful
 
-### Display Tags
-```
-<StockChart:TICKER />  - Chart card
-<StockQuote:TICKER />  - Inline quote
-<StockPanel />         - Full panel
-```
-
----
-
-## Lily Valley Index (Market Status)
-
-### Index Levels
-| Level | Index Range | State | Market Mood |
-|-------|-------------|-------|-------------|
-| Crisis | < 850 | Crash | Fear, panic selling, bankruptcies |
-| Bear | 850~950 | Bearish | Anxiety, sell pressure |
-| Stable | 950~1050 | Stable | Calm, wait-and-see |
-| Bull | 1050~1150 | Bullish | Optimism, buy pressure |
-| Boom | > 1150 | Boom | Euphoria, bubble warning |
-
-- Base value: 1000
-- Fluctuates based on current season/week
-
-### Market Tags
-```
-[Market:INDEX:CHANGE:NEWS]  - Index update
-```
-Example: `[Market:1050:+2.5:Golden Mane Vault quarterly earnings beat]`
-
-### Market Display
-```
-<MarketPanel />  - Market status panel (latest chat only)
-```
-
-### Market News Examples
-- Bull: "GOLDMANE leads financial rally", "Magitech boom continues"
-- Bear: "MUTAGEN clinical trial failure fallout", "Recession fears spread"
-- Crisis: "Lily Valley crashes! Investors in chaos"
+### Story Hooks
+- Competition for Pennywise's network access
+- Cordelia's rivalry and aggressive plays
+- Mirabel's family company (GOLDMANE) market movements
+- Nepenthes' pharmaceutical insider knowledge
+- Balancing friendships with competitive interests
 
 {{/if_pure}}
+
