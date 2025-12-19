@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+{{#if_pure {{equal::{{getvar::club_stock_joined}}::1}}}}
 @@depth 0
 
 # RP System: Stock Investment Club
