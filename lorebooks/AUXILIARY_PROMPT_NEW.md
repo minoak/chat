@@ -254,3 +254,37 @@ Auxiliary model tag output:
 ---
 
 {{/if_pure}}{{/if_pure}}
+
+{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+
+---
+
+# STOCK MANAGEMENT TAG INSTRUCTIONS
+
+Company Partners only system.
+
+## Trigger Condition
+
+When main model outputs "- System Message: [business event description]", analyze and generate stock management tags.
+
+## Output Format
+
+```
+[Stock:TICKER:variable:±value] or [Stock:TICKER:var1:±value1|var2:±value2|...]
+```
+
+**Tickers**: GOLDMANE (Mirabel), LUXORIA (Cordelia), PFIZARA (Nepenthes)
+**Variables**: revenue, profit, cash, debt, market_share, brand_value, employees, rd_progress, player_share, influence
+
+## Business Realism Guidelines
+
+Apply business realism: Match event scale to change magnitude, use realistic trade-offs, ensure business logic (profit < revenue, market_share ≤ 100%). Currency in Gold (G), companies in millions (M).
+
+## Examples
+
+- "투자 성공, 매출과 시장점유율 상승" → [Stock:GOLDMANE:revenue:+80|market_share:+2]
+- "스캔들로 브랜드 타격" → [Stock:LUXORIA:brand_value:-30|market_share:-3]
+
+---
+
+{{/if_pure}}{{/if_pure}}
