@@ -258,57 +258,170 @@ When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 <StockPanel /> - Display stock trading panel
 
 ## Stock Management Tags (Company Partners Only)
-When Main AI outputs "- System Message: [company business event description]", analyze and output:
-[Stock:TICKER:variable:±value] or [Stock:TICKER:var1:±value1|var2:±value2|...] for multi-variable changes
 
-**Tickers**: GOLDMANE (Mirabel), LUXORIA (Cordelia), PFIZARA (Nepenthes)
-**Variables**: revenue, profit, cash, debt, market_share, brand_value, employees, rd_progress, player_share, influence
+**TRIGGER**: When Main AI outputs "- System Message: [business event description]"
+**ACTION**: Analyze the event and output variable change tags
 
-**Business Realism Guidelines:**
+**TAG FORMAT**:
+Single variable: [Stock:TICKER:variable:±value]
+Multiple variables: [Stock:TICKER:var1:±value1|var2:±value2|var3:±value3|...]
 
-Currency: All values in Gold (G), 1G = 1 USD equivalent. Companies operate in millions (M).
+**COMPANIES (Tickers)**:
+- GOLDMANE: Mirabel's gold mining company
+- LUXORIA: Cordelia's luxury goods company
+- PFIZARA: Nepenthes' pharmaceutical company
 
-Event Scale (from system message keywords):
-- 소규모 (small): Routine decisions, minor adjustments → Small changes
-- 중규모 (medium): Quarterly projects, departmental changes → Moderate changes
-- 대규모 (large): Major investments, company-wide initiatives → Large changes
-- 초대형 (massive): Mergers, market disruption, existential crises → Massive changes
+**VARIABLES (10 per company)**:
+1. revenue - Total sales (in millions of Gold)
+2. profit - Net income after costs (in millions of Gold)
+3. cash - Available liquid funds (in millions of Gold)
+4. debt - Total borrowed money (in millions of Gold)
+5. market_share - Market dominance (percentage 0-100%)
+6. brand_value - Brand reputation score (0-100)
+7. employees - Total workforce (headcount)
+8. rd_progress - R&D project completion (percentage 0-100%)
+9. player_share - Player's ownership stake (percentage 0-100%)
+10. influence - Political/industry influence (0-100)
 
-Variable Behavior:
-- revenue/cash: Millions of gold (M), changes in tens to hundreds of millions
-- profit: Smaller than revenue, more volatile, sensitive to costs
-- market_share: Percentage points (%), changes gradually (1-5%p typical per major event)
-- brand_value/influence: Abstract scores, medium volatility
-- employees: Headcount, changes in dozens to hundreds depending on scale
-- debt: Accumulates from big decisions, reduces slowly
-- player_share/rd_progress: Percentage (%)
+**STEP-BY-STEP ANALYSIS**:
 
-Common Sense Checks:
-- Would this happen in real business? (compare to actual corporate cases)
-- Is magnitude proportional to event scale? (small project ≠ massive transformation)
-- Are there realistic trade-offs? (fast growth often = high debt/risk)
-- Do numbers make sense? (profit can't exceed revenue, market share can't exceed 100%)
+Step 1: Read the system message and identify the event type
+Step 2: Determine event scale (소규모/중규모/대규모/초대형)
+Step 3: Determine outcome (실패/성공/대성공)
+Step 4: Select affected variables based on event type
+Step 5: Calculate realistic change amounts
+Step 6: Output tag with multiple variables using | separator
 
-Outcome Interpretation (from system message tone):
-- 실패/위기: Negative impacts, multiple variables affected, cascading effects possible
-- 성공: Balanced positive impacts
-- 대성공/돌파구: Large positive impacts, may involve trade-offs (e.g., revenue+200|debt+150)
-- 복합 결과: Mixed realistic outcomes (revenue up but cash down due to investment)
+**EVENT SCALE GUIDE**:
 
-Examples:
-"GOLDMANE 투자 프로젝트가 성공했다. 매출과 시장점유율이 상승했다."
-→ [Stock:GOLDMANE:revenue:+80|market_share:+2]
+소규모 (Small): Routine operations, minor decisions
+- Examples: Small marketing campaign, minor cost reduction, routine maintenance
+- Typical changes: revenue ±20-50M, profit ±10-30M, market_share ±0.5-1%, employees ±10-30
 
-"대형 투자가 예상을 뛰어넘는 대성공을 거두었다. 금 가격 급등으로 막대한 수익을 올렸다."
-→ [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
+중규모 (Medium): Quarterly projects, departmental initiatives
+- Examples: New product launch, factory expansion, regional partnership
+- Typical changes: revenue ±50-100M, profit ±30-60M, market_share ±1-3%, employees ±30-100
 
-"스캔들이 터졌다. 브랜드 이미지 타격이 우려된다."
-→ [Stock:LUXORIA:brand_value:-30|market_share:-3]
+대규모 (Large): Company-wide transformations, major investments
+- Examples: Merger, market entry, major tech breakthrough
+- Typical changes: revenue ±100-200M, profit ±60-120M, market_share ±3-6%, employees ±100-300
 
-"긴급 자사주 매입으로 인수를 차단했다. 부채가 급증했다."
-→ [Stock:GOLDMANE:debt:+500|player_share:+15|influence:+20]
+초대형 (Massive): Industry disruption, existential events
+- Examples: Market monopoly, bankruptcy crisis, revolutionary innovation
+- Typical changes: revenue ±200-500M, profit ±120-300M, market_share ±6-15%, employees ±300-1000
 
-**CRITICAL: Only output when system message describes business events. Interpret event scale and outcome to determine realistic variable changes.**
+**OUTCOME GUIDE**:
+
+실패 (Failure): Negative results, multiple variables affected negatively
+- Example: Project failed → revenue-50, profit-30, cash-40, brand_value-10
+
+성공 (Success): Balanced positive results
+- Example: Project succeeded → revenue+80, profit+40, market_share+2
+
+대성공 (Major Success): Large positive results, may include trade-offs
+- Example: Breakthrough success → revenue+200, profit+120, cash+150, BUT debt+100 (investment cost)
+
+복합 결과 (Mixed): Realistic combination of positive and negative
+- Example: Fast expansion → revenue+150, market_share+5, BUT debt+200, employees+500 (high cost)
+
+**VARIABLE SELECTION BY EVENT TYPE**:
+
+Revenue-focused events (sales, contracts, market expansion):
+→ Affect: revenue, profit, cash, market_share
+
+Cost events (layoffs, efficiency, restructuring):
+→ Affect: employees, profit, cash, (sometimes brand_value negative)
+
+Reputation events (scandal, award, CSR):
+→ Affect: brand_value, market_share, (sometimes revenue/profit)
+
+Financial events (loans, investment, stock buyback):
+→ Affect: debt, cash, player_share, influence
+
+R&D events (research, innovation, patents):
+→ Affect: rd_progress, (future revenue/brand_value)
+
+**BUSINESS LOGIC RULES (IMPORTANT)**:
+
+Currency: 1 Gold (G) = 1 USD. Companies operate in millions (M).
+Example: revenue+80 means +80 million gold = +$80 million USD
+
+Rule 1: Profit MUST be less than Revenue
+✓ revenue+100, profit+60 (60% margin - realistic)
+✗ revenue+50, profit+80 (profit > revenue - IMPOSSIBLE)
+
+Rule 2: Market share total cannot exceed 100%
+✓ market_share+5 (if current is 20%, new is 25% - OK)
+✗ market_share+50 (if current is 80%, new is 130% - IMPOSSIBLE)
+
+Rule 3: Percentages stay 0-100%
+✓ player_share+15, rd_progress+20 (within range)
+✗ player_share+150 (exceeds 100% - IMPOSSIBLE)
+
+Rule 4: Trade-offs are realistic
+✓ Fast growth: revenue+200, debt+150 (borrowed to grow)
+✓ Cost cutting: profit+50, employees-200 (layoffs improve profit)
+✗ All positive with no cost: revenue+500, profit+400, market_share+20, debt-200 (unrealistic)
+
+Rule 5: Scale matches impact
+✓ "소규모 마케팅": revenue+30, brand_value+5 (proportional)
+✗ "소규모 마케팅": revenue+500, market_share+20 (TOO BIG for small event)
+
+**DETAILED EXAMPLES**:
+
+Example 1: Medium-scale success
+System Message: "GOLDMANE 투자 프로젝트가 성공했다. 매출과 시장점유율이 상승했다."
+Analysis: 중규모, 성공, revenue/market_share affected
+Output: [Stock:GOLDMANE:revenue:+80|market_share:+2]
+
+Example 2: Large-scale major success with trade-off
+System Message: "대형 투자가 예상을 뛰어넘는 대성공을 거두었다. 금 가격 급등으로 막대한 수익을 올렸다."
+Analysis: 대규모, 대성공, multiple variables, high revenue/profit/cash but brand boost too
+Output: [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
+
+Example 3: Reputation crisis
+System Message: "스캔들이 터졌다. 브랜드 이미지 타격이 우려된다."
+Analysis: 중규모, 실패, brand/market affected negatively
+Output: [Stock:LUXORIA:brand_value:-30|market_share:-3]
+
+Example 4: Financial defensive action with trade-off
+System Message: "긴급 자사주 매입으로 인수를 차단했다. 부채가 급증했다."
+Analysis: 대규모, 복합결과, debt increases but player_share/influence up
+Output: [Stock:GOLDMANE:debt:+500|player_share:+15|influence:+20]
+
+Example 5: Cost reduction success
+System Message: "대규모 구조조정을 단행했다. 수익성이 개선되었으나 인력이 대폭 감소했다."
+Analysis: 대규모, 복합결과, profit up but employees down, possible brand damage
+Output: [Stock:PFIZARA:profit:+80|employees:-300|brand_value:-10]
+
+Example 6: R&D breakthrough
+System Message: "신약 개발이 최종 단계에 도달했다. 상용화가 눈앞이다."
+Analysis: 대규모, 성공, R&D progress and future expectations
+Output: [Stock:PFIZARA:rd_progress:+30|brand_value:+15|market_share:+4]
+
+**COMMON MISTAKES TO AVOID**:
+
+✗ Wrong: Outputting tags when NO system message appears
+✓ Right: Only output when system message explicitly describes business event
+
+✗ Wrong: Single tag per variable [Stock:GOLDMANE:revenue:+50][Stock:GOLDMANE:profit:+30]
+✓ Right: Multiple variables in one tag [Stock:GOLDMANE:revenue:+50|profit:+30]
+
+✗ Wrong: Unrealistic values [Stock:GOLDMANE:market_share:+50]
+✓ Right: Realistic values [Stock:GOLDMANE:market_share:+3]
+
+✗ Wrong: Ignoring trade-offs (all positive) [Stock:LUXORIA:revenue:+300|profit:+200|cash:+150|employees:+500|market_share:+10]
+✓ Right: Realistic trade-offs [Stock:LUXORIA:revenue:+300|profit:+100|debt:+200|employees:+500]
+
+✗ Wrong: Wrong ticker [Stock:MIRABEL:revenue:+50]
+✓ Right: Correct ticker [Stock:GOLDMANE:revenue:+50]
+
+**CRITICAL REMINDERS**:
+1. ONLY output tags when system message describes business events
+2. ALWAYS use | separator for multiple variables in ONE tag
+3. ALWAYS check business logic (profit < revenue, percentages ≤ 100%)
+4. ALWAYS match event scale to change magnitude
+5. ALWAYS include realistic trade-offs (growth = costs, cuts = brand damage, etc.)
 
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
