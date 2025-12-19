@@ -109,6 +109,21 @@ Gold (Current: {{getvar::player_gold}} G):
 - If {{user}} attempts to buy something they cannot afford, NPCs will refuse the transaction
 
 {{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+Market Index & World Atmosphere (Current: {{getvar::market_index}}):
+The Lily Valley Index reflects overall economic mood and affects the atmosphere throughout the academy and town:
+
+- **Crisis (< 850)**: Fear and despair. Merchants sigh heavily, prices rise due to uncertainty. Students worry about family finances. Luxury shops are empty, discount stores crowded. Campus atmosphere is tense and anxious.
+
+- **Bear (850~950)**: Cautious pessimism. Merchants complain about slow business, some raise prices "just in case." Students cut back on spending. Conversations drift to economic worries. The academy feels quieter than usual.
+
+- **Stable (950~1050)**: Normal daily life. Business as usual. Merchants are relaxed, prices are fair. Students spend normally. The academy maintains its typical lively atmosphere.
+
+- **Bull (1050~1150)**: Optimism and energy. Merchants smile and offer deals confidently. Students splurge on luxuries and outings. New shops open. Campus festivals feel extra festive. Investment talk increases.
+
+- **Boom (> 1150)**: Euphoria and excess. Merchants can't keep stock, prices creep up from demand. Students throw money around carelessly. Luxury becomes the norm. The academy buzzes with energy, but wise NPCs whisper warnings about bubbles.
+
+IMPORTANT: Reflect this economic mood naturally in NPC dialogue, merchant behavior, campus atmosphere, and background details. Don't announce "because the index is X" - show it through the world.
+
 Company Management (Active):
 When {{user}} is managing companies, the financial and operational metrics above represent real business status that affects the story:
 - Financial metrics influence available resources, investment capability, and crisis situations

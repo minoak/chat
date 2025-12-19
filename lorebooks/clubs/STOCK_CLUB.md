@@ -99,30 +99,66 @@ Club members gain access to character-specific market insights based on affinity
 - LUXORIA luxury sales exceed expectations - Consumer confidence rises
 {{/if_pure}}
 
-### Pennywise Moments (15% chance)
+### Pennywise Moments (Market-Dependent)
 
-{{#if_pure {{roll::15}}}}
-**Pennywise's Latest Situation:**
+{{#if_pure {{? {{getvar::market_index}} < 850}}}}
+{{#if_pure {{roll::20}}}}
+**Pennywise's Crisis Mode:**
 
 Pennywise appears from around the corner, holding a shovel. "What am I doing? Well, I'm pre-digging my grave. When the market crashes tomorrow... *cheerful smile* I can just jump right in! So convenient~"
 
 She drops the shovel with a metallic clang. "Oh, don't mind me. Just preparing for every eventuality. That's what good investors do, right? Risk management!" Her smile doesn't quite reach her eyes.
+
+The clubroom behind her is littered with empty potion bottles. A sign on the wall reads: "Days Since Last Profit: ███" (the number is too high to fit).
+{{/if_pure}}
 {{/if_pure}}
 
-{{#if_pure {{roll::12}}}}
-**Pennywise's Latest Situation:**
+{{#if_pure {{? ({{getvar::market_index}} >= 850) & ({{getvar::market_index}} < 950)}}}}
+{{#if_pure {{roll::15}}}}
+**Pennywise's Bear Market Blues:**
 
 You find Pennywise in the clubroom, staring at the ticker board with an eerily calm expression. "You know what's funny? I've analyzed every metric, every trend, every fundamental..." She laughs, a bit too loudly. "And I'm STILL losing money! Isn't that hilarious?"
 
 She turns to you, grinning. "Want to know the secret to successful investing? Easy - do the OPPOSITE of everything I do. I'm like a reverse oracle! A gift to humanity, really~"
+
+She pulls out a worn notebook. "I've been keeping track. 87% accuracy... at picking the WRONG stocks. That's actually impressive, right?"
+{{/if_pure}}
 {{/if_pure}}
 
-{{#if_pure {{roll::8}}}}
-**Pennywise's Latest Situation:**
+{{#if_pure {{? ({{getvar::market_index}} >= 950) & ({{getvar::market_index}} < 1050)}}}}
+{{#if_pure {{roll::12}}}}
+**Pennywise's Stable Struggles:**
 
-Pennywise floats a red balloon across the clubroom. "See this? This is my portfolio... going up, up, UP!" She pauses, then pops it with a needle. "...And down. Always down in the end."
+Pennywise sits at her desk, surrounded by charts and reports. "The market's stable, everyone's making steady gains..." She gestures at her own portfolio, bright red numbers everywhere. "...And somehow I'm STILL in the red. It's a talent, really."
 
-She picks up the balloon scraps with a wistful smile. "But you know what? There's always next week. The market LOVES to give second chances... to take even MORE money from you. Generous, isn't it?"
+She leans back with a philosophical air. "You know what? At this point, I'm not even mad. I'm impressed by my own consistency. Losing money in a stable market takes SKILL."
+{{/if_pure}}
+{{/if_pure}}
+
+{{#if_pure {{? ({{getvar::market_index}} >= 1050) & ({{getvar::market_index}} < 1150)}}}}
+{{#if_pure {{roll::15}}}}
+**Pennywise's Bull Market Hope:**
+
+Pennywise is unusually animated today. "Did you see? The index is up! Everything's rallying! This is it - THIS is when I turn it around!" Her eyes gleam with dangerous optimism.
+
+She shows you her trading plan, covered in aggressive buy orders. "I've learned from my mistakes! This time will be different! The bull market lifts all boats, right?"
+
+Cordelia passes by, muttering "...famous last words..." Pennywise doesn't hear her, too busy calculating her future gains.
+{{/if_pure}}
+{{/if_pure}}
+
+{{#if_pure {{? {{getvar::market_index}} >= 1150}}}}
+{{#if_pure {{roll::18}}}}
+**Pennywise's Boom Paradox:**
+
+Pennywise stands in front of the club, addressing the members with unusual seriousness. "Everyone, I need to warn you - the market's overheating. Euphoria is dangerous. Don't get greedy, take profits while you can—"
+
+Her own trading terminal beeps. She glances at it. Her portfolio: -35% *today*.
+
+"...I shorted the rally." She maintains perfect composure. "Because I thought the bubble would pop. It did not pop. Instead, it went MORE bubble." A stress ball shaped like a bull explodes in her grip.
+
+Mirabel gently pats her shoulder. "Maybe... don't short bull markets?" Pennywise's eye twitches. "BUT THE FUNDAMENTALS—"
+{{/if_pure}}
 {{/if_pure}}
 
 ### Academy-Market Connections (12% chance)
