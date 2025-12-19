@@ -212,22 +212,49 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 [Heal:amount] - CP recovery 20~100
 
 ## Effect/Trait Tags - {{user}} ONLY
-[Effect:Add:Name:StatBonus] - Temporary boost ({{user}} only, NOT NPCs)
-[Effect:Remove:Name] - Remove effect
-[Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar effects
-[Trait:Add:Name:Desc] - Permanent trait ({{user}} only, NOT NPCs)
-[Trait:Merge:Old1+Old2→New:Desc] - Combine similar traits
+
+**Effect Format** (temporary boosts with duration):
+```
+[Effect:Add:Name:StatType:Value:Duration:Desc]
+```
+- StatType: str_bonus, int_bonus, dex_bonus, cha_bonus, luk_bonus, vit_bonus, all_bonus
+- Value: numeric bonus (10, 15, 20, etc.)
+- Duration: Turn count (1-10 typical, 0 = permanent)
+- Desc: Short description
+
+**Duration Guidelines (CRITICAL):**
+- **Temporary effects (1-10 turns)**: Potions, buffs, meal bonuses, temporary blessings
+  - Potion: 3-5 turns
+  - Food buff: 2-3 turns
+  - Magic buff: 5-10 turns
+  - Quick boost: 1-2 turns
+- **Permanent effects (0 turns)**: Major achievements, permanent transformations, equipment bonuses
+  - Must be narratively justified as permanent
+  - Examples: Divine blessing, body transformation, soul contract
+- **Default to temporary**: When unsure, use 3-5 turns
+
+**Examples**:
+✓ [Effect:Add:힘의 물약:str_bonus:10:3:근육이 불끈] - Potion lasts 3 turns
+✓ [Effect:Add:식사 효과:all_bonus:5:2:배불러서 기분 좋음] - Meal buff 2 turns
+✓ [Effect:Add:성녀의 축복:str_bonus:20:0:영구적 신성한 힘] - Permanent blessing
+✗ [Effect:Add:물약:str+10] - Missing duration, will default to permanent!
+
+**Trait Format** (always permanent):
+```
+[Trait:Add:Name:Desc]
+```
+Traits are inherently permanent character changes.
 
 **CRITICAL: Effect/Trait tags are for {{user}} only.**
-**NPC changes (Mirabel gets stronger, Celestia learns magic) → Narrative description ONLY. NO tags.**
+**NPC changes → Narrative description ONLY. NO tags.**
 
-**CRITICAL StatBonus Format (MUST follow):**
-✓ SINGLE stat only: str+15, int+10, dex+5, all_bonus+8
-✗ NEVER multiple: "str+10, int+5" or "ALLSTATS +20, CHA +10"
-
-**Multiple stats → Separate tags:**
-✓ [Effect:Add:축복_힘:str+10][Effect:Add:축복_지능:int+10]
-✗ [Effect:Add:축복:str+10, int+10]
+**Remove Tags**:
+```
+[Effect:Remove:Name]
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+[Trait:Remove:Name]
+[Trait:Merge:Old1+Old2→New:Desc]
+```
 
 ## Growth System - Effect/Trait Synthesis
 
@@ -254,12 +281,18 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) → T4: 매우 강한 (Superior) → T5: 성녀의/신성한 (Saint's/Divine)
 
 **FORMAT & BEHAVIOR (CRITICAL):**
-✓ [Effect:Merge:Old1+Old2→New:str+20] - Syntax: Old1+Old2→New
-✓ [Effect:Merge:작은축복 x3→성녀의축복:str+20] - If 3 identical
-✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats
+```
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+```
+- Use full format with duration
+- Duration: Highest of merged effects, or 0 if any is permanent
+- Examples:
+  ✓ [Effect:Merge:작은축복 x3→성녀의축복:str_bonus:20:0:영구적 힘] - 3 identical become permanent
+  ✓ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:13:5:빠른 움직임] - Temporary effects
+  ✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats (use separate tags)
 
 **IMPORTANT - Merge AUTO-REMOVES old effects:**
-When you output [Effect:Merge:A+B→C:bonus], the system automatically:
+When you output [Effect:Merge:A+B→C:...], the system automatically:
 1. Removes "A" from the list
 2. Removes "B" from the list
 3. Adds "C" to the list
@@ -273,25 +306,25 @@ ONLY output the Merge tag - Lua handles the rest.
 
 **EXAMPLES:**
 
-Ex1: Same name x3 (Merge auto-removes all 3 old effects)
-Current: "작은 축복:str+5", "작은 축복:str+5" | New: "작은 축복:str+5"
-→ [Effect:Merge:작은 축복 x3→성녀의 축복:str+20]
-Result: Old effects gone, only "성녀의 축복:str+20" remains
+Ex1: Temporary effects merge (3 potions → stronger temporary effect)
+Current: "힘의물약:str+5 (3턴)", "힘의물약:str+5 (2턴)" | New: "힘의물약:str+5 (4턴)"
+→ [Effect:Merge:힘의물약 x3→상급힘의물약:str_bonus:20:4:강력한 근육 증강]
+Result: All 3 potions removed, 1 stronger 4-turn effect added
 
-Ex2: Same stat different names (Merge auto-removes both old effects)
-Current: "빠른 발걸음:dex+5" | New: "민첩한 몸:dex+8"
-→ [Effect:Merge:빠른 발걸음+민첩한 몸→신속함:dex+13]
-Result: "빠른 발걸음" and "민첩한 몸" removed, only "신속함:dex+13" remains
+Ex2: Permanent blessing merge (Merge auto-removes both old effects)
+Current: "작은 축복:str+5 (영구)" | New: "중간 축복:str+8 (영구)"
+→ [Effect:Merge:작은축복+중간축복→성녀의축복:str_bonus:20:0:영원한 신성한 힘]
+Result: Both removed, one permanent powerful effect remains
 
-Ex3: Different themes - NO merge (Just add, don't touch existing)
-Current: "축복:str+10" | New: "고대 마법 지식:int+8"
-→ [Effect:Add:고대 마법 지식:int+8]
-Result: Both "축복:str+10" and "고대 마법 지식:int+8" remain
+Ex3: Different themes - NO merge (Just add with proper duration)
+Current: "축복:str+10 (영구)" | New from narrative: "Food buff"
+→ [Effect:Add:든든한식사:all_bonus:5:2:배불러서 힘이 난다]
+Result: Both remain, blessing permanent, food buff expires in 2 turns
 
-Ex4: Multi-stat (One merge + one add)
-Current: "작은 축복:str+5", "중간 축복:str+8" | Narrative: "...strength and charm"
-→ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+13][Effect:Add:성녀의축복_매력:cha+10]
-Result: Old effects removed, two new effects added
+Ex4: Mixed duration (temporary + permanent → keep longer duration)
+Current: "빠른발걸음:dex+5 (3턴)", "민첩한몸:dex+8 (영구)"
+→ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:13:0:영구적 민첩성]
+Result: Merged into permanent (one was permanent, so result is permanent)
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
@@ -2137,59 +2170,123 @@ function parseEffects(triggerId, message)
 end
 
 function parseEffect(triggerId, tag)
-    -- [Effect:Merge:OldName1+OldName2→NewName:StatBonus] 형식 먼저 체크
-    local mergePart, newName, statBonus = tag:match("%[Effect:Merge:([^→]+)→([^:]+):([^%]]+)%]")
+    -- [Effect:Merge:Old→New:StatType:Value:Duration:Desc] 전체 형식 먼저 체크
+    local mergeMatch = tag:match("%[Effect:Merge:([^→]+)→(.+)%]")
 
-    if mergePart and newName and statBonus then
-        -- 합성할 효과 이름들 추출 (+ 또는 x로 구분)
-        local oldNames = {}
-        for name in mergePart:gmatch("[^+x]+") do
-            local trimmed = name:match("^%s*(.-)%s*$")  -- 공백 제거
-            if trimmed and trimmed ~= "" then
-                table.insert(oldNames, trimmed)
+    if mergeMatch then
+        local mergePart = mergeMatch
+        local afterArrow = tag:match("→(.+)%]")
+
+        if afterArrow then
+            -- ':'로 분할하여 파라미터 추출
+            local params = {}
+            for param in afterArrow:gmatch("[^:]+") do
+                table.insert(params, param:match("^%s*(.-)%s*$"))
+            end
+
+            -- 전체 형식: Name:StatType:Value:Duration:Desc
+            if #params >= 5 then
+                local newName = params[1]
+                local effectType = params[2]
+                local value = tonumber(params[3]) or 0
+                local duration = tonumber(params[4]) or 0
+                local desc = params[5]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- 새 효과 추가
+                addEffect(triggerId, newName, effectType, value, duration, desc)
+
+                if #removed > 0 then
+                    log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d, %d턴)",
+                        table.concat(removed, " + "), newName, effectType, value, duration))
+                end
+                return
+            end
+
+            -- 간략 형식 (하위 호환): Name:StatBonus
+            if #params >= 2 then
+                local newName = params[1]
+                local statBonus = params[2]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- StatBonus 파싱
+                local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+
+                if stat and sign and valueStr then
+                    local value = tonumber(valueStr) or 0
+                    if sign == "-" then value = -value end
+
+                    local effectType = stat:lower() .. "_bonus"
+                    addEffect(triggerId, newName, effectType, value, 0, newName)
+
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (간략): [%s] → %s (%s %+d)",
+                            table.concat(removed, " + "), newName, stat:upper(), value))
+                    end
+                else
+                    addEffect(triggerId, newName, "display", 0, 0, statBonus)
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
+                            table.concat(removed, " + "), newName))
+                    end
+                end
+                return
             end
         end
+    end
 
-        -- 기존 효과들 제거
-        local removed = {}
-        for _, oldName in ipairs(oldNames) do
-            if removeEffect(triggerId, oldName) then
-                table.insert(removed, oldName)
-            end
-        end
+    -- [Effect:Add:Name:StatType:Value:Duration:Desc] 전체 형식 (우선 시도)
+    local parts = {}
+    for part in tag:gmatch("[^:]+") do
+        table.insert(parts, part:match("^%s*(.-)%s*$"))  -- 공백 제거
+    end
 
-        -- 새 효과 추가 (Add와 동일한 로직)
-        local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+    if parts[1] == "[Effect" and parts[2] == "Add" and #parts >= 7 then
+        -- 전체 형식: [Effect:Add:Name:StatType:Value:Duration:Desc]
+        local name = parts[3]
+        local effectType = parts[4]
+        local value = tonumber(parts[5]) or 0
+        local duration = tonumber(parts[6]) or 0
+        local desc = parts[7]:gsub("%]$", "")  -- 마지막 ] 제거
 
-        if stat and sign and valueStr then
-            local value = tonumber(valueStr) or 0
-            if sign == "-" then
-                value = -value
-            end
-
-            local effectType = stat:lower() .. "_bonus"
-            local desc = newName
-            local duration = 0
-
-            addEffect(triggerId, newName, effectType, value, duration, desc)
-
-            if #removed > 0 then
-                log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d)",
-                    table.concat(removed, " + "), newName, stat:upper(), value))
-            end
-        else
-            -- 표시용 Effect
-            addEffect(triggerId, newName, "display", 0, 0, statBonus)
-
-            if #removed > 0 then
-                log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
-                    table.concat(removed, " + "), newName))
-            end
-        end
+        addEffect(triggerId, name, effectType, value, duration, desc)
+        log(string.format("✨ Effect 추가: %s (%s %+d, %d턴)", name, effectType, value, duration))
         return
     end
 
-    -- [Effect:Add:Name:StatBonus] 형식 파싱
+    -- [Effect:Add:Name:StatBonus] 간략 형식 (하위 호환)
     local actionAdd, name, statBonus = tag:match("%[Effect:(Add):([^:]+):([^%]]+)%]")
 
     if actionAdd == "Add" and name and statBonus then
@@ -2208,9 +2305,9 @@ function parseEffect(triggerId, tag)
             local duration = 0  -- 영구 효과 (나중에 Remove로 제거)
 
             addEffect(triggerId, name, effectType, value, duration, desc)
-            log(string.format("✨ Effect 추가: %s (%s %+d)", name, stat:upper(), value))
+            log(string.format("✨ Effect 추가 (간략): %s (%s %+d)", name, stat:upper(), value))
         else
-            -- 스탯 보너스 없는 순수 표시용 Effect (출혈 멈춤, 기력 회복 등)
+            -- 스탯 보너스 없는 순수 표시용 Effect
             addEffect(triggerId, name, "display", 0, 0, statBonus)
             log(string.format("✨ Effect 추가 (표시용): %s (%s)", name, statBonus))
         end
