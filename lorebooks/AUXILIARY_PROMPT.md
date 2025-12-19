@@ -18,7 +18,7 @@ After your narrative response, output structured tags to update game state.
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
-[Season:계절][Week:주차][Day:요일명][Time:시간][Location:장소][Weather:날씨]
+[Season:Season][Week:WeekNum][Day:DayName][Time:TimeOfDay][Location:Place][Weather:Weather]
 <Panel>■★
 
 ---
@@ -31,7 +31,7 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 - Look for opportunities to synthesize: similar names, overlapping bonuses, related concepts
 - Merged effects/traits should be noticeably stronger than individual components
 - Examples:
-  - "작은 축복" + "작은 축복" + "작은 축복" → "축복"
+  - "Minor Blessing" + "Minor Blessing" + "Minor Blessing" → "Blessing"
   - "Quick Learner" + "Fast Study" → "Natural Genius"
   - "Minor Strength Boost" + "Athlete's Body" → "Physical Excellence"
 
@@ -59,12 +59,12 @@ Output for characters in this scene.
 
 ### Environment Tags
 
-[Season:봄/여름/가을/겨울] - When describing new semester/season
-[Week:숫자] - When new week starts (Monday morning)
-[Day:요일명] - Final arrival day only (여러 날 지났으면 마지막 요일만)
-[Time:오전/오후/저녁/밤/심야] - Final arrival time only (마지막 시간대만)
-[Location:장소] - Final arrival location only (마지막 장소만)
-[Weather:날씨] - Optional, when you mention weather
+[Season:Spring/Summer/Fall/Winter] - When describing new semester/season
+[Week:Number] - When new week starts (Monday morning)
+[Day:DayName] - Final arrival day only (if multiple days passed, output only the last day)
+[Time:Morning/Afternoon/Evening/Night/Midnight] - Final arrival time only (output only the last time period)
+[Location:Place] - Final arrival location only (output only the last location)
+[Weather:Weather] - Optional, when you mention weather
 
 ### RPG Tags (When Events Occur)
 
@@ -81,19 +81,19 @@ Output for characters in this scene.
 - Remove: Discard/lose item
 - Consumables (potions, food): Don't return after use
 - Non-consumables (keys, ID cards): Return after use with [Item:Add:Name:1]
-- Example: [Item:Add:회복포션:1:hp+20]
+- Example: [Item:Add:Healing Potion:1:hp+20]
 
 [EXP:±value] - Experience gained (+10 to +100 typical)
 
 [Heal:amount] - Combat power recovery (rest 20~50, potion 30~100, food 10~30)
 
 [Effect:Action:Name:StatBonus] - Buffs/debuffs
-- Add: 효과 적용
-- Remove: 효과 제거 (시간 경과, 조건 종료 시)
-- Merge: 같은 종류 효과 합성 → 상위 효과로 진화
-- Example: [Effect:Add:작은 축복:str+5]
-- Example: [Effect:Remove:피로:dex-3]
-- Example: [Effect:Merge:작은 축복x3→축복:str+20]
+- Add: Apply effect
+- Remove: Remove effect (when time expires or condition ends)
+- Merge: Combine same type effects → evolve to higher tier effect
+- Example: [Effect:Add:Minor Blessing:str+5]
+- Example: [Effect:Remove:Fatigue:dex-3]
+- Example: [Effect:Merge:Minor Blessing x3→Blessing:str+20]
 
 [Trait:Action:Name:Description] - Permanent traits ({{user}} only, not NPCs)
 - Add: New trait acquired
@@ -116,22 +116,22 @@ CRITICAL: You MUST output combat start/end tags. Main model handles narration an
 - MUST output this tag when combat clearly ends
 
 Detection keywords:
-- Start: 적이 나타났다, 전투 시작, 공격해온다, 위협적으로 다가온다
-- End: 쓰러졌다, 도망쳤다, 물러났다, 전투 종료, 승리했다, 패배했다
+- Start: enemy appeared, battle begins, attacks, approaches threateningly
+- End: collapsed, fled, retreated, battle over, victory, defeat
 
 ---
 
 ## Weekly Schedule
 
-Friday Report (월~금 요약):
-- [Stat:...]: 주간 누적만
-- <WeeklyReport>Week:X|Season:Y|Curriculum:교수명|Lifestyle:활동|Score:{{getvar::performance_score}}|Stats:변화</WeeklyReport>
-- [Day:금요일][Time:저녁]
+Friday Report (Mon-Fri summary):
+- [Stat:...]: Weekly cumulative only
+- <WeeklyReport>Week:X|Season:Y|Curriculum:ProfessorName|Lifestyle:Activity|Score:{{getvar::performance_score}}|Stats:Changes</WeeklyReport>
+- [Day:Friday][Time:Evening]
 - Don't output [Week] tag
 
 Monday Start:
 - [Week:X+1] (increment)
-- [Day:월요일][Time:오전]
+- [Day:Monday][Time:Morning]
 
 Exams (Week 4, 8, 12):
 - [Exam:midterm:87:23] when describing score/rank
