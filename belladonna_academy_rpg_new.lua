@@ -217,27 +217,159 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 ✗ [Effect:Add:축복:str+10, int+10]
 
 ## Growth System - Effect/Trait Synthesis
-Effects/Traits show player's growth. Merge similar ones → stronger versions (reduces token usage, shows progression).
 
-**When to Merge (check current lists above):**
-- Similar theme/concept 2+ times: 작은축복+중간축복→성녀의축복
-- Same stat stacking: str+5, str+10 → str+15 with upgraded name
-- Related concepts: 빠른발+민첩함→신속함, 학습+집중→천재성
+**PURPOSE**: Effects/Traits represent player growth. Merging prevents bloat, saves tokens, and shows progression.
 
-**Merge Examples:**
+**WHY MERGE?**
+- Token efficiency: 3 separate effects = more tokens than 1 merged effect
+- Narrative progression: "Minor Blessing" x3 → "Saint's Blessing" shows growth
+- Mechanical benefit: Combined bonuses often stronger than sum of parts
+
+**STEP-BY-STEP DECISION PROCESS:**
+
+Step 1: Check current Effects/Traits lists above ({{PLAYER_EFFECTS_SECTION}} and {{PLAYER_TRAITS_SECTION}})
+Step 2: Does the narrative give a new similar Effect/Trait?
+Step 3: Count: How many similar ones exist (including new one)?
+Step 4: Decide: 2+ similar? → MERGE. Only 1? → ADD new.
+Step 5: Execute: Output [Effect:Merge:...] or [Effect:Add:...]
+
+**WHEN TO MERGE (Merge Triggers):**
+
+Trigger 1: Same name appears 2+ times
+- "작은 축복" appears twice → Merge to "중간 축복"
+- "Minor Blessing" appears 3 times → Merge to "Saint's Blessing"
+
+Trigger 2: Same stat bonus stacking
+- Currently has "빠른 발걸음:dex+5", new "민첩한 몸:dex+8" → Merge to "신속함:dex+13"
+- Currently has "힘의 증진:str+10", new "근육 강화:str+5" → Merge to "강인한 육체:str+15"
+
+Trigger 3: Related concepts (synonyms/similar themes)
+- "빠른 학습" + "높은 집중력" = both learning-related → Merge to "천재적 재능"
+- "검술 입문" + "검술 수련" = both swordsmanship → Merge to "검술 숙련"
+- "용기" + "담대함" = both courage → Merge to "불굴의 용기"
+
+Trigger 4: Upgrade opportunity (when narrative implies growth)
+- Narrative: "The blessing grew stronger!" + currently has "작은 축복:str+5" → Merge to "중간 축복:str+12"
+- Narrative: "Your training bore fruit!" + has "검술 입문" → Merge to "검술 숙련"
+
+**WHEN NOT TO MERGE:**
+
+✗ Different themes: "축복:str+10" and "지능 향상:int+10" → Keep separate (different concepts)
+✗ Different stats: "힘:str+10" and "민첩:dex+10" → Keep separate (unless narrative suggests connection)
+✗ Only 1 instance: Currently no similar effect → Just Add new
+✗ Trait + Effect: Don't merge permanent Traits with temporary Effects (different types)
+
+**NAMING GUIDE (Progression Tiers):**
+
+Tier 1 (Weak): 작은/약한/미약한, Minor/Weak/Faint
+Tier 2 (Medium): 중간/보통, Medium/Moderate
+Tier 3 (Strong): 강한/큰, Strong/Greater
+Tier 4 (Very Strong): 매우 강한/위대한, Very Strong/Superior
+Tier 5 (Ultimate): 성녀의/천상의/신성한, Saint's/Divine/Sacred
+
+Examples of progression:
+- 작은 축복 (Tier 1) → 중간 축복 (Tier 2) → 성녀의 축복 (Tier 5)
+- 검술 입문 (Tier 1) → 검술 수련 (Tier 2) → 검술 숙련 (Tier 3) → 검술 달인 (Tier 4)
+
+**BONUS CALCULATION:**
+
+When merging, new bonus should be:
+- Sum of old bonuses (if 2 items): str+5 + str+8 = str+13
+- Higher than sum (if 3+ items or major upgrade): str+5 x3 = str+20 (not +15)
+- Represents growth: Minor+Minor+Minor → Greater should feel like upgrade
+
+**FORMAT RULES (CRITICAL):**
+
+Rule 1: ONE stat per tag
 ✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
-✓ [Effect:Merge:빠른학습+높은집중력→천재적재능:int+15]
-✓ [Trait:Merge:검술입문+검술수련→검술숙련:검에 대한 깊은 이해]
-
-**Multiple stat merge → Separate effects:**
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15]
-   [Effect:Add:성녀의축복_매력:cha+10]
 ✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
 
+Rule 2: Multiple stats → Multiple separate tags
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15][Effect:Add:성녀의축복_매력:cha+10]
+✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
+
+Rule 3: Merge syntax: Old1+Old2→New
+✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
+✓ [Effect:Merge:Minor Blessing x3→Saint's Blessing:str+20] (if 3 identical)
+✗ [Effect:Merge:성녀의축복:str+20] (missing old names)
+
+**CURRENT PLAYER STATUS:**
 {{PLAYER_TRAITS_SECTION}}
 {{PLAYER_EFFECTS_SECTION}}
 
-**Decision logic:** Check above lists → similar 2+? Merge. Otherwise Add new.
+**DETAILED EXAMPLES:**
+
+Example 1: Same name stacking (3 identical)
+Current Effects: "작은 축복:str+5", "작은 축복:str+5"
+Narrative: "Another small blessing descends upon you."
+Analysis: Will be 3x "작은 축복" → MERGE
+Output: [Effect:Merge:작은 축복 x3→성녀의 축복:str+20]
+(3x +5 = +15, but upgrade tier so +20)
+
+Example 2: Same stat different names
+Current Effects: "빠른 발걸음:dex+5"
+Narrative: "Your body becomes more agile."
+New: "민첩한 몸:dex+8"
+Analysis: Both dex bonus, related concepts → MERGE
+Output: [Effect:Merge:빠른 발걸음+민첩한 몸→신속함:dex+13]
+(5+8=13)
+
+Example 3: Related concepts
+Current Traits: "빠른 학습:Learns quickly"
+Narrative: "Your concentration deepens."
+New: "높은 집중력:High focus"
+Analysis: Both learning-related → MERGE
+Output: [Trait:Merge:빠른 학습+높은 집중력→천재적 재능:Exceptional learning ability]
+
+Example 4: Progression through narrative
+Current Effects: "작은 축복:str+5"
+Narrative: "The goddess's blessing intensifies!"
+Analysis: Narrative implies upgrade → MERGE with tier increase
+Output: [Effect:Merge:작은 축복→중간 축복:str+12]
+(Single item but narrative upgrade)
+
+Example 5: No merge - different themes
+Current Effects: "축복:str+10"
+Narrative: "You gain knowledge of ancient magic."
+New: "고대 마법 지식:int+8"
+Analysis: Different themes (blessing vs knowledge), different stats → ADD
+Output: [Effect:Add:고대 마법 지식:int+8]
+
+Example 6: Multi-stat merge requires separation
+Current Effects: "작은 축복:str+5", "중간 축복:str+8"
+Narrative: "The blessings merge into a greater power, enhancing both strength and charm."
+Analysis: Merge but adds second stat → Use separate tags
+Output: [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+13][Effect:Add:성녀의축복_매력:cha+10]
+
+**COMMON MISTAKES TO AVOID:**
+
+✗ Wrong: Merging when only 1 exists
+Current: (none), New: "작은 축복:str+5"
+Wrong Output: [Effect:Merge:작은축복→중간축복:str+12]
+✓ Right: [Effect:Add:작은축복:str+5]
+
+✗ Wrong: Not merging when 2+ similar exist
+Current: "Minor Blessing:str+5", "Minor Blessing:str+5"
+New: "Minor Blessing:str+5"
+Wrong Output: [Effect:Add:Minor Blessing:str+5]
+✓ Right: [Effect:Merge:Minor Blessing x3→Saint's Blessing:str+20]
+
+✗ Wrong: Multiple stats in one tag
+Wrong Output: [Effect:Merge:A+B→C:str+10, int+10]
+✓ Right: [Effect:Merge:A+B→C_힘:str+10][Effect:Add:C_지능:int+10]
+
+✗ Wrong: Merging different types
+Wrong Output: [Effect:Merge:검술입문(Trait)+빠른학습(Trait)→...] (unrelated traits)
+✓ Right: Keep separate if themes unrelated
+
+**DECISION CHECKLIST:**
+1. ✓ Check current lists above
+2. ✓ Similar exists? Count how many
+3. ✓ 2+ similar? → MERGE | Only 1? → ADD
+4. ✓ Choose appropriate tier name
+5. ✓ Calculate bonus (sum or upgrade)
+6. ✓ ONE stat per tag
+7. ✓ Output with correct syntax
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
@@ -256,6 +388,21 @@ Exams (Week 6,12): [Exam:midterm:87:23]
 ## Stock Panel (Stock Club Members Only)
 When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 <StockPanel /> - Display stock trading panel
+
+## Tags NOT to Output (Main AI handles these)
+Do NOT output these tags - Main AI already outputs them:
+- [Club:Join:...], [Club:Leave:...] - Club membership
+- [Stock:...] - Stock prices
+- [StockBuy:...], [StockSell:...] - Stock trades
+
+## Characters
+Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
+
+Always end with <Panel>■★
+]]
+
+-- Stock Management 프롬프트 (조건부 로딩)
+local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
 
 ## Stock Management Tags (Company Partners Only)
 
@@ -422,17 +569,6 @@ Output: [Stock:PFIZARA:rd_progress:+30|brand_value:+15|market_share:+4]
 3. ALWAYS check business logic (profit < revenue, percentages ≤ 100%)
 4. ALWAYS match event scale to change magnitude
 5. ALWAYS include realistic trade-offs (growth = costs, cuts = brand damage, etc.)
-
-## Tags NOT to Output (Main AI handles these)
-Do NOT output these tags - Main AI already outputs them:
-- [Club:Join:...], [Club:Leave:...] - Club membership
-- [Stock:...] - Stock prices
-- [StockBuy:...], [StockSell:...] - Stock trades
-
-## Characters
-Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
-
-Always end with <Panel>■★
 ]]
 
 -- ============================================
@@ -2974,7 +3110,16 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     end
 
     -- SYSTEM 메시지: AUXILIARY_BASE_PROMPT (규칙)
-    local systemPrompt = AUXILIARY_BASE_PROMPT:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
+    local systemPrompt = AUXILIARY_BASE_PROMPT
+
+    -- Stock 시스템이 활성화되어 있으면 Stock Management 프롬프트 추가
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    if stockEnabled == "1" then
+        systemPrompt = systemPrompt .. AUXILIARY_STOCK_MANAGEMENT_PROMPT
+    end
+
+    -- 플레이어 특성/효과 섹션 삽입
+    systemPrompt = systemPrompt:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
     systemPrompt = systemPrompt:gsub("{{PLAYER_EFFECTS_SECTION}}", effectsSection)
 
     -- USER 메시지: 게임 상태 + 메인 AI 응답
