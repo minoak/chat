@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::player_level}}::0}}}}
+{{#if_pure {{not_equal::{{getvar::stats_evaluated}}::true}}}}
 
 @@depth 0
 

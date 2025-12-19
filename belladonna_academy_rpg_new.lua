@@ -4547,6 +4547,8 @@ function onStart(triggerId)
         -- 능력평가 완료 플래그 (로어북용)
         setState(triggerId, "ability_eval_status", 0)
         setChatVar(triggerId, "ability_eval_status", "0")
+        setState(triggerId, "stats_evaluated", "false")
+        setChatVar(triggerId, "stats_evaluated", "false")
 
         -- RPG 시스템 기본 활성화
         setState(triggerId, "rpg_system_enabled", true)
@@ -4820,26 +4822,40 @@ function processOutput(triggerId)
     log("🔍 메시지 체크: " .. (message:find("%[StatsEvaluated%]") and "태그 발견!" or "태그 없음"))
     if message:find("%[StatsEvaluated%]") then
         local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+        local statsEvaluated = getChatVar(triggerId, "stats_evaluated")
         log("🔍 currentLevel = " .. currentLevel)
 
-        if currentLevel == 0 then
-            -- 레벨 0 → 1로 상승 (능력평가 완료)
-            setState(triggerId, "player_level", 1)
-            setChatVar(triggerId, "player_level", "1")
-            setState(triggerId, "player_exp", 0)
-            setChatVar(triggerId, "player_exp", "0")
-            setState(triggerId, "player_exp_to_next", 100)
-            setChatVar(triggerId, "player_exp_to_next", "100")
+        if statsEvaluated ~= "true" then
+            -- 능력평가 완료 플래그 설정
+            setState(triggerId, "stats_evaluated", "true")
+            setChatVar(triggerId, "stats_evaluated", "true")
+
+            -- 레벨이 0이면 1로 상승
+            if currentLevel == 0 then
+                setState(triggerId, "player_level", 1)
+                setChatVar(triggerId, "player_level", "1")
+                setState(triggerId, "player_exp", 0)
+                setChatVar(triggerId, "player_exp", "0")
+                setState(triggerId, "player_exp_to_next", 100)
+                setChatVar(triggerId, "player_exp_to_next", "100")
+            end
+
             setState(triggerId, "ability_eval_status", 1)
             setChatVar(triggerId, "ability_eval_status", "1")
 
             -- 스냅샷 즉시 업데이트 (다음 턴에 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_stats_evaluated", "true")
             setChatVar(triggerId, "snapshot_ability_eval_status", "1")
-            setChatVar(triggerId, "snapshot_player_level", "1")
+            if currentLevel == 0 then
+                setChatVar(triggerId, "snapshot_player_level", "1")
+            end
 
-            log("✅ 능력평가 완료 - 레벨 1 달성!")
+            log("✅ 능력평가 완료!")
+            log("🔧 stats_evaluated = true")
             log("🔧 ability_eval_status = " .. tostring(getState(triggerId, "ability_eval_status")))
-            log("🔧 player_level = " .. tostring(getState(triggerId, "player_level")))
+            if currentLevel == 0 then
+                log("🔧 player_level: 0 → 1")
+            end
         end
     end
 
@@ -6744,6 +6760,10 @@ _G["reset_all_stats_to_50"] = function(triggerId)
     setState(triggerId, "player_level", 1)
     setChatVar(triggerId, "player_exp", "0")
     setState(triggerId, "player_exp", 0)
+
+    -- 스탯 평가 완료로 설정 (스탯이 할당되었으므로)
+    setChatVar(triggerId, "stats_evaluated", "true")
+    setState(triggerId, "stats_evaluated", "true")
 
     -- 전투력 재계산
     local maxCombatPower = calculateCombatPower(triggerId)
