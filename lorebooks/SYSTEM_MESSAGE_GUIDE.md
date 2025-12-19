@@ -32,8 +32,12 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 - Academic events (attendance, assignments, exams, grades)
 - Club activities (joining, meetings, competitions)
 - Reputation and status changes (house points, social standing)
+- Stock trading and price changes
+- Company management events (investments, projects, crises, decisions)
+- Business performance changes (revenue, market share, brand value)
 
 ---
 
-## Example
+## Examples
 `- System Message: 회복포션을 마셨다. 따뜻한 기운이 온몸을 감싼다.`
+`- System Message: GOLDMANE 투자 프로젝트가 성공했다. 매출과 시장점유율이 상승했다.`

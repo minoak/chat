@@ -8,13 +8,13 @@ Official and unofficial club activities within the academy. Each club reflects t
 
 ## Stock Investment Club (Lily Valley)
 
-Operator: Mirabel von Goldenrose
+Operator: Pennywise
 Affiliation: Lily Valley House (unofficial)
 Location: East Tower 3F / Exchange Branch
 
-A practical investment club connected to Lily Valley's commercial network. While Mirabel runs it for "educational purposes," it also serves as a means to expand her information network.
+A practical investment club connected to Lily Valley's commercial network. While Pennywise runs it for "educational purposes," it also serves as a means to expand the club's information network.
 
-How to Join: Contact Mirabel directly or check Lily Valley House bulletin board
+How to Join: Contact Pennywise directly or check Lily Valley House bulletin board
 
 {{#if_pure {{not_equal::{{getvar::club_stock_joined}}::1}}}}
 
@@ -37,16 +37,16 @@ Regular Meetings: Every Wednesday after school
 
 Current Competition: Seed Money Challenge
 - Equal starting funds
-- Winner gets access to Mirabel's insider network
+- Winner gets access to Pennywise's insider network
 
 Key Members:
-- Mirabel von Goldenrose (President) - Commerce sector expert
+- Pennywise (President) - Market expert
 - Cordelia (Rival) - Aggressive trader
 - Other Lily Valley students
 
 Unspoken Rules:
 - No external information leaks
-- Don't owe Mirabel favors
+- Don't owe Pennywise favors
 - Losses are self-responsibility
 
 {{/if_pure}}
