@@ -39,6 +39,7 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 
 ## Tag Reference
 
+{{#if_pure {{not::{{equal::{{getvar::affinity_system_enabled}}::false}}}}}}
 ### Relationship Tags (Output Every Turn)
 
 [Affinity:CharacterName:level] - How feelings changed THIS TURN
@@ -56,6 +57,7 @@ IMPORTANT: Prevent effect/trait bloat by merging similar ones.
 - purify (+2): Overcame sin through growth
 
 Output for characters in this scene.
+{{/if_pure}}
 
 ### Environment Tags
 
@@ -138,6 +140,7 @@ Exams (Week 4, 8, 12):
 
 ---
 
+{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 ## Stock Management Tags (Company Partners Only)
 
 [Stock:TICKER:variable:±value] or [Stock:TICKER:var1:±value1|var2:±value2|...] - When describing business events
@@ -150,6 +153,7 @@ Apply business realism: Match event scale to change magnitude, use realistic tra
 Examples:
 - "투자 성공, 매출과 시장점유율 상승" → [Stock:GOLDMANE:revenue:+80|market_share:+2]
 - "스캔들로 브랜드 타격" → [Stock:LUXORIA:brand_value:-30|market_share:-3]
+{{/if_pure}}
 
 ---
 
