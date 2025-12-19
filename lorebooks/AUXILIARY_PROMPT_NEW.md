@@ -19,9 +19,9 @@ After your narrative response, output structured tags to update game state.
 [Stat:stat_id:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:EnemyName:Power][Combat:End]
-[Season:Season][Week:WeekNum][Day:DayName][Time:TimeOfDay][Location:Place][Weather:Weather]
+[Season:Season][Week:WeekNum][Day:DayName][Time:TimeOfDay][Location:Place][Weather:Weather]{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 [Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]
-<StockPanel /><Panel>■★
+<StockPanel />{{/if_pure}}<Panel>■★
 
 ---
 

@@ -1444,6 +1444,12 @@ end
 
 -- 주간 보고서 패널 생성: <StockPanel:TICKER />
 function generateStockPanel(triggerId, ticker)
+    -- 주식 시스템 활성화 체크
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then
+        return ""
+    end
+
     -- 종목명 가져오기
     local name = STOCK_NAMES[ticker] or ticker
 
@@ -5691,10 +5697,8 @@ end
 function generateStockPanelUI(triggerId)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
     if stockEnabled ~= "1" then
-        -- 주식 시스템 미활성화 시 자동 활성화 (테스트용)
-        setChatVar(triggerId, "stock_system_enabled", "1")
-        setState(triggerId, "stock_system_enabled", "1")
-        log("📈 주식 동아리 자동 가입 (테스트)")
+        -- 주식 시스템 비활성화 상태: 빈 문자열 반환
+        return ""
     end
 
     local currentView = getState(triggerId, "stock_current_view") or "board"
@@ -6427,6 +6431,12 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- 개별 종목 차트 카드: <StockChart:TICKER />
     data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
+        -- 주식 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        if stockEnabled ~= "1" then
+            return ""
+        end
+
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
@@ -6488,6 +6498,12 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- 간단 시세 인라인: <StockQuote:TICKER />
     data = data:gsub("<StockQuote:([A-Z]+)%s*/>", function(ticker)
+        -- 주식 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        if stockEnabled ~= "1" then
+            return ""
+        end
+
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
