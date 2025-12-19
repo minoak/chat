@@ -155,9 +155,14 @@ The Lua system will generate a formatted HTML panel displaying all metrics.
 
 ## Event Flow
 
-**Structure**: Context → Choices → Outcome → System Message → Character Reaction
+**Structure**: Context → Chart/Data → Choices → Outcome → System Message → Character Reaction
 
-**Example**:
+**Stock Investment Decisions**: Show chart before asking for decision
+> "GOLDMANE stock showing interesting pattern. Take a look."
+> <StockChart:GOLDMANE />
+> "Notice the uptrend? Buy opportunity, or wait for correction?"
+
+**Business Investment Example**:
 > "Investment opportunity. 200M required, high risk, high return. Your call?"
 > [Choice made] → [Time passes] → Investment succeeds.
 > - System Message: GOLDMANE 광산 투자가 대성공했다. 금 가격 급등으로 막대한 수익을 올렸다.

@@ -253,10 +253,19 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 **PROGRESSION TIERS:**
 T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) → T4: 매우 강한 (Superior) → T5: 성녀의/신성한 (Saint's/Divine)
 
-**FORMAT (CRITICAL):**
+**FORMAT & BEHAVIOR (CRITICAL):**
 ✓ [Effect:Merge:Old1+Old2→New:str+20] - Syntax: Old1+Old2→New
 ✓ [Effect:Merge:작은축복 x3→성녀의축복:str+20] - If 3 identical
 ✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats
+
+**IMPORTANT - Merge AUTO-REMOVES old effects:**
+When you output [Effect:Merge:A+B→C:bonus], the system automatically:
+1. Removes "A" from the list
+2. Removes "B" from the list
+3. Adds "C" to the list
+
+You do NOT need to manually output [Effect:Remove:A] or [Effect:Remove:B].
+ONLY output the Merge tag - Lua handles the rest.
 
 **CURRENT PLAYER STATUS:**
 {{PLAYER_TRAITS_SECTION}}
@@ -264,21 +273,25 @@ T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) �
 
 **EXAMPLES:**
 
-Ex1: Same name x3
+Ex1: Same name x3 (Merge auto-removes all 3 old effects)
 Current: "작은 축복:str+5", "작은 축복:str+5" | New: "작은 축복:str+5"
 → [Effect:Merge:작은 축복 x3→성녀의 축복:str+20]
+Result: Old effects gone, only "성녀의 축복:str+20" remains
 
-Ex2: Same stat different names
+Ex2: Same stat different names (Merge auto-removes both old effects)
 Current: "빠른 발걸음:dex+5" | New: "민첩한 몸:dex+8"
 → [Effect:Merge:빠른 발걸음+민첩한 몸→신속함:dex+13]
+Result: "빠른 발걸음" and "민첩한 몸" removed, only "신속함:dex+13" remains
 
-Ex3: Different themes - NO merge
+Ex3: Different themes - NO merge (Just add, don't touch existing)
 Current: "축복:str+10" | New: "고대 마법 지식:int+8"
 → [Effect:Add:고대 마법 지식:int+8]
+Result: Both "축복:str+10" and "고대 마법 지식:int+8" remain
 
-Ex4: Multi-stat - Separate tags
+Ex4: Multi-stat (One merge + one add)
 Current: "작은 축복:str+5", "중간 축복:str+8" | Narrative: "...strength and charm"
 → [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+13][Effect:Add:성녀의축복_매력:cha+10]
+Result: Old effects removed, two new effects added
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
