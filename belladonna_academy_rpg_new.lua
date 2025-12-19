@@ -257,6 +257,59 @@ Exams (Week 6,12): [Exam:midterm:87:23]
 When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 <StockPanel /> - Display stock trading panel
 
+## Stock Management Tags (Company Partners Only)
+When Main AI outputs "- System Message: [company business event description]", analyze and output:
+[Stock:TICKER:variable:±value] or [Stock:TICKER:var1:±value1|var2:±value2|...] for multi-variable changes
+
+**Tickers**: GOLDMANE (Mirabel), LUXORIA (Cordelia), PFIZARA (Nepenthes)
+**Variables**: revenue, profit, cash, debt, market_share, brand_value, employees, rd_progress, player_share, influence
+
+**Business Realism Guidelines:**
+
+Currency: All values in Gold (G), 1G = 1 USD equivalent. Companies operate in millions (M).
+
+Event Scale (from system message keywords):
+- 소규모 (small): Routine decisions, minor adjustments → Small changes
+- 중규모 (medium): Quarterly projects, departmental changes → Moderate changes
+- 대규모 (large): Major investments, company-wide initiatives → Large changes
+- 초대형 (massive): Mergers, market disruption, existential crises → Massive changes
+
+Variable Behavior:
+- revenue/cash: Millions of gold (M), changes in tens to hundreds of millions
+- profit: Smaller than revenue, more volatile, sensitive to costs
+- market_share: Percentage points (%), changes gradually (1-5%p typical per major event)
+- brand_value/influence: Abstract scores, medium volatility
+- employees: Headcount, changes in dozens to hundreds depending on scale
+- debt: Accumulates from big decisions, reduces slowly
+- player_share/rd_progress: Percentage (%)
+
+Common Sense Checks:
+- Would this happen in real business? (compare to actual corporate cases)
+- Is magnitude proportional to event scale? (small project ≠ massive transformation)
+- Are there realistic trade-offs? (fast growth often = high debt/risk)
+- Do numbers make sense? (profit can't exceed revenue, market share can't exceed 100%)
+
+Outcome Interpretation (from system message tone):
+- 실패/위기: Negative impacts, multiple variables affected, cascading effects possible
+- 성공: Balanced positive impacts
+- 대성공/돌파구: Large positive impacts, may involve trade-offs (e.g., revenue+200|debt+150)
+- 복합 결과: Mixed realistic outcomes (revenue up but cash down due to investment)
+
+Examples:
+"GOLDMANE 투자 프로젝트가 성공했다. 매출과 시장점유율이 상승했다."
+→ [Stock:GOLDMANE:revenue:+80|market_share:+2]
+
+"대형 투자가 예상을 뛰어넘는 대성공을 거두었다. 금 가격 급등으로 막대한 수익을 올렸다."
+→ [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
+
+"스캔들이 터졌다. 브랜드 이미지 타격이 우려된다."
+→ [Stock:LUXORIA:brand_value:-30|market_share:-3]
+
+"긴급 자사주 매입으로 인수를 차단했다. 부채가 급증했다."
+→ [Stock:GOLDMANE:debt:+500|player_share:+15|influence:+20]
+
+**CRITICAL: Only output when system message describes business events. Interpret event scale and outcome to determine realistic variable changes.**
+
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
 - [Club:Join:...], [Club:Leave:...] - Club membership
