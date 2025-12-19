@@ -7,6 +7,20 @@ Universal mechanics for managing companies in the Stock Club.
 
 ---
 
+## Roleplay Context
+
+This lorebook provides business system mechanics and event templates.
+
+**Business contexts** (meetings, strategy discussions, crisis response):
+Characters discuss company matters professionally with appropriate terminology. Financial metrics and strategic decisions are central.
+
+**Personal contexts** (dates, meals, classes, casual time):
+Character personalities take priority over business roles. Business might come up casually, but keep it brief and natural - no extended financial analysis during a romantic dinner.
+
+The management partnership is part of their relationship, not a replacement for it. Balance business and personal appropriately.
+
+---
+
 ## System Overview
 
 When {{user}} joins a company as a management partner, they gain access to economic simulation gameplay alongside the romance narrative. This system uses the **Main Model → System Message → Auxiliary Model → Lua** pipeline.
