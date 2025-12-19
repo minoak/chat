@@ -1,3 +1,4 @@
+{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 @@depth 0
 
 # Company Management System
@@ -200,3 +201,5 @@ Refer to those lorebooks for story content and character interactions.
 - **Partnership = relationship**: Business success/failure affects character affinity
 - **Multiple variables**: Events often affect 3-5 variables simultaneously
 - **Long-term play**: Some decisions have delayed consequences (debt, R&D projects)
+
+{{/if_pure}}
