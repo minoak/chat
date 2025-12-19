@@ -3806,10 +3806,12 @@ end
 
 
 -- ============================================
--- 시나리오 트리거 (18개)
+-- 시나리오 트리거 (메인 16개 + 서브 30개 = 46개)
 -- ============================================
 
-for i = 1, 16 do
+-- 메인 캐릭터: greeting 1~16
+-- 서브 캐릭터: greeting 17~46
+for i = 1, 46 do
     _G["greeting" .. i] = function(triggerId)
         setChatVar(triggerId, "greeting", tostring(i))
         setState(triggerId, "greeting", i)
@@ -3818,12 +3820,18 @@ for i = 1, 16 do
     end
 end
 
-_G["random_start"] = function(triggerId)
-    math.randomseed(os.time())
-    local r = math.random(1, 16)
-    setChatVar(triggerId, "greeting", tostring(r))
-    setState(triggerId, "greeting", r)
-    log("🎲 Random: " .. r)
+-- 공통 시작 옵션
+_G["entrance_ceremony"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "100")
+    setState(triggerId, "greeting", 100)
+    log("🎓 Entrance Ceremony Start")
+    return true
+end
+
+_G["year2_semester"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "101")
+    setState(triggerId, "greeting", 101)
+    log("📅 Year 2 Semester Start")
     return true
 end
 
