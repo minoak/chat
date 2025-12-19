@@ -3828,8 +3828,8 @@ _G["random_start"] = function(triggerId)
 end
 
 _G["free_start"] = function(triggerId)
-    setChatVar(triggerId, "greeting", "18")
-    setState(triggerId, "greeting", 18)
+    setChatVar(triggerId, "greeting", "102")
+    setState(triggerId, "greeting", 102)
     log("✨ Free Start")
     return true
 end
