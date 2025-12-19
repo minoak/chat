@@ -30,58 +30,6 @@ Traits:
 Using Item: {{getvar::using_item}}
 {{/if_pure}}
 
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
-
-## 💼 Stock Investment & Company Management
-
-### Market Status
-- Lily Valley Index: {{getvar::market_index}} ({{getvar::economic_cycle}})
-- Active Companies: {{#if_pure {{equal::{{getvar::mirabel_company_joined}}::1}}}}GOLDMANE{{/if_pure}}{{#if_pure {{equal::{{getvar::cordelia_company_joined}}::1}}}} LUXORIA{{/if_pure}}{{#if_pure {{equal::{{getvar::nepenthes_company_joined}}::1}}}} PFIZARA{{/if_pure}}
-
-{{#if_pure {{equal::{{getvar::mirabel_company_joined}}::1}}}}
-### 🏦 GOLDMANE Management (Mirabel - Partner)
-- Revenue: {{getvar::GOLDMANE_revenue}}M / Profit: {{getvar::GOLDMANE_profit}}M (이익률 표시)
-- Cash: {{getvar::GOLDMANE_cash}}M / Debt: {{getvar::GOLDMANE_debt}}M (재무 건전성)
-- Market Share: {{getvar::GOLDMANE_market_share}}% (시장 점유율)
-- Brand Value: {{getvar::GOLDMANE_brand_value}} (브랜드 가치)
-- Employees: {{getvar::GOLDMANE_employees}} (인력 규모)
-- R&D Progress: {{getvar::GOLDMANE_rd_progress}}% (연구개발 진척도)
-- Ownership: {{getvar::GOLDMANE_player_share}}% (보유 지분)
-- Influence: {{getvar::GOLDMANE_influence}} (경영 영향력)
-
-*Detailed management scenarios and events: See MIRABEL_COMPANY.md*
-{{/if_pure}}
-
-{{#if_pure {{equal::{{getvar::cordelia_company_joined}}::1}}}}
-### 💎 LUXORIA Management (Cordelia - Partner)
-- Revenue: {{getvar::LUXORIA_revenue}}M / Profit: {{getvar::LUXORIA_profit}}M (이익률 표시)
-- Cash: {{getvar::LUXORIA_cash}}M / Debt: {{getvar::LUXORIA_debt}}M (재무 건전성)
-- Market Share: {{getvar::LUXORIA_market_share}}% (시장 점유율)
-- Brand Value: {{getvar::LUXORIA_brand_value}} (브랜드 가치)
-- Employees: {{getvar::LUXORIA_employees}} (인력 규모)
-- R&D Progress: {{getvar::LUXORIA_rd_progress}}% (연구개발 진척도)
-- Ownership: {{getvar::LUXORIA_player_share}}% (보유 지분)
-- Influence: {{getvar::LUXORIA_influence}} (경영 영향력)
-
-*Detailed management scenarios and events: See CORDELIA_COMPANY.md*
-{{/if_pure}}
-
-{{#if_pure {{equal::{{getvar::nepenthes_company_joined}}::1}}}}
-### 🧪 PFIZARA Management (Nepenthes - Partner)
-- Revenue: {{getvar::PFIZARA_revenue}}M / Profit: {{getvar::PFIZARA_profit}}M (이익률 표시)
-- Cash: {{getvar::PFIZARA_cash}}M / Debt: {{getvar::PFIZARA_debt}}M (재무 건전성)
-- Market Share: {{getvar::PFIZARA_market_share}}% (시장 점유율)
-- Brand Value: {{getvar::PFIZARA_brand_value}} (브랜드 가치)
-- Employees: {{getvar::PFIZARA_employees}} (인력 규모)
-- R&D Progress: {{getvar::PFIZARA_rd_progress}}% (연구개발 진척도)
-- Ownership: {{getvar::PFIZARA_player_share}}% (보유 지분)
-- Influence: {{getvar::PFIZARA_influence}} (경영 영향력)
-
-*Detailed management scenarios and events: See NEPENTHES_COMPANY.md*
-{{/if_pure}}
-
-{{/if_pure}}
-
 ---
 
 # 📖 Roleplay Guidelines
@@ -123,15 +71,6 @@ The Lily Valley Index reflects overall market mood and affects the atmosphere th
 - **Boom (> 1150)**: Euphoria and excess. Merchants can't keep stock, prices creep up from demand. Students throw money around carelessly. Luxury becomes the norm. The academy buzzes with energy, but wise NPCs whisper warnings about bubbles.
 
 IMPORTANT: Reflect this market mood naturally in NPC dialogue, merchant behavior, campus atmosphere, and background details. Don't announce "because the index is X" - show it through the world.
-
-Company Management (Active):
-When {{user}} is managing companies, the financial and operational metrics above represent real business status that affects the story:
-- Financial metrics influence available resources, investment capability, and crisis situations
-- Market position affects how NPCs perceive the company and business opportunities/threats
-- Operational status determines project feasibility and strategic options
-- {{user}} stake shows their actual ownership and decision-making power
-
-For detailed management events and scenarios, the system will reference the separate company lorebooks automatically.
 {{/if_pure}}
 
 Effects & Traits: {{user}}'s active effects and traits influence their capabilities. Reference them naturally when relevant to the scene.
