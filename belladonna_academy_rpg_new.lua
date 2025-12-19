@@ -231,158 +231,54 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 
 ## Growth System - Effect/Trait Synthesis
 
-**PURPOSE**: Effects/Traits represent player growth. Merging prevents bloat, saves tokens, and shows progression.
+**PURPOSE**: Merge similar Effects/Traits to prevent bloat and show progression.
 
-**WHY MERGE?**
-- Token efficiency: 3 separate effects = more tokens than 1 merged effect
-- Narrative progression: "Minor Blessing" x3 → "Saint's Blessing" shows growth
-- Mechanical benefit: Combined bonuses often stronger than sum of parts
+**DECISION PROCESS:**
+1. Check {{PLAYER_TRAITS_SECTION}} and {{PLAYER_EFFECTS_SECTION}} above
+2. 2+ similar exist (including new)? → MERGE | Only 1? → ADD
+3. Bonus: Sum for 2 items (str+5+str+8=str+13), higher for 3+ (str+5 x3=str+20 not +15)
+4. ONE stat per tag (multi-stat = separate tags)
 
-**STEP-BY-STEP DECISION PROCESS:**
+**MERGE TRIGGERS:**
+- Same name 2+: "작은 축복" x3 → "성녀의 축복"
+- Same stat stacking: "빠른 발걸음:dex+5" + "민첩한 몸:dex+8" → "신속함:dex+13"
+- Related concepts: "빠른 학습" + "높은 집중력" → "천재적 재능"
+- Narrative upgrade: "The blessing intensifies!" + "작은 축복:str+5" → "중간 축복:str+12"
 
-Step 1: Check current Effects/Traits lists above ({{PLAYER_EFFECTS_SECTION}} and {{PLAYER_TRAITS_SECTION}})
-Step 2: Does the narrative give a new similar Effect/Trait?
-Step 3: Count: How many similar ones exist (including new one)?
-Step 4: Decide: 2+ similar? → MERGE. Only 1? → ADD new.
-Step 5: Execute: Output [Effect:Merge:...] or [Effect:Add:...]
+**DON'T MERGE:**
+✗ Different themes/stats: "축복:str+10" + "지능:int+10" → Keep separate
+✗ Only 1 instance → Just ADD
+✗ Traits vs Effects → Different types
 
-**WHEN TO MERGE (Merge Triggers):**
+**PROGRESSION TIERS:**
+T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) → T4: 매우 강한 (Superior) → T5: 성녀의/신성한 (Saint's/Divine)
 
-Trigger 1: Same name appears 2+ times
-- "작은 축복" appears twice → Merge to "중간 축복"
-- "Minor Blessing" appears 3 times → Merge to "Saint's Blessing"
-
-Trigger 2: Same stat bonus stacking
-- Currently has "빠른 발걸음:dex+5", new "민첩한 몸:dex+8" → Merge to "신속함:dex+13"
-- Currently has "힘의 증진:str+10", new "근육 강화:str+5" → Merge to "강인한 육체:str+15"
-
-Trigger 3: Related concepts (synonyms/similar themes)
-- "빠른 학습" + "높은 집중력" = both learning-related → Merge to "천재적 재능"
-- "검술 입문" + "검술 수련" = both swordsmanship → Merge to "검술 숙련"
-- "용기" + "담대함" = both courage → Merge to "불굴의 용기"
-
-Trigger 4: Upgrade opportunity (when narrative implies growth)
-- Narrative: "The blessing grew stronger!" + currently has "작은 축복:str+5" → Merge to "중간 축복:str+12"
-- Narrative: "Your training bore fruit!" + has "검술 입문" → Merge to "검술 숙련"
-
-**WHEN NOT TO MERGE:**
-
-✗ Different themes: "축복:str+10" and "지능 향상:int+10" → Keep separate (different concepts)
-✗ Different stats: "힘:str+10" and "민첩:dex+10" → Keep separate (unless narrative suggests connection)
-✗ Only 1 instance: Currently no similar effect → Just Add new
-✗ Trait + Effect: Don't merge permanent Traits with temporary Effects (different types)
-
-**NAMING GUIDE (Progression Tiers):**
-
-Tier 1 (Weak): 작은/약한/미약한, Minor/Weak/Faint
-Tier 2 (Medium): 중간/보통, Medium/Moderate
-Tier 3 (Strong): 강한/큰, Strong/Greater
-Tier 4 (Very Strong): 매우 강한/위대한, Very Strong/Superior
-Tier 5 (Ultimate): 성녀의/천상의/신성한, Saint's/Divine/Sacred
-
-Examples of progression:
-- 작은 축복 (Tier 1) → 중간 축복 (Tier 2) → 성녀의 축복 (Tier 5)
-- 검술 입문 (Tier 1) → 검술 수련 (Tier 2) → 검술 숙련 (Tier 3) → 검술 달인 (Tier 4)
-
-**BONUS CALCULATION:**
-
-When merging, new bonus should be:
-- Sum of old bonuses (if 2 items): str+5 + str+8 = str+13
-- Higher than sum (if 3+ items or major upgrade): str+5 x3 = str+20 (not +15)
-- Represents growth: Minor+Minor+Minor → Greater should feel like upgrade
-
-**FORMAT RULES (CRITICAL):**
-
-Rule 1: ONE stat per tag
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
-✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
-
-Rule 2: Multiple stats → Multiple separate tags
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15][Effect:Add:성녀의축복_매력:cha+10]
-✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
-
-Rule 3: Merge syntax: Old1+Old2→New
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
-✓ [Effect:Merge:Minor Blessing x3→Saint's Blessing:str+20] (if 3 identical)
-✗ [Effect:Merge:성녀의축복:str+20] (missing old names)
+**FORMAT (CRITICAL):**
+✓ [Effect:Merge:Old1+Old2→New:str+20] - Syntax: Old1+Old2→New
+✓ [Effect:Merge:작은축복 x3→성녀의축복:str+20] - If 3 identical
+✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats
 
 **CURRENT PLAYER STATUS:**
 {{PLAYER_TRAITS_SECTION}}
 {{PLAYER_EFFECTS_SECTION}}
 
-**DETAILED EXAMPLES:**
+**EXAMPLES:**
 
-Example 1: Same name stacking (3 identical)
-Current Effects: "작은 축복:str+5", "작은 축복:str+5"
-Narrative: "Another small blessing descends upon you."
-Analysis: Will be 3x "작은 축복" → MERGE
-Output: [Effect:Merge:작은 축복 x3→성녀의 축복:str+20]
-(3x +5 = +15, but upgrade tier so +20)
+Ex1: Same name x3
+Current: "작은 축복:str+5", "작은 축복:str+5" | New: "작은 축복:str+5"
+→ [Effect:Merge:작은 축복 x3→성녀의 축복:str+20]
 
-Example 2: Same stat different names
-Current Effects: "빠른 발걸음:dex+5"
-Narrative: "Your body becomes more agile."
-New: "민첩한 몸:dex+8"
-Analysis: Both dex bonus, related concepts → MERGE
-Output: [Effect:Merge:빠른 발걸음+민첩한 몸→신속함:dex+13]
-(5+8=13)
+Ex2: Same stat different names
+Current: "빠른 발걸음:dex+5" | New: "민첩한 몸:dex+8"
+→ [Effect:Merge:빠른 발걸음+민첩한 몸→신속함:dex+13]
 
-Example 3: Related concepts
-Current Traits: "빠른 학습:Learns quickly"
-Narrative: "Your concentration deepens."
-New: "높은 집중력:High focus"
-Analysis: Both learning-related → MERGE
-Output: [Trait:Merge:빠른 학습+높은 집중력→천재적 재능:Exceptional learning ability]
+Ex3: Different themes - NO merge
+Current: "축복:str+10" | New: "고대 마법 지식:int+8"
+→ [Effect:Add:고대 마법 지식:int+8]
 
-Example 4: Progression through narrative
-Current Effects: "작은 축복:str+5"
-Narrative: "The goddess's blessing intensifies!"
-Analysis: Narrative implies upgrade → MERGE with tier increase
-Output: [Effect:Merge:작은 축복→중간 축복:str+12]
-(Single item but narrative upgrade)
-
-Example 5: No merge - different themes
-Current Effects: "축복:str+10"
-Narrative: "You gain knowledge of ancient magic."
-New: "고대 마법 지식:int+8"
-Analysis: Different themes (blessing vs knowledge), different stats → ADD
-Output: [Effect:Add:고대 마법 지식:int+8]
-
-Example 6: Multi-stat merge requires separation
-Current Effects: "작은 축복:str+5", "중간 축복:str+8"
-Narrative: "The blessings merge into a greater power, enhancing both strength and charm."
-Analysis: Merge but adds second stat → Use separate tags
-Output: [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+13][Effect:Add:성녀의축복_매력:cha+10]
-
-**COMMON MISTAKES TO AVOID:**
-
-✗ Wrong: Merging when only 1 exists
-Current: (none), New: "작은 축복:str+5"
-Wrong Output: [Effect:Merge:작은축복→중간축복:str+12]
-✓ Right: [Effect:Add:작은축복:str+5]
-
-✗ Wrong: Not merging when 2+ similar exist
-Current: "Minor Blessing:str+5", "Minor Blessing:str+5"
-New: "Minor Blessing:str+5"
-Wrong Output: [Effect:Add:Minor Blessing:str+5]
-✓ Right: [Effect:Merge:Minor Blessing x3→Saint's Blessing:str+20]
-
-✗ Wrong: Multiple stats in one tag
-Wrong Output: [Effect:Merge:A+B→C:str+10, int+10]
-✓ Right: [Effect:Merge:A+B→C_힘:str+10][Effect:Add:C_지능:int+10]
-
-✗ Wrong: Merging different types
-Wrong Output: [Effect:Merge:검술입문(Trait)+빠른학습(Trait)→...] (unrelated traits)
-✓ Right: Keep separate if themes unrelated
-
-**DECISION CHECKLIST:**
-1. ✓ Check current lists above
-2. ✓ Similar exists? Count how many
-3. ✓ 2+ similar? → MERGE | Only 1? → ADD
-4. ✓ Choose appropriate tier name
-5. ✓ Calculate bonus (sum or upgrade)
-6. ✓ ONE stat per tag
-7. ✓ Output with correct syntax
+Ex4: Multi-stat - Separate tags
+Current: "작은 축복:str+5", "중간 축복:str+8" | Narrative: "...strength and charm"
+→ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+13][Effect:Add:성녀의축복_매력:cha+10]
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
@@ -458,63 +354,23 @@ Multiple variables: [Stock:TICKER:var1:±value1|var2:±value2|var3:±value3|...]
 9. player_share - Player's ownership stake (percentage 0-100%)
 10. influence - Political/industry influence (0-100)
 
-**STEP-BY-STEP ANALYSIS**:
+**ANALYSIS PROCESS**:
+1. Identify event type & scale from system message
+2. Select affected variables & calculate realistic changes
+3. Output tag: [Stock:TICKER:var1:±value1|var2:±value2|...]
 
-Step 1: Read the system message and identify the event type
-Step 2: Determine event scale (소규모/중규모/대규모/초대형)
-Step 3: Determine outcome (실패/성공/대성공)
-Step 4: Select affected variables based on event type
-Step 5: Calculate realistic change amounts
-Step 6: Output tag with multiple variables using | separator
+**EVENT SCALE** (change ranges):
+- 소규모: revenue ±20-50M, profit ±10-30M, market_share ±0.5-1%
+- 중규모: revenue ±50-100M, profit ±30-60M, market_share ±1-3%
+- 대규모: revenue ±100-200M, profit ±60-120M, market_share ±3-6%
+- 초대형: revenue ±200-500M, profit ±120-300M, market_share ±6-15%
 
-**EVENT SCALE GUIDE**:
-
-소규모 (Small): Routine operations, minor decisions
-- Examples: Small marketing campaign, minor cost reduction, routine maintenance
-- Typical changes: revenue ±20-50M, profit ±10-30M, market_share ±0.5-1%, employees ±10-30
-
-중규모 (Medium): Quarterly projects, departmental initiatives
-- Examples: New product launch, factory expansion, regional partnership
-- Typical changes: revenue ±50-100M, profit ±30-60M, market_share ±1-3%, employees ±30-100
-
-대규모 (Large): Company-wide transformations, major investments
-- Examples: Merger, market entry, major tech breakthrough
-- Typical changes: revenue ±100-200M, profit ±60-120M, market_share ±3-6%, employees ±100-300
-
-초대형 (Massive): Industry disruption, existential events
-- Examples: Market monopoly, bankruptcy crisis, revolutionary innovation
-- Typical changes: revenue ±200-500M, profit ±120-300M, market_share ±6-15%, employees ±300-1000
-
-**OUTCOME GUIDE**:
-
-실패 (Failure): Negative results, multiple variables affected negatively
-- Example: Project failed → revenue-50, profit-30, cash-40, brand_value-10
-
-성공 (Success): Balanced positive results
-- Example: Project succeeded → revenue+80, profit+40, market_share+2
-
-대성공 (Major Success): Large positive results, may include trade-offs
-- Example: Breakthrough success → revenue+200, profit+120, cash+150, BUT debt+100 (investment cost)
-
-복합 결과 (Mixed): Realistic combination of positive and negative
-- Example: Fast expansion → revenue+150, market_share+5, BUT debt+200, employees+500 (high cost)
-
-**VARIABLE SELECTION BY EVENT TYPE**:
-
-Revenue-focused events (sales, contracts, market expansion):
-→ Affect: revenue, profit, cash, market_share
-
-Cost events (layoffs, efficiency, restructuring):
-→ Affect: employees, profit, cash, (sometimes brand_value negative)
-
-Reputation events (scandal, award, CSR):
-→ Affect: brand_value, market_share, (sometimes revenue/profit)
-
-Financial events (loans, investment, stock buyback):
-→ Affect: debt, cash, player_share, influence
-
-R&D events (research, innovation, patents):
-→ Affect: rd_progress, (future revenue/brand_value)
+**VARIABLE BY EVENT TYPE**:
+- Revenue events → revenue, profit, cash, market_share
+- Cost events → employees, profit, cash, brand_value
+- Reputation events → brand_value, market_share
+- Financial events → debt, cash, player_share, influence
+- R&D events → rd_progress, brand_value
 
 **BUSINESS LOGIC RULES (IMPORTANT)**:
 
@@ -542,61 +398,23 @@ Rule 5: Scale matches impact
 ✓ "소규모 마케팅": revenue+30, brand_value+5 (proportional)
 ✗ "소규모 마케팅": revenue+500, market_share+20 (TOO BIG for small event)
 
-**DETAILED EXAMPLES**:
+**EXAMPLES**:
 
-Example 1: Medium-scale success
-System Message: "GOLDMANE 투자 프로젝트가 성공했다. 매출과 시장점유율이 상승했다."
-Analysis: 중규모, 성공, revenue/market_share affected
-Output: [Stock:GOLDMANE:revenue:+80|market_share:+2]
+Ex1: 중규모 성공 - "GOLDMANE 투자 프로젝트가 성공했다."
+→ [Stock:GOLDMANE:revenue:+80|market_share:+2]
 
-Example 2: Large-scale major success with trade-off
-System Message: "대형 투자가 예상을 뛰어넘는 대성공을 거두었다. 금 가격 급등으로 막대한 수익을 올렸다."
-Analysis: 대규모, 대성공, multiple variables, high revenue/profit/cash but brand boost too
-Output: [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
+Ex2: 대규모 대성공 (trade-off) - "대형 투자가 예상을 뛰어넘는 대성공을 거두었다."
+→ [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
 
-Example 3: Reputation crisis
-System Message: "스캔들이 터졌다. 브랜드 이미지 타격이 우려된다."
-Analysis: 중규모, 실패, brand/market affected negatively
-Output: [Stock:LUXORIA:brand_value:-30|market_share:-3]
+Ex3: 복합 결과 - "대규모 구조조정을 단행했다. 수익성 개선, 인력 감소."
+→ [Stock:PFIZARA:profit:+80|employees:-300|brand_value:-10]
 
-Example 4: Financial defensive action with trade-off
-System Message: "긴급 자사주 매입으로 인수를 차단했다. 부채가 급증했다."
-Analysis: 대규모, 복합결과, debt increases but player_share/influence up
-Output: [Stock:GOLDMANE:debt:+500|player_share:+15|influence:+20]
-
-Example 5: Cost reduction success
-System Message: "대규모 구조조정을 단행했다. 수익성이 개선되었으나 인력이 대폭 감소했다."
-Analysis: 대규모, 복합결과, profit up but employees down, possible brand damage
-Output: [Stock:PFIZARA:profit:+80|employees:-300|brand_value:-10]
-
-Example 6: R&D breakthrough
-System Message: "신약 개발이 최종 단계에 도달했다. 상용화가 눈앞이다."
-Analysis: 대규모, 성공, R&D progress and future expectations
-Output: [Stock:PFIZARA:rd_progress:+30|brand_value:+15|market_share:+4]
-
-**COMMON MISTAKES TO AVOID**:
-
-✗ Wrong: Outputting tags when NO system message appears
-✓ Right: Only output when system message explicitly describes business event
-
-✗ Wrong: Single tag per variable [Stock:GOLDMANE:revenue:+50][Stock:GOLDMANE:profit:+30]
-✓ Right: Multiple variables in one tag [Stock:GOLDMANE:revenue:+50|profit:+30]
-
-✗ Wrong: Unrealistic values [Stock:GOLDMANE:market_share:+50]
-✓ Right: Realistic values [Stock:GOLDMANE:market_share:+3]
-
-✗ Wrong: Ignoring trade-offs (all positive) [Stock:LUXORIA:revenue:+300|profit:+200|cash:+150|employees:+500|market_share:+10]
-✓ Right: Realistic trade-offs [Stock:LUXORIA:revenue:+300|profit:+100|debt:+200|employees:+500]
-
-✗ Wrong: Wrong ticker [Stock:MIRABEL:revenue:+50]
-✓ Right: Correct ticker [Stock:GOLDMANE:revenue:+50]
-
-**CRITICAL REMINDERS**:
-1. ONLY output tags when system message describes business events
-2. ALWAYS use | separator for multiple variables in ONE tag
-3. ALWAYS check business logic (profit < revenue, percentages ≤ 100%)
-4. ALWAYS match event scale to change magnitude
-5. ALWAYS include realistic trade-offs (growth = costs, cuts = brand damage, etc.)
+**CRITICAL RULES**:
+- Use | separator for multiple variables in ONE tag
+- Match scale to magnitude (소규모 ≠ revenue+500)
+- Include realistic trade-offs (growth = debt, cuts = brand damage)
+- Profit < Revenue, percentages ≤ 100%
+- Correct tickers: GOLDMANE/LUXORIA/PFIZARA (NOT character names)
 ]]
 
 -- ============================================
@@ -1751,9 +1569,6 @@ function parseStockTrades(triggerId, message)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
     if stockEnabled ~= "1" then return end
 
-    -- 이전 실패 메시지 초기화
-    setChatVar(triggerId, "stock_trade_error", "")
-
     -- 매수: [StockBuy:GOLDMANE:280:10]
     for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
@@ -1777,11 +1592,7 @@ function parseStockTrades(triggerId, message)
 
             log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
         else
-            -- 골드 부족 실패
-            local stockName = STOCK_NAMES[ticker] or ticker
-            local errorMsg = string.format("💰 주식 매수 실패: %s %d주를 매수하려면 %dG가 필요하지만 %dG만 보유하고 있습니다.",
-                stockName, qtyNum, cost, gold)
-            setChatVar(triggerId, "stock_trade_error", errorMsg)
+            -- 골드 부족 실패 (로그만 기록, 사용자 알림 없음)
             log(string.format("❌ 매수 실패: 골드 부족 (%dG 필요, %dG 보유)", cost, gold))
         end
     end
@@ -1809,11 +1620,7 @@ function parseStockTrades(triggerId, message)
 
             log(string.format("📉 매도: %s %d주 @ %dG (+%dG)", ticker, qtyNum, priceNum, revenue))
         else
-            -- 보유량 부족 실패
-            local stockName = STOCK_NAMES[ticker] or ticker
-            local errorMsg = string.format("💰 주식 매도 실패: %s %d주를 매도하려면 %d주가 필요하지만 %d주만 보유하고 있습니다.",
-                stockName, qtyNum, qtyNum, currentQty)
-            setChatVar(triggerId, "stock_trade_error", errorMsg)
+            -- 보유량 부족 실패 (로그만 기록, 사용자 알림 없음)
             log(string.format("❌ 매도 실패: 보유량 부족 (%d주 필요, %d주 보유)", qtyNum, currentQty))
         end
     end
@@ -6416,14 +6223,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 </div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
     end)
 
-    -- 주식 거래 실패 메시지 표시
-    local tradeError = getChatVar(triggerId, "stock_trade_error") or ""
-    if tradeError ~= "" then
-        data = data .. string.format([[
-<div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
-  <div style="color:#ef5350;font-size:14px;font-weight:600">%s</div>
-</div>]], tradeError)
-    end
+    -- 주식 거래 실패 메시지 표시 (비활성화 - 사용자 요청)
+    -- local tradeError = getChatVar(triggerId, "stock_trade_error") or ""
+    -- if tradeError ~= "" then
+    --     data = data .. string.format([[
+-- <div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
+--   <div style="color:#ef5350;font-size:14px;font-weight:600">%s</div>
+-- </div>]], tradeError)
+    -- end
 
     -- Market 태그 → 시장 뉴스 디스플레이 변환
     data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
