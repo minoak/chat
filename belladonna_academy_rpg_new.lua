@@ -385,15 +385,11 @@ Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:
 Monday: [Week:X+1][Day:월요일][Time:오전]
 Exams (Week 6,12): [Exam:midterm:87:23]
 
-## Stock Panel (Stock Club Members Only)
-When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
-<StockPanel /> - Display stock trading panel
-
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
 - [Club:Join:...], [Club:Leave:...] - Club membership
-- [Stock:...] - Stock prices
-- [StockBuy:...], [StockSell:...] - Stock trades
+- [Stock:...] - Stock prices (only when stock system enabled)
+- [StockBuy:...], [StockSell:...] - Stock trades (only when stock system enabled)
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
@@ -403,6 +399,10 @@ Always end with <Panel>■★
 
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
+
+## Stock Panel (Stock Club Members Only)
+When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
+<StockPanel /> - Display stock trading panel
 
 ## Stock Management Tags (Company Partners Only)
 
