@@ -201,6 +201,12 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 - ✗ {{user}} asks "How much?": NO TAG
 - CRITICAL: Mentioned prices ≠ actual transactions
 
+**IMPORTANT - Check Current Gold in Game State:**
+Before outputting [Gold:-X], CHECK "Player Status" section in Current Game State.
+- If Current Gold < X, DO NOT output the tag (insufficient funds)
+- Only output if transaction is affordable
+- Example: Current Gold: 50 → [Gold:-100] is INVALID, skip the tag
+
 [Damage:amount] - Combat power loss from damage/injury
 - Output when {{user}} takes damage in combat
 - Output when {{user}} gets injured from events/accidents
