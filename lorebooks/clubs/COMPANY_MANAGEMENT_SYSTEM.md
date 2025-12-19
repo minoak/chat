@@ -102,27 +102,42 @@ The auxiliary model will convert these into appropriate variable changes.
 
 ---
 
-## Event Impact Guidelines
+## Understanding Business Impact
 
-Use these ranges as reference for system message tone:
+**Currency**: All financial values use Gold (G), where 1G = 1 USD equivalent. Companies operate in millions (100M G = 100 million gold).
 
-### Success Levels
-- **Minor Success**: Small positive outcome (revenue +20~40, market_share +0~1)
-- **Success**: Standard positive outcome (revenue +40~60, market_share +1~2)
-- **Major Success**: Outstanding outcome (revenue +60~100, market_share +2~4)
-- **Breakthrough**: Industry-changing outcome (revenue +100+, market_share +4+)
+### Event Scale (규모)
+- **소규모**: Routine decisions, minor adjustments → Small changes
+- **중규모**: Quarterly projects, departmental changes → Moderate changes
+- **대규모**: Major investments, company-wide initiatives → Large changes
+- **초대형**: Mergers, market disruption, existential crises → Massive changes
 
-### Failure Levels
-- **Minor Setback**: Small negative outcome (revenue -20~40, brand_value -10~20)
-- **Failure**: Standard negative outcome (revenue -40~60, brand_value -20~40)
-- **Crisis**: Serious negative outcome (revenue -60~100, market_share -3~5)
-- **Catastrophe**: Company-threatening outcome (revenue -100+, market_share -5+)
+### Variable Behavior (변수 특성)
+- **Revenue/Cash**: Measured in millions of gold (M G), changes in tens to hundreds of millions
+- **Profit**: Smaller than revenue, more volatile, sensitive to costs
+- **Market Share**: Percentage points (%), changes gradually (typically 1-5%p per major event)
+- **Brand Value/Influence**: Abstract scores, medium volatility
+- **Employees**: Headcount, changes in dozens to hundreds depending on scale
+- **Debt**: Accumulates from big decisions, reduces slowly over time
 
-### Resource Changes
-- **Investment**: cash decreases, potential for revenue/profit increase later
-- **Debt Financing**: debt increases, cash increases
-- **Hiring**: employees increase, cash drain increases
-- **R&D**: rd_progress increases, cash decreases
+### Outcome Interpretation (결과 해석)
+- **실패/위기**: Negative impacts across multiple variables, potential cascading effects
+- **성공**: Positive impacts, generally balanced
+- **대성공/돌파구**: Large positive impacts, but may involve trade-offs (e.g., high debt)
+- **복합 결과**: Realistic mixed outcomes (revenue up but cash down, etc.)
+
+### Common Sense Checks
+Apply business realism:
+- Would this outcome happen in real corporate management? (Compare to actual business cases)
+- Is the magnitude proportional to the event scale? (Small project ≠ massive company transformation)
+- Are there realistic trade-offs? (Fast growth often means high debt/risk)
+- Do the numbers make business sense? (Profit can't exceed revenue, market share can't exceed 100%)
+
+Examples of unrealistic outcomes to avoid:
+- Single decision gaining 50% market share overnight
+- Small scandal eliminating all revenue
+- One hire adding 1000 employees
+- 100M investment immediately generating 500M revenue with no delay
 
 ---
 

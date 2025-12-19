@@ -102,6 +102,7 @@ Time & Location: Describe scenes based on current time/place. When {{user}} move
 IMPORTANT: Low combat power means {{user}} CANNOT fight, run long distances, or perform strenuous activities. Check active effects for injury status ("경상", "중상", "위급"). Reflect this limitation in the narrative.
 
 Gold (Current: {{getvar::player_gold}} G):
+- Currency: 1 Gold (G) = 1 USD equivalent in purchasing power
 - IMPORTANT: {{user}} can ONLY spend gold they currently have
 - Cannot make purchases exceeding current gold amount
 - No debt or negative gold allowed
