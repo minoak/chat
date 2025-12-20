@@ -224,9 +224,17 @@ Before outputting [Gold:-X], CHECK "Player Status" section in Current Game State
 [Effect:Add:Name:StatType:Value:Duration:Desc]
 ```
 - StatType: str_bonus, int_bonus, dex_bonus, cha_bonus, luk_bonus, vit_bonus, all_bonus
-- Value: numeric bonus (10, 15, 20, etc.)
+- Value: numeric bonus (3-8 typical, 10-15 strong, 16-20 exceptional)
 - Duration: Turn count (1-10 typical, 0 = permanent)
 - Desc: Short description
+
+**Value Guidelines (IMPORTANT):**
+With new stat system (41-50 = Average), bonuses should be moderate:
+- **Weak effects**: +3~5 (minor potions, small buffs)
+- **Medium effects**: +6~8 (good potions, meal buffs)
+- **Strong effects**: +9~12 (powerful magic, major blessings)
+- **Exceptional effects**: +13~15 (rare artifacts, divine intervention)
+- **Legendary effects**: +16~20 (permanent transformations, mythical blessings)
 
 **Duration Guidelines (CRITICAL):**
 - **Temporary effects (1-10 turns)**: Potions, buffs, meal bonuses, temporary blessings
@@ -240,9 +248,9 @@ Before outputting [Gold:-X], CHECK "Player Status" section in Current Game State
 - **Default to temporary**: When unsure, use 3-5 turns
 
 **Examples**:
-✓ [Effect:Add:힘의 물약:str_bonus:10:3:근육이 불끈] - Potion lasts 3 turns
-✓ [Effect:Add:식사 효과:all_bonus:5:2:배불러서 기분 좋음] - Meal buff 2 turns
-✓ [Effect:Add:성녀의 축복:str_bonus:20:0:영구적 신성한 힘] - Permanent blessing
+✓ [Effect:Add:힘의 물약:str_bonus:5:3:근육이 불끈] - Potion lasts 3 turns
+✓ [Effect:Add:식사 효과:all_bonus:3:2:배불러서 기분 좋음] - Meal buff 2 turns
+✓ [Effect:Add:성녀의 축복:str_bonus:15:0:영구적 신성한 힘] - Permanent blessing
 ✗ [Effect:Add:물약:str+10] - Missing duration, will default to permanent!
 
 **Trait Format** (always permanent):
@@ -269,22 +277,24 @@ Traits are inherently permanent character changes.
 **DECISION PROCESS:**
 1. Check {{PLAYER_TRAITS_SECTION}} and {{PLAYER_EFFECTS_SECTION}} above
 2. 2+ similar exist (including new)? → MERGE | Only 1? → ADD
-3. Bonus: Sum for 2 items (str+5+str+8=str+13), higher for 3+ (str+5 x3=str+20 not +15)
+3. Bonus calculation:
+   - 2 items: Sum values (str+3 + str+5 = str+8)
+   - 3+ items: Sum + small bonus (str+3 x3 = str+9 + str+2 bonus = str+11)
 4. ONE stat per tag (multi-stat = separate tags)
 
 **MERGE TRIGGERS:**
 - Same name 2+: "작은 축복" x3 → "성녀의 축복"
-- Same stat stacking: "빠른 발걸음:dex+5" + "민첩한 몸:dex+8" → "신속함:dex+13"
+- Same stat stacking: "빠른 발걸음:dex+3" + "민첩한 몸:dex+5" → "신속함:dex+8"
 - Related concepts: "빠른 학습" + "높은 집중력" → "천재적 재능"
-- Narrative upgrade: "The blessing intensifies!" + "작은 축복:str+5" → "중간 축복:str+12"
+- Narrative upgrade: "The blessing intensifies!" + "작은 축복:str+3" → "중간 축복:str+7"
 
 **DON'T MERGE:**
-✗ Different themes/stats: "축복:str+10" + "지능:int+10" → Keep separate
+✗ Different themes/stats: "축복:str+5" + "지능:int+5" → Keep separate
 ✗ Only 1 instance → Just ADD
 ✗ Traits vs Effects → Different types
 
 **PROGRESSION TIERS:**
-T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) → T4: 매우 강한 (Superior) → T5: 성녀의/신성한 (Saint's/Divine)
+T1: 작은/약한 (Minor/Weak) +3~5 → T2: 중간 (Medium) +6~8 → T3: 강한 (Strong) +9~12 → T4: 매우 강한 (Superior) +13~15 → T5: 성녀의/신성한 (Saint's/Divine) +16~20
 
 **FORMAT & BEHAVIOR (CRITICAL):**
 ```
@@ -293,8 +303,8 @@ T1: 작은/약한 (Minor/Weak) → T2: 중간 (Medium) → T3: 강한 (Strong) �
 - Use full format with duration
 - Duration: Highest of merged effects, or 0 if any is permanent
 - Examples:
-  ✓ [Effect:Merge:작은축복 x3→성녀의축복:str_bonus:20:0:영구적 힘] - 3 identical become permanent
-  ✓ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:13:5:빠른 움직임] - Temporary effects
+  ✓ [Effect:Merge:작은축복 x3→성녀의축복:str_bonus:11:0:영구적 힘] - 3 identical (+3 each = 9, +2 bonus = 11)
+  ✓ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:8:5:빠른 움직임] - Two effects (+3+5=8)
   ✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats (use separate tags)
 
 **IMPORTANT - Merge AUTO-REMOVES old effects:**
