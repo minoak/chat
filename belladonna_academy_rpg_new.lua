@@ -5732,7 +5732,9 @@ function generateStockPanelUI(triggerId)
     local currentView = getState(triggerId, "stock_current_view") or "board"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
-    local isCollapsed = getState(triggerId, "stock_panel_collapsed") == "1"
+    -- 기본값: 접힌 상태 (stock_panel_collapsed가 "0"일 때만 펼침)
+    local collapseState = getState(triggerId, "stock_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
 
     -- 컨테이너 시작
     local html = [[
@@ -7205,7 +7207,8 @@ onButtonClick = async(function(triggerId, code)
     -- 주식 패널 접기/펼치기 토글
     if code == "stock_toggle_collapse" then
         local currentState = getState(triggerId, "stock_panel_collapsed")
-        local newState = (currentState == "1") and "0" or "1"
+        -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+        local newState = (currentState == "0") and "1" or "0"
         setState(triggerId, "stock_panel_collapsed", newState)
         log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
     end
@@ -7237,7 +7240,8 @@ end
 -- 주식 패널 접기/펼치기 토글
 _G["stock_toggle_collapse"] = function(triggerId)
     local currentState = getState(triggerId, "stock_panel_collapsed")
-    local newState = (currentState == "1") and "0" or "1"
+    -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+    local newState = (currentState == "0") and "1" or "0"
     setState(triggerId, "stock_panel_collapsed", newState)
     log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
 end
