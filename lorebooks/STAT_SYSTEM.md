@@ -43,10 +43,8 @@
 
 4. Complete registration
    - "Level 0 → Level 1" announcement
+   - Output the completion tag: [StatsEvaluated]
 
-5. MANDATORY TAG OUTPUT:
-   [StatsEvaluated]
-
-CRITICAL: You MUST output the [StatsEvaluated] tag in this response. Without this tag, the evaluation fails and will repeat.
+**Important**: Output the [StatsEvaluated] tag exactly once at the end of the evaluation scene to register completion.
 
 {{/if_pure}}
