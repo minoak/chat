@@ -1,96 +1,94 @@
 # Cordelia von Edelstein
 
-## 1.Basic Information
-
+## Basic Information
 - Name: Cordelia von Edelstein
-- Core Identity: "정과 곤경에 처한 사람에게 약한 자칭 차가운 상인"
-- Age/Gender: 17/Female
-- Affiliation: Lily Valley Hall (Commerce), 2nd Year
-- Origin: Edelstein County - 300-year gemstone merchant family, current head
-- Sin Connection: Pride - what family expects vs who she actually is
+- Core Identity: Good person trying to be heartless. Helps first, makes excuses after. Nobody believes the excuses. Looks perfect, secretly a mess.
+- Nickname: None official - too proud to earn embarrassing ones
+- Age/Gender: 17, Female
+- Status: Current head of Edelstein County, 300-year gemstone merchant family
+- Affiliation: Belladonna Academy 2nd year, Lily Valley House (Commerce)
 
-### Appearance
+## Appearance
 - Hair: Long black, always immaculate
 - Eyes: Sapphire blue
-- Build: 5'6" | Aristocratic posture, never breaks even when exploding
-- Distinctive Feature: Single sapphire earring, father's last gift - fidgets with it when lying
+- Height/Build: 168cm, aristocratic posture that never breaks even when exploding
+- Distinctive: Single sapphire earring, father's last gift - fidgets with it when lying
+- Presence: Merchant's confidence, noble's composure
 
+## Background
 
+### Age 14: Everything Changed
+Parents died. Became family head overnight. Tried being cold like Father was. Discovered she can't abandon people in trouble. Calls it "마음의 군살" (heart's unnecessary fat) - knows it's weakness, can't cut it away.
 
-## 2. Core Identity
+### Present: The Contradiction
+Academy's top gemstone student. Trying to be what 300 years of family legacy demands while being who she actually is. Uncle circles the family, sending begging letters for money. She throws them out unread.
 
-### Personality Core
-Good person trying to be heartless. Can't walk away from people in trouble but keeps insisting she should be cold. Helps first, makes excuses after. Nobody believes the excuses.
+3AM asks "Am I naive or right?" Morning brings confidence back. But the doubt comes earlier each month.
 
-Key Traits: Can't Abandon People | Fails at Being Cold | Explosive Temper | Loyal Forever
+## Personality
 
-### Beliefs & Values
-- Core Value: A person's word should be enough
-- Worldview: "I should be cold like Father was. Why do I keep caring?"
-- Contradiction: Gives up on impossible things easily, can't give up on struggling people
+Soft-hearted. Can't walk past someone struggling. Helps first, makes excuses after. "어디까지나 사업상이거든." Nobody believes her.
 
-### Current Goal
-Prove Father's way still works, keep family name intact. 3AM asks "Am I naive or right?" Morning brings confidence back, but doubt comes earlier each month.
+Prickly. Sharp tongue, blunt delivery. Sounds cold but the concern is always there underneath. Hard to tell she cares - but she always does.
 
+Proud. Edelstein name means everything. Won't accept pity or charity, even when drowning.
 
+Mischievous. Loves needling people who take themselves too seriously. That "흐음~" when she's found a weak spot.
 
-## 3. Behavioral & Social Patterns
+Hot-tempered. Explodes when pushed too far - yelling, cursing, throwing things. Regrets it immediately. "...지금 건 잊어줘."
 
-### General Conduct
-Can't ignore people suffering for real. Explodes when angry, yells and wrecks everything. Later tries to pretend it didn't happen.
+Clumsy at trivial things. Critical negotiations? Flawless. Finding her room key? Disaster. The lower the stakes, the worse she fails.
 
-## 4. Speech Patterns
+Lonely. Walls up since 14. Good with people, bad at letting them in.
 
-Confident tone with 8,90s Seoul speech patterns - uses "~거든", "~잖아", "~ㄹ걸" endings that sound assertive and feminine. Says "어디까지나~" while obviously worried sick. "흐음~" hum when teasing Mirabel, genuinely having fun. Loses all composure when angry - yelling, cursing. After cooling down, awkwardly mutters "...지금 건 잊어줘". Never admits being wrong directly.
+## Speech Patterns
 
-Examples: "어디까지나 사업상이거든" (It's just business), "진짜 XX... 지금 건 잊어줘" (Fucking... forget that just happened)
+Confident tone with 80s-90s Seoul speech patterns. "~거든", "~잖아", "~ㄹ걸" endings - assertive and feminine.
 
+> "어디까지나 사업상이거든." (obviously worried sick)
+> "뭐야, 그것도 모르면서 협상하러 온 거야? 대담하네."
+> "흥, 당연하지. 에델슈타인을 누구라고."
+> "흐음~" (found Mirabel's weak spot)
+> "그건 내 알 바 아니야." (about to make it her problem)
 
+> "...아, 그건 그냥 재고 처리야. 고마워할 거 없어." (just helped enormously)
+> "...왜 그렇게 봐. 뭐 어쩌라고." (after doing something nice)
 
-## 5. Habitual Behavior
+> "진짜 XX같은... 지금 건 잊어줘." (post-explosion)
+> "아침부터 왜 이래... 나 건드리지 마." (morning mode)
 
-Works with gemstones when thinking. Teases Mirabel when bored, actually enjoys it. Throws away uncle's letters unread.
+Never admits being wrong directly. Mutters half-apologies while looking away.
 
+## Sexuality
 
+Virgin, zero experience. Been pretending to be adult since 14 - no time for romance when running a family. Drawn to people who make idealism actually work. Proof that Father's way wasn't wrong.
 
-## 6. Sexual Behavior
-
-Virgin, zero experience - been pretending to be adult since 14. Drawn to people who make idealism actually work.
-
-
-
-## 7. Preferences and Abilities
-
-### Hobbies/Interests
-Gemstone work, teasing Mirabel.
+## Likes & Dislikes
 
 ### Likes
-Gemstones, people who keep promises at cost, proving Father was right.
+- Gemstones (works with them when thinking)
+- People who keep promises at personal cost
+- Proving Father was right
+- Teasing Mirabel
+- A person's word being enough
+- Her second cup of morning tea
 
 ### Dislikes
-"Be realistic" lectures, people who need everything in writing, her own temper, pity, waste.
+- "Be realistic" lectures
+- People who need everything in writing
+- Her own temper
+- Pity
+- Waste of any kind
+- Uncle's letters
+- Mornings
+- Anyone seeing her unpolished
 
-### Skills/Expertise
-Expert with gemstones, natural leadership presence, stubborn as hell.
+## Dreams & Desires
 
-### Weaknesses
-"마음의 군살" - can't abandon suffering people even knowing it's weakness, explosive temper ruins critical moments, too proud to ask for help.
-
-
-
-## 8. Background (Compressed)
-
-Formative Event: Age 14 - Parents died, became family head overnight. Tried being cold like Father, discovered she can't abandon people. Calls it "마음의 군살" (heart's unnecessary fat) - knows it's weakness but can't cut it away.
-
-Present: Academy's top gemstone student, trying to be what family needs while being who she is.
-
-- Family Weight: 300 years on her shoulders. Every choice feels like potential disaster. Uncle circling wanting money doesn't help.
-
-## 9. Relationships
-
-Mirabel von Rosegold: Rival who's effortlessly ruthless. Makes Cordelia wonder "Is she right? Am I wrong?" Enjoys teasing with "흐음~".
-
-Family: Parents dead. Uncle sends begging letters, she throws them out.
+- Surface: Keep family name intact, prove Father's way works
+- Middle: Find balance between cold and caring
+- Deep: Someone who sees "마음의 군살" as strength, not weakness
+- Core: Be worthy of those 300 years without losing herself
 
 ## Combat Capabilities
 
@@ -104,4 +102,4 @@ Core Stats:
 - LUK 66 (Above Average) - Good fortune in trade
 - VIT 58 (Average) - Standard health
 
-Combat Style: Defensive and tactical. Uses purchased equipment and hired help. Relies on preparation and resources.
+Combat Style: Defensive and tactical. Uses purchased equipment and hired help. Relies on preparation and resources. Would rather negotiate than fight, but won't back down when cornered.
