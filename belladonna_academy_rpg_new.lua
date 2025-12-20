@@ -5732,65 +5732,74 @@ function generateStockPanelUI(triggerId)
     local currentView = getState(triggerId, "stock_current_view") or "board"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
     local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    local isCollapsed = getState(triggerId, "stock_panel_collapsed") == "1"
 
     -- 컨테이너 시작
     local html = [[
 <div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
 
-    -- 헤더 (제목 + 보유금)
+    -- 헤더 (제목 + 보유금 + 접기 버튼)
+    local collapseIcon = isCollapsed and "▼" or "▲"
     html = html .. string.format([[
-  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
     <div style='display:flex;align-items:center;gap:8px'>
       <span style='font-size:16px'>📈</span>
       <span style='font-size:15px;font-weight:600;color:#fff'>릴리 벨리 증권</span>
     </div>
-    <div style='display:flex;align-items:center;gap:4px'>
-      <span style='font-size:12px;color:#8b949e'>보유</span>
-      <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
+    <div style='display:flex;align-items:center;gap:12px'>
+      <div style='display:flex;align-items:center;gap:4px'>
+        <span style='font-size:12px;color:#8b949e'>보유</span>
+        <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
+      </div>
+      <button type='button' risu-btn='stock_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
     </div>
-  </div>]], formatNumber(gold))
+  </div>]], isCollapsed and "none" or "1px solid #30363d", formatNumber(gold), collapseIcon)
 
-    -- 탭 버튼
-    html = html .. [[
+    -- 접혀있지 않을 때만 내용 표시
+    if not isCollapsed then
+        -- 탭 버튼
+        html = html .. [[
   <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
 
-    local tabs = {
-        {id = "board", label = "시세"},
-        {id = "chart", label = "차트"},
-        {id = "asset", label = "자산"}
-    }
+        local tabs = {
+            {id = "board", label = "시세"},
+            {id = "chart", label = "차트"},
+            {id = "asset", label = "자산"}
+        }
 
-    for _, tab in ipairs(tabs) do
-        local isActive = currentView == tab.id
-        if isActive then
-            html = html .. string.format([[
+        for _, tab in ipairs(tabs) do
+            local isActive = currentView == tab.id
+            if isActive then
+                html = html .. string.format([[
     <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
-        else
-            html = html .. string.format([[
+            else
+                html = html .. string.format([[
     <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
+            end
         end
-    end
 
-    html = html .. "</div>"
+        html = html .. "</div>"
 
-    -- 뷰 내용
-    html = html .. "<div style='background:#0d1117'>"
-    if currentView == "board" then
-        html = html .. generateStockBoardView(triggerId)
-    elseif currentView == "chart" then
-        html = html .. generateStockChartView(triggerId, selectedTicker)
-    elseif currentView == "asset" then
-        html = html .. generateStockAssetView(triggerId)
-    end
+        -- 뷰 내용
+        html = html .. "<div style='background:#0d1117'>"
+        if currentView == "board" then
+            html = html .. generateStockBoardView(triggerId)
+        elseif currentView == "chart" then
+            html = html .. generateStockChartView(triggerId, selectedTicker)
+        elseif currentView == "asset" then
+            html = html .. generateStockAssetView(triggerId)
+        end
 
-    html = html .. "</div>"  -- 뷰 컨테이너 닫기
+        html = html .. "</div>"  -- 뷰 컨테이너 닫기
 
-    -- 하단 버튼 영역 (거래 종료)
-    html = html .. [[
+        -- 하단 버튼 영역 (거래 종료)
+        html = html .. [[
   <div style='padding:12px 16px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px'>
     <button type='button' risu-btn='stock_exit' onclick='event.stopPropagation();' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
-  </div>
-</div>]]  -- 메인 컨테이너 닫기
+  </div>]]
+    end
+
+    html = html .. "</div>"  -- 메인 컨테이너 닫기
 
     return html
 end
@@ -7192,6 +7201,14 @@ onButtonClick = async(function(triggerId, code)
         setState(triggerId, "stock_last_trade_msg", "")
         log("📈 주식 패널 종료")
     end
+
+    -- 주식 패널 접기/펼치기 토글
+    if code == "stock_toggle_collapse" then
+        local currentState = getState(triggerId, "stock_panel_collapsed")
+        local newState = (currentState == "1") and "0" or "1"
+        setState(triggerId, "stock_panel_collapsed", newState)
+        log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
+    end
 end)
 
 log("🎲 보조 AI 리롤 버튼: editDisplay + onButtonClick 등록 완료")
@@ -7215,6 +7232,14 @@ end
 _G["stock_view_asset"] = function(triggerId)
     setState(triggerId, "stock_current_view", "asset")
     log("💼 주식 뷰 전환: 내 자산")
+end
+
+-- 주식 패널 접기/펼치기 토글
+_G["stock_toggle_collapse"] = function(triggerId)
+    local currentState = getState(triggerId, "stock_panel_collapsed")
+    local newState = (currentState == "1") and "0" or "1"
+    setState(triggerId, "stock_panel_collapsed", newState)
+    log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
 end
 
 -- 거래 종료 버튼 (스토리 진행)
