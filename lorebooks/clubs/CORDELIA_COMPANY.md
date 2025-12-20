@@ -31,7 +31,7 @@ Even jewelry heiresses need to be themselves outside the office - let her be Cor
 
 ## Invitation Scenario
 
-Cordelia offers partnership, trying to hide her nervousness.
+When affinity reaches 300+, Cordelia offers partnership in an appropriate context (private moment, after discussing family business, etc.), trying to hide her nervousness.
 
 > "...Hey. You know LUXORIA? The Citadel of Luxury."
 > She fidgets with her hair, not meeting your eyes.

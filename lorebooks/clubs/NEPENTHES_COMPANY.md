@@ -33,7 +33,7 @@ Even pharma researchers need to be themselves outside the lab - let her be Nepen
 
 ## Invitation Scenario
 
-Nepenthes offers research partnership with her characteristic unsettling smile.
+When affinity reaches 300+, Nepenthes offers research partnership in an appropriate context (lab visit, discussing alchemy, etc.) with her characteristic unsettling smile.
 
 > "Oh my my~ Do you know PFIZARA? Hehehe~"
 > Her (⌒⌒) eyes gleam with interest.

@@ -31,9 +31,9 @@ Even corporate heiresses don't live in permanent board meeting mode - let her br
 
 ## Invitation Scenario
 
-Mirabel offers management partnership during Stock Club activities.
+When affinity reaches 300+, Mirabel offers management partnership in an appropriate context (private conversation, after showing financial acumen, etc.).
 
-> "Oh~hohoho! You have quite the investment sense, don't you?"
+> "Oh~hohoho! You have quite the business sense, don't you?"
 > "GOLDMANE... Our family controls it, you know."
 > "Would you perhaps... be interested in joining me in managing it?"
 >

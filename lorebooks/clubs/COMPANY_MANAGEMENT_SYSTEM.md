@@ -3,7 +3,7 @@
 
 # Company Management System
 
-Universal mechanics for managing companies in the Stock Club.
+Universal mechanics for managing companies with partner characters.
 
 ---
 
@@ -42,12 +42,12 @@ When {{user}} joins a company as a management partner, they gain access to econo
 
 ### Activation Flow
 
-1. Character with affinity 300+ offers management partnership during Stock Club activities
+1. When character affinity reaches 300+, they offer management partnership in an appropriate context
 2. {{user}} chooses to accept or decline
 3. If accepted: `{{setvar::CHARACTER_company_joined::1}}{{setvar::business_system_enabled::1}}`
 4. Management scenarios and events become available
 
-**Note**: Business system and stock trading system are independent. You can trade stocks without managing a company, and vice versa.
+**Note**: Business system is completely independent from stock trading. You don't need to join the stock club to manage a company.
 
 ---
 
