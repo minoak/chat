@@ -41,7 +41,7 @@ Cordelia offers partnership, trying to hide her nervousness.
 
 **Choices:**
 ```
-→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::stock_system_enabled::1}}
+→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::business_system_enabled::1}}
 → [Not ready yet] → Offer again later
 ```
 

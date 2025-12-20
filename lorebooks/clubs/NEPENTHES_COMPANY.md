@@ -44,7 +44,7 @@ Nepenthes offers research partnership with her characteristic unsettling smile.
 
 **Choices:**
 ```
-→ [Research together] → {{setvar::nepenthes_company_joined::1}}{{setvar::stock_system_enabled::1}}
+→ [Research together] → {{setvar::nepenthes_company_joined::1}}{{setvar::business_system_enabled::1}}
 → [A bit scary...] → Offer again later
 ```
 

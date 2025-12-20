@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
 @@depth 0
 
 # Company Management System
@@ -36,7 +36,7 @@ When {{user}} joins a company as a management partner, they gain access to econo
 
 | Level | Condition | Access |
 |-------|-----------|--------|
-| None | Default | Stock trading only |
+| None | Default | No company management |
 | Invited | Character affinity 300+ | Management participation offered |
 | Partner | After accepting invitation | Full co-executive access |
 
@@ -44,8 +44,10 @@ When {{user}} joins a company as a management partner, they gain access to econo
 
 1. Character with affinity 300+ offers management partnership during Stock Club activities
 2. {{user}} chooses to accept or decline
-3. If accepted: `{{setvar::CHARACTER_company_joined::1}}{{setvar::stock_system_enabled::1}}`
+3. If accepted: `{{setvar::CHARACTER_company_joined::1}}{{setvar::business_system_enabled::1}}`
 4. Management scenarios and events become available
+
+**Note**: Business system and stock trading system are independent. You can trade stocks without managing a company, and vice versa.
 
 ---
 

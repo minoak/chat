@@ -42,7 +42,7 @@ Mirabel offers management partnership during Stock Club activities.
 
 **Choices:**
 ```
-→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::stock_system_enabled::1}}
+→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::business_system_enabled::1}}
 → [Not ready yet] → Offer again later
 ```
 

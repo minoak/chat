@@ -368,16 +368,23 @@ Exams (Week 6,12): [Exam:midterm:87:23]
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
 - [Club:Join:...], [Club:Leave:...] - Club membership
-- [Stock:...] - Stock prices (only when stock system enabled)
-- [StockBuy:...], [StockSell:...] - Stock trades (only when stock system enabled)
+- [Stock:...] - Stock prices (only when stock_system_enabled = 1)
+- [StockBuy:...], [StockSell:...] - Stock trades (only when stock_system_enabled = 1)
+- Company management tags (revenue, profit, etc.) - Only when business_system_enabled = 1
 
-## Stock System Auto-Activation
+## System Activation
 
-If Main AI narrative involves stock trading, stock investment, market activities, or stock-related dialogue AND current stock_system_enabled is NOT 1:
+**Stock System** - For stock trading:
+If Main AI narrative involves stock trading/investment AND stock_system_enabled is NOT 1:
 Output: [StockSystem:Enable]
 
-Detection keywords: stock, invest, trade, market, ticker, shares, portfolio, securities, exchange, Lily Valley Securities
-This allows flexible stock system activation from any story context.
+**Business System** - For company management:
+Activated when user accepts company partnership (set by lorebook, not by you)
+Do NOT auto-activate business system.
+
+The two systems are independent:
+- Stock trading: Requires stock_system_enabled = 1
+- Company management: Requires business_system_enabled = 1
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
@@ -388,11 +395,11 @@ Always end with <Panel>■★
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
 
-## Stock Panel (Stock Club Members Only)
+## Stock Panel (Stock System Enabled)
 When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
 <StockPanel /> - Display stock trading panel
 
-## Stock Management Tags (Company Partners Only)
+## Business Management Tags (Business System Enabled)
 
 **TRIGGER**: When Main AI outputs "- System Message: [business event description]"
 **ACTION**: Analyze the event and output variable change tags
@@ -3127,9 +3134,10 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     -- SYSTEM 메시지: AUXILIARY_BASE_PROMPT (규칙)
     local systemPrompt = AUXILIARY_BASE_PROMPT
 
-    -- Stock 시스템이 활성화되어 있으면 Stock Management 프롬프트 추가
+    -- Stock 또는 Business 시스템이 활성화되어 있으면 관련 프롬프트 추가
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
-    if stockEnabled == "1" then
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+    if stockEnabled == "1" or businessEnabled == "1" then
         systemPrompt = systemPrompt .. AUXILIARY_STOCK_MANAGEMENT_PROMPT
     end
 
@@ -7329,14 +7337,10 @@ end
 _G["leave_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "0")
     setState(triggerId, "club_stock_joined", "0")
-    -- 경영 참여 중이 아니면 주식 시스템도 비활성화
-    local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
-    local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
-    local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
-    if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
-        setChatVar(triggerId, "stock_system_enabled", "0")
-        setState(triggerId, "stock_system_enabled", "0")
-    end
+    -- 주식 시스템 비활성화
+    setChatVar(triggerId, "stock_system_enabled", "0")
+    setState(triggerId, "stock_system_enabled", "0")
+    -- 경영 시스템은 독립적으로 유지 (회사 경영 중이면 계속 활성화)
     alertNormal(triggerId, "📉 주식투자 동아리에서 탈퇴했습니다.")
     log("📉 주식투자 동아리 탈퇴 완료")
 end
