@@ -1647,8 +1647,10 @@ function parseStockTrades(triggerId, message)
         local cost = priceNum * qtyNum
 
         if gold >= cost then
-            -- 골드 차감
-            setChatVar(triggerId, "player_gold", tostring(gold - cost))
+            -- 골드 차감 (state + chatVar 동기화)
+            local newGold = gold - cost
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
 
             -- 보유량 업데이트
             local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
@@ -1657,7 +1659,10 @@ function parseStockTrades(triggerId, message)
             local newQty = currentQty + qtyNum
             local newAvg = math.floor(totalCost / newQty)
 
+            -- state + chatVar 동기화
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
             setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+            setState(triggerId, "stock_" .. ticker .. "_avg", newAvg)
             setChatVar(triggerId, "stock_" .. ticker .. "_avg", tostring(newAvg))
 
             log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
@@ -1674,17 +1679,21 @@ function parseStockTrades(triggerId, message)
         local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
 
         if currentQty >= qtyNum then
-            -- 보유량 차감
+            -- 보유량 차감 (state + chatVar 동기화)
             local newQty = currentQty - qtyNum
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
             setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
 
-            -- 골드 추가
+            -- 골드 추가 (state + chatVar 동기화)
             local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
             local revenue = priceNum * qtyNum
-            setChatVar(triggerId, "player_gold", tostring(gold + revenue))
+            local newGold = gold + revenue
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
 
-            -- 전량 매도시 평단가 초기화
+            -- 전량 매도시 평단가 초기화 (state + chatVar 동기화)
             if newQty == 0 then
+                setState(triggerId, "stock_" .. ticker .. "_avg", 0)
                 setChatVar(triggerId, "stock_" .. ticker .. "_avg", "0")
             end
 
@@ -5731,7 +5740,8 @@ function generateStockPanelUI(triggerId)
 
     local currentView = getState(triggerId, "stock_current_view") or "board"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
-    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    -- state 우선, chatVar 폴백
+    local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
     -- 기본값: 접힌 상태 (stock_panel_collapsed가 "0"일 때만 펼침)
     local collapseState = getState(triggerId, "stock_panel_collapsed")
     local isCollapsed = (collapseState ~= "0")
@@ -5874,7 +5884,8 @@ function generateStockBoardView(triggerId)
     for _, ticker in ipairs(STOCK_TICKERS) do
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        -- state 우선, chatVar 폴백 (변수명 수정: _owned -> _qty)
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         local name = STOCK_NAMES[ticker] or ticker
 
         -- 등락 색상 (상승 빨강, 하락 청록)
@@ -6200,7 +6211,8 @@ end
 
 -- 내 자산 뷰
 function generateStockAssetView(triggerId)
-    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    -- state 우선, chatVar 폴백
+    local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
     local totalValue = gold
     local totalProfit = 0
     local stockValue = 0
@@ -6208,10 +6220,11 @@ function generateStockAssetView(triggerId)
     -- 먼저 총 계산
     local holdings = {}
     for _, ticker in ipairs(STOCK_TICKERS) do
-        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+        -- state 우선, chatVar 폴백
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         if owned > 0 then
-            local avgPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
-            local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+            local avgPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_avg")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
+            local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or STOCK_BASE_PRICES[ticker]
             local value = currentPrice * owned
             local profit = (currentPrice - avgPrice) * owned
             stockValue = stockValue + value
