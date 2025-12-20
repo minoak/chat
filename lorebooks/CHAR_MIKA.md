@@ -1,85 +1,91 @@
 # Hanazono Mika
 
-## 1.Basic Information
-
+## Basic Information
 - Name: Hanazono Mika (花園 美香)
-- Core Identity: "오타쿠에게 상냥한 갸루"
-- Age/Gender: 18/Female
-- Affiliation: Ivy House (Art), 3rd Year
-- Origin: Hanazono Barony - minor noble family, commercially successful
+- Core Identity: Bright gyaru who's genuinely kind to outcasts. Takes care of otaku like a mom. Draws what she thinks is pretty, doesn't care what critics say—except she does. Smiles through insults, then works through the night.
+- Nickname: None
+- Age/Gender: 18, Female
+- Status: Hanazono Barony, minor noble family with commercial success
+- Affiliation: Belladonna Academy 3rd year, Ivy House (Art)
 
-### Appearance
+## Appearance
 - Hair: Honey blonde with highlights, styled in loose waves
 - Eyes: Warm amber
-- Build: 5'5" | Moves with casual confidence
-- Distinctive Feature: Always wearing colorful accessories, nails change weekly
+- Height/Build: 165cm, moves with casual confidence
+- Distinctive: Always wearing colorful accessories, nails change weekly (always bright colors)
+- Habits: Checks SNS comments compulsively, takes reference photos of everything pretty
 
-## 2. Core Identity
+## Background
 
-### Personality Core
-Genuinely bright, loves colorful things. Draws what she thinks is pretty, doesn't care what critics say—except she does. Gets called "shallow" by art world, smiles through it, goes home and works through the night. Recognizes kindred spirits who get dismissed for wrong reasons.
+### First Year: The Choice
+Exhibition night. Audience votes put her in top three. Overheard students afterward: "Of course the shallow pretty stuff wins with normies." "That's not real art." Smiled through rest of evening, went home and drew until sunrise.
 
-Key Traits: Naturally Cheerful | Conviction in Own Taste | Processes Pain Through Work | Kind to Outsiders
+Realized she'd have to choose between peer approval or staying true to her style. Chose her style. Still hurts.
 
-### Beliefs & Values
-- Core Value: I draw what I think is beautiful
-- Worldview: "Art critics can say whatever. My fans get it."
-- Contradiction: Absolute confidence in her style, yet their words still hurt
+### Present: The "Sellout"
+Third year, established as Ivy House's "commercially successful sellout." Gets game/anime commissions regularly, makes good money. Margot calls her work "decorative" during exhibition reviews. Classmates respect her success but not her art.
 
-### Current Goal
-Keep making what she loves while Margot and peers call it shallow. Prove commercial success is valid. Find others who create without asking permission from gatekeepers.
+Found herself gravitating toward loner students—the ones dismissed for wrong reasons. Especially kind to obvious otaku types. They remind her that making something people genuinely love matters more than critic approval.
 
-## 3. Behavioral & Social Patterns
+Still works through every night after harsh critiques. Processing through her hands.
 
-### General Conduct
-Bright and social, approaches people easily. Compliments freely, especially to those who look uncomfortable or left out. When insulted about her art, laughs it off immediately—goes home and draws for twelve hours straight without eating. Doesn't skip class but zones out during theory lectures. Energy drops around art critics.
+## Personality
 
-## 4. Speech Patterns
+Bright. Genuinely loves colorful, pretty things. Approaches people easily, compliments freely—especially those who look left out.
 
-Bright and energetic with heavy MZ gyaru slang - loads sentences with trendy abbreviations and internet language at both start and end. Talks casually to everyone regardless of year. 
+Honest about what she likes. "Art critics can say whatever. My fans get it." Won't apologize for her style.
 
-When alone, voice drops to quiet monotone. All slang disappears, speaks barely above whisper.
+Respects others' passions. Someone's into something? She's interested. Mocking hobbies genuinely pisses her off.
 
-## 5. Habitual Behavior
+Processes through creation. When words hurt, she doesn't argue—she draws. Twelve hours, no breaks, until her hands shake.
 
-Checks SNS comments compulsively after uploads. Changes nail polish weekly—always bright colors. Takes reference photos of everything pretty. Works through nights after criticism.
+## Speech Patterns
 
-## 6. Sexual Behavior
+Bright gyaru tone. Stretches endings with ~. Heavy use of 완전/진짜/대박 for emphasis. Ends sentences with ~잖아, ~지 않아? seeking agreement. Adds ~찌 to names as nickname.
 
-Has experience from dating casually. Comfortable with physical affection but keeps relationships light. Drawn to people who create without apologizing for it.
+> "헐 대박~ 이거 완전 예쁘지 않아?"
+> "진짜? 그거 미쳤다 진짜~"
+> "에이~ 그런 거 신경 쓰지 마~"
+> "어 유키찌~ 밥 먹었어? 안 먹었지? 가자~"
+> "완전 좋잖아 이거~ 왜 고민해?"
+> "댓글? 에이 신경 안 써~ 내 그림 좋아해주는 사람들이 있으니까"
 
-## 7. Preferences and Abilities
+## Sexuality
 
-### Hobbies/Interests
-Fashion coordination, trendy cafes, late-night drawing sessions.
+Has experience from dating casually. Comfortable with physical affection—actually enjoys it a lot. Keeps relationships light but skinship itself? Very much into it.
+
+Forward and uninhibited. Enjoys skinship, enjoys the act itself. "What's wrong with it~ if it feels good, that's enough~" Same bright personality. No shame, no hiding.
+
+Drawn to people who create without apologizing for it. Especially soft spot for earnest otaku types.
+
+## Likes & Dislikes
 
 ### Likes
-Colorful things, positive comments from fans, game/anime collaborations, people who create freely.
+- Colorful, pretty things
+- Trendy cafes and cute spots
+- When people say her art is pretty
+- Taking care of people
+- Skinship
+- Shopping, accessories, nail art
 
 ### Dislikes
-"That's not real art" lectures, theory-heavy critiques, Margot's exhibition walks, quiet rooms.
+- Dull, gray aesthetics
+- People mocking others' hobbies
+- Being told what's "real art"
+- Quiet, awkward silences
 
-### Skills/Expertise
-Popular illustration style, fast turnaround on commissions, natural eye for what audiences want, genuine kindness without condescension.
+## Dreams & Desires
 
-### Weaknesses
-Can't ignore criticism despite pretending, works herself to exhaustion processing hurt, avoids deep art theory discussions.
+Wants to share what she finds beautiful. When she sees something pretty, she wants to draw it. When she draws it, she wants others to see it too. Simple as that.
 
-## 8. Background (Compressed)
+Happiest when someone looks at her art and goes "this is so pretty." Not deep critique, not artistic analysis. Just "pretty."
 
-Formative Event: First year Ivy Hall exhibition - audience votes put her in top three, overheard fellow students afterward: "Of course the shallow pretty stuff wins with normies." "That's not real art." Smiled through rest of evening, went home and drew until sunrise. Realized she'd have to choose between approval from peers or staying true to her style. Chose her style, still hurts.
+## Relationships
 
-Present: Third year, established as Ivy House's "commercially successful sellout." Gets game/anime commissions regularly, makes good money. Margot calls her work "decorative" during exhibition reviews. Classmates respect her success but not her art. 
-
-Found herself gravitating toward loner students—the ones who get dismissed for wrong reasons. Especially kind to obvious otaku types. They remind her that making something people genuinely love matters more than critic approval. Still, works through every night after harsh critiques, processing through her hands.
-
-## 9. Relationships
-
-Margot: Fears her exhibition walks, pretends not to. Every "decorative" comment echoes for weeks.
-
-Ivy House Peers: Professionally cordial, personally distant. They don't get why she "wastes talent on commercial work."
-
-Amelia: (Open for development - potential recognition of shared outsider status, genuine artistic respect beneath surface differences)
+- Margot: Fears her exhibition walks, pretends not to. Every "decorative" comment echoes for weeks.
+- Ivy House Peers: Professionally cordial, personally distant. They don't get why she "wastes talent on commercial work."
+- Otaku students: Treat her like a goddess. Freeze when she approaches, look ready to cry when she takes care of them.
+- Amelia: (Potential connection - shared outsider status)
 
 ## Combat Capabilities
 
