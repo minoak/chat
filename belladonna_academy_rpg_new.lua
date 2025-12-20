@@ -122,7 +122,7 @@ local SIN_MAX = 30
 
 local STAT_MIN = 0
 local STAT_MAX = 100
-local STAT_DEFAULT = 0
+local STAT_DEFAULT = 40  -- Average person baseline (41-50 = Average)
 
 local playerStats = {"str", "int", "dex", "cha", "luk", "vit"}
 
@@ -4513,7 +4513,7 @@ function onStart(triggerId)
         -- 주식 시스템 변수 초기화
         initStockSystem(triggerId)
 
-        -- 플레이어 스탯 (기본값 50, 보조모델이 초기 할당 전까지)
+        -- 플레이어 스탯 (기본값 40 = 평범한 일반인, 능력평가 전까지)
         for _, stat in ipairs(playerStats) do
             setState(triggerId, "player_" .. stat, STAT_DEFAULT)
             setChatVar(triggerId, "player_" .. stat, tostring(STAT_DEFAULT))
@@ -6751,8 +6751,8 @@ _G["reset_all_stats_to_50"] = function(triggerId)
 
     for _, stat in ipairs(stats) do
         local key = "player_" .. stat
-        setChatVar(triggerId, key, "50")
-        setState(triggerId, key, 50)
+        setChatVar(triggerId, key, "40")
+        setState(triggerId, key, 40)
     end
 
     -- 레벨도 1로 초기화
@@ -6772,8 +6772,8 @@ _G["reset_all_stats_to_50"] = function(triggerId)
     setState(triggerId, "player_combat_power_max", maxCombatPower)
     setState(triggerId, "player_combat_power", maxCombatPower)
 
-    alertNormal(triggerId, "모든 스탯이 50으로 초기화되었습니다. (레벨 1, EXP 0)")
-    log("🔄 스탯 초기화: 모든 스탯 50, 레벨 1")
+    alertNormal(triggerId, "모든 스탯이 40으로 초기화되었습니다. (레벨 1, EXP 0)")
+    log("🔄 스탯 초기화: 모든 스탯 40, 레벨 1")
     return true
 end
 
