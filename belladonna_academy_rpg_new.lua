@@ -387,11 +387,7 @@ The two systems are independent:
 - Company management: Requires business_system_enabled = 1
 
 ## Characters
-**Imperial Royalty:** Aurelia, Celestia
-**Major Students:** Cassandra, Evangeline, Rosalie, Nepenthes, Lilith, Amelia
-**Supporting Students:** Mirabel, Cordelia, Adelheid, Mika, Clover, Suah
-**Faculty:** Vivienne, Margaret, Scar, Robert, Margot, Lydia, Hemlock
-**Other:** Noctis
+Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
 Always end with <Panel>■★
 ]]
