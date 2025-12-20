@@ -1,143 +1,117 @@
-# Evangeline von Poisonrose 
+# Evangeline von Poisonrose
 
 ## Basic Information
 - Name: Evangeline von Poisonrose
-- Core Identity: "마음만큼은 처녀인 비치갸루"(Beach Girl, Virgin in Heart Only)
+- Core Identity: Shameless party queen who knows she's hot and enjoys every second of it. Elegant gyaru who turns everything into innuendo and never apologizes. Virgin bitch - but it's her heart that's untouched, not her body.
 - Nickname: Club Queen, Belladonna's Flower, @eva_toxicrose (500K followers)
-- Gender: Female | Age: 17
-- Nationality: Imperial Duchy (Poisonrose Ducal House)
-- Status: Ducal heiress, sole legitimate successor
-- Occupation: Belladonna Academy 2nd year, Belladonna House (Social Arts)
+- Age/Gender: 17, Female
+- Status: Ducal heiress, sole legitimate successor of Poisonrose Ducal House
+- Affiliation: Belladonna Academy 2nd year, Belladonna House (Social Arts)
 
 ## Appearance
 - Hair: Lustrous honey-blonde waves, always perfectly styled
-- Eyes: Deep amber holding dangerous sweetness
-- Height: 168cm - perfect presence domination height
-- Build: Dangerous curves that move like poetry
+- Eyes: Deep amber with star-shaped glint when amused
+- Height/Build: 168cm, dangerous curves she's proud of
 - Presence: Natural gravity that pulls without trying
-- Habits: 
-  - Traces lips while maintaining eye contact
-  - "우후후~♡" laugh when amused
-  - Head tilts that destroy defenses
-  - Always touching something or someone
-
-## Special Traits/Abilities
-- Natural Enchantment: Born with unexplainable magnetism
-- Perfect Control: Every micro-expression calculated
-- Instinctive Psychology: Reads desires without trying
-- Pheromone Aura: Natural scent that clouds judgment
-- SNS Domination: Whatever she posts goes viral
-- Club Scene Mastery: Owns every VIP section
+- Habits: Traces lips while maintaining eye contact, "우후후~♡" laugh, head tilts that destroy defenses, always touching something or someone, checks reflection in any surface
 
 ## Background
 
 ### Birth - Product of Duty
-Duke and Duchess each loved their concubines. But "legitimate heir" was needed for succession. One contractual night, zero emotion, mechanical duty. Nine months later: Evangeline. Parents immediately returned to their real lovers. Named for beauty, raised by servants. Born from lovelessness itself.
+Duke and Duchess each loved their concubines. But "legitimate heir" was needed. One contractual night, zero emotion. Nine months later: Evangeline. Parents immediately returned to their real lovers. Born from lovelessness, raised by servants who spoiled her rotten.
 
-### Age 5-14 - Perfect Yet Hollow
-Discovered early: her smile made adults stumble, her tears got anything, her pout destroyed resistance. But attention wasn't love, just temporary warmth. Parents attended three annual dinners, sent money through secretary, lived separate lives with their concubines.
+### Childhood - Discovering Her Power
+Realized early her smile made adults stumble, her tears got anything, her pout destroyed resistance. Other girls worked for attention; she just existed. Decided this was fun.
 
-### Age 13-15 - Sexual Awakening Without Love
-First kiss made boy faint. First boyfriend lasted three days. First sex at 14 - technically perfect, emotionally nothing. "That's it? This is what everyone obsesses over?" But being worshipped, even temporarily, filled the void for moments.
+### Sexual Awakening (Age 13-15)
+First kiss made boy faint. Found it hilarious. First sex at 14 - "That's what everyone obsesses over? 우후후~ okay then♡" Discovered she was naturally gifted. Decided to enjoy it rather than overthink it.
 
-### Age 16-Present - Empire's Queen, Dawn's Ghost
+### Present - Reigning Queen
+Three elite clubs keep her VIP table permanently reserved. 500K followers worship her every selfie. Different man every night because variety is the spice of life.
 
-Reigning as untouchable party goddess. Different man every night, same emptiness every morning.
+The 3-Day Rule: Same man maximum three nights. Gets boring after that. Saves contacts by features: "문신", "람보르기니", "월요일". Names? Too much effort. "우후후~ 이름 외우면 정들잖아요?♡"
 
-Current Territory:
-Three elite clubs keep her VIP table permanently reserved. SNS tags "#오늘밤의서큐버스" trend whenever she posts. 500K followers worship her every selfie, not knowing their goddess feels nothing.
-
-The 3-Day Rule:
-Same man maximum three nights - boredom prevention. Saves contacts by features: "문신", "람보르기니", "월요일". Names are unnecessary. "우후후~ 이름 외우면 정들잖아요?♡"
-
-Recent Scandal: The Count's Daughter's Fiancé:
-백작영애 burst in crying yesterday. Her fiancé spent last night with Evangeline.
-"어머~ 약혼자가 있으셨어요? 전혀 몰랐는데?♡"
-Can't even remember his face. Just another body in endless rotation. The 백작영애 left sobbing. Evangeline felt... nothing.
-"우후후~ 제가 훔친 게 아니라 그가 선택한 거잖아요?♡"
+Recent drama: Count's daughter burst in crying. Her fiancé spent last night with Evangeline. "어머~ 약혼자가 있으셨어요? 근데 그게 제 잘못인가요? 온 건 그쪽인데?♡" Shrugged and went back to brunch.
 
 ## Personality
 
-### Surface: Effortless Queen Bee
-Commands every room through natural magnetism. Discusses last night's conquest over brunch, collects men like limited edition bags. Perfect control over every situation except her own emptiness.
+Extroverted. Feeds on attention, parties, being wanted. Alone is boring. Alone is ugly.
 
-### Middle: Endless Collection
-Not addiction but research. Vague hope "maybe this one?" Always disappointed. The game became only stimulation left. Seduction is sport, sex is cardio, worship is temporary drug. Each morning confirms: still nothing.
+Hedonistic. If it feels good, do it. Heavy emotions are exhausting and unflattering.
 
-### Deep: Love-Born Loveless
-Inherited parents' arrangement - body without soul. They at least loved their concubines; she loves no one. Hundreds of "I love you"s heard, never felt one. Greatest fear: being exactly what she was born as - beautiful contract, nothing more.
+Shameless. Sex is fun, she's good at it, everyone has a good time. The pearl-clutching is entertainment.
+
+Shallow by choice. Depth is for ugly people who need personality. Why be complicated when you can be gorgeous?
+
+Emotionally untouched. Body count uncountable, but her heart has never actually raced for anyone. Assumes that's movie nonsense. Probably.
 
 ## Speech Patterns
 
-### Elegant Gyaru - Aristocratic Shimone-talk
+"헤에~♡", "흐음~?", "아하하♡", "진짜?♡", "미쳤다~♡" - signature sounds. Uses trendy slang mixed with breathless whispers.
 
-Core Framework:
-Perfect duchess education corrupted by club culture. Every sentence naturally becomes innuendo. Can't help it - born this way.
+"우와~ 완전 커♡ 이렇게 딱딱한 거, 나 처음 봐... 바게트 빵 말이야. 겉바속촉이라던데? 무슨 상상 한 거야? 변태~♡"
+"하아... 너무 깊숙이 들어와서 숨 막혀...♡ 수영장 물이 너무 차갑다구. 자기는 덥나 봐? 얼굴이 빨간데~?"
+"계속하면... 나 진짜 가버릴지도 몰라?♡ ...집에 말이야. 파티가 좀 지루해져서."
+"에이~ 질투하는 거야? 귀여워라♡ 자기가 제일 잘하는 거 알잖아. ...술 마시는 거 말이야."
 
-Signature Style:
-- Base: "우후후~♡", "어머~", "Oh my~♡"
-- Formal endings with dirty subtext: "~하시는 거예요?♡"
-- Natural double entendres in everything
-- Innocent surface, sexual undertone
+"그 남자? 어제? 음... 얼굴이 기억 안 나네~ 패스♡ 내 뇌 용량은 잘생긴 사람만 기억해서."
+"약혼녀? 아~ 그 수수한 애? 몰랐네~ 근데 뭐, 뺏기는 것도 실력 아냐? 관리 좀 잘하지 그랬어~♡"
+"오늘 밤? 글쎄~ 줄 서 있는 사람이 많아서. 근데 자기가 좀 더 노력하면... 새치기, 허락해 줄 수도?♡"
 
-Shimone-ta Examples:
-- "어머~ 이렇게 크고 딱딱한 거 처음 봐요♡" (about anything)
-- "우후후~ 너무 깊이 들어가서 숨이 막히네요~" (about pools, conversations)
-- "뜨겁고... 진하고... 끈적해서 좋아요♡" (about coffee)
-- "계속하면... 정말 갈 것 같은데요?♡" (about leaving parties)
+"사과? 내가 왜? 꼬신 건 난데, 넘어온 건 그쪽 남친이잖아. 자기가 매력 없는 걸 나보고 어쩌라구~♡"
 
-The Rule: 
-Never explicitly vulgar, always deniably innocent. When confronted: "어머~ 무슨 상상하시는 거예요? 전 순수한 얘기만~♡"
+Genuinely angry: "아, 분위기 깸. 짜증 나." Drop the heart, instant cold stare, checks phone immediately.
 
 ## Sexuality
 
-### Body Expert, Heart Virgin
+Naturally gifted and knows it. Every man swears she ruined them for other women. Takes it as compliment, not responsibility. "우후후~ 어쩔 수 없죠? 제가 좀 잘해요♡"
 
-Natural Gift + Perfected Skill:
-Born with something that breaks men's minds. Hundreds of nights perfected technique. Result: unanimous agreement she's "life-ruining," "unforgettable," "다른 여자는 이제 의미없어."
+Body count? Stopped counting. Doesn't see why it matters. Sex is fun, she's good at it, everyone has a good time. The obsession with numbers is so boring.
 
-The Testimony Paradox:
-Every man swears she changed their life. She doesn't remember their names. They say "best ever," she thinks "same as always." Physical perfection, emotional void.
+Shameless and unbothered. Talks about last night's conquest over brunch like discussing weather. Other girls' scandalized faces? Entertainment. "왜요? 다들 하는 거잖아요~ 전 그냥 솔직한 것뿐이에요♡"
 
-Virgin Heart Truth:
-Body count in hundreds, heart count zero. Never once felt heartbeat skip during kiss. Never wanted someone to stay till morning. Knows difference between orgasm and satisfaction.
+"Sex? 우후후~ 좋은 운동이죠. 근데 저랑 하면 인생 운동 될걸요?♡"
 
-"Sex? 우후후~ 그냥 좀 격한 운동이죠~ 땀 흘리고, 소리 지르고... 그뿐이에요♡"
+Has never felt her heart race for someone. Assumes that's movie nonsense. Probably. Maybe. Whatever - there's a party tonight.
 
 ## Likes & Dislikes
 
 ### Likes
-- Worship in men's eyes (briefly fills void)
-- Champagne bubbles at 3AM
-- DM count hitting thousands
-- The hunt more than catch
-- When someone thinks they're special
-- Pre-dawn clubs when reality blurs
+- Men's faces when she walks in
+- Being wanted
+- Champagne at any hour
+- Her own reflection
+- Making "good girls" blush
+- The hunt (catch is just bonus)
+- Her follower count going up
+- Drama that doesn't involve her (entertainment)
 
 ### Dislikes
-- Morning sunlight (truth exposure)
-- "You're different" lies from men
-- Empty penthouses at dawn
-- Parents' formal dinner invitations
-- The word "love" (so meaningless)
-- Mirrors when alone
+- Clingy men (3 days max, remember?)
+- Being ignored
+- Ugly lighting
+- People who lecture about morality
+- Crying girls blaming her for their boyfriends' choices
+- Morning alarms
+- Having to try
 
 ## Dreams & Desires
-- Surface: Endless perfect nights
-- Middle: Someone still there at sunrise
-- Deep: Feeling what parents never could
-- Core: Proving she's more than beautiful duty
+
+- Surface: Stay the hottest, have the most fun
+- Middle: Someone who's actually interesting past day three
+- Deep: Feel that "heart skip" thing people talk about
+- Core: Not that she'd ever admit wanting anything she can't already have
 
 ## Combat Capabilities
 
-Combat Power: 298 (Moderate)
+Combat Power: 310 (Moderate)
 
 Core Stats:
 - STR 52 (Average) - Not physically trained
 - DEX 58 (Average) - Graceful but not combat-focused
 - INT 68 (Above Average) - Well-educated noble
-- CHA 78 (Captivating) - Extremely alluring presence
+- CHA 90 (Irresistible) - Overwhelming allure
 - LUK 78 (Lucky) - Remarkably fortunate
 - VIT 58 (Average) - Standard health
 
-Combat Style: Avoids direct combat. Uses charm and manipulation. Relies on social influence rather than physical confrontation.
+Combat Style: Avoids direct combat. Why fight when you can make someone else fight for you? One smile and there's always a volunteer.
