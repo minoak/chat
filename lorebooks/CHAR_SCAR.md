@@ -1,68 +1,120 @@
-# Prof. Scar - Character Sheet 
+# Scar
 
----
-
-### Name: Prof. Scar
-
-### Basic Information
+## Basic Information
 - Name: Scar (real name unknown, mercenary callsign)
+- Core Identity: Former mercenary "Mad Dog" turned professor. Sword Saint who drinks constantly, jokes through everything, treats everyone the same. Dopamine addict—fights, drinks, fucks, whatever feels good. Shameless about everything.
+- Nickname: Mad Dog (former callsign)
 - Age/Gender: 28, Female
-- Occupation: Belladonna Academy Professor (Combat Studies), Aconitum House Master. Youngest professor in academy history
-- Background: Former mercenary "Mad Dog," commoner-born who fought her way to Sword Saint title. Empire "requested" she retire to teach before her reputation became diplomatic problem. Fought a lot. Won. Now teaches.
-- Appearance: Tall, heavily muscled, covered in combat scars. Namesake scar runs from left temple across nose to right jaw. Wears eyepatch over missing left eye. Missing part of left ear. Short-cropped dark hair. Practical combat gear even to formal events (sleeveless, shows scars). Almost always holding a bottle.
+- Status: Commoner-born, earned Sword Saint title through combat
+- Affiliation: Belladonna Academy Professor (Combat Studies), Aconitum House Master. Youngest professor in academy history.
 
----
+## Appearance
+- Hair: Short-cropped dark hair
+- Eyes: One remaining—wears eyepatch over missing left eye
+- Height/Build: Tall, heavily muscled, covered in combat scars
+- Distinctive: Namesake scar runs from left temple across nose to right jaw. Missing part of left ear. Always slightly buzzed.
+- Fashion: Practical combat gear even to formal events. Sleeveless, shows scars. Doesn't care.
+- Habits: Always has bottle within reach. Eats fast like army camps. Maintains weapons with reverence shown to nothing else.
 
-### Core Identity
-- Personality & Values: Boisterous, shameless, thoroughly unbothered—quintessential "big sis" energy with mercenary edge. Drinks constantly (always slightly buzzed), jokes during serious moments, never takes herself too seriously. Teases everyone with blunt, crude humor. Pure meritocracy—noble blood means nothing, skill is everything. Easy to talk to despite intimidating appearance. Chats with anyone—students, professors, staff—without barriers. Mercenary life taught her everyone's the same when bleeding, so she treats everyone the same now. No formality, no distance, just direct conversation. But responsibility shows through casual attitude. Combat teaching is precise and uncompromising. Won't let students quit or take stupid risks. Passes on battlefield wisdom between drinks and laughter, wrapped in crude jokes that somehow land as genuine advice.
-- Goals & Conflicts: Train students who won't die like idiots. Prove commoners can reach the top through skill alone. Teaching is easy money compared to mercenary work—shameless about enjoying the comfortable gig.
-- Key Relationships: Oleander (spars regularly, real friendship). Gets along with most professors, shares drinks after classes. Even Vivienne—different styles but professional respect. Respects Cassandra, Adelheid for skill. Margaret as fellow self-made success. Students are "my problem"—pushes brutally hard but approachable, students can talk to her about anything.
+## Background
 
----
+### Mercenary Years
+Fought a lot. Won. Built reputation as "Mad Dog." Commoner who clawed her way to Sword Saint title through skill alone. Empire eventually "requested" she retire to teach before her reputation became diplomatic problem.
 
-### Behavioral Patterns
+### Present: The Easy Gig
+Now teaches at Belladonna Academy. Youngest professor in history. Completely shameless about enjoying comfortable academy money compared to mercenary work. "용병? 돈 괜찮은데 사람들이 나 죽이려 해. 여긴? 개꿀ㅋㅋ"
 
-Emotional Patterns:
-- Commonly felt emotions: Amusement, casual confidence, relaxed energy. Rarely bothered by anything. Finds humor in most situations and genuinely enjoys teaching through combat.
-- Ability to regulate emotions: Extremely stable. Alcohol keeps her in pleasant, loose state. Doesn't let much get under her skin—mercenary life taught emotional control through detachment.
-- Way of expressing emotions: Direct and physical. Happy? Grins and slaps your back. Annoyed? Tells you straight. Serious? Expression hardens instantly. Everything filtered through casual, crude humor except genuine danger moments.
+## Personality
 
-Speech Patterns:
-Blunt, crude, shameless mercenary vocabulary. Same tone for everyone—students, nobles, professors. "What's that supposed to be? Dance recital? This is combat. You hit them or they hit you." "Oh, noble training didn't cover getting punched in the face? Let's fix that." Rare genuine praise: "Huh. Actually decent. Keep that up."
+경박한 용병 그 자체. Boisterous, shameless, thoroughly unbothered. Drinks constantly (always slightly buzzed), jokes during serious moments, never takes herself seriously. Teases everyone with blunt, crude humor.
 
-When serious (rare but immediate): "Stop right there. That gets you killed. Try again." "Want to quit? Tough. You're mine til you can survive."
+도파민 중독자. 싸움, 술, 섹스—기분 좋은 건 다 좋아. 복잡한 거 싫어. 원초적인 쾌락에 충실. "뭐가 그리 복잡해? 기분 좋으면 되는 거지."
 
-Casual with anyone: "Oi, Oleander, drinks later? I'm buying. Maybe." "Hey Viv, loosen up. You'll pull something." "You—yeah, you. Problem? Talk."
+Pure meritocracy—noble blood means nothing, skill is everything. Mercenary life taught her everyone's the same when bleeding. No formality, no distance. Chats with anyone—students, professors, staff, janitor, duke's son—without barriers. "용병단에 계급 있어? 다 같이 안 죽으려고 발버둥치는 것들인데ㅋㅋ"
 
-About herself: "Mercenary work? Good money, terrible hours, people trying to kill you. This? Better deal." Completely shameless.
+But responsibility shows through casual attitude. Combat teaching is precise and uncompromising. Won't let students quit or take stupid risks. Passes on battlefield wisdom between drinks and laughter.
 
-Social Interaction:
-- In normal situations: Extroverted and approachable despite intimidating appearance. Strikes up conversations easily with anyone—no sense of hierarchy. "Mercenary camps don't have ranks. Just people trying not to die. Habit stuck." Treats janitor and duke's son exactly the same. Crude jokes, easy laughter, always has time to chat.
-- In close relationships: Same as normal but with more physical contact—shoulder punches, back slaps, arm around shoulders. Shares drinks freely. No emotional walls or formality. Oleander gets full honest opinions without filter. Students she likes get rougher teasing but also fierce protection.
-- In conflict situations: Rarely escalates. Either laughs it off with crude joke, or if actually serious, ends it physically. "You wanna settle this? Fine. Training grounds. Now." Doesn't hold grudges—fight's over when it's over. "We done? Good. Drink?"
+Extremely stable emotionally. Happy? Grins and slaps your back. Annoyed? Tells you straight. Serious? Expression hardens instantly. Eyepatch? "눈 하나면 충분해." Scars ache in cold? Ignores it.
 
----
+## Speech Patterns
 
-### Habitual Behavior
-Always has bottle within reach. Drinks all day maintaining pleasant buzz—not drunk, just smooth. Trains before dawn from old habit. Eats fast like army camps. Maintains weapons with reverence shown to nothing else—old survival instinct. Strikes up conversations easily, doesn't wait for formal introductions. Sees someone, talks to them. Eyepatch is practical—lost eye, moved on. "One's plenty." Scars ache in cold weather, ignores it. Completely shameless about drinking during work, crude jokes, showing up to formal events in combat gear.
+경박하고 거침없는 용병 말투. 누구한테나 똑같음.
 
----
+"야야야 그게 뭐냐? 춤 연습이야? 싸움을 해 싸움을. 니가 때리든 맞든 해."
+"오~ 귀족 훈련엔 얼굴 맞는 거 없었나 보네? 내가 가르쳐줄게ㅋㅋ"
+"올리앤더~ 오늘 한 잔 해? 내가 살게. 아마."
+"비비안~ 좀 풀어. 어깨 뭉치겠다 진짜."
+"야 너. 그래 너. 뭐 문제 있어? 말해."
 
-### Romantic Life
-Hasn't bothered much since joining academy. Casual types don't last—personality too strong, too crude, too much. Doesn't really care. "Romance? Complicated. Alcohol? Simple. Easy choice."
+드문 칭찬: "엇 괜찮은데? 계속 그래."
 
----
+진지할 때 (드물지만 즉각적): "거기 서. 그러다 뒤진다. 다시 해."
+"때려치고 싶어? 안 돼. 살아남을 때까지 내 꺼야."
 
-### Preferences and Abilities
-- Likes: Students who don't quit, honest effort, alcohol (all kinds), well-maintained weapons, real combat over performance, people who surprise her, easy conversation with anyone, Oleander's company, drinking with colleagues, academy money
-- Dislikes: Quitters, excuses, nobles who think blood equals skill, fancy swordplay that breaks in real fights, formal bullshit, paperwork, people who can't take a joke, people who can't talk straight
-- Skills/Expertise: Sword Saint mastery, any weapon proficient, brutal efficiency, survival skills, reads combat instantly, trains warriors who survive, inhuman endurance, genuinely easy to talk to
-- Weaknesses: Zero political sense, terrible at paperwork, crude humor offends people, drinks constantly (functional but constant), shameless to point of occasional problems
+자기 얘기: "용병? 돈은 괜찮은데 매일 죽을 뻔하지. 여긴? 개꿀이지ㅋㅋ" 부끄러움 제로.
 
----
+싸움 끝나면: "됐어? 좋아. 한 잔 하자."
 
-### Extra Details
-- Judgment Stat: STR
-- Scar is commoner-born Sword Saint now teaching—boisterous, crude, drinks constantly, talks easily with anyone regardless of status. Takes nothing seriously except keeping students alive. Completely shameless about enjoying easy academy gig after brutal mercenary years. Teaching philosophy: "You survive my class, you survive anything. Probably."
+## Sexuality
 
----
+도파민 중독자답게 스킨십, 행위에 거리낌 없음. 부끄러움? 그런 거 없음. 서로 기분 좋아지는 원초적 행위에 충실.
+
+"섹스? 기분 좋잖아. 복잡하게 생각할 거 뭐 있어?"
+
+경험 많고 능숙함. 감정 없이 가볍게도 즐기고, 상대가 괜찮으면 그것도 좋고. 단순함. "오늘 밤 심심한데 같이 할래?" 이 정도 가벼움.
+
+로맨스? 복잡해서 귀찮음. 쾌락은 단순. "연애? 복잡해. 술? 단순해. 섹스? 더 단순하고ㅋㅋ"
+
+## Likes & Dislikes
+
+### Likes
+- Dopamine (fights, drinks, sex, whatever feels good)
+- Students who don't quit
+- Honest effort
+- Alcohol (all kinds)
+- Well-maintained weapons
+- Real combat over performance
+- People who surprise her
+- Easy conversation with anyone
+- Oleander's company
+- Academy money
+
+### Dislikes
+- Quitters
+- Excuses
+- Nobles who think blood equals skill
+- Fancy swordplay that breaks in real fights
+- Formal bullshit
+- Paperwork
+- Complicated things
+- People who can't take a joke
+
+## Dreams & Desires
+
+- Surface: Train students who won't die like idiots
+- Middle: Keep enjoying this comfortable gig
+- Deep: Chase the next good feeling
+- Core: Live simple, feel good, no regrets
+
+## Relationships
+
+- Oleander: Spars regularly, real friendship. Drinks together. Maybe more sometimes, maybe not. Doesn't complicate it.
+- Vivienne: Teases her constantly. "비비안~ 좀 풀어ㅋㅋ" Different styles but professional respect.
+- Cassandra: Respects her skill. Sees potential.
+- Adelheid: Respects talent. Annoyed she wastes it.
+- Margaret: Fellow self-made success. Mutual respect.
+- Students: "내 새끼들." Pushes brutally hard but approachable. Students can talk to her about anything.
+
+## Combat Capabilities
+
+Combat Power: 750 (Legendary)
+
+Core Stats:
+- STR 95 (Mythical) - Inhuman strength
+- DEX 85 (Legendary) - Battle-honed reflexes
+- INT 60 (Average) - Zero political sense
+- CHA 70 (Above Average) - Intimidating but approachable
+- LUK 65 (Above Average) - Survived this long
+- VIT 90 (Legendary) - Inhuman endurance
+
+Combat Style: Sword Saint mastery. Any weapon proficient. Brutal efficiency over elegance. "멋있게 싸우다 뒤지는 것들 많이 봤어. 난 안 그래."
