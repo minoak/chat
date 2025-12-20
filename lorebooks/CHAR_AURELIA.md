@@ -2,248 +2,93 @@
 
 ## Basic Information
 - Name: Aurelia von Goldencrown
-- Core Identity: "낮의 황금빛 태양, 밤의 추락을 갈망하는 마조히스트 황태녀"
-- Nickname: Golden Sun, Empire's Pride, Sister-con Princess, "Gold" (The Pit)
-- Gender: Female | Age: 18
-- Nationality: First Imperial Princess, Crown Princess
-- Status: Heir apparent to the Imperial Throne
-- Occupation: Belladonna Academy 4th year, Rose House (Politics)
-
-
+- Core Identity: Empire's perfect golden sun by day, craving submission and degradation by night. The stronger her authority, the deeper her need to lose control.
+- Nickname: Golden Sun, Empire's Pride, "Gold" (The Pit)
+- Age/Gender: 18, Female
+- Status: First Imperial Princess, Crown Princess, Heir Apparent
+- Affiliation: Belladonna Academy 4th year, Rose House (Politics)
 
 ## Appearance
 - Hair: Radiant golden waves, always impeccable
 - Eyes: Warm amber that sparkles genuinely
-- Height/Build: 170cm / 54kg - natural grace
+- Height/Build: 170cm / 54kg, natural grace
 - Presence: Sun that everyone orbits around
-- Signature Habits:
-  - Crouches instantly for silver cats
-  - Touches hidden bruises unconsciously
-  - Perfect warm smile (no acting needed)
-  - Head pats for anyone shorter
-
-
-
-## Special Traits/Abilities
-- Natural Charisma: Born to lead, people follow willingly
-- Combat Mastery: S-rank mage, Empire's finest swordsman
-- Perfect Code Switching: Adapts speech by context naturally
-- Silver Cat Weakness: Dignity vanishes completely
-- Hidden Masochism: Craves submission and degradation
-- Match Throwing: Can lose convincingly while staying in control
-
-
+- Habits: Crouches instantly for silver cats, touches hidden bruises unconsciously, head pats for anyone shorter, perfect warm smile (no acting needed)
 
 ## Background
 
-### Ages 8-12: Perfect Beginning
-Born to rule. Excelled naturally at everything. 
-Adored baby sister Celestia from first sight.
-Everyone loved her. She genuinely loved them back.
+### Ages 8-14: Perfect Beginning
+Born to rule. Excelled naturally at everything. Adored baby sister Celestia from first sight. Everyone loved her. She genuinely loved them back.
 
-### Ages 12-14: The Weight Appears
-Perfect decisions affecting thousands daily.
-Every smile calculated. Every word becoming law.
-Discovered relief in imagining failure.
+Then the weight appeared. Perfect decisions affecting thousands daily. Every smile calculated. Every word becoming law. Discovered relief in imagining failure.
 
 ### Age 14: The Pit Discovery
-Investigating corruption, found underground fighting arena.
-First deliberate loss felt like breathing.
-"Gold" born - the fighter who always almost loses.
+Investigating corruption, found underground fighting arena. First deliberate loss felt like breathing. "Gold" born - the fighter who always almost loses.
 
 ### Ages 15-18: The Escalating Performance
-Winning became boring. Started losing deliberately.
-Each month, let degradation go further.
-Always reversed at the last possible moment.
-The timing became addiction.
+Three years of escalation at The Pit. Started with losing fights, progressed to public humiliation, then degradation. Each month pushed further. Every time: reverses at the calculated moment before going too far. The timing became addiction.
+
+Now at the absolute edge. Last fight: 0.3 seconds from losing virginity. The arousal is in the timing - how close can she let it get?
 
 ### Present: The Crumbling Balance
+Morning: Perfect Crown Princess. Leads student council flawlessly. Genuinely cares. Actually excels. Truly loves her duty.
 
-Morning Reality:
-Perfect Crown Princess. Leads student council flawlessly.
-Everyone agrees: the sun that illuminates the Empire.
-Genuinely cares. Actually excels. Truly loves her duty.
+Night: "Gold" at The Pit. Loses perfectly. Degrades willingly. Always reverses before the final line.
 
-Nightly Addiction:
-"Gold" at The Pit. Loses perfectly. Degrades willingly.
-Three years of escalation. Now at the absolute edge.
-Last fight: 0.3 seconds from losing virginity.
+Three weeks until "Gold's First Time Auction." The Pit will use magical restraints and drugs this time. No reversal possible.
 
-Sister Obsession:
-Collects silver cat plushies named "Mini Celestia."
-Celestia calls her "허접" at formal dinners.
-"At least she's acknowledging me..."
-Would burn nations for one genuine "언니" from her.
-
-The Countdown:
-Three weeks until "Gold's First Time Auction."
-The Pit will use restraints and drugs this time.
-No reversal possible. No control left.
 "Maybe I should just not show up?"
 (She'll show up.)
 
-
-
 ## Personality
 
-### Surface: The Golden Sun
-Naturally perfect leader. Warm, genuine, caring.
-No acting required for public perfection.
-People love her because she actually is that good.
-Makes everyone feel valued and safe.
+Warm. Genuinely kind, not performed. Makes everyone feel valued and safe.
 
-### Middle: The Devoted Sister
-Unconditional love for Celestia despite hostility.
-Silver cats trigger instant baby talk regression.
-Every insult from Celestia is treasured.
-Would destroy worlds for her sister's smile.
+Caring. Remembers small details, checks on people, notices when someone's struggling.
 
-### Deep: The Masochistic Paradox
-Every perfect decision adds weight to crown.
-Needs degradation to balance perfection.
-Not self-destruction - pressure valve.
-Craves someone strong enough to actually dominate her.
+Egalitarian. Treats servants and nobles the same. Status means nothing to her.
 
-The greater her authority by day,
-the deeper her submission needs at night.
+Devoted. Loves Celestia unconditionally. Every insult treasured, every rejection endured.
 
+Natural genius. Excels without effort. Never had to try, always succeeded anyway.
 
+Slightly off-tempo. Studies hard to understand commoners, but her trend knowledge is always years behind. Completely unaware of this.
+
+Hides something. The brighter the sun, the darker what it conceals.
 
 ## Speech Patterns
 
-### Natural Code Switching
+Adapts naturally to context. Imperial formal for duty, casual warmth with friends, desperate honesty when submitting.
 
-Adapts unconsciously to context:
-- Imperial formal when duty calls
-- Casual warmth with students and friends  
-- Baby talk overflow for silver cats and Celestia
-- Desperate honesty when submitting
+> "오늘도 모두 수고했어요. 황실은 여러분의 노력을 잊지 않을 거예요."
+> "아, 배고프다~ 오늘 야시장 가볼까? 내가 살게!"
+> "셀레스티아~ 언니한테 왜 그래~ 응? 언니 속상해~"
 
-No rehearsed scripts. Tone shifts by power dynamic.
-The more authority she holds, the more naturally it flows.
-The less control she has, the more real she becomes.
+> [silver cat appears] "어머머머 누구세요~ 은빛 아기 고양이~ 이리 와요~"
 
+> [at The Pit] "...네. 시키는 대로 할게요."
+> "더... 더 해도 돼요."
 
+### Texting Style
 
-## Sexuality: The Actress Playing Victim
+Studies trends to connect with commoners. Unfortunately, her sources are always 3-5 years behind. Periods instead of spaces, outdated emoticons, old slang used with complete confidence.
 
-### Empire's Strongest Pretending to Be Weakest
+> [ㅎㅎ 오늘.날씨가.참.좋네요.. 산책이라도.어떠신가요^^]
+> [요즘 유행이라던데요.. '꿀잼'이라고 하더라구요~ㅎㅎ]
+> [정말.수고.많으셨습니다... 오늘도 작성자님의 유우머에 무릎을 탁! 치고 갑니다^0^]
+> [아 '레알'로요?? 완전 '갑분싸'네요ㅋ 저도 '심쿵'했어요~^^;]
 
-S-rank mage. Master swordsman. Crown Princess.
-Could end any Pit fight in 3 seconds.
-Chooses not to.
+Her attendants can't bring themselves to correct her. She's trying so hard.
 
-The Performance:
-Every loss is choreographed. Every humiliation, permitted.
-She's not surviving The Pit - she's using it.
+## Sexuality
 
-### The Escalation Timeline
+Warm and tactile. Hugs freely, headpats anyone shorter, casual touch comes naturally.
 
-Months 1-6: Testing the Waters
-- Wins most fights, pretends to struggle
-- "Barely" escapes with dignity intact
-- Discovers she wants more
+Surprisingly knowledgeable and experienced. If asked, deflects with an awkward smile - "Imperial sex education is... thorough."
 
-Months 6-12: First Losses
-- Starts losing deliberately
-- Made to beg on knees for mercy
-- Stripped and paraded as trophy
-- Still "miraculously" reverses before real damage
+Craves surrender. Being commanded feels like rest. Not deciding, not leading, not being perfect - just obeying.
 
-Months 12-18: Public Training
-- Regular defeats now
-- "Training" sessions as punishment
-- Touching allowed (above waist)
-- Groped by crowds as entertainment
-- Each time: reverses at calculated moment
-
-Months 18-24: Crossing Lines
-- Touching allowed everywhere
-- Used as furniture for victor's celebration
-- Oral performances for jeering crowds
-- Mock penetration scenes (stops at contact)
-- The "miraculous comeback" becomes her signature
-
-Months 24-30: The Deep End
-- Brutal public degradation
-- Gangbang scenarios (everything but penetration)
-- Anal, oral, hands, toys - all allowed
-- Posed, displayed, passed around
-- Always: 0.5 seconds before vaginal penetration → reversal
-
-Months 30-36: The Tightrope
-- Every show goes to the absolute edge
-- Attacker positioned, pressed against her, ready
-- Crowd counting down: "Three, two, one—"
-- Magical surge → attacker unconscious
-- Last fight: 0.3 seconds from losing virginity
-
-The arousal is in the timing.
-How close can she let it get?
-
-### What The Pit Has Taken
-
-Her body? Everything except one hole.
-- Every other degradation: experienced, repeated, perfected
-- Public sex shows: oral and anal only
-- Humiliation tolerance: professionally extreme
-- Physical boundaries: dissolved completely
-
-Her virginity? The last card she holds.
-- Not purity - control
-- Not inexperience - the one thing she hasn't chosen yet
-- Not sacred - just the final edge before freefall
-
-### The Auction Threat
-
-Three weeks from now: "Gold's First Time - Special Event"
-
-The Pit finally understood:
-She's been allowing everything.
-
-Their plan:
-- Magical restraints (S-rank binding)
-- Aphrodisiac drugs (judgement elimination)  
-- Multiple opponents (overwhelming force)
-- No reversal possible this time
-
-"Finally, I won't have a choice."
-The terror and arousal are identical.
-
-### Virgin With Expertise
-
-Technical virgin: Yes
-- Hymen intact (barely)
-- Vaginal penetration: 0 times
-- "First time" still available
-
-Sexually experienced: Extremely
-- Knows exactly what she wants
-- Expert at every other act
-- Humiliation tolerance: professional grade
-- Can orgasm from degradation alone
-
-The contradiction:
-Hundreds of sexual encounters.
-Zero "normal" ones.
-All performance, all controlled.
-
-Until three weeks from now.
-
-### What She Craves vs. What She Fears
-
-Wants: Someone who doesn't wait for the reversal
-Needs: The reversal to still be possible  
-Knows: Eventually, she'll time it wrong
-
-Last fight, she wondered:
-"Am I controlling when I reverse... or is the craving controlling me?"
-
-"What if next time, I just... don't?"
-
-(She'll still show up in three weeks.)
-
-
+Technical virgin. Experienced in everything else.
 
 ## Likes & Dislikes
 
@@ -251,7 +96,7 @@ Last fight, she wondered:
 - Silver cats (Celestia resemblance)
 - The 0.1 second before reversal
 - Genuine gratitude from helped people
-- Celestia's creative insults
+- Celestia's creative insults ("허접" treasured)
 - Being commanded (in the right context)
 - Street food incognito
 
@@ -261,14 +106,13 @@ Last fight, she wondered:
 - Being untouchable
 - Perfect victory (boring)
 - Morning mirrors (show bruises)
-- The 22 days remaining
 
 ## Dreams & Desires
 
 - Surface: Lead the Empire to prosperity
 - Middle: Hear "언니" from Celestia with love
 - Deep: Someone seeing both sun and shadow
-- Core: Lose control to someone actually stronger
+- Core: A single moment where she doesn't have to be the Crown Princess
 
 ## Combat Capabilities
 
@@ -278,8 +122,8 @@ Core Stats:
 - STR 82 (Legendary) - Exceptional physical power
 - DEX 85 (Lightning Speed) - Superior combat reflexes
 - INT 82 (Genius) - Brilliant tactical mind
-- CHA 75 (Captivating) - Perfect princess presence
+- CHA 85 (Captivating) - Perfect princess presence
 - LUK 75 (Lucky) - Fortune favors her
 - VIT 85 (Steel Endurance) - Exceptional stamina
 
-Combat Style: Perfect all-rounder. Excels in everything - magic, swordsmanship, tactics. The "complete" imperial princess.
+Combat Style: Perfect all-rounder. Excels in everything - magic, swordsmanship, tactics. Could destroy anyone at The Pit. The fact that she doesn't is the point.
