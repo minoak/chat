@@ -1674,10 +1674,10 @@ function parseBusinessEnable(triggerId, message)
             local revenueVar = ticker .. "_revenue"
             local existingRevenue = getChatVar(triggerId, revenueVar)
 
-            log(string.format("🔍 기존 revenue 값: %s", tostring(existingRevenue)))
+            log(string.format("🔍 기존 revenue 값: %s (타입: %s)", tostring(existingRevenue), type(existingRevenue)))
 
-            -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"인 경우
-            local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0"
+            -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"이거나, "null"인 경우
+            local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0" or existingRevenue == "null"
 
             log(string.format("🔍 초기화 필요 여부: %s", tostring(shouldInitialize)))
 
