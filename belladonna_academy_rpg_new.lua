@@ -1428,7 +1428,7 @@ function generateStockTicker(stockData)
         if ticker and price and change then
             local changeNum = tonumber(change) or 0
             local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
-            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
+            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
             local sign = changeNum > 0 and "+" or ""
             local name = STOCK_NAMES[ticker] or ticker
 
@@ -1480,8 +1480,8 @@ function generateStockPanel(triggerId, ticker)
     -- 이익률 계산
     local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
 
-    -- 등락 색상
-    local changeColor = change >= 0 and "#ef5350" or "#26a69a"
+    -- 등락 색상 (한국식: 상승 빨강, 하락 파랑)
+    local changeColor = change >= 0 and "#ef5350" or "#42a5f5"
     local changeIcon = change >= 0 and "▲" or "▼"
     local changeSign = change >= 0 and "+" or ""
 
@@ -5899,7 +5899,7 @@ function generateStockBoardView(triggerId)
                     dirColor = "#ef5350"
                 elseif direction == "falling" or direction == "down" then
                     dirIcon = "📉"
-                    dirColor = "#26a69a"
+                    dirColor = "#42a5f5"
                 elseif direction == "crashing" then
                     dirIcon = "📉"
                     dirColor = "#ef5350"
@@ -5941,8 +5941,12 @@ function generateStockBoardView(triggerId)
         local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         local name = STOCK_NAMES[ticker] or ticker
 
-        -- 등락 색상 (상승 빨강, 하락 청록)
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 등락 색상 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
         local rowBg = owned > 0 and "rgba(255,215,0,0.05)" or "transparent"
 
         html = html .. string.format([[
@@ -5960,7 +5964,7 @@ function generateStockBoardView(triggerId)
   <div style='flex:1;text-align:right'>
     <span style='font-size:13px;color:%s'>%d</span>
   </div>
-</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, change, owned > 0 and "#ffd700" or "#8b949e", owned)
+</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, changePercent, owned > 0 and "#ffd700" or "#8b949e", owned)
     end
 
     html = html .. "</div>"
@@ -6042,8 +6046,11 @@ function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
     local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-    local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-    local changeSign = change > 0 and "+" or ""
+    -- 등락률 계산
+    local prevPrice = price - change
+    local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+    local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+    local changeSign = changePercent > 0 and "+" or ""
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
     -- 헤더: 종목 정보
@@ -6056,10 +6063,10 @@ function generateStockChartView(triggerId, ticker)
     </div>
     <div style='text-align:right'>
       <div style='font-size:24px;font-weight:700;color:%s'>%s<span style='font-size:14px;color:#787b86'>G</span></div>
-      <div style='font-size:12px;color:%s;margin-top:2px'>%s%d%%</div>
+      <div style='font-size:12px;color:%s;margin-top:2px'>%s%.1f%%</div>
     </div>
   </div>
-</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, change)
+</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, changePercent)
 
     -- 가격 히스토리 가져오기
     local history = getStockHistory(triggerId, ticker)
@@ -6256,7 +6263,7 @@ function generateStockChartView(triggerId, ticker)
                     dirText = "상승"
                 elseif direction == "falling" or direction == "down" then
                     dirIcon = "📉"
-                    dirColor = "#26a69a"
+                    dirColor = "#42a5f5"
                     dirText = "하락"
                 elseif direction == "stable" then
                     dirIcon = "📊"
@@ -6302,7 +6309,7 @@ function generateStockChartView(triggerId, ticker)
     -- 시장 지수 섹션
     local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
     local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
-    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#26a69a" or "#8b949e")
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
     local marketSign = marketChange > 0 and "+" or ""
     local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
 
@@ -6330,20 +6337,23 @@ function generateStockChartView(triggerId, ticker)
         local isSelected = t == ticker
         local tPrice = getState(triggerId, "stock_" .. t .. "_price") or STOCK_BASE_PRICES[t]
         local tChange = getState(triggerId, "stock_" .. t .. "_change") or 0
-        local tColor = tChange > 0 and "#ef5350" or (tChange < 0 and "#26a69a" or "#8b949e")
+        -- 등락률 계산
+        local tPrevPrice = tPrice - tChange
+        local tChangePercent = (tPrevPrice > 0 and tChange ~= 0) and ((tChange / tPrevPrice) * 100) or 0
+        local tColor = tChangePercent > 0 and "#ef5350" or (tChangePercent < 0 and "#42a5f5" or "#8b949e")
 
         if isSelected then
             html = html .. string.format([[
     <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:600;color:#fff'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChange)
+    </button>]], t, t, tColor, tChangePercent)
         else
             html = html .. string.format([[
     <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:500;color:#8b949e'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChange)
+    </button>]], t, t, tColor, tChangePercent)
         end
     end
 
@@ -6360,7 +6370,7 @@ function generateStockAssetView(triggerId)
     -- ============================================
     local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
     local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
-    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#26a69a" or "#8b949e")
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
     local marketSign = marketChange > 0 and "+" or ""
     local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
 
@@ -6401,7 +6411,7 @@ function generateStockAssetView(triggerId)
                     dirColor = "#ef5350"
                 elseif direction == "falling" or direction == "down" then
                     dirIcon = "📉"
-                    dirColor = "#26a69a"
+                    dirColor = "#42a5f5"
                 elseif direction == "crashing" then
                     dirIcon = "📉"
                     dirColor = "#ef5350"
@@ -6470,7 +6480,7 @@ function generateStockAssetView(triggerId)
     end
     totalValue = gold + stockValue
 
-    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#26a69a"
+    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#42a5f5"
     local totalProfitSign = totalProfit >= 0 and "+" or ""
 
     -- 총 자산 헤더 (카드 스타일)
@@ -6525,7 +6535,7 @@ function generateStockAssetView(triggerId)
 
     if #holdings > 0 then
         for _, h in ipairs(holdings) do
-            local profitColor = h.profit >= 0 and "#ef5350" or "#26a69a"
+            local profitColor = h.profit >= 0 and "#ef5350" or "#42a5f5"
             local profitSign = h.profit >= 0 and "+" or ""
 
             html = html .. string.format([[
@@ -6712,7 +6722,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
         local changeNum = tonumber(change) or 0
         local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
-        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
+        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
         local sign = changeNum > 0 and "+" or ""
         return string.format('<div style="background:#1a1f2e;border-left:4px solid #58a6ff;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#c9d1d9">📰 <span style="color:#8b949e">릴리벨리 지수</span> <span style="color:#fff;font-weight:600">%s</span> <span style="color:%s">%s%s%.1f%%</span> │ %s</div>', index, color, arrow, sign, changeNum, news)
     end)
@@ -6823,10 +6833,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
 
-        -- 색상 결정
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-        local changeSign = change > 0 and "+" or ""
-        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
 
         -- 미니 차트 데이터 (최근 8개)
         local history = getStockHistory(triggerId, ticker)
@@ -6852,7 +6866,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
                 local y = chartH - ((p - minP) / range * chartH)
                 table.insert(points, string.format("%.1f,%.1f", x, y))
             end
-            local lineColor = change >= 0 and "#ef5350" or "#26a69a"
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
             miniChart = string.format([[
 <svg width='%d' height='%d' style='margin-top:8px'>
   <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
@@ -6869,11 +6883,11 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     </div>
     <div style='text-align:right'>
       <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
-      <div style='font-size:13px;color:%s;font-weight:600'>%s%d%% %s</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
     </div>
   </div>
   %s
-</div>]], ticker, name, formatNumber(price), changeColor, changeSign, change, arrow, miniChart)
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart)
 
         return html
     end)
@@ -6890,16 +6904,20 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
 
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-        local changeSign = change > 0 and "+" or ""
-        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
 
         local html = string.format([[
 <span style='display:inline-flex;align-items:center;gap:6px;background:#161b22;padding:4px 10px;border-radius:6px;font-size:13px;border:1px solid #30363d'>
   <span style='color:#fff;font-weight:600'>%s</span>
   <span style='color:#8b949e'>%sG</span>
-  <span style='color:%s;font-weight:500'>%s%d%% %s</span>
-</span>]], ticker, formatNumber(price), changeColor, changeSign, change, arrow)
+  <span style='color:%s;font-weight:500'>%s%.1f%% %s</span>
+</span>]], ticker, formatNumber(price), changeColor, changeSign, changePercent, arrow)
 
         return html
     end)
