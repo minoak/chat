@@ -6095,8 +6095,8 @@ function generateStockChartView(triggerId, ticker)
             table.insert(points, string.format("%.1f,%.1f", x, y))
         end
 
-        -- 색상 결정
-        local lineColor = (closePrice >= openPrice) and "#26a69a" or "#ef5350"
+        -- 색상 결정 (한국식: 빨강=상승, 파랑=하락)
+        local lineColor = (closePrice >= openPrice) and "#ef5350" or "#42a5f5"
         local isUp = closePrice >= openPrice
 
         -- 그라데이션 영역
