@@ -1,0 +1,349 @@
+<div class="bella-promo">
+<style>
+.bella-promo {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  max-width: 800px;
+  margin: 20px auto;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+  border: 2px solid #8b5cf6;
+}
+
+.bella-promo * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.bella-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  padding: 40px 30px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.bella-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.bella-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.bella-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.95);
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.bella-content {
+  padding: 30px;
+}
+
+.bella-section {
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.bella-section:hover {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.bella-section-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f5f5f7;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bella-section-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%);
+  border-radius: 2px;
+}
+
+.bella-feature-list {
+  list-style: none;
+  padding: 0;
+}
+
+.bella-feature-item {
+  color: #d1d1d6;
+  font-size: 15px;
+  line-height: 1.8;
+  padding: 10px 0;
+  padding-left: 28px;
+  position: relative;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.bella-feature-item:last-child {
+  border-bottom: none;
+}
+
+.bella-feature-item::before {
+  content: '▸';
+  position: absolute;
+  left: 8px;
+  color: #8b5cf6;
+  font-weight: bold;
+}
+
+.bella-highlight {
+  color: #ec4899;
+  font-weight: 700;
+}
+
+.bella-character-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bella-char-tag {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5f5f7;
+  transition: all 0.2s ease;
+}
+
+.bella-char-tag:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(236, 72, 153, 0.4) 100%);
+  transform: scale(1.05);
+  border-color: rgba(139, 92, 246, 0.6);
+}
+
+.bella-cta {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  padding: 24px;
+  text-align: center;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.bella-cta-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.bella-link {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  padding: 12px 32px;
+  border-radius: 8px;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  border: 2px solid rgba(255,255,255,0.3);
+  transition: all 0.3s ease;
+}
+
+.bella-link:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.bella-footer {
+  padding: 20px 30px;
+  text-align: center;
+  color: #a0a0ab;
+  font-size: 13px;
+  background: rgba(0,0,0,0.2);
+}
+
+.bella-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+@media (max-width: 600px) {
+  .bella-title {
+    font-size: 24px;
+  }
+  .bella-character-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bella-content {
+    padding: 20px;
+  }
+}
+</style>
+
+<div class="bella-header">
+  <h1 class="bella-title">🌺 벨라도나 아카데미 🌺</h1>
+  <p class="bella-subtitle">귀족들의 음모와 욕망이 소용돌이치는 학원 시뮬레이션 RPG</p>
+</div>
+
+<div class="bella-content">
+
+  <div class="bella-section">
+    <h2 class="bella-section-title">💎 게임 개요</h2>
+    <ul class="bella-feature-list">
+      <li class="bella-feature-item">
+        <span class="bella-highlight">벨라도나 제국 최고의 귀족 학원</span>에서 펼쳐지는 로맨스, 음모, 그리고 권력 투쟁
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">7대죄 시스템</span>으로 구현된 독특한 캐릭터 관계 메커니즘
+      </li>
+      <li class="bella-feature-item">
+        단순한 연애 시뮬레이션을 넘어선 <span class="bella-highlight">경영, 전투, 던전 탐험</span>까지
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">RisuAI 완벽 호환</span> - 변수 기반 동적 시나리오 시스템
+      </li>
+    </ul>
+  </div>
+
+  <div class="bella-section">
+    <h2 class="bella-section-title">👑 메인 캐릭터 (8명)</h2>
+    <div class="bella-character-grid">
+      <div class="bella-char-tag">💰 미라벨<br><small>탐욕</small></div>
+      <div class="bella-char-tag">👑 셀레스티아<br><small>오만</small></div>
+      <div class="bella-char-tag">⚔️ 카산드라<br><small>분노</small></div>
+      <div class="bella-char-tag">💋 에반젤린<br><small>색욕</small></div>
+      <div class="bella-char-tag">🎨 아멜리아<br><small>질투</small></div>
+      <div class="bella-char-tag">🧪 네펜테스<br><small>폭식</small></div>
+      <div class="bella-char-tag">📱 릴리스<br><small>나태</small></div>
+      <div class="bella-char-tag">☀️ 아우렐리아<br><small>타락</small></div>
+    </div>
+  </div>
+
+  <div class="bella-section">
+    <h2 class="bella-section-title">🌙 서브 캐릭터 (15명)</h2>
+    <div class="bella-character-grid">
+      <div class="bella-char-tag">💎 코델리아</div>
+      <div class="bella-char-tag">🎀 수아</div>
+      <div class="bella-char-tag">🗡️ 아델하이드</div>
+      <div class="bella-char-tag">🌹 로잘리</div>
+      <div class="bella-char-tag">🐱 미카</div>
+      <div class="bella-char-tag">🍀 클로버</div>
+      <div class="bella-char-tag">👹 녹티스</div>
+      <div class="bella-char-tag">📈 페니와이즈</div>
+      <div class="bella-char-tag">💅 비비안</div>
+      <div class="bella-char-tag">🔥 스카</div>
+      <div class="bella-char-tag">📚 로버트</div>
+      <div class="bella-char-tag">🦇 마고트</div>
+      <div class="bella-char-tag">📖 리디아</div>
+      <div class="bella-char-tag">🌿 헴록</div>
+      <div class="bella-char-tag">🎭 마가렛</div>
+    </div>
+  </div>
+
+  <div class="bella-section">
+    <h2 class="bella-section-title">🎮 핵심 시스템</h2>
+    <ul class="bella-feature-list">
+      <li class="bella-feature-item">
+        <span class="bella-highlight">💝 호감도 & 7대죄 압력/해소 시스템</span> - 캐릭터마다 고유한 '죄'를 관리하며 관계 발전
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">💼 경영 시뮬레이션</span> - GOLDMANE, LUXORIA, PFIZARA 기업을 캐릭터와 함께 경영
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">📊 주식 시스템</span> - 실시간 시장 변동과 투자 전략
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">⚔️ 전투 & 던전</span> - 마나 기반 전투 시스템과 위험한 던전 탐험
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">📅 학원 스케줄</span> - 수업, 동아리, 이벤트가 유기적으로 연결된 학원 생활
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">🎯 조건부 시나리오 로딩</span> - 변수 기반으로 동적 변화하는 스토리
+      </li>
+    </ul>
+  </div>
+
+  <div class="bella-section">
+    <h2 class="bella-section-title">✨ 특별한 점</h2>
+    <ul class="bella-feature-list">
+      <li class="bella-feature-item">
+        각 캐릭터의 <span class="bella-highlight">호감도 범위에 따라 완전히 다른 대사와 행동</span>
+      </li>
+      <li class="bella-feature-item">
+        경영 수치가 <span class="bella-highlight">실제 게임 세계에 반영</span> (거리의 광고, 이사회 영향력 등)
+      </li>
+      <li class="bella-feature-item">
+        단순 스탯 나열이 아닌 <span class="bella-highlight">서사적 통합</span>으로 자연스러운 몰입감
+      </li>
+      <li class="bella-feature-item">
+        <span class="bella-highlight">HTML UI</span>를 통한 직관적인 캐릭터/시나리오 선택
+      </li>
+      <li class="bella-feature-item">
+        방대한 로어북과 <span class="bella-highlight">토큰 최적화된 조건부 로딩</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="bella-cta">
+    <p class="bella-cta-text">🔥 지금 바로 벨라도나 아카데미에 입학하세요! 🔥</p>
+    <a href="https://github.com/minoak/dudada" class="bella-link" target="_blank">
+      GitHub에서 다운로드
+    </a>
+  </div>
+
+</div>
+
+<div class="bella-footer">
+  <p>💜 RisuAI 전용 시뮬레이션 봇 💜</p>
+  <p style="margin-top: 8px; font-size: 12px;">
+    <span class="bella-badge">메인 8명</span>
+    <span class="bella-badge">서브 15명</span>
+    <span class="bella-badge">7대죄 시스템</span>
+    <span class="bella-badge">경영 시뮬레이션</span>
+  </p>
+</div>
+
+</div>
