@@ -1854,10 +1854,8 @@ function addPriceToHistory(triggerId, ticker, newPrice)
     setState(triggerId, historyKey, historyStr)  -- state에도 동기화
 end
 
--- 주가 히스토리 가져오기 (없으면 초기화)
+-- 주가 히스토리 가져오기 (없으면 초기화, 부족하면 재생성)
 function getStockHistory(triggerId, ticker)
-    initStockHistory(triggerId, ticker)
-
     local historyKey = "stock_" .. ticker .. "_history"
     -- state 우선, chatVar 폴백
     local history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
@@ -1865,6 +1863,25 @@ function getStockHistory(triggerId, ticker)
 
     for price in history:gmatch("([^,]+)") do
         table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+    end
+
+    -- 히스토리가 없거나 20개 미만이면 강제 재생성
+    if #prices < 20 then
+        -- 기존 데이터 삭제
+        setChatVar(triggerId, historyKey, "")
+        setState(triggerId, historyKey, "")
+
+        -- 새로 생성
+        initStockHistory(triggerId, ticker)
+
+        -- 다시 읽기
+        history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
+        prices = {}
+        for price in history:gmatch("([^,]+)") do
+            table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+        end
+
+        log("📊 주가 히스토리 재생성: " .. ticker .. " (" .. #prices .. "개)")
     end
 
     return prices
