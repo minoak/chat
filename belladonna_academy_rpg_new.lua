@@ -1379,6 +1379,18 @@ function initStockSystem(triggerId)
         setState(triggerId, "economic_cycle", "stable")
     end
 
+    -- 모든 주식 가격 초기화 (로어북 변수 접근용)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        if not getState(triggerId, "stock_" .. ticker .. "_price") then
+            local basePrice = STOCK_BASE_PRICES[ticker] or 100
+            setState(triggerId, "stock_" .. ticker .. "_price", basePrice)
+            setState(triggerId, "stock_" .. ticker .. "_change", 0)
+            -- 가격 히스토리 초기화
+            initStockHistory(triggerId, ticker)
+            log(string.format("📊 %s 주가 초기화: %dG", ticker, basePrice))
+        end
+    end
+
     -- 핵심 3개 기업 경영 변수 초기화
     local companies = {"GOLDMANE", "LUXORIA", "PFIZARA"}
     for _, ticker in ipairs(companies) do
@@ -1431,7 +1443,7 @@ function initStockSystem(triggerId)
         end
     end
 
-    log("📊 주식 시스템 초기화 완료 (경영 변수 12개 × 3개 기업)")
+    log("📊 주식 시스템 초기화 완료 (20개 종목 가격 + 경영 변수 12개 × 3개 기업)")
 end
 
 -- ============================================
