@@ -1,725 +1,266 @@
-<style>
-.bella-promo {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
-  max-width: 800px;
-  margin: 20px auto;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
-  border: 2px solid #8b5cf6;
-}
+<div style="font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif; max-width: 800px; margin: 20px auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3); border: 2px solid #8b5cf6;">
 
-.bella-promo * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.bella-header {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-  padding: 40px 30px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.bella-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: bella-pulse 4s ease-in-out infinite;
-}
-
-@keyframes bella-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
-}
-
-.bella-title {
-  font-size: 32px;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  letter-spacing: -1px;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.bella-subtitle {
-  font-size: 16px;
-  color: rgba(255,255,255,0.95);
-  font-weight: 600;
-  position: relative;
-  z-index: 1;
-}
-
-.bella-content {
-  padding: 30px;
-}
-
-.bella-section {
-  background: rgba(139, 92, 246, 0.08);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-}
-
-.bella-collapse {
-  margin-bottom: 16px;
-}
-
-.bella-collapse-header {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 10px;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  user-select: none;
-}
-
-.bella-collapse-header:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-}
-
-.bella-collapse-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f5f5f7;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.bella-collapse-arrow {
-  font-size: 14px;
-  color: #8b5cf6;
-  transition: transform 0.3s ease;
-}
-
-.bella-collapse-input {
-  display: none;
-}
-
-.bella-collapse-input:checked ~ .bella-collapse-header .bella-collapse-arrow {
-  transform: rotate(180deg);
-}
-
-.bella-collapse-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease;
-}
-
-.bella-collapse-input:checked ~ .bella-collapse-content {
-  max-height: 3000px;
-}
-
-.bella-collapse-inner {
-  padding: 20px;
-  color: #d1d1d6;
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.bella-char-card {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-}
-
-.bella-char-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.bella-char-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid #8b5cf6;
-  object-fit: cover;
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-}
-
-.bella-char-info {
-  flex: 1;
-}
-
-.bella-char-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f5f5f7;
-  margin-bottom: 4px;
-}
-
-.bella-char-sin {
-  display: inline-block;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-  color: #ffffff;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.bella-char-desc {
-  color: #d1d1d6;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.bella-feature-list {
-  list-style: none;
-  padding: 0;
-}
-
-.bella-feature-item {
-  color: #d1d1d6;
-  font-size: 15px;
-  line-height: 1.8;
-  padding: 10px 0;
-  padding-left: 28px;
-  position: relative;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
-}
-
-.bella-feature-item:last-child {
-  border-bottom: none;
-}
-
-.bella-feature-item::before {
-  content: '▸';
-  position: absolute;
-  left: 8px;
-  color: #8b5cf6;
-  font-weight: bold;
-}
-
-.bella-highlight {
-  color: #ec4899;
-  font-weight: 700;
-}
-
-.bella-cta {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-  padding: 24px;
-  text-align: center;
-  border-radius: 12px;
-  margin-top: 20px;
-}
-
-.bella-cta-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 12px;
-}
-
-.bella-link {
-  display: inline-block;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  padding: 12px 32px;
-  border-radius: 8px;
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 15px;
-  border: 2px solid rgba(255,255,255,0.3);
-  transition: all 0.3s ease;
-}
-
-.bella-link:hover {
-  background: rgba(255,255,255,0.3);
-  border-color: rgba(255,255,255,0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.bella-footer {
-  padding: 20px 30px;
-  text-align: center;
-  color: #a0a0ab;
-  font-size: 13px;
-  background: rgba(0,0,0,0.2);
-}
-
-.bella-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-  color: #ffffff;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  margin: 4px;
-}
-
-.bella-intro-text {
-  color: #d1d1d6;
-  font-size: 15px;
-  line-height: 1.8;
-  margin-bottom: 16px;
-}
-
-@media (max-width: 600px) {
-  .bella-title {
-    font-size: 24px;
-  }
-  .bella-content {
-    padding: 20px;
-  }
-  .bella-char-image {
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-  }
-}
-</style>
-
-<div class="bella-promo">
-
-<div class="bella-header">
-  <div class="bella-title">🌺 벨라도나 아카데미 🌺</div>
-  <div class="bella-subtitle">귀족들의 음모와 욕망이 소용돌이치는 학원 시뮬레이션 RPG</div>
+<!-- 헤더 -->
+<div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 40px 30px; text-align: center;">
+  <div style="font-size: 32px; font-weight: 900; color: #ffffff; text-shadow: 0 4px 12px rgba(0,0,0,0.4); letter-spacing: -1px; margin-bottom: 12px;">
+    🌺 벨라도나 아카데미 🌺
+  </div>
+  <div style="font-size: 16px; color: rgba(255,255,255,0.95); font-weight: 600;">
+    귀족들의 음모와 욕망이 소용돌이치는 학원 시뮬레이션 RPG
+  </div>
 </div>
 
-<div class="bella-content">
+<!-- 메인 콘텐츠 -->
+<div style="padding: 30px;">
 
-  <div class="bella-section">
-    <div class="bella-intro-text">
+  <!-- 소개 섹션 -->
+  <div style="background: rgba(139, 92, 246, 0.08); border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(139, 92, 246, 0.2);">
+    <div style="color: #d1d1d6; font-size: 15px; line-height: 1.8; margin-bottom: 16px;">
       벨라도나 제국 최고의 귀족 학원에서 펼쳐지는 로맨스, 음모, 권력 투쟁의 세계!
-      <span class="bella-highlight">7대죄 시스템</span>으로 구현된 독특한 캐릭터 관계 메커니즘과
-      <span class="bella-highlight">경영 시뮬레이션</span>, <span class="bella-highlight">전투</span>, <span class="bella-highlight">던전 탐험</span>까지.
+      <span style="color: #ec4899; font-weight: 700;">7대죄 시스템</span>으로 구현된 독특한 캐릭터 관계 메커니즘과
+      <span style="color: #ec4899; font-weight: 700;">경영 시뮬레이션</span>, <span style="color: #ec4899; font-weight: 700;">전투</span>, <span style="color: #ec4899; font-weight: 700;">던전 탐험</span>까지.
       단순한 연애 시뮬레이션을 넘어선 종합 RPG 경험을 제공합니다.
     </div>
     <div style="text-align: center;">
-      <span class="bella-badge">RisuAI 전용</span>
-      <span class="bella-badge">메인 8명</span>
-      <span class="bella-badge">서브 15명</span>
-      <span class="bella-badge">변수 기반 동적 시나리오</span>
+      <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">RisuAI 전용</span>
+      <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">메인 8명</span>
+      <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">서브 15명</span>
+      <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">변수 기반 동적 시나리오</span>
     </div>
   </div>
 
   <!-- 메인 캐릭터 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="main-chars" class="bella-collapse-input">
-    <label for="main-chars" class="bella-collapse-header">
-      <div class="bella-collapse-title">👑 메인 캐릭터 (8명)</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      👑 메인 캐릭터 (8명)
+    </summary>
+    <div style="padding: 20px;">
 
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">💰</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">미라벨 폰 골든로제</div>
-              <span class="bella-char-sin">😈 탐욕</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            몰락한 백작가를 15세에 혼자 재건한 천재 사업가. "Oh~hohoho!" 웃음소리와 함께 제국 최대의 금융 네트워크를 운영한다.
+      <!-- 미라벨 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">💰</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">미라벨 폰 골든로제</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 탐욕</span>
           </div>
         </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">👑</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">셀레스티아 폰 실버크라운</div>
-              <span class="bella-char-sin">😈 오만</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            황녀이자 차기 황위 계승자. 완벽한 외모와 능력을 겸비했으나, 그 자존심 때문에 누구에게도 속마음을 보이지 않는다.
-          </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          몰락한 백작가를 15세에 혼자 재건한 천재 사업가. "Oh~hohoho!" 웃음소리와 함께 제국 최대의 금융 네트워크를 운영한다.
         </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">⚔️</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">카산드라 폰 울프하트</div>
-              <span class="bella-char-sin">😈 분노</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            제국 최강의 검사. 전장에서 수많은 적을 베어온 전쟁 영웅이지만, 내면의 분노를 제어하는 데 끊임없이 고뇌한다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">💋</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">에반젤린 폰 포이즌로즈</div>
-              <span class="bella-char-sin">😈 색욕</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            밤의 세계를 지배하는 매혹의 화신. 클럽과 호스트 클럽을 운영하며 수많은 남성들을 농락하지만, 진정한 사랑은 아직 모른다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🎨</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">아멜리아 폰 샤덴프로이데</div>
-              <span class="bella-char-sin">😈 질투</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            히키코모리 천재 화가. 타인의 행복을 훔쳐보며 그림으로 그려내지만, 정작 자신은 방 밖으로 나가지 못한다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🧪</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">네펜테스 폰 도르미엔</div>
-              <span class="bella-char-sin">😈 폭식</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            제약 회사 PFIZARA의 CEO. 천사 같은 미소 뒤에 숨겨진 금지된 연구와 불멸에 대한 집착. "Hehehe~⌒⌒"
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">📱</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">릴리스 폰 트라움샤텐</div>
-              <span class="bella-char-sin">😈 나태</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            완벽한 나태의 화신. 편의점 과자와 게임으로 하루를 보내지만, 실은 천재적 두뇌를 숨기고 있다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">☀️</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">아우렐리아 폰 골든크라운</div>
-              <span class="bella-char-sin">😈 타락</span>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            성녀로 추앙받던 황실의 빛. 하지만 The Pit의 잔혹한 전투를 목격한 후, 천천히 어둠 속으로 빠져들고 있다.
-          </div>
-        </div>
-
       </div>
+
+      <!-- 셀레스티아 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">👑</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">셀레스티아 폰 실버크라운</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 오만</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          황녀이자 차기 황위 계승자. 완벽한 외모와 능력을 겸비했으나, 그 자존심 때문에 누구에게도 속마음을 보이지 않는다.
+        </div>
+      </div>
+
+      <!-- 카산드라 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">⚔️</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">카산드라 폰 울프하트</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 분노</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          제국 최강의 검사. 전장에서 수많은 적을 베어온 전쟁 영웅이지만, 내면의 분노를 제어하는 데 끊임없이 고뇌한다.
+        </div>
+      </div>
+
+      <!-- 에반젤린 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">💋</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">에반젤린 폰 포이즌로즈</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 색욕</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          밤의 세계를 지배하는 매혹의 화신. 클럽과 호스트 클럽을 운영하며 수많은 남성들을 농락하지만, 진정한 사랑은 아직 모른다.
+        </div>
+      </div>
+
+      <!-- 아멜리아 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">🎨</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">아멜리아 폰 샤덴프로이데</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 질투</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          히키코모리 천재 화가. 타인의 행복을 훔쳐보며 그림으로 그려내지만, 정작 자신은 방 밖으로 나가지 못한다.
+        </div>
+      </div>
+
+      <!-- 네펜테스 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">🧪</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">네펜테스 폰 도르미엔</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 폭식</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          제약 회사 PFIZARA의 CEO. 천사 같은 미소 뒤에 숨겨진 금지된 연구와 불멸에 대한 집착. "Hehehe~⌒⌒"
+        </div>
+      </div>
+
+      <!-- 릴리스 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">📱</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">릴리스 폰 트라움샤텐</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 나태</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          완벽한 나태의 화신. 편의점 과자와 게임으로 하루를 보내지만, 실은 천재적 두뇌를 숨기고 있다.
+        </div>
+      </div>
+
+      <!-- 아우렐리아 -->
+      <div style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8b5cf6; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0;">☀️</div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #f5f5f7; margin-bottom: 4px;">아우렐리아 폰 골든크라운</div>
+            <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">😈 타락</span>
+          </div>
+        </div>
+        <div style="color: #d1d1d6; font-size: 14px; line-height: 1.6;">
+          성녀로 추앙받던 황실의 빛. 하지만 The Pit의 잔혹한 전투를 목격한 후, 천천히 어둠 속으로 빠져들고 있다.
+        </div>
+      </div>
+
     </div>
-  </div>
+  </details>
 
   <!-- 서브 캐릭터 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="sub-chars" class="bella-collapse-input">
-    <label for="sub-chars" class="bella-collapse-header">
-      <div class="bella-collapse-title">🌙 서브 캐릭터 (15명)</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">💎</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">코델리아 폰 에델슈타인</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            명품 기업 LUXORIA의 CEO. 츤데레 재벌 아가씨로 미라벨과는 라이벌 관계.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🎀</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">수아</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            미라벨의 충직한 하녀이자 비서. 주인을 위해서라면 무엇이든 하는 헌신적인 성격.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🗡️</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">아델하이드 폰 아이젠슈타인</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            카산드라의 부관이자 검술 라이벌. 강철 같은 의지와 냉정한 판단력의 소유자.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🌹</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">로잘리 폰 더블베리</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            사교계의 꽃. 우아한 외모 뒤에 숨겨진 정보 브로커로서의 또 다른 얼굴.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🐱</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">미카 폰 쉬바르츠펠</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            묘한 매력의 케모미미 소녀. 순수해 보이지만 예측 불가능한 행동으로 주변을 당황시킨다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">🍀</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">클로버 폰 리버클로버</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            행운의 상징. 밝고 긍정적인 성격으로 모두에게 사랑받지만, 내면의 불안을 숨기고 있다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">👹</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">녹티스</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            봉인된 마왕. 심심함을 달래기 위해 인간 세계를 관찰하며 놀이를 즐긴다.
-          </div>
-        </div>
-
-        <div class="bella-char-card">
-          <div class="bella-char-header">
-            <div class="bella-char-image">📈</div>
-            <div class="bella-char-info">
-              <div class="bella-char-name">페니와이즈</div>
-            </div>
-          </div>
-          <div class="bella-char-desc">
-            주식 투자의 귀재. 시장을 읽는 직관력으로 막대한 부를 축적했지만, 가끔 급발진한다.
-          </div>
-        </div>
-
-        <div style="color: #a0a0ab; text-align: center; padding: 16px; font-size: 14px;">
-          + 비비안, 스카, 로버트, 마고트, 리디아, 헴록, 마가렛 등 7명 추가!
-        </div>
-
-      </div>
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      🌙 서브 캐릭터 (15명)
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">💎 <b>코델리아 폰 에델슈타인</b> - 명품 기업 LUXORIA의 CEO. 츤데레 재벌 아가씨</div>
+      <div style="margin-bottom: 12px;">🎀 <b>수아</b> - 미라벨의 충직한 하녀이자 비서</div>
+      <div style="margin-bottom: 12px;">🗡️ <b>아델하이드 폰 아이젠슈타인</b> - 카산드라의 부관이자 검술 라이벌</div>
+      <div style="margin-bottom: 12px;">🌹 <b>로잘리 폰 더블베리</b> - 사교계의 꽃이자 정보 브로커</div>
+      <div style="margin-bottom: 12px;">🐱 <b>미카 폰 쉬바르츠펠</b> - 묘한 매력의 케모미미 소녀</div>
+      <div style="margin-bottom: 12px;">🍀 <b>클로버 폰 리버클로버</b> - 행운의 상징</div>
+      <div style="margin-bottom: 12px;">👹 <b>녹티스</b> - 봉인된 마왕</div>
+      <div style="margin-bottom: 12px;">📈 <b>페니와이즈</b> - 주식 투자의 귀재</div>
+      <div style="color: #a0a0ab; margin-top: 16px; text-align: center;">+ 비비안, 스카, 로버트, 마고트, 리디아, 헴록, 마가렛 등 7명 추가!</div>
     </div>
-  </div>
+  </details>
 
-  <!-- 호감도 & 7대죄 시스템 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="system-affinity" class="bella-collapse-input">
-    <label for="system-affinity" class="bella-collapse-header">
-      <div class="bella-collapse-title">💝 호감도 & 7대죄 시스템</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-        <ul class="bella-feature-list">
-          <li class="bella-feature-item">
-            각 캐릭터마다 고유한 <span class="bella-highlight">'죄'</span>가 존재하며, 이를 관리해야 관계 발전 가능
-          </li>
-          <li class="bella-feature-item">
-            <span class="bella-highlight">압력/해소 시스템</span> - 죄의 압력이 높아지면 캐릭터가 폭주하거나 위험한 행동을 취함
-          </li>
-          <li class="bella-feature-item">
-            호감도 범위에 따라 <span class="bella-highlight">완전히 다른 대사와 행동 패턴</span>이 활성화됨
-          </li>
-          <li class="bella-feature-item">
-            적대 (-100~0) → 중립 (0~200) → 호감 (200~400) → 사랑 (400~600) → 집착 (600+)
-          </li>
-          <li class="bella-feature-item">
-            RisuAI의 변수 시스템을 활용한 <span class="bella-highlight">동적 시나리오 로딩</span>으로 자연스러운 관계 변화
-          </li>
-        </ul>
-      </div>
+  <!-- 호감도 시스템 -->
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      💝 호감도 & 7대죄 시스템
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">▸ 각 캐릭터마다 고유한 <span style="color: #ec4899; font-weight: 700;">'죄'</span>가 존재하며, 이를 관리해야 관계 발전 가능</div>
+      <div style="margin-bottom: 12px;">▸ <span style="color: #ec4899; font-weight: 700;">압력/해소 시스템</span> - 죄의 압력이 높아지면 캐릭터가 폭주하거나 위험한 행동을 취함</div>
+      <div style="margin-bottom: 12px;">▸ 호감도 범위에 따라 <span style="color: #ec4899; font-weight: 700;">완전히 다른 대사와 행동 패턴</span>이 활성화됨</div>
+      <div style="margin-bottom: 12px;">▸ 적대 (-100~0) → 중립 (0~200) → 호감 (200~400) → 사랑 (400~600) → 집착 (600+)</div>
+      <div style="margin-bottom: 12px;">▸ RisuAI의 변수 시스템을 활용한 <span style="color: #ec4899; font-weight: 700;">동적 시나리오 로딩</span></div>
     </div>
-  </div>
+  </details>
 
-  <!-- 경영 시뮬레이션 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="system-business" class="bella-collapse-input">
-    <label for="system-business" class="bella-collapse-header">
-      <div class="bella-collapse-title">💼 경영 시뮬레이션</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-        <ul class="bella-feature-list">
-          <li class="bella-feature-item">
-            <span class="bella-highlight">GOLDMANE (미라벨)</span> - 고급 금융 & 명품 무역 기업
-          </li>
-          <li class="bella-feature-item">
-            <span class="bella-highlight">LUXORIA (코델리아)</span> - 최고급 명품 브랜드
-          </li>
-          <li class="bella-feature-item">
-            <span class="bella-highlight">PFIZARA (네펜테스)</span> - 제약 & 바이오 기업
-          </li>
-          <li class="bella-feature-item">
-            부채, 현금, 시장 점유율, R&D 진행도, 브랜드 가치, 직원 수, 보유 지분 등 <span class="bella-highlight">실제 경영 변수 관리</span>
-          </li>
-          <li class="bella-feature-item">
-            변수 범위에 따라 <span class="bella-highlight">게임 세계가 실제로 변화</span> - 거리의 광고, 이사회 발언권, 시장 인식 등
-          </li>
-          <li class="bella-feature-item">
-            캐릭터와 함께 전략 회의, 위기 대응, 확장 결정 등 <span class="bella-highlight">공동 경영 체험</span>
-          </li>
-        </ul>
-      </div>
+  <!-- 경영 시스템 -->
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      💼 경영 시뮬레이션
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">▸ <span style="color: #ec4899; font-weight: 700;">GOLDMANE (미라벨)</span> - 고급 금융 & 명품 무역 기업</div>
+      <div style="margin-bottom: 12px;">▸ <span style="color: #ec4899; font-weight: 700;">LUXORIA (코델리아)</span> - 최고급 명품 브랜드</div>
+      <div style="margin-bottom: 12px;">▸ <span style="color: #ec4899; font-weight: 700;">PFIZARA (네펜테스)</span> - 제약 & 바이오 기업</div>
+      <div style="margin-bottom: 12px;">▸ 부채, 현금, 시장 점유율, R&D 진행도, 브랜드 가치 등 <span style="color: #ec4899; font-weight: 700;">실제 경영 변수 관리</span></div>
+      <div style="margin-bottom: 12px;">▸ 변수 범위에 따라 <span style="color: #ec4899; font-weight: 700;">게임 세계가 실제로 변화</span> - 거리의 광고, 이사회 발언권 등</div>
+      <div style="margin-bottom: 12px;">▸ 캐릭터와 함께 전략 회의, 위기 대응, 확장 결정 등 <span style="color: #ec4899; font-weight: 700;">공동 경영 체험</span></div>
     </div>
-  </div>
+  </details>
 
-  <!-- 주식 & 재무 시스템 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="system-stock" class="bella-collapse-input">
-    <label for="system-stock" class="bella-collapse-header">
-      <div class="bella-collapse-title">📊 주식 & 재무 시스템</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-        <ul class="bella-feature-list">
-          <li class="bella-feature-item">
-            실시간으로 변동하는 <span class="bella-highlight">주식 시장</span> - 뉴스, 이벤트, 경영 성과가 주가에 영향
-          </li>
-          <li class="bella-feature-item">
-            페니와이즈와 함께하는 <span class="bella-highlight">투자 전략</span> 토론
-          </li>
-          <li class="bella-feature-item">
-            배당, IPO, M&A 등 <span class="bella-highlight">현실적인 금융 이벤트</span>
-          </li>
-          <li class="bella-feature-item">
-            개인 자산 관리 - 현금, 주식 포트폴리오, 부채 등
-          </li>
-        </ul>
-      </div>
+  <!-- 주식 시스템 -->
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      📊 주식 & 재무 시스템
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">▸ 실시간으로 변동하는 <span style="color: #ec4899; font-weight: 700;">주식 시장</span> - 뉴스, 이벤트, 경영 성과가 주가에 영향</div>
+      <div style="margin-bottom: 12px;">▸ 페니와이즈와 함께하는 <span style="color: #ec4899; font-weight: 700;">투자 전략</span> 토론</div>
+      <div style="margin-bottom: 12px;">▸ 배당, IPO, M&A 등 <span style="color: #ec4899; font-weight: 700;">현실적인 금융 이벤트</span></div>
+      <div style="margin-bottom: 12px;">▸ 개인 자산 관리 - 현금, 주식 포트폴리오, 부채 등</div>
     </div>
-  </div>
+  </details>
 
-  <!-- 전투 & 던전 시스템 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="system-combat" class="bella-collapse-input">
-    <label for="system-combat" class="bella-collapse-header">
-      <div class="bella-collapse-title">⚔️ 전투 & 던전 시스템</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-        <ul class="bella-feature-list">
-          <li class="bella-feature-item">
-            <span class="bella-highlight">마나 기반 전투 시스템</span> - HP, MP, 공격력, 방어력, 회피율 등
-          </li>
-          <li class="bella-feature-item">
-            카산드라, 아델하이드 등 전투 특화 캐릭터와 함께하는 <span class="bella-highlight">던전 탐험</span>
-          </li>
-          <li class="bella-feature-item">
-            다양한 적, 보스, 함정이 존재하는 위험한 던전
-          </li>
-          <li class="bella-feature-item">
-            전투 승리 시 보상 - 골드, 아이템, 경험치
-          </li>
-          <li class="bella-feature-item">
-            The Pit - 지하 격투장에서의 잔혹한 데스매치
-          </li>
-        </ul>
-      </div>
+  <!-- 전투 시스템 -->
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      ⚔️ 전투 & 던전 시스템
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">▸ <span style="color: #ec4899; font-weight: 700;">마나 기반 전투 시스템</span> - HP, MP, 공격력, 방어력, 회피율 등</div>
+      <div style="margin-bottom: 12px;">▸ 카산드라, 아델하이드 등 전투 특화 캐릭터와 함께하는 <span style="color: #ec4899; font-weight: 700;">던전 탐험</span></div>
+      <div style="margin-bottom: 12px;">▸ 다양한 적, 보스, 함정이 존재하는 위험한 던전</div>
+      <div style="margin-bottom: 12px;">▸ 전투 승리 시 보상 - 골드, 아이템, 경험치</div>
+      <div style="margin-bottom: 12px;">▸ The Pit - 지하 격투장에서의 잔혹한 데스매치</div>
     </div>
-  </div>
+  </details>
 
-  <!-- 학원 생활 시스템 -->
-  <div class="bella-collapse">
-    <input type="checkbox" id="system-academy" class="bella-collapse-input">
-    <label for="system-academy" class="bella-collapse-header">
-      <div class="bella-collapse-title">🎓 학원 생활 시스템</div>
-      <div class="bella-collapse-arrow">▼</div>
-    </label>
-    <div class="bella-collapse-content">
-      <div class="bella-collapse-inner">
-        <ul class="bella-feature-list">
-          <li class="bella-feature-item">
-            주간 스케줄 - 월요일부터 일요일까지 <span class="bella-highlight">유기적으로 연결된 학원 생활</span>
-          </li>
-          <li class="bella-feature-item">
-            전공 수업, 실습, 특별 강의 등 다양한 수업 활동
-          </li>
-          <li class="bella-feature-item">
-            동아리 활동 - 주식 투자 동아리, 검술 동아리 등
-          </li>
-          <li class="bella-feature-item">
-            7개 기숙사 하우스 시스템 - Rose, Belladonna, Aconitum, Ivy, Poppy, Rafflesia, Lily Valley
-          </li>
-          <li class="bella-feature-item">
-            학원 이벤트 - 입학식, 축제, 시험, 방학 등
-          </li>
-        </ul>
-      </div>
+  <!-- 학원 생활 -->
+  <details style="margin-bottom: 16px;">
+    <summary style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 16px 20px; cursor: pointer; font-size: 18px; font-weight: 700; color: #f5f5f7; list-style: none;">
+      🎓 학원 생활 시스템
+    </summary>
+    <div style="padding: 20px; color: #d1d1d6; font-size: 15px; line-height: 1.8;">
+      <div style="margin-bottom: 12px;">▸ 주간 스케줄 - 월요일부터 일요일까지 <span style="color: #ec4899; font-weight: 700;">유기적으로 연결된 학원 생활</span></div>
+      <div style="margin-bottom: 12px;">▸ 전공 수업, 실습, 특별 강의 등 다양한 수업 활동</div>
+      <div style="margin-bottom: 12px;">▸ 동아리 활동 - 주식 투자 동아리, 검술 동아리 등</div>
+      <div style="margin-bottom: 12px;">▸ 7개 기숙사 하우스 시스템 - Rose, Belladonna, Aconitum, Ivy, Poppy, Rafflesia, Lily Valley</div>
+      <div style="margin-bottom: 12px;">▸ 학원 이벤트 - 입학식, 축제, 시험, 방학 등</div>
     </div>
-  </div>
+  </details>
 
-  <div class="bella-cta">
-    <div class="bella-cta-text">🔥 지금 바로 벨라도나 아카데미에 입학하세요! 🔥</div>
-    <a href="https://github.com/minoak/dudada" class="bella-link" target="_blank">GitHub에서 다운로드</a>
+  <!-- CTA -->
+  <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 24px; text-align: center; border-radius: 12px; margin-top: 20px;">
+    <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 12px;">
+      🔥 지금 바로 벨라도나 아카데미에 입학하세요! 🔥
+    </div>
+    <a href="https://github.com/minoak/dudada" style="display: inline-block; background: rgba(255,255,255,0.2); padding: 12px 32px; border-radius: 8px; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 15px; border: 2px solid rgba(255,255,255,0.3);">
+      GitHub에서 다운로드
+    </a>
   </div>
 
 </div>
 
-<div class="bella-footer">
+<!-- 푸터 -->
+<div style="padding: 20px 30px; text-align: center; color: #a0a0ab; font-size: 13px; background: rgba(0,0,0,0.2);">
   <div style="margin-bottom: 8px;">💜 RisuAI 전용 시뮬레이션 봇 💜</div>
   <div>
-    <span class="bella-badge">7대죄</span>
-    <span class="bella-badge">23명</span>
-    <span class="bella-badge">경영</span>
-    <span class="bella-badge">주식</span>
-    <span class="bella-badge">전투</span>
-    <span class="bella-badge">던전</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">7대죄</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">23명</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">경영</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">주식</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">전투</span>
+    <span style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; margin: 4px;">던전</span>
   </div>
 </div>
 
