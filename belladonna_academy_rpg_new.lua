@@ -91,7 +91,13 @@ local characters = {
      stats = {str = 55, dex = 60, int = 75, luk = 70}},  -- 일러스트레이터 (전투력: 305)
 
     {display = "Clover", storage = "clover", icon = "🍀", is_main = false,
-     stats = {str = 52, dex = 58, int = 78, luk = 72}}  -- 연금술사, 운빨 (전투력: 298)
+     stats = {str = 52, dex = 58, int = 78, luk = 72}},  -- 연금술사, 운빨 (전투력: 298)
+
+    {display = "Noctis", storage = "noctis", icon = "👹", is_main = false,
+     stats = {str = 45, dex = 55, int = 95, luk = 65}},  -- 봉인된 마왕, 메타인식 (전투력: 600)
+
+    {display = "Pennywise", storage = "pennywise", icon = "📈", is_main = false,
+     stats = {str = 65, dex = 70, int = 80, luk = 30}}  -- 주식중독자, LUK 저주 (전투력: 620)
 }
 
 local affinityChanges = {
