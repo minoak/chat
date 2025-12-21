@@ -6595,26 +6595,44 @@ end
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
-    -- 1단계: 태그 파싱 및 변수 업데이트 (디스플레이 변환 전!)
+    -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)
     -- ============================================
 
-    -- 주식 시스템 활성화 태그
-    parseStockSystemEnable(triggerId, data)
+    -- 보조 모델 출력인지 확인: 보조 모델은 주로 태그만 출력하고 스토리 텍스트가 적음
+    -- 또는 특정 마커를 확인
+    local isAuxiliaryOutput = false
 
-    -- 동아리 가입/탈퇴 태그 파싱
-    parseClubChanges(triggerId, data)
+    -- 보조 모델 판별: [Affinity:, [Stat:, [Gold: 같은 태그가 있으면 보조 모델 출력
+    if data:match("%[Affinity:") or data:match("%[Stat:") or data:match("%[Gold:") or
+       data:match("%[Sin:") or data:match("%[Item:") or data:match("%[EXP:") then
+        isAuxiliaryOutput = true
+    end
 
-    -- 주식 시세 변화 태그 파싱
-    parseStockChanges(triggerId, data)
+    -- 보조 모델 출력일 때만 메인 모델의 태그를 파싱하여 변수 업데이트
+    if isAuxiliaryOutput then
+        local chatData = getChat(triggerId)
+        if chatData and chatData.message and #chatData.message > 0 then
+            -- 마지막 AI 메시지 찾기 (메인 모델 출력)
+            for i = #chatData.message, 1, -1 do
+                local msg = chatData.message[i]
+                if msg.role == "assistant" or msg.role == "char" then
+                    local mainOutput = msg.data or ""
 
-    -- 주식 매매 태그 파싱 (변수 업데이트)
-    parseStockTrades(triggerId, data)
+                    -- 메인 모델 출력에서 주식 관련 태그 파싱
+                    parseStockSystemEnable(triggerId, mainOutput)
+                    parseClubChanges(triggerId, mainOutput)
+                    parseStockChanges(triggerId, mainOutput)
+                    parseStockTrades(triggerId, mainOutput)
+                    parseMarketIndex(triggerId, mainOutput)
 
-    -- 시장 지수 태그 파싱
-    parseMarketIndex(triggerId, data)
+                    break  -- 가장 최근 AI 메시지만 처리
+                end
+            end
+        end
+    end
 
     -- ============================================
-    -- 2단계: 스토리 중간 태그 → 디스플레이 변환
+    -- 2단계: 현재 출력의 HTML 변환 (디스플레이용)
     -- ============================================
 
     -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
