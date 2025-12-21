@@ -6677,6 +6677,37 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 주간 보고서 변환
     data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", convertWeeklyReport)
 
+    -- ============================================
+    -- 보조 AI 리롤 버튼 추가
+    -- ============================================
+
+    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
+    if auxiliaryMode ~= "0" then
+        -- meta 정보가 있고 마지막 메시지인지 확인
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            local position = meta.index - chatLength
+            if position == -1 then
+                -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
+                local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
+                                           data:find("%[Sin:", 1, false) or
+                                           data:find("%[Location:", 1, false) or
+                                           data:find("<Panel", 1, true)
+
+                -- 이미 리롤 버튼이 없고 보조 출력이 있으면 버튼 추가
+                if hasAuxiliaryOutput and not data:find('risu%-btn="reroll_auxiliary"', 1, true) then
+                    local rerollButton = [[
+
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
+<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
+</div>]]
+                    data = data .. rerollButton
+                end
+            end
+        end
+    end
+
     return data
 end)
 
@@ -7128,51 +7159,6 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 -- ============================================
 -- 보조 AI 리롤 버튼 표시 (editDisplay)
 -- ============================================
-
-listenEdit("editDisplay", function(triggerId, data, meta)
-    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
-    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
-    if auxiliaryMode == "0" then
-        return data
-    end
-
-    -- meta 정보가 없으면 버튼 표시 안함
-    if not meta or not meta.index then
-        return data
-    end
-
-    -- 마지막 메시지(-1)가 아니면 버튼 표시 안함
-    local chatLength = getChatLength(triggerId)
-    local position = meta.index - chatLength
-    if position ~= -1 then
-        return data
-    end
-
-    -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
-    -- 사용자 메시지나 순수 AI 응답(보조모델 없음)은 제외
-    local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
-                               data:find("%[Sin:", 1, false) or
-                               data:find("%[Location:", 1, false) or
-                               data:find("<Panel", 1, true)
-
-    if not hasAuxiliaryOutput then
-        return data
-    end
-
-    -- 이미 리롤 버튼이 있으면 중복 추가 방지
-    if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
-        return data
-    end
-
-    -- 리롤 버튼 (우측 하단 배치)
-    local rerollButton = [[
-
-<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
-<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
-</div>]]
-
-    return data .. rerollButton
-end)
 
 -- ============================================
 -- 보조 AI 리롤 버튼 클릭 핸들러
