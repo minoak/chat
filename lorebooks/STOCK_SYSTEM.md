@@ -129,10 +129,7 @@ Output these tags when {{user}} makes buy/sell decisions in the narrative.
 ```
 Example: `[Market:1050:+2.5:Golden Mane Vault quarterly earnings beat]`
 
-### Market Display
-```
-<MarketPanel />  - Market status panel (latest chat only)
-```
+**Note**: Market index is displayed in the stock panel asset view. Do NOT output `<MarketPanel />` tag - it is no longer used.
 
 ### Market News Examples
 - Bull: "GOLDMANE leads financial rally", "Magitech boom continues"
