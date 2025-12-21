@@ -39,7 +39,65 @@ Lily Valley Securities stock trading system. Enables stock investment gameplay.
 
 ---
 
+## Current Stock Prices
+
+When you need to show or reference stock prices, use these current values:
+
+**Core Stocks:**
+- GOLDMANE ({{getvar::stock_GOLDMANE_price}}G) - Golden Mane Vault
+- LUXORIA ({{getvar::stock_LUXORIA_price}}G) - Citadel of Luxury
+- PFIZARA ({{getvar::stock_PFIZARA_price}}G) - Alchemy Pharmaceuticals
+
+**Tech Stocks:**
+- TESLAM ({{getvar::stock_TESLAM_price}}G) - Thunder Magitech
+- NVIDIUM ({{getvar::stock_NVIDIUM_price}}G) - Holy Computing Crystal
+- ARCMED ({{getvar::stock_ARCMED_price}}G) - Arcane Computing Workshop
+- INTELLUM ({{getvar::stock_INTELLUM_price}}G) - Crystal of Intellect
+
+**Commerce:**
+- AMAZONIA ({{getvar::stock_AMAZONIA_price}}G) - Great Forest Logistics Guild
+- APPELLE ({{getvar::stock_APPELLE_price}}G) - Forbidden Apple Trading Co.
+
+**Illusion/Media:**
+- METARIX ({{getvar::stock_METARIX_price}}G) - Phantasmal Magic Circle
+- NETHRYX ({{getvar::stock_NETHRYX_price}}G) - Crystal Ball Broadcasting
+
+**Biotech:**
+- MUTAGEN ({{getvar::stock_MUTAGEN_price}}G) - Mutation Research Lab
+- VITALIS ({{getvar::stock_VITALIS_price}}G) - Life Force Elixir
+
+**Finance:**
+- MORGANITE ({{getvar::stock_MORGANITE_price}}G) - Gemstone Finance Group
+
+**Defense/Manufacturing:**
+- AEGIS ({{getvar::stock_AEGIS_price}}G) - Shield Workshop
+- IRONFORGE ({{getvar::stock_IRONFORGE_price}}G) - Iron Smithy
+
+**Luxury/Consumer:**
+- GUCCIEL ({{getvar::stock_GUCCIEL_price}}G) - Angel's Textile
+- STARBREW ({{getvar::stock_STARBREW_price}}G) - Starlight Brewery
+- HARVESTIA ({{getvar::stock_HARVESTIA_price}}G) - Blessing of Harvest
+
+**Construction:**
+- STONECRAFT ({{getvar::stock_STONECRAFT_price}}G) - Stonemason Guild
+
+---
+
 ## Tag Format
+
+### Stock Update Tag
+
+When showing stock market activity or checking prices, output `<Stock>` tag with current prices and market context:
+
+```
+<Stock>
+GOLDMANE (Golden Mane Vault): 280G, rising - Quarterly earnings beat
+MUTAGEN (Mutation Research Lab): 75G, falling - Clinical trial failure
+TESLAM (Thunder Magitech): 250G, stable - Waiting for product launch
+</Stock>
+```
+
+The auxiliary model will convert this to system tags and display the stock panel.
 
 ### Trade Tags
 ```
@@ -47,7 +105,7 @@ Lily Valley Securities stock trading system. Enables stock investment gameplay.
 [StockSell:TICKER:PRICE:QTY]  - Sell
 ```
 
-**Note**: Stock price updates are handled automatically by the auxiliary model. You only need to output trade tags when {{user}} makes buy/sell decisions.
+Output these tags when {{user}} makes buy/sell decisions in the narrative.
 
 ---
 
