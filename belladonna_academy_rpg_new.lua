@@ -6366,7 +6366,26 @@ end
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
-    -- 스토리 중간 태그 → 디스플레이 변환
+    -- 1단계: 태그 파싱 및 변수 업데이트 (디스플레이 변환 전!)
+    -- ============================================
+
+    -- 주식 시스템 활성화 태그
+    parseStockSystemEnable(triggerId, data)
+
+    -- 동아리 가입/탈퇴 태그 파싱
+    parseClubChanges(triggerId, data)
+
+    -- 주식 시세 변화 태그 파싱
+    parseStockChanges(triggerId, data)
+
+    -- 주식 매매 태그 파싱 (변수 업데이트)
+    parseStockTrades(triggerId, data)
+
+    -- 시장 지수 태그 파싱
+    parseMarketIndex(triggerId, data)
+
+    -- ============================================
+    -- 2단계: 스토리 중간 태그 → 디스플레이 변환
     -- ============================================
 
     -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
