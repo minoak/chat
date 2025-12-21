@@ -436,12 +436,23 @@ When Main AI outputs `[Business:Enable:TICKER]` (e.g., `[Business:Enable:GOLDMAN
 **CRITICAL - Business Event Analysis:**
 When Main AI outputs business events, you must analyze them and update company variables.
 
-**What you see from Main AI:**
+**What you see from Main AI (TWO formats - handle BOTH):**
+
+*Format 1 - Tag (Preferred):*
 ```
 [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
 [Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
 [Business:PFIZARA:신약 개발 성공, 업계 주목]
 ```
+
+*Format 2 - System Message (Fallback):*
+```
+System Message: [GOLDMANE] 신규 투자 프로젝트 승인, 중규모
+System Message: [LUXORIA] 스캔들 발생, 브랜드 이미지 타격
+System Message: [PFIZARA] 신약 개발 성공, 업계 주목
+```
+
+**IMPORTANT**: Check for BOTH formats. If you see either format, analyze the event and output variable updates.
 
 **Your Analysis Process:**
 1. **Read the event description** - Understand what happened (investment, crisis, expansion, etc.)
@@ -465,7 +476,10 @@ When Main AI outputs business events, you must analyze them and update company v
 
 *Investment Success (투자 성공):*
 ```
-Event: [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
+Event (Tag): [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
+OR
+Event (System Message): System Message: [GOLDMANE] 신규 투자 프로젝트 승인, 중규모
+
 Analysis: 중규모 투자 → 현금 감소, 미래 수익 증가 예상, R&D 진척
 Output: [Stock:GOLDMANE:cash:-100|rd_progress:+15|influence:+3]
 ```
