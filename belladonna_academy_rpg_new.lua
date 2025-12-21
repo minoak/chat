@@ -5937,6 +5937,16 @@ function generateStockBoardView(triggerId)
     for _, ticker in ipairs(STOCK_TICKERS) do
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]  -- 이전 가격
+                change = price - prevPrice
+            end
+        end
+
         -- state 우선, chatVar 폴백 (변수명 수정: _owned -> _qty)
         local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         local name = STOCK_NAMES[ticker] or ticker
@@ -6046,6 +6056,16 @@ function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
     local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+
+    -- 변화량이 0이면 히스토리에서 계산
+    if change == 0 then
+        local history = getStockHistory(triggerId, ticker)
+        if #history >= 2 then
+            local prevPrice = history[#history - 1]
+            change = price - prevPrice
+        end
+    end
+
     -- 등락률 계산
     local prevPrice = price - change
     local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
@@ -6337,6 +6357,16 @@ function generateStockChartView(triggerId, ticker)
         local isSelected = t == ticker
         local tPrice = getState(triggerId, "stock_" .. t .. "_price") or STOCK_BASE_PRICES[t]
         local tChange = getState(triggerId, "stock_" .. t .. "_change") or 0
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if tChange == 0 then
+            local history = getStockHistory(triggerId, t)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                tChange = tPrice - prevPrice
+            end
+        end
+
         -- 등락률 계산
         local tPrevPrice = tPrice - tChange
         local tChangePercent = (tPrevPrice > 0 and tChange ~= 0) and ((tChange / tPrevPrice) * 100) or 0
@@ -6833,6 +6863,15 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
 
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                change = price - prevPrice
+            end
+        end
+
         -- 등락률 계산: (변화량 / 이전가격) × 100
         local prevPrice = price - change
         local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
@@ -6903,6 +6942,15 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
         local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                change = price - prevPrice
+            end
+        end
 
         -- 등락률 계산: (변화량 / 이전가격) × 100
         local prevPrice = price - change
