@@ -1659,9 +1659,14 @@ function parseBusinessEnable(triggerId, message)
             setState(triggerId, joinedVar, "1")
             log(string.format("💼 %s 회사 경영진 합류", ticker))
 
-            -- 회사 변수 초기화 (이미 초기화되지 않은 경우에만)
+            -- 회사 변수 초기화
             local revenueVar = ticker .. "_revenue"
-            if not getChatVar(triggerId, revenueVar) or getChatVar(triggerId, revenueVar) == "" then
+            local existingRevenue = getChatVar(triggerId, revenueVar)
+
+            -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"인 경우
+            local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0"
+
+            if shouldInitialize then
                 -- 기본 회사 재무 상태 (티커별로 다름)
                 local defaults = {
                     GOLDMANE = {revenue = 500, profit = 150, cash = 300, debt = 100, market_share = 22,
@@ -1679,8 +1684,10 @@ function parseBusinessEnable(triggerId, message)
                         setChatVar(triggerId, fullVar, tostring(value))
                         setState(triggerId, fullVar, tostring(value))
                     end
-                    log(string.format("💼 %s 회사 변수 초기화 완료", ticker))
+                    log(string.format("💼 %s 회사 변수 초기화 완료 (revenue=%d, profit=%d, cash=%d)", ticker, vars.revenue, vars.profit, vars.cash))
                 end
+            else
+                log(string.format("💼 %s 회사 변수 이미 존재 (revenue=%s), 초기화 생략", ticker, existingRevenue))
             end
         end
     end
