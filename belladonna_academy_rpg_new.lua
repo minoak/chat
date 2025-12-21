@@ -5876,6 +5876,9 @@ end
 function generateBusinessView(triggerId)
     local html = [[<div style='padding:16px'>]]
 
+    -- 주식 시스템 활성화 여부 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
+
     -- 경영 중인 회사 확인
     local companies = {}
 
@@ -5949,9 +5952,6 @@ function generateBusinessView(triggerId)
 
         log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
 
-        -- 주가 정보 (추가)
-        local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
-
         -- 지표 계산
         local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
         local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
@@ -5959,6 +5959,61 @@ function generateBusinessView(triggerId)
         -- 색상 결정
         local profitColor = profit >= 0 and "#3fb950" or "#f85149"
         local debtColor = debtRatio > 70 and "#f85149" or (debtRatio > 40 and "#d29922" or "#8b949e")
+
+        -- 시장 포지션 섹션 HTML (주식 시스템 활성화 여부에 따라 다르게 구성)
+        local marketPositionHtml
+        if stockEnabled == "1" then
+            -- 주식 시스템 활성화: 주가 포함 (2x2 그리드)
+            local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
+            marketPositionHtml = string.format([[
+    <!-- 시장 포지션 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
+          <div style='color:#ffd700;font-size:15px;font-weight:600'>%sG</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
+          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
+        </div>
+      </div>
+    </div>]], market_share, brand_value, formatNumber(stockPrice), formatNumber(employees))
+        else
+            -- 경영 전용 모드: 주가 제외 (2x2 그리드)
+            marketPositionHtml = string.format([[
+    <!-- 시장 포지션 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
+          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>업계 영향력</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d</div>
+        </div>
+      </div>
+    </div>]], market_share, brand_value, formatNumber(employees), influence)
+        end
 
         html = html .. string.format([[
   <div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3)'>
@@ -5991,28 +6046,7 @@ function generateBusinessView(triggerId)
       </div>
     </div>
 
-    <!-- 시장 포지션 -->
-    <div style='margin-bottom:16px'>
-      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
-      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
-          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
-          <div style='color:#ffd700;font-size:15px;font-weight:600'>%sG</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
-          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
-        </div>
-      </div>
-    </div>
+%s
 
     <!-- 운영 및 경영 참여 -->
     <div>
@@ -6023,7 +6057,7 @@ function generateBusinessView(triggerId)
           <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>경영영향력</div>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>전략 기여도</div>
           <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d</div>
         </div>
       </div>
@@ -6037,7 +6071,7 @@ function generateBusinessView(triggerId)
 ]], ticker, company.sector, company.name, company.character,
    formatNumber(revenue), profitMargin, profitColor, formatNumber(profit),
    formatNumber(cash), debtRatio, debtColor, formatNumber(debt),
-   market_share, brand_value, formatNumber(stockPrice), formatNumber(employees),
+   marketPositionHtml,
    rd_progress, influence, player_share)
     end
 
