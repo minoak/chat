@@ -6012,12 +6012,16 @@ end
 -- 현재 뷰에 따른 주식 패널 HTML 생성
 function generateStockPanelUI(triggerId)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then
-        -- 주식 시스템 비활성화 상태: 빈 문자열 반환
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or getState(triggerId, "business_system_enabled")
+
+    -- 주식 또는 경영 시스템 중 하나라도 활성화되어 있어야 패널 표시
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then
         return ""
     end
 
-    local currentView = getState(triggerId, "stock_current_view") or "asset"
+    -- 기본 뷰 결정: 주식 활성화 시 자산, 경영만 활성화 시 경영
+    local defaultView = (stockEnabled == "1") and "asset" or "business"
+    local currentView = getState(triggerId, "stock_current_view") or defaultView
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
 
     -- 골드 읽기 및 동기화
@@ -6055,17 +6059,18 @@ function generateStockPanelUI(triggerId)
 
     -- 접혀있지 않을 때만 내용 표시
     if not isCollapsed then
-        -- 탭 버튼 (경영 시스템 활성화 여부에 따라 경영 탭 추가)
-        local businessEnabled = getChatVar(triggerId, "business_system_enabled") or getState(triggerId, "business_system_enabled")
-
+        -- 탭 구성 (활성화된 시스템에 따라 동적 생성)
         html = html .. [[
   <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
 
-        local tabs = {
-            {id = "board", label = "시세"},
-            {id = "chart", label = "차트"},
-            {id = "asset", label = "자산"}
-        }
+        local tabs = {}
+
+        -- 주식 시스템 활성화 시 주식 탭 추가
+        if stockEnabled == "1" then
+            table.insert(tabs, {id = "board", label = "시세"})
+            table.insert(tabs, {id = "chart", label = "차트"})
+            table.insert(tabs, {id = "asset", label = "자산"})
+        end
 
         -- 경영 시스템 활성화 시 경영 탭 추가
         if businessEnabled == "1" then
