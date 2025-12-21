@@ -6389,7 +6389,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
 
     -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
-    data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치 (Lua에서 .는 줄바꿈 제외)
+    data = data:gsub("<CombatChoice>([%s%S]-)</CombatChoice>", function(content)
         local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
         local choiceIndex = 1
 
@@ -6532,7 +6533,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
 
     -- <Stock> 태그 파싱 및 뉴스 저장
-    data = data:gsub("<Stock>(.-)</Stock>", function(content)
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치
+    data = data:gsub("<Stock>([%s%S]-)</Stock>", function(content)
         local newsItems = {}
         for line in content:gmatch("[^\r\n]+") do
             -- 형식: TICKER: PRICEg, DIRECTION - REASON
