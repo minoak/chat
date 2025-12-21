@@ -5876,21 +5876,6 @@ end
 function generateBusinessView(triggerId)
     local html = [[<div style='padding:16px'>]]
 
-    -- 디버그 정보 표시
-    local debugInfo = {}
-    table.insert(debugInfo, "business_system_enabled = " .. tostring(getChatVar(triggerId, "business_system_enabled")))
-    table.insert(debugInfo, "mirabel_company_joined = " .. tostring(getChatVar(triggerId, "mirabel_company_joined")))
-    table.insert(debugInfo, "GOLDMANE_revenue = " .. tostring(getChatVar(triggerId, "GOLDMANE_revenue")))
-    table.insert(debugInfo, "GOLDMANE_profit = " .. tostring(getChatVar(triggerId, "GOLDMANE_profit")))
-    table.insert(debugInfo, "GOLDMANE_cash = " .. tostring(getChatVar(triggerId, "GOLDMANE_cash")))
-    table.insert(debugInfo, "GOLDMANE_market_share = " .. tostring(getChatVar(triggerId, "GOLDMANE_market_share")))
-
-    html = html .. [[
-<div style='background:#1a1a1a;border:1px solid #ff6b6b;border-radius:8px;padding:12px;margin-bottom:16px;font-family:monospace;font-size:11px'>
-  <div style='color:#ff6b6b;font-weight:700;margin-bottom:8px'>🐛 DEBUG INFO</div>
-  <div style='color:#c9d1d9;line-height:1.6'>]] .. table.concat(debugInfo, "<br>") .. [[</div>
-</div>]]
-
     -- 경영 중인 회사 확인
     local companies = {}
 
