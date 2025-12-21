@@ -432,6 +432,7 @@ When Main AI outputs `[Business:Enable:TICKER]` (e.g., `[Business:Enable:GOLDMAN
 - The system automatically initializes company variables
 - You should acknowledge this in your regular narrative output
 - DO NOT output variable update tags for activation (initialization is automatic)
+- DO NOT output <StockPanel:TICKER /> - business info is accessible via panel's business tab
 
 **CRITICAL - Business Event Analysis:**
 When Main AI outputs business events, you must analyze them and update company variables.
@@ -521,6 +522,11 @@ Example complete response after seeing business event:
 ```
 [Stock:GOLDMANE:revenue:+120|profit:+70|cash:-80|rd_progress:+12|influence:+5]
 ```
+
+**IMPORTANT - Display:**
+- DO NOT output <StockPanel:TICKER /> after business events
+- Users can check company status via the Business tab in the main panel
+- Only output your regular narrative response with the variable update tags above
 ]]
 
 -- ============================================
@@ -5836,6 +5842,170 @@ local function convertWeeklyReport(content)
 end
 
 -- ============================================
+-- 경영 현황 뷰 생성 함수
+-- ============================================
+
+function generateBusinessView(triggerId)
+    local html = [[<div style='padding:16px'>]]
+
+    -- 경영 중인 회사 확인
+    local companies = {}
+
+    if getChatVar(triggerId, "mirabel_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "GOLDMANE",
+            name = "골든메인 금광",
+            sector = "Finance",
+            character = "Mirabel von Goldenrose"
+        })
+    end
+
+    if getChatVar(triggerId, "cordelia_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "LUXORIA",
+            name = "럭소리아 명품관",
+            sector = "Luxury",
+            character = "Cordelia von Edelstein"
+        })
+    end
+
+    if getChatVar(triggerId, "nepenthes_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "PFIZARA",
+            name = "파이자라 제약",
+            sector = "Pharma",
+            character = "Nepenthes von Dormien"
+        })
+    end
+
+    -- 경영 중인 회사가 없는 경우
+    if #companies == 0 then
+        html = html .. [[
+  <div style='text-align:center;padding:40px 20px;color:#8b949e'>
+    <div style='font-size:48px;margin-bottom:16px'>💼</div>
+    <div style='font-size:15px;font-weight:600;color:#c9d1d9;margin-bottom:8px'>경영 중인 회사 없음</div>
+    <div style='font-size:13px;line-height:1.6'>
+      캐릭터 호감도 300+ 달성 시<br>
+      회사 경영 파트너십을 제안받을 수 있습니다
+    </div>
+  </div>
+</div>]]
+        return html
+    end
+
+    -- 각 회사 정보 표시
+    for _, company in ipairs(companies) do
+        local ticker = company.ticker
+
+        -- 변수 가져오기
+        local revenue = tonumber(getChatVar(triggerId, ticker .. "_revenue")) or 0
+        local profit = tonumber(getChatVar(triggerId, ticker .. "_profit")) or 0
+        local cash = tonumber(getChatVar(triggerId, ticker .. "_cash")) or 0
+        local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
+        local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
+        local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
+        local employees = tonumber(getChatVar(triggerId, ticker .. "_employees")) or 0
+        local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
+        local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
+        local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
+
+        -- 주가 정보 (추가)
+        local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
+
+        -- 지표 계산
+        local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
+        local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
+
+        -- 색상 결정
+        local profitColor = profit >= 0 and "#3fb950" or "#f85149"
+        local debtColor = debtRatio > 70 and "#f85149" or (debtRatio > 40 and "#d29922" or "#8b949e")
+
+        html = html .. string.format([[
+  <div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3)'>
+    <div style='text-align:center;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid #21262d'>
+      <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>%s | %s</div>
+      <div style='color:#58a6ff;font-size:18px;font-weight:700;margin-bottom:4px'>%s</div>
+      <div style='color:#8b949e;font-size:12px'>공동 경영 파트너: %s</div>
+    </div>
+
+    <!-- 재무 현황 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📊 재무 현황</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>매출</div>
+          <div style='color:#fff;font-size:15px;font-weight:600'>%sM</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%%%)</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>현금</div>
+          <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%%%)</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시장 포지션 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%%</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
+          <div style='color:#ffd700;font-size:15px;font-weight:600'>%sG</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
+          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 운영 및 경영 참여 -->
+    <div>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>⚙️ 운영 현황</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>R&D 진척도</div>
+          <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%%%</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>경영영향력</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d</div>
+        </div>
+      </div>
+    </div>
+
+    <div style='margin-top:12px;padding-top:12px;border-top:1px solid #21262d;text-align:center'>
+      <div style='color:#8b949e;font-size:11px'>보유 지분</div>
+      <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%%%</div>
+    </div>
+  </div>
+]], ticker, company.sector, company.name, company.character,
+   formatNumber(revenue), profitMargin, profitColor, formatNumber(profit),
+   formatNumber(cash), debtRatio, debtColor, formatNumber(debt),
+   market_share, brand_value, formatNumber(stockPrice), formatNumber(employees),
+   rd_progress, influence, player_share)
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- ============================================
 -- 주식 패널 UI 생성 함수
 -- ============================================
 
@@ -5885,7 +6055,9 @@ function generateStockPanelUI(triggerId)
 
     -- 접혀있지 않을 때만 내용 표시
     if not isCollapsed then
-        -- 탭 버튼
+        -- 탭 버튼 (경영 시스템 활성화 여부에 따라 경영 탭 추가)
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled") or getState(triggerId, "business_system_enabled")
+
         html = html .. [[
   <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
 
@@ -5894,6 +6066,11 @@ function generateStockPanelUI(triggerId)
             {id = "chart", label = "차트"},
             {id = "asset", label = "자산"}
         }
+
+        -- 경영 시스템 활성화 시 경영 탭 추가
+        if businessEnabled == "1" then
+            table.insert(tabs, {id = "business", label = "경영"})
+        end
 
         for _, tab in ipairs(tabs) do
             local isActive = currentView == tab.id
@@ -5916,6 +6093,8 @@ function generateStockPanelUI(triggerId)
             html = html .. generateStockChartView(triggerId, selectedTicker)
         elseif currentView == "asset" then
             html = html .. generateStockAssetView(triggerId)
+        elseif currentView == "business" then
+            html = html .. generateBusinessView(triggerId)
         end
 
         html = html .. "</div>"  -- 뷰 컨테이너 닫기
