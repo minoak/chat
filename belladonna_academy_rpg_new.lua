@@ -403,18 +403,26 @@ Always end with <Panel>■★
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
 
-## Stock Panel Display (Stock System Enabled)
+## Stock Trading System (Stock System Enabled)
 
-**IMPORTANT**: Only output <StockPanel /> when stock-related events occur:
-- When [StockBuy:...] or [StockSell:...] tags are present (after trades)
-- When [Club:Join:stock] tag is present (when joining stock club)
-- NEVER output it otherwise - the user can open the panel manually
+**CRITICAL - Stock vs Item Distinction:**
+- Stock transactions are NOT items - DO NOT output [Item:...] tags for stocks
+- Stock transactions are NOT gold changes - DO NOT output [Gold:...] tags for stock trades
+- When you see [StockBuy:...] or [StockSell:...] tags from Main AI:
+  * These are automatically processed by the system
+  * You only need to output <StockPanel /> to show the updated portfolio
+  * DO NOT treat them as regular item purchases
 
-## Stock Information Parsing
+**Stock Panel Display:**
+Only output <StockPanel /> when stock-related events occur:
+- After [StockBuy:...] or [StockSell:...] tags appear (trades completed)
+- After [Club:Join:stock] tag appears (joined stock club)
+- NEVER output it otherwise - user can open panel manually
 
+**Stock Information:**
 When Main AI outputs `<Stock>` tag with market news:
-- Parse the stock price changes and news
-- DO NOT output <StockPanel /> (news is already shown in panel)
+- This is for display only, already shown in panel
+- DO NOT output <StockPanel /> for news updates
 
 ## Business Management Tags (Business System Enabled)
 
