@@ -1635,7 +1635,14 @@ end
 
 -- 경영 시스템 활성화 태그 파싱: [Business:Enable:TICKER]
 function parseBusinessEnable(triggerId, message)
+    -- 디버깅: 태그 검색 시작
+    if message:match("%[Business:Enable:") then
+        log("🔍 [Business:Enable:...] 태그 발견! 파싱 시작")
+    end
+
     for ticker in message:gmatch("%[Business:Enable:([A-Z]+)%]") do
+        log(string.format("🔍 파싱된 티커: %s", ticker))
+
         -- 티커별 캐릭터 매핑
         local characterMap = {
             GOLDMANE = "mirabel",
@@ -1645,12 +1652,16 @@ function parseBusinessEnable(triggerId, message)
 
         local character = characterMap[ticker]
         if character then
+            log(string.format("✅ 캐릭터 매핑 성공: %s -> %s", ticker, character))
+
             -- 경영 시스템 활성화
             local currentEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
             if currentEnabled ~= "1" then
                 setChatVar(triggerId, "business_system_enabled", "1")
                 setState(triggerId, "business_system_enabled", "1")
                 log("💼 경영 시스템 활성화")
+            else
+                log("💼 경영 시스템 이미 활성화됨")
             end
 
             -- 캐릭터별 회사 가입
@@ -1663,8 +1674,12 @@ function parseBusinessEnable(triggerId, message)
             local revenueVar = ticker .. "_revenue"
             local existingRevenue = getChatVar(triggerId, revenueVar)
 
+            log(string.format("🔍 기존 revenue 값: %s", tostring(existingRevenue)))
+
             -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"인 경우
             local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0"
+
+            log(string.format("🔍 초기화 필요 여부: %s", tostring(shouldInitialize)))
 
             if shouldInitialize then
                 -- 기본 회사 재무 상태 (티커별로 다름)
@@ -1679,16 +1694,22 @@ function parseBusinessEnable(triggerId, message)
 
                 local vars = defaults[ticker]
                 if vars then
+                    log(string.format("🔍 기본값 로드 성공: revenue=%d", vars.revenue))
                     for varName, value in pairs(vars) do
                         local fullVar = ticker .. "_" .. varName
                         setChatVar(triggerId, fullVar, tostring(value))
                         setState(triggerId, fullVar, tostring(value))
+                        log(string.format("📝 변수 설정: %s = %s", fullVar, tostring(value)))
                     end
                     log(string.format("💼 %s 회사 변수 초기화 완료 (revenue=%d, profit=%d, cash=%d)", ticker, vars.revenue, vars.profit, vars.cash))
+                else
+                    log(string.format("❌ %s 기본값 로드 실패", ticker))
                 end
             else
                 log(string.format("💼 %s 회사 변수 이미 존재 (revenue=%s), 초기화 생략", ticker, existingRevenue))
             end
+        else
+            log(string.format("❌ 캐릭터 매핑 실패: %s", ticker))
         end
     end
 end
