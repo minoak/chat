@@ -1663,6 +1663,16 @@ end
 
 -- 주식 매매 태그 파싱: [StockBuy:TICKER:PRICE:QTY] / [StockSell:TICKER:PRICE:QTY]
 function parseStockTrades(triggerId, message)
+    -- 거래 태그가 있으면 주식 시스템 자동 활성화
+    if message:match("%[Stock[BS][ue][yl]l?:") then
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if stockEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (거래 태그 감지)")
+        end
+    end
+
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
     if stockEnabled ~= "1" then return end
 
