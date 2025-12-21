@@ -5937,7 +5937,7 @@ function generateBusinessView(triggerId)
           <div style='color:#fff;font-size:15px;font-weight:600'>%sM</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%%%)</div>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%)</div>
           <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
@@ -5945,7 +5945,7 @@ function generateBusinessView(triggerId)
           <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%%%)</div>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%)</div>
           <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
         </div>
       </div>
@@ -5957,7 +5957,7 @@ function generateBusinessView(triggerId)
       <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%%</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
@@ -5980,7 +5980,7 @@ function generateBusinessView(triggerId)
       <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>R&D 진척도</div>
-          <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%%%</div>
+          <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>경영영향력</div>
@@ -5991,7 +5991,7 @@ function generateBusinessView(triggerId)
 
     <div style='margin-top:12px;padding-top:12px;border-top:1px solid #21262d;text-align:center'>
       <div style='color:#8b949e;font-size:11px'>보유 지분</div>
-      <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%%%</div>
+      <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%</div>
     </div>
   </div>
 ]], ticker, company.sector, company.name, company.character,
