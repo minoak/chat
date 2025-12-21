@@ -899,6 +899,7 @@ function parseGoldChanges(triggerId, message)
         local new = math.max(0, current + change)
 
         setChatVar(triggerId, "player_gold", tostring(new))
+        setState(triggerId, "player_gold", new)  -- state에도 동기화
 
         -- 변경량 추적
         local prevChange = tonumber(getChatVar(triggerId, "player_gold_change")) or 0
@@ -5812,8 +5813,15 @@ function generateStockPanelUI(triggerId)
 
     local currentView = getState(triggerId, "stock_current_view") or "asset"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
-    -- state 우선, chatVar 폴백
-    local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
+
+    -- 골드 읽기 및 동기화
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+    end
+
     -- 기본값: 접힌 상태 (stock_panel_collapsed가 "0"일 때만 펼침)
     local collapseState = getState(triggerId, "stock_panel_collapsed")
     local isCollapsed = (collapseState ~= "0")
@@ -6457,7 +6465,16 @@ function generateStockAssetView(triggerId)
     -- ============================================
 
     -- state 우선, chatVar 폴백
-    local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+
+    -- chatVar에만 있고 state에 없으면 동기화
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+        log("💰 골드 state 동기화: " .. goldChat .. "G")
+    end
+
     local totalValue = gold
     local totalProfit = 0
     local stockValue = 0
