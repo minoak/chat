@@ -6620,20 +6620,26 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     if isAuxiliaryOutput then
         local chatData = getChat(triggerId)
         if chatData and chatData.message and #chatData.message > 0 then
-            -- 마지막 AI 메시지 찾기 (메인 모델 출력)
+            -- 메인 모델 출력 찾기: 보조 모델(현재) 바로 이전 AI 메시지
+            local aiMessageCount = 0
             for i = #chatData.message, 1, -1 do
                 local msg = chatData.message[i]
                 if msg.role == "assistant" or msg.role == "char" then
-                    local mainOutput = msg.data or ""
+                    aiMessageCount = aiMessageCount + 1
 
-                    -- 메인 모델 출력에서 주식 관련 태그 파싱
-                    parseStockSystemEnable(triggerId, mainOutput)
-                    parseClubChanges(triggerId, mainOutput)
-                    parseStockChanges(triggerId, mainOutput)
-                    parseStockTrades(triggerId, mainOutput)
-                    parseMarketIndex(triggerId, mainOutput)
+                    -- 2번째 AI 메시지가 메인 모델 출력
+                    if aiMessageCount == 2 then
+                        local mainOutput = msg.data or ""
 
-                    break  -- 가장 최근 AI 메시지만 처리
+                        -- 메인 모델 출력에서 주식 관련 태그 파싱
+                        parseStockSystemEnable(triggerId, mainOutput)
+                        parseClubChanges(triggerId, mainOutput)
+                        parseStockChanges(triggerId, mainOutput)
+                        parseStockTrades(triggerId, mainOutput)
+                        parseMarketIndex(triggerId, mainOutput)
+
+                        break  -- 메인 모델 메시지 처리 완료
+                    end
                 end
             end
         end
