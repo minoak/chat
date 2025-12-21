@@ -1745,10 +1745,19 @@ end
 -- 주가 히스토리 초기화 (12개 캔들용 기본값 생성)
 function initStockHistory(triggerId, ticker)
     local historyKey = "stock_" .. ticker .. "_history"
-    local existing = getChatVar(triggerId, historyKey)
+    local existingChat = getChatVar(triggerId, historyKey)
+    local existingState = getState(triggerId, historyKey)
 
-    -- 이미 히스토리가 있으면 스킵
-    if existing and existing ~= "" then
+    -- 이미 히스토리가 있으면 스킵 (chatVar와 state 둘 다 체크)
+    if (existingChat and existingChat ~= "") or (existingState and existingState ~= "") then
+        -- chatVar에만 있으면 state로 복사
+        if existingChat and existingChat ~= "" and (not existingState or existingState == "") then
+            setState(triggerId, historyKey, existingChat)
+        end
+        -- state에만 있으면 chatVar로 복사
+        if existingState and existingState ~= "" and (not existingChat or existingChat == "") then
+            setChatVar(triggerId, historyKey, existingState)
+        end
         return
     end
 
@@ -1765,11 +1774,11 @@ function initStockHistory(triggerId, ticker)
     local pattern = seed % 6
     -- 0: 상승 후 하락, 1: 하락 후 상승, 2: 급등, 3: 급락, 4: 횡보 후 급등, 5: 횡보 후 급락
 
-    -- 12개 기본 가격 생성
+    -- 20개 데이터 포인트 생성 (더 풍부한 차트)
     local prices = {}
     local price = basePrice
 
-    for i = 1, 12 do
+    for i = 1, 20 do
         seed = (seed * 1103515245 + 12345) % 2147483648
         local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
 
@@ -1777,29 +1786,29 @@ function initStockHistory(triggerId, ticker)
         local changePercent = 0
 
         if pattern == 0 then  -- 상승 후 하락
-            if i <= 6 then
+            if i <= 10 then
                 changePercent = 2 + rand * 2  -- +1% ~ +3%
             else
                 changePercent = -2.5 + rand * 2  -- -3.5% ~ -1.5%
             end
         elseif pattern == 1 then  -- 하락 후 상승
-            if i <= 6 then
+            if i <= 10 then
                 changePercent = -2 + rand * 2
             else
                 changePercent = 2.5 + rand * 2
             end
         elseif pattern == 2 then  -- 급등
-            changePercent = 1.5 + rand * 1.5 + (i * 0.2)  -- 점점 가속
+            changePercent = 1.5 + rand * 1.5 + (i * 0.15)  -- 점점 가속
         elseif pattern == 3 then  -- 급락
-            changePercent = -1.5 + rand * 1.5 - (i * 0.2)
+            changePercent = -1.5 + rand * 1.5 - (i * 0.15)
         elseif pattern == 4 then  -- 횡보 후 급등
-            if i <= 8 then
+            if i <= 14 then
                 changePercent = rand * 1.5
             else
                 changePercent = 3 + rand * 2
             end
         elseif pattern == 5 then  -- 횡보 후 급락
-            if i <= 8 then
+            if i <= 14 then
                 changePercent = rand * 1.5
             else
                 changePercent = -3 + rand * 2
@@ -1809,20 +1818,22 @@ function initStockHistory(triggerId, ticker)
         -- 가격 변동 적용 (기준가 기반 %)
         local change = math.floor(basePrice * changePercent / 100)
         price = price + change
-        price = math.max(math.floor(basePrice * 0.7), price)  -- 최소 70%
-        price = math.min(math.floor(basePrice * 1.4), price)  -- 최대 140%
+        price = math.max(math.floor(basePrice * 0.6), price)  -- 최소 60% (더 넓은 범위)
+        price = math.min(math.floor(basePrice * 1.5), price)  -- 최대 150%
 
         table.insert(prices, tostring(price))
     end
 
-    setChatVar(triggerId, historyKey, table.concat(prices, ","))
-    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern)
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
+    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern .. " (20개 데이터)")
 end
 
--- 주가 히스토리에 새 가격 추가 (12개 유지)
+-- 주가 히스토리에 새 가격 추가 (20개 유지)
 function addPriceToHistory(triggerId, ticker, newPrice)
     local historyKey = "stock_" .. ticker .. "_history"
-    local history = getChatVar(triggerId, historyKey) or ""
+    local history = getChatVar(triggerId, historyKey) or getState(triggerId, historyKey) or ""
     local prices = {}
 
     -- 기존 히스토리 파싱
@@ -1833,12 +1844,14 @@ function addPriceToHistory(triggerId, ticker, newPrice)
     -- 새 가격 추가
     table.insert(prices, tostring(newPrice))
 
-    -- 12개만 유지
-    while #prices > 12 do
+    -- 20개만 유지
+    while #prices > 20 do
         table.remove(prices, 1)
     end
 
-    setChatVar(triggerId, historyKey, table.concat(prices, ","))
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
 end
 
 -- 주가 히스토리 가져오기 (없으면 초기화)
@@ -1846,7 +1859,8 @@ function getStockHistory(triggerId, ticker)
     initStockHistory(triggerId, ticker)
 
     local historyKey = "stock_" .. ticker .. "_history"
-    local history = getChatVar(triggerId, historyKey) or ""
+    -- state 우선, chatVar 폴백
+    local history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
     local prices = {}
 
     for price in history:gmatch("([^,]+)") do
@@ -6216,6 +6230,82 @@ function generateStockChartView(triggerId, ticker)
   </div>
 </div>]], info.desc, info.sector, info.size, finColor, info.financial, volColor, info.volatility, info.upFactors, info.downFactors, info.insider)
     end
+
+    -- 뉴스 섹션 (있으면 표시)
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[
+<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
+  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📰 시장 뉴스</div>
+  <div style='display:flex;flex-direction:column;gap:6px'>]]
+
+        -- 뉴스 파싱: TICKER:direction:reason|...
+        for item in newsData:gmatch("[^|]+") do
+            local newsTicker, direction, reason = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and reason then
+                local dirIcon = "📊"
+                local dirColor = "#8b949e"
+                local dirText = "보합"
+                if direction == "rising" or direction == "up" then
+                    dirIcon = "📈"
+                    dirColor = "#ef5350"
+                    dirText = "상승"
+                elseif direction == "falling" or direction == "down" then
+                    dirIcon = "📉"
+                    dirColor = "#26a69a"
+                    dirText = "하락"
+                elseif direction == "stable" then
+                    dirText = "안정"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
+                    dirText = "급락"
+                end
+
+                local isRelated = newsTicker == ticker
+                local bgColor = isRelated and "#1c1f26" or "#0d1117"
+                local tickerColor = isRelated and "#ffd700" or "#8b949e"
+
+                html = html .. string.format([[
+    <div style='display:flex;align-items:flex-start;gap:8px;padding:8px;background:%s;border-radius:6px;border-left:3px solid %s'>
+      <span style='font-size:12px'>%s</span>
+      <div style='flex:1'>
+        <div style='display:flex;gap:8px;margin-bottom:2px'>
+          <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+          <span style='font-size:10px;color:%s'>%s</span>
+        </div>
+        <span style='font-size:11px;color:#c9d1d9'>%s</span>
+      </div>
+    </div>]], bgColor, isRelated and dirColor or "#30363d", dirIcon, tickerColor, newsTicker, dirColor, dirText, reason)
+            end
+        end
+
+        html = html .. [[
+  </div>
+</div>]]
+    end
+
+    -- 시장 지수 섹션
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#26a69a" or "#8b949e")
+    local marketSign = marketChange > 0 and "+" or ""
+    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+
+    html = html .. string.format([[
+<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
+  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📊 릴리벨리 지수</div>
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161b22;border-radius:6px'>
+    <div>
+      <div style='font-size:12px;color:#8b949e'>LBLY Index</div>
+      <div style='font-size:18px;font-weight:700;color:#fff'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:14px;font-weight:600;color:%s'>%s%s%.2f%%</div>
+      <div style='font-size:11px;color:#8b949e'>전일대비</div>
+    </div>
+  </div>
+</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
 
     -- 종목 선택 (스크롤 가능)
     html = html .. [[
