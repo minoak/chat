@@ -5925,10 +5925,20 @@ function generateBusinessView(triggerId)
     for _, company in ipairs(companies) do
         local ticker = company.ticker
 
+        log(string.format("🔍 [generateBusinessView] %s 정보 읽기 시작", ticker))
+
         -- 변수 가져오기
-        local revenue = tonumber(getChatVar(triggerId, ticker .. "_revenue")) or 0
-        local profit = tonumber(getChatVar(triggerId, ticker .. "_profit")) or 0
-        local cash = tonumber(getChatVar(triggerId, ticker .. "_cash")) or 0
+        local revenueStr = getChatVar(triggerId, ticker .. "_revenue")
+        local profitStr = getChatVar(triggerId, ticker .. "_profit")
+        local cashStr = getChatVar(triggerId, ticker .. "_cash")
+
+        log(string.format("🔍 [generateBusinessView] %s_revenue = '%s' (타입: %s)", ticker, tostring(revenueStr), type(revenueStr)))
+        log(string.format("🔍 [generateBusinessView] %s_profit = '%s' (타입: %s)", ticker, tostring(profitStr), type(profitStr)))
+        log(string.format("🔍 [generateBusinessView] %s_cash = '%s' (타입: %s)", ticker, tostring(cashStr), type(cashStr)))
+
+        local revenue = tonumber(revenueStr) or 0
+        local profit = tonumber(profitStr) or 0
+        local cash = tonumber(cashStr) or 0
         local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
         local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
         local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
@@ -5936,6 +5946,8 @@ function generateBusinessView(triggerId)
         local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
         local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
         local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
+
+        log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
 
         -- 주가 정보 (추가)
         local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
