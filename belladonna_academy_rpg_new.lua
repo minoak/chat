@@ -1327,47 +1327,6 @@ function parseMarketIndex(triggerId, message)
     end
 end
 
--- 시장 패널 UI 생성
-function generateMarketPanel(triggerId)
-    local index = getState(triggerId, "market_index") or MARKET_BASE_INDEX
-    local change = getState(triggerId, "market_change") or 0
-    local news = getState(triggerId, "market_news") or "시장 뉴스 없음"
-    local season = getChatVar(triggerId, "current_season") or "봄"
-    local week = getChatVar(triggerId, "week_of_season") or "1"
-
-    local level = getMarketLevel(index)
-    local changeColor = change >= 0 and "#ef5350" or "#26a69a"
-    local changeSign = change >= 0 and "+" or ""
-    local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
-
-    local html = string.format([[
-<div style="background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border-radius:12px;padding:16px;margin:12px 0;border:1px solid #30363d;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:20px">📊</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff">릴리벨리 지수</div>
-        <div style="font-size:11px;color:#8b949e">%s학기 %s주차</div>
-      </div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:24px;font-weight:700;color:#fff">%s</div>
-      <div style="font-size:14px;font-weight:600;color:%s">%s%s%.1f%% %s</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-    <span style="padding:4px 10px;background:%s;border-radius:6px;font-size:12px;font-weight:600;color:#fff">%s</span>
-    <span style="font-size:12px;color:#8b949e">%s</span>
-  </div>
-  <div style="background:#21262d;border-radius:8px;padding:10px 12px">
-    <div style="font-size:11px;color:#58a6ff;margin-bottom:4px">📰 최신 뉴스</div>
-    <div style="font-size:13px;color:#c9d1d9;line-height:1.4">%s</div>
-  </div>
-</div>]], season, week, formatNumber(index), changeColor, changeSign, arrow, change, level.color, level.label, level.name, news)
-
-    return html
-end
-
 -- ============================================
 -- 주식 시스템 초기화
 -- ============================================
@@ -6828,23 +6787,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
         return ""  -- 태그 제거
     end)
-
-    -- 시장 지수 패널: <MarketPanel /> (최신 채팅에만 표시)
-    local hasMarketPanel = data:find("<MarketPanel%s*/>")
-    data = data:gsub("<MarketPanel%s*/>", "")
-
-    if hasMarketPanel then
-        local shouldShow = true
-        if meta and meta.index then
-            local chatLength = getChatLength(triggerId)
-            shouldShow = (meta.index >= chatLength - 1)
-        end
-        if shouldShow then
-            -- 시장 지수 초기화 (없으면)
-            initMarketIndex(triggerId)
-            data = generateMarketPanel(triggerId) .. data
-        end
-    end
 
     -- 주식 패널: 태그가 있는지 확인 후 제거
     local hasStockPanel = data:find("<StockPanel%s*/>")
