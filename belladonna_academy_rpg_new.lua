@@ -426,6 +426,13 @@ When Main AI outputs `<Stock>` tag with market news:
 
 ## Business Management System (Business System Enabled)
 
+**Business System Activation:**
+When Main AI outputs `[Business:Enable:TICKER]` (e.g., `[Business:Enable:GOLDMANE]`):
+- This means the player has joined a company as co-executive
+- The system automatically initializes company variables
+- You should acknowledge this in your regular narrative output
+- DO NOT output variable update tags for activation (initialization is automatic)
+
 **CRITICAL - Business Event Analysis:**
 When Main AI outputs business events, you must analyze them and update company variables.
 
@@ -6645,6 +6652,13 @@ end
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
+    -- 0단계: 시스템 활성화 태그 우선 처리 (HTML 변환 전)
+    -- ============================================
+
+    -- [Business:Enable:TICKER] 태그는 즉시 파싱 (메인 모델 출력일 때)
+    parseBusinessEnable(triggerId, data)
+
+    -- ============================================
     -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)
     -- ============================================
 
@@ -6678,7 +6692,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
                         -- 메인 모델 출력에서 관련 태그 파싱
                         parseStockSystemEnable(triggerId, mainOutput)
-                        parseBusinessEnable(triggerId, mainOutput)
                         parseClubChanges(triggerId, mainOutput)
                         parseStockTrades(triggerId, mainOutput)
                         parseMarketIndex(triggerId, mainOutput)
