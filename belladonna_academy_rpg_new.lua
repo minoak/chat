@@ -424,93 +424,25 @@ When Main AI outputs `<Stock>` tag with market news:
 - This is for display only, already shown in panel
 - DO NOT output <StockPanel /> for news updates
 
-## Business Management Tags (Business System Enabled)
+## Business Management System (Business System Enabled)
 
-**TRIGGER**: When Main AI outputs "- System Message: [business event description]"
-**ACTION**: Analyze the event and output variable change tags
+**CRITICAL - Business Tag Processing:**
+- Main AI outputs business events as: `[Business:TICKER:EVENT_DESCRIPTION]`
+- These tags are automatically processed by the system
+- You do NOT need to output variable update tags
+- The system handles all business variable calculations
+- Simply acknowledge business events in your regular output if needed
 
-**TAG FORMAT**:
-Single variable: [Stock:TICKER:variable:±value]
-Multiple variables: [Stock:TICKER:var1:±value1|var2:±value2|var3:±value3|...]
+**What you see from Main AI:**
+```
+[Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
+[Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
+```
 
-**COMPANIES (Tickers)**:
-- GOLDMANE: Mirabel's gold mining company
-- LUXORIA: Cordelia's luxury goods company
-- PFIZARA: Nepenthes' pharmaceutical company
-
-**VARIABLES (10 per company)**:
-1. revenue - Total sales (in millions of Gold)
-2. profit - Net income after costs (in millions of Gold)
-3. cash - Available liquid funds (in millions of Gold)
-4. debt - Total borrowed money (in millions of Gold)
-5. market_share - Market dominance (percentage 0-100%)
-6. brand_value - Brand reputation score (0-100)
-7. employees - Total workforce (headcount)
-8. rd_progress - R&D project completion (percentage 0-100%)
-9. player_share - Player's ownership stake (percentage 0-100%)
-10. influence - Political/industry influence (0-100)
-
-**ANALYSIS PROCESS**:
-1. Identify event type & scale from system message
-2. Select affected variables & calculate realistic changes
-3. Output tag: [Stock:TICKER:var1:±value1|var2:±value2|...]
-
-**EVENT SCALE** (change ranges):
-- 소규모: revenue ±20-50M, profit ±10-30M, market_share ±0.5-1%
-- 중규모: revenue ±50-100M, profit ±30-60M, market_share ±1-3%
-- 대규모: revenue ±100-200M, profit ±60-120M, market_share ±3-6%
-- 초대형: revenue ±200-500M, profit ±120-300M, market_share ±6-15%
-
-**VARIABLE BY EVENT TYPE**:
-- Revenue events → revenue, profit, cash, market_share
-- Cost events → employees, profit, cash, brand_value
-- Reputation events → brand_value, market_share
-- Financial events → debt, cash, player_share, influence
-- R&D events → rd_progress, brand_value
-
-**BUSINESS LOGIC RULES (IMPORTANT)**:
-
-Currency: 1 Gold (G) = 1 USD. Companies operate in millions (M).
-Example: revenue+80 means +80 million gold = +$80 million USD
-
-Rule 1: Profit MUST be less than Revenue
-✓ revenue+100, profit+60 (60% margin - realistic)
-✗ revenue+50, profit+80 (profit > revenue - IMPOSSIBLE)
-
-Rule 2: Market share total cannot exceed 100%
-✓ market_share+5 (if current is 20%, new is 25% - OK)
-✗ market_share+50 (if current is 80%, new is 130% - IMPOSSIBLE)
-
-Rule 3: Percentages stay 0-100%
-✓ player_share+15, rd_progress+20 (within range)
-✗ player_share+150 (exceeds 100% - IMPOSSIBLE)
-
-Rule 4: Trade-offs are realistic
-✓ Fast growth: revenue+200, debt+150 (borrowed to grow)
-✓ Cost cutting: profit+50, employees-200 (layoffs improve profit)
-✗ All positive with no cost: revenue+500, profit+400, market_share+20, debt-200 (unrealistic)
-
-Rule 5: Scale matches impact
-✓ "소규모 마케팅": revenue+30, brand_value+5 (proportional)
-✗ "소규모 마케팅": revenue+500, market_share+20 (TOO BIG for small event)
-
-**EXAMPLES**:
-
-Ex1: 중규모 성공 - "GOLDMANE 투자 프로젝트가 성공했다."
-→ [Stock:GOLDMANE:revenue:+80|market_share:+2]
-
-Ex2: 대규모 대성공 (trade-off) - "대형 투자가 예상을 뛰어넘는 대성공을 거두었다."
-→ [Stock:GOLDMANE:revenue:+200|profit:+150|cash:+180|brand_value:+25]
-
-Ex3: 복합 결과 - "대규모 구조조정을 단행했다. 수익성 개선, 인력 감소."
-→ [Stock:PFIZARA:profit:+80|employees:-300|brand_value:-10]
-
-**CRITICAL RULES**:
-- Use | separator for multiple variables in ONE tag
-- Match scale to magnitude (소규모 ≠ revenue+500)
-- Include realistic trade-offs (growth = debt, cuts = brand damage)
-- Profit < Revenue, percentages ≤ 100%
-- Correct tickers: GOLDMANE/LUXORIA/PFIZARA (NOT character names)
+**Your role:**
+- These tags are shown to users as formatted business notifications
+- System automatically updates company variables (revenue, profit, etc.)
+- DO NOT output additional tags for business events
 ]]
 
 -- ============================================
@@ -6769,6 +6701,24 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     <div style="color:#26a69a;font-size:16px;font-weight:700">+%sG</div>
   </div>
 </div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
+    end)
+
+    -- 경영 이벤트 태그 → 비즈니스 알림 디스플레이 변환
+    data = data:gsub("%[Business:([A-Z]+):([^%]]+)%]", function(ticker, event)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);border:1px solid #58a6ff;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(88,166,255,0.2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="background:#58a6ff;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">경영</span>
+    <span style="color:#58a6ff;font-size:14px;font-weight:600">%s</span>
+  </div>
+  <div style="color:#c9d1d9;font-size:13px;line-height:1.6">%s</div>
+</div>]], name, event)
     end)
 
     -- 주식 거래 실패 메시지 표시 (비활성화 - 사용자 요청)

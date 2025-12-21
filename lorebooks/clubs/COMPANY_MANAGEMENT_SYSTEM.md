@@ -23,12 +23,13 @@ The management partnership is part of their relationship, not a replacement for 
 
 ## System Overview
 
-When {{user}} joins a company as a management partner, they gain access to economic simulation gameplay alongside the romance narrative. This system uses the **Main Model → System Message → Auxiliary Model → Lua** pipeline.
+When {{user}} joins a company as a management partner, they gain access to economic simulation gameplay alongside the romance narrative.
 
 **Your Role:**
 - Write engaging business scenarios and character interactions
-- Output clear system messages when significant events occur
-- Let the auxiliary model handle tag conversion
+- Output `[Business:TICKER:EVENT]` tags when significant events occur
+- Tags will be displayed to users as formatted event notifications
+- The auxiliary model handles variable updates automatically
 
 ---
 
@@ -75,46 +76,50 @@ Each company tracks 10 variables (automatically initialized by Lua):
 
 ---
 
-## Outputting System Messages
+## Outputting Business Events
 
-When significant business events occur, output a system message describing what happened:
+When significant business events occur, output a business tag:
+
+### Tag Format
+```
+[Business:TICKER:EVENT_DESCRIPTION]
+```
 
 ### Event Categories
 
 **Investment Decisions**
 ```
-- System Message: GOLDMANE 신규 투자 프로젝트가 승인되었다.
-- System Message: 대형 투자가 예상을 뛰어넘는 성공을 거두었다. 시장 반응이 뜨겁다.
-- System Message: 투자 프로젝트가 실패했다. 손실이 발생했다.
+[Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
+[Business:GOLDMANE:대형 투자 대성공, 시장 반응 뜨거움]
+[Business:GOLDMANE:투자 프로젝트 실패, 손실 발생]
 ```
 
 **Crisis Management**
 ```
-- System Message: LUXORIA 스캔들이 터졌다. 브랜드 이미지 타격이 우려된다.
-- System Message: 신속한 위기 대응으로 피해를 최소화했다.
-- System Message: 위기 대응 실패. 시장 신뢰도가 급락했다.
+[Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
+[Business:LUXORIA:신속한 위기 대응, 피해 최소화]
+[Business:LUXORIA:위기 대응 실패, 시장 신뢰도 급락]
 ```
 
 **Business Expansion**
 ```
-- System Message: PFIZARA 신약 개발이 성공했다. 업계가 주목하고 있다.
-- System Message: 신규 시장 진출이 결정되었다. 대규모 투자가 필요하다.
+[Business:PFIZARA:신약 개발 성공, 업계 주목]
+[Business:PFIZARA:신규 시장 진출 결정, 대규모 투자 필요]
 ```
 
 **Market Events**
 ```
-- System Message: 경쟁사의 공격적인 마케팅으로 시장 점유율이 하락했다.
-- System Message: 브랜드 가치가 상승했다. 소비자 평가가 개선되고 있다.
+[Business:GOLDMANE:경쟁사 공격적 마케팅, 점유율 하락]
+[Business:LUXORIA:브랜드 가치 상승, 소비자 평가 개선]
 ```
 
 ### Guidelines
 
-- **Be specific**: "투자 성공" vs "예상을 뛰어넘는 대성공" (different impacts)
-- **Mention scale**: "소규모 프로젝트" vs "대형 투자 프로젝트"
-- **Include consequences**: "성공했다. 매출과 시장점유율이 상승했다."
+- **Be specific**: Include scale and impact in description
 - **Natural language**: Write what a business report would say
+- **Single event per tag**: Keep each tag focused on one event
 
-The auxiliary model will convert these into appropriate variable changes.
+Example: `[Business:GOLDMANE:Q4 실적 발표, 예상치 50% 상회]`
 
 ---
 
