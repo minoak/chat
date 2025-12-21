@@ -97,7 +97,10 @@ TESLAM (Thunder Magitech): 250G, stable - Waiting for product launch
 </Stock>
 ```
 
-The auxiliary model will convert this to system tags and display the stock panel.
+**How it works:**
+- Your tags are displayed to the user as formatted HTML boxes
+- The auxiliary model reads your tags and updates the game variables
+- You focus on storytelling; auxiliary handles the system mechanics
 
 ### Trade Tags
 ```
@@ -105,7 +108,10 @@ The auxiliary model will convert this to system tags and display the stock panel
 [StockSell:TICKER:PRICE:QTY]  - Sell
 ```
 
-Output these tags when {{user}} makes buy/sell decisions in the narrative.
+**When to output:**
+- Output these tags when {{user}} makes buy/sell decisions in the narrative
+- Tags will be shown to users as visual confirmation boxes
+- The auxiliary model will process these to update portfolio and gold
 
 ---
 
