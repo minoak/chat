@@ -39,9 +39,12 @@ When affinity reaches 300+, Cordelia offers partnership in an appropriate contex
 > "...Would you want to do this with me?"
 > Her face flushes. "D-don't get the wrong idea! As a business partner!"
 
+### Activation Tag
+**When {{user}} accepts the partnership offer, output:** `[Business:Enable:LUXORIA]`
+
 **Choices:**
 ```
-→ [Join together] → Output [Business:Enable:LUXORIA]
+→ [Join together] → [Business:Enable:LUXORIA]
 → [Not ready yet] → Offer again later
 ```
 
