@@ -85,9 +85,9 @@ When you need to show or reference stock prices, use these current values:
 
 ## Tag Format
 
-### Stock Update Tag
+### Stock Market Display
 
-When showing stock market activity or checking prices, output `<Stock>` tag with current prices and market context:
+Show stock prices and market activity naturally in the story using `<Stock>` tag:
 
 ```
 <Stock>
@@ -97,21 +97,15 @@ TESLAM (Thunder Magitech): 250G, stable - Waiting for product launch
 </Stock>
 ```
 
-**How it works:**
-- Your tags are displayed to the user as formatted HTML boxes
-- The auxiliary model reads your tags and updates the game variables
-- You focus on storytelling; auxiliary handles the system mechanics
-
 ### Trade Tags
+
+When {{user}} buys or sells stocks:
 ```
-[StockBuy:TICKER:PRICE:QTY]   - Buy
-[StockSell:TICKER:PRICE:QTY]  - Sell
+[StockBuy:TICKER:PRICE:QTY]
+[StockSell:TICKER:PRICE:QTY]
 ```
 
-**When to output:**
-- Output these tags when {{user}} makes buy/sell decisions in the narrative
-- Tags will be shown to users as visual confirmation boxes
-- The auxiliary model will process these to update portfolio and gold
+Example: `[StockBuy:IRONFORGE:48:20]` - Bought 20 shares of IRONFORGE at 48G each
 
 ---
 
