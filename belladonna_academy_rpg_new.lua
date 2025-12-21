@@ -5810,7 +5810,7 @@ function generateStockPanelUI(triggerId)
         return ""
     end
 
-    local currentView = getState(triggerId, "stock_current_view") or "board"
+    local currentView = getState(triggerId, "stock_current_view") or "asset"
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
     -- state 우선, chatVar 폴백
     local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
@@ -5913,28 +5913,36 @@ function generateStockBoardView(triggerId)
   </div>
   <div style='display:flex;flex-direction:column;gap:6px'>]]
 
-        -- 뉴스 파싱: TICKER:direction:reason|...
-        for item in newsData:gmatch("[^|]+") do
-            local ticker, direction, reason = item:match("([^:]+):([^:]+):(.+)")
-            if ticker and reason then
-                local dirIcon = "📊"
-                local dirColor = "#8b949e"
-                if direction == "up" then
+        -- 뉴스 파싱: TICKER:direction:headline||...
+        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
+            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if ticker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+
+                if direction == "rising" or direction == "up" then
                     dirIcon = "📈"
                     dirColor = "#ef5350"
-                elseif direction == "down" then
+                elseif direction == "falling" or direction == "down" then
                     dirIcon = "📉"
                     dirColor = "#26a69a"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
                 end
 
+                -- 헤드라인 (bullet points를 줄바꿈으로)
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px'>• </span>")
+
                 html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:#21262d;border-radius:6px'>
-      <span style='font-size:12px'>%s</span>
+    <div style='display:flex;align-items:flex-start;gap:8px;padding:8px;background:#21262d;border-radius:6px;border-left:3px solid %s'>
+      <span style='font-size:13px'>%s</span>
       <div style='flex:1'>
-        <span style='font-size:12px;font-weight:600;color:%s'>%s</span>
-        <span style='font-size:11px;color:#8b949e'> - %s</span>
+        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+        <div style='font-size:10px;color:#c9d1d9;margin-top:2px;line-height:1.4'>%s</div>
       </div>
-    </div>]], dirIcon, dirColor, ticker, reason)
+    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
             end
         end
 
@@ -6259,13 +6267,16 @@ function generateStockChartView(triggerId, ticker)
   <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📰 시장 뉴스</div>
   <div style='display:flex;flex-direction:column;gap:6px'>]]
 
-        -- 뉴스 파싱: TICKER:direction:reason|...
-        for item in newsData:gmatch("[^|]+") do
-            local newsTicker, direction, reason = item:match("([^:]+):([^:]+):(.+)")
-            if newsTicker and reason then
-                local dirIcon = "📊"
-                local dirColor = "#8b949e"
-                local dirText = "보합"
+        -- 뉴스 파싱: TICKER:direction:headline||...
+        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
+            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+            local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+                local dirText = ""
+
+                -- direction이 있으면 아이콘/색상 설정
                 if direction == "rising" or direction == "up" then
                     dirIcon = "📈"
                     dirColor = "#ef5350"
@@ -6275,28 +6286,38 @@ function generateStockChartView(triggerId, ticker)
                     dirColor = "#26a69a"
                     dirText = "하락"
                 elseif direction == "stable" then
+                    dirIcon = "📊"
                     dirText = "안정"
                 elseif direction == "crashing" then
                     dirIcon = "📉"
                     dirColor = "#ef5350"
                     dirText = "급락"
+                elseif direction == "unknown" then
+                    dirIcon = "📰"
+                    dirColor = "#58a6ff"
+                    dirText = ""
                 end
 
                 local isRelated = newsTicker == ticker
                 local bgColor = isRelated and "#1c1f26" or "#0d1117"
-                local tickerColor = isRelated and "#ffd700" or "#8b949e"
+                local tickerColor = isRelated and "#ffd700" or "#58a6ff"
+
+                -- 뉴스 헤드라인 (bullet points를 줄바꿈으로 변환)
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e'>• </span>")
 
                 html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:8px;padding:8px;background:%s;border-radius:6px;border-left:3px solid %s'>
-      <span style='font-size:12px'>%s</span>
+    <div style='display:flex;align-items:flex-start;gap:8px;padding:10px;background:%s;border-radius:6px;border-left:3px solid %s;margin-bottom:6px'>
+      <span style='font-size:14px'>%s</span>
       <div style='flex:1'>
-        <div style='display:flex;gap:8px;margin-bottom:2px'>
-          <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
-          <span style='font-size:10px;color:%s'>%s</span>
+        <div style='display:flex;gap:8px;align-items:center;margin-bottom:4px'>
+          <span style='font-size:12px;font-weight:700;color:%s'>%s</span>
+          %s
         </div>
-        <span style='font-size:11px;color:#c9d1d9'>%s</span>
+        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
       </div>
-    </div>]], bgColor, isRelated and dirColor or "#30363d", dirIcon, tickerColor, newsTicker, dirColor, dirText, reason)
+    </div>]], bgColor, isRelated and dirColor or "#30363d", dirIcon, tickerColor, newsTicker,
+                    dirText ~= "" and string.format("<span style='font-size:10px;padding:2px 6px;background:%s;border-radius:3px;color:#fff'>%s</span>", dirColor, dirText) or "",
+                    formattedHeadline)
             end
         end
 
@@ -6359,6 +6380,82 @@ end
 
 -- 내 자산 뷰
 function generateStockAssetView(triggerId)
+    local html = ""
+
+    -- ============================================
+    -- 시장 지수 섹션
+    -- ============================================
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#26a69a" or "#8b949e")
+    local marketSign = marketChange > 0 and "+" or ""
+    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+
+    html = html .. string.format([[
+<div style='background:linear-gradient(135deg,#0d1117 0%%,#1a1f35 100%%);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:center'>
+    <div>
+      <div style='font-size:11px;color:#8b949e;margin-bottom:4px'>📊 릴리벨리 지수</div>
+      <div style='font-size:24px;font-weight:700;color:#fff'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:18px;font-weight:700;color:%s'>%s%s%.2f%%</div>
+      <div style='font-size:11px;color:#8b949e'>전일대비</div>
+    </div>
+  </div>
+</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
+
+    -- ============================================
+    -- 뉴스 섹션
+    -- ============================================
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[
+<div style='background:#0d1117;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #30363d'>
+  <div style='font-size:13px;color:#58a6ff;font-weight:600;margin-bottom:10px'>📰 시장 뉴스</div>
+  <div style='display:flex;flex-direction:column;gap:8px'>]]
+
+        -- 뉴스 파싱
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
+            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if ticker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+
+                if direction == "rising" or direction == "up" then
+                    dirIcon = "📈"
+                    dirColor = "#ef5350"
+                elseif direction == "falling" or direction == "down" then
+                    dirIcon = "📉"
+                    dirColor = "#26a69a"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
+                end
+
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px;margin-left:16px'>• </span>")
+
+                html = html .. string.format([[
+    <div style='display:flex;align-items:flex-start;gap:10px;padding:10px;background:#161b22;border-radius:8px;border-left:3px solid %s'>
+      <span style='font-size:14px'>%s</span>
+      <div style='flex:1'>
+        <div style='font-size:12px;font-weight:700;color:%s;margin-bottom:4px'>%s</div>
+        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
+      </div>
+    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
+            end
+        end
+
+        html = html .. [[
+  </div>
+</div>]]
+    end
+
+    -- ============================================
+    -- 포트폴리오 요약
+    -- ============================================
+
     -- state 우선, chatVar 폴백
     local gold = tonumber(getState(triggerId, "player_gold")) or tonumber(getChatVar(triggerId, "player_gold")) or 0
     local totalValue = gold
@@ -6395,7 +6492,7 @@ function generateStockAssetView(triggerId)
     local totalProfitSign = totalProfit >= 0 and "+" or ""
 
     -- 총 자산 헤더 (카드 스타일)
-    local html = string.format([[
+    html = html .. string.format([[
 <div style='background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);padding:20px;border-radius:12px;margin-bottom:12px'>
   <div style='font-size:12px;color:#8b949e;margin-bottom:4px'>총 평가자산</div>
   <div style='font-size:32px;font-weight:700;color:#fff'>%s<span style='font-size:16px;color:#8b949e;margin-left:4px'>G</span></div>
@@ -6646,25 +6743,67 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- [%s%S]는 줄바꿈 포함 모든 문자 매치
     data = data:gsub("<Stock>([%s%S]-)</Stock>", function(content)
         local newsItems = {}
+        local currentNews = nil
+
         for line in content:gmatch("[^\r\n]+") do
-            -- 형식: TICKER: PRICEg, DIRECTION - REASON
-            local ticker, price, direction, reason = line:match("([A-Z]+):%s*(%d+)g?,%s*(%w+)%s*%-%s*(.+)")
-            if ticker and reason then
-                table.insert(newsItems, {
-                    ticker = ticker,
-                    price = tonumber(price) or 0,
-                    direction = direction,
-                    reason = reason:gsub("^%s*(.-)%s*$", "%1")  -- trim
-                })
+            line = line:gsub("^%s*(.-)%s*$", "%1")  -- trim
+            if line ~= "" then
+                -- 형식 1: TICKER: PRICEg, DIRECTION - REASON
+                local ticker1, price, direction, reason = line:match("([A-Z]+)[^:]*:%s*(%d+)[Gg]?,%s*(%w+)%s*%-%s*(.+)")
+                if ticker1 and reason then
+                    table.insert(newsItems, {
+                        ticker = ticker1,
+                        price = tonumber(price) or 0,
+                        direction = direction,
+                        headline = reason:gsub("^%s*(.-)%s*$", "%1"),
+                        details = {}
+                    })
+                else
+                    -- 형식 2: 뉴스 기사 형식
+                    -- 헤드라인: [속보] 골든메인(GOLDMANE), ...
+                    local ticker2, headline = line:match("%(([A-Z]+)%)%s*,?%s*(.+)")
+                    if ticker2 and headline then
+                        -- 새 뉴스 아이템 시작
+                        currentNews = {
+                            ticker = ticker2,
+                            price = 0,
+                            direction = "unknown",
+                            headline = headline,
+                            details = {}
+                        }
+                        table.insert(newsItems, currentNews)
+                    elseif currentNews and line:match("^%-") then
+                        -- 현재 뉴스의 상세 내용 (bullet point)
+                        local detail = line:gsub("^%-%s*", "")
+                        table.insert(currentNews.details, detail)
+
+                        -- 목표 주가에서 가격 추출 시도
+                        local targetPrice = detail:match("목표%s*주가[^:]*:%s*%d+[Gg]?%s*%-%>%s*(%d+)[Gg]?")
+                        if targetPrice and currentNews.price == 0 then
+                            currentNews.price = tonumber(targetPrice) or 0
+                        end
+                    end
+                end
             end
         end
+
         -- 뉴스가 있으면 상태에 저장
         if #newsItems > 0 then
-            -- JSON 형태로 저장
+            -- JSON 형태로 저장 (개선된 형식)
             local newsJson = ""
             for i, item in ipairs(newsItems) do
-                if i > 1 then newsJson = newsJson .. "|" end
-                newsJson = newsJson .. item.ticker .. ":" .. item.direction .. ":" .. item.reason
+                if i > 1 then newsJson = newsJson .. "||" end  -- 뉴스 구분자
+
+                -- 헤드라인
+                local fullHeadline = item.headline
+                -- 상세 내용 추가 (최대 2개)
+                if #item.details > 0 then
+                    for j = 1, math.min(2, #item.details) do
+                        fullHeadline = fullHeadline .. " • " .. item.details[j]
+                    end
+                end
+
+                newsJson = newsJson .. item.ticker .. ":" .. (item.direction or "unknown") .. ":" .. fullHeadline
             end
             setState(triggerId, "stock_news", newsJson)
             setState(triggerId, "stock_news_time", os.time())
@@ -7367,7 +7506,7 @@ onButtonClick = async(function(triggerId, code)
 
     -- 주식 패널 종료 핸들러
     if code == "stock_exit" then
-        setState(triggerId, "stock_current_view", "board")
+        setState(triggerId, "stock_current_view", "asset")
         setState(triggerId, "stock_last_trade_msg", "")
         log("📈 주식 패널 종료")
     end
@@ -7462,8 +7601,8 @@ for _, ticker in ipairs(stockTickers) do
         local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
         setState(triggerId, "stock_selected_price", currentPrice)
         -- 차트 뷰로 자동 전환
-        local currentView = getState(triggerId, "stock_current_view") or "board"
-        if currentView == "board" then
+        local currentView = getState(triggerId, "stock_current_view") or "asset"
+        if currentView == "asset" then
             setState(triggerId, "stock_current_view", "chart")
         end
         log("📌 종목 선택: " .. ticker .. " @ " .. currentPrice .. "G")
