@@ -403,9 +403,12 @@ Always end with <Panel>■★
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
 
-## Stock Panel (Stock System Enabled)
-When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
-<StockPanel /> - Display stock trading panel
+## Stock Information Parsing (Stock System Enabled)
+
+When Main AI outputs `<Stock>` tag with market news:
+- Parse the stock price changes and news
+- DO NOT output <StockPanel /> automatically
+- The panel will display automatically when appropriate
 
 ## Business Management Tags (Business System Enabled)
 
