@@ -6369,6 +6369,63 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 스토리 중간 태그 → 디스플레이 변환
     -- ============================================
 
+    -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
+    data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
+        local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
+        local choiceIndex = 1
+
+        for line in content:gmatch("[^\r\n]+") do
+            local stat, desc, diff = line:match("%[([^|]+)|([^|]+)|([^%]]+)%]")
+            if stat and desc and diff then
+                -- 능력치별 이모지
+                local emoji = "⚔️"
+                local statUpper = stat:upper()
+                local statLower = stat:lower()
+
+                if statUpper == "STR" then emoji = "💪"
+                elseif statUpper == "DEX" then emoji = "⚡"
+                elseif statUpper == "INT" then emoji = "🧠"
+                elseif statUpper == "CHA" then emoji = "💬"
+                elseif statUpper == "LUK" then emoji = "🍀"
+                elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
+                    emoji = "🏃"
+                else
+                    emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
+                end
+
+                -- 난이도별 색상 (그라디언트)
+                local gradient = "linear-gradient(135deg, #666 0%, #888 100%)"
+                local shadow = "0 2px 8px rgba(0,0,0,0.3)"
+                if diff == "Very Easy" then
+                    gradient = "linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)"
+                    shadow = "0 2px 8px rgba(76,175,80,0.4)"
+                elseif diff == "Easy" then
+                    gradient = "linear-gradient(135deg, #8BC34A 0%, #9CCC65 100%)"
+                    shadow = "0 2px 8px rgba(139,195,74,0.4)"
+                elseif diff == "Normal" then
+                    gradient = "linear-gradient(135deg, #FFC107 0%, #FFD54F 100%)"
+                    shadow = "0 2px 8px rgba(255,193,7,0.4)"
+                elseif diff == "Hard" then
+                    gradient = "linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)"
+                    shadow = "0 2px 8px rgba(255,152,0,0.4)"
+                elseif diff == "Very Hard" then
+                    gradient = "linear-gradient(135deg, #F44336 0%, #EF5350 100%)"
+                    shadow = "0 2px 8px rgba(244,67,54,0.4)"
+                end
+
+                html = html .. string.format(
+                    "<button type='button' risu-trigger='combat_choice_%d' style='display:flex;align-items:center;justify-content:space-between;width:100%%;max-width:580px;margin:6px auto;padding:10px 15px;background:%s;color:white;border:none;border-radius:8px;box-shadow:%s;font-size:clamp(12px, 3vw, 14px);font-weight:500;cursor:pointer;transition:all 0.2s ease;box-sizing:border-box'><span style='flex:1;min-width:0;text-align:left'>%s <strong>[%s]</strong> %s</span><span style='opacity:0.9;font-size:clamp(10px, 2.5vw, 12px);margin-left:8px;flex-shrink:0'>%s</span></button>",
+                    choiceIndex, gradient, shadow, emoji, stat, desc, diff
+                )
+
+                choiceIndex = choiceIndex + 1
+            end
+        end
+
+        html = html .. "</div>"
+        return html
+    end)
+
     -- 주식 시세 태그 → 티커 디스플레이 변환
     data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
         return generateStockTicker(stockData)
@@ -6615,63 +6672,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 주간 보고서 패널: <StockPanel:TICKER />
     data = data:gsub("<StockPanel:([A-Z]+)%s*/>", function(ticker)
         return generateStockPanel(triggerId, ticker)
-    end)
-
-    -- 전투 선택지 변환 (모바일 반응형)
-    data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
-        local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
-        local choiceIndex = 1
-
-        for line in content:gmatch("[^\r\n]+") do
-            local stat, desc, diff = line:match("%[([^|]+)|([^|]+)|([^%]]+)%]")
-            if stat and desc and diff then
-                -- 능력치별 이모지
-                local emoji = "⚔️"
-                local statUpper = stat:upper()
-                local statLower = stat:lower()
-
-                if statUpper == "STR" then emoji = "💪"
-                elseif statUpper == "DEX" then emoji = "⚡"
-                elseif statUpper == "INT" then emoji = "🧠"
-                elseif statUpper == "CHA" then emoji = "💬"
-                elseif statUpper == "LUK" then emoji = "🍀"
-                elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
-                    emoji = "🏃"
-                else
-                    emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
-                end
-
-                -- 난이도별 색상 (그라디언트)
-                local gradient = "linear-gradient(135deg, #666 0%, #888 100%)"
-                local shadow = "0 2px 8px rgba(0,0,0,0.3)"
-                if diff == "Very Easy" then
-                    gradient = "linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)"
-                    shadow = "0 2px 8px rgba(76,175,80,0.4)"
-                elseif diff == "Easy" then
-                    gradient = "linear-gradient(135deg, #8BC34A 0%, #9CCC65 100%)"
-                    shadow = "0 2px 8px rgba(139,195,74,0.4)"
-                elseif diff == "Normal" then
-                    gradient = "linear-gradient(135deg, #FFC107 0%, #FFD54F 100%)"
-                    shadow = "0 2px 8px rgba(255,193,7,0.4)"
-                elseif diff == "Hard" then
-                    gradient = "linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)"
-                    shadow = "0 2px 8px rgba(255,152,0,0.4)"
-                elseif diff == "Very Hard" then
-                    gradient = "linear-gradient(135deg, #F44336 0%, #EF5350 100%)"
-                    shadow = "0 2px 8px rgba(244,67,54,0.4)"
-                end
-
-                html = html .. string.format(
-                    "<button type='button' risu-trigger='combat_choice_%d' style='display:flex;align-items:center;justify-content:space-between;width:100%%;max-width:580px;margin:6px auto;padding:10px 15px;background:%s;color:white;border:none;border-radius:8px;box-shadow:%s;font-size:clamp(12px, 3vw, 14px);font-weight:500;cursor:pointer;transition:all 0.2s ease;box-sizing:border-box'><span style='flex:1;min-width:0;text-align:left'>%s <strong>[%s]</strong> %s</span><span style='opacity:0.9;font-size:clamp(10px, 2.5vw, 12px);margin-left:8px;flex-shrink:0'>%s</span></button>",
-                    choiceIndex, gradient, shadow, emoji, stat, desc, diff
-                )
-
-                choiceIndex = choiceIndex + 1
-            end
-        end
-
-        html = html .. "</div>"
-        return html
     end)
 
     -- 주간 보고서 변환
