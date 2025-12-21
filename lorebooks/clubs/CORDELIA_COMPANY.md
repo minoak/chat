@@ -41,7 +41,7 @@ When affinity reaches 300+, Cordelia offers partnership in an appropriate contex
 
 **Choices:**
 ```
-→ [Join together] → {{setvar::cordelia_company_joined::1}}{{setvar::business_system_enabled::1}}
+→ [Join together] → Output [Business:Enable:LUXORIA]
 → [Not ready yet] → Offer again later
 ```
 

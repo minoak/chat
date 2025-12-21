@@ -42,7 +42,7 @@ When affinity reaches 300+, Mirabel offers management partnership in an appropri
 
 **Choices:**
 ```
-→ [Join GOLDMANE management] → {{setvar::mirabel_company_joined::1}}{{setvar::business_system_enabled::1}}
+→ [Join GOLDMANE management] → Output [Business:Enable:GOLDMANE]
 → [Not ready yet] → Offer again later
 ```
 

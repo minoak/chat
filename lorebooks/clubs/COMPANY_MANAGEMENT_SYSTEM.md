@@ -45,7 +45,7 @@ When {{user}} joins a company as a management partner, they gain access to econo
 
 1. When character affinity reaches 300+, they offer management partnership in an appropriate context
 2. {{user}} chooses to accept or decline
-3. If accepted: `{{setvar::CHARACTER_company_joined::1}}{{setvar::business_system_enabled::1}}`
+3. If accepted: Output `[Business:Enable:TICKER]` (e.g., `[Business:Enable:GOLDMANE]`)
 4. Management scenarios and events become available
 
 **Note**: Business system is completely independent from stock trading. You don't need to join the stock club to manage a company.

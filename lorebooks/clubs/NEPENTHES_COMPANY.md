@@ -44,7 +44,7 @@ When affinity reaches 300+, Nepenthes offers research partnership in an appropri
 
 **Choices:**
 ```
-→ [Research together] → {{setvar::nepenthes_company_joined::1}}{{setvar::business_system_enabled::1}}
+→ [Research together] → Output [Business:Enable:PFIZARA]
 → [A bit scary...] → Offer again later
 ```
 

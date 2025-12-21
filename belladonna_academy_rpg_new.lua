@@ -426,23 +426,80 @@ When Main AI outputs `<Stock>` tag with market news:
 
 ## Business Management System (Business System Enabled)
 
-**CRITICAL - Business Tag Processing:**
-- Main AI outputs business events as: `[Business:TICKER:EVENT_DESCRIPTION]`
-- These tags are automatically processed by the system
-- You do NOT need to output variable update tags
-- The system handles all business variable calculations
-- Simply acknowledge business events in your regular output if needed
+**CRITICAL - Business Event Analysis:**
+When Main AI outputs business events, you must analyze them and update company variables.
 
 **What you see from Main AI:**
 ```
 [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
 [Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
+[Business:PFIZARA:신약 개발 성공, 업계 주목]
 ```
 
-**Your role:**
-- These tags are shown to users as formatted business notifications
-- System automatically updates company variables (revenue, profit, etc.)
-- DO NOT output additional tags for business events
+**Your Analysis Process:**
+1. **Read the event description** - Understand what happened (investment, crisis, expansion, etc.)
+2. **Determine impact scale** - Event describes scale (소규모/중규모/대규모/초대형)
+3. **Calculate variable changes** - Apply realistic financial impacts
+4. **Output variable updates** - Use [Stock:TICKER:var:value] tags
+
+**Variable Types (10 per company):**
+- **Financial**: revenue (매출M), profit (순이익M), cash (현금M), debt (부채M)
+- **Market**: market_share (시장점유율%), brand_value (브랜드가치)
+- **Operations**: employees (직원수), rd_progress (연구개발%)
+- **Player**: player_share (보유지분%), influence (경영영향력)
+
+**Impact Scale Guidelines:**
+- **소규모**: ±10-50M revenue, ±5-20M profit, ±1-2% market share
+- **중규모**: ±50-150M revenue, ±20-70M profit, ±2-5% market share
+- **대규모**: ±150-400M revenue, ±70-200M profit, ±5-10% market share
+- **초대형**: ±400M+ revenue, ±200M+ profit, ±10%+ market share
+
+**Event Type Examples:**
+
+*Investment Success (투자 성공):*
+```
+Event: [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
+Analysis: 중규모 투자 → 현금 감소, 미래 수익 증가 예상, R&D 진척
+Output: [Stock:GOLDMANE:cash:-100|rd_progress:+15|influence:+3]
+```
+
+*Crisis (위기):*
+```
+Event: [Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
+Analysis: 스캔들 → 브랜드가치 하락, 매출 감소, 시장점유율 하락
+Output: [Stock:LUXORIA:brand_value:-20|revenue:-80|market_share:-3]
+```
+
+*Product Launch Success (제품 출시 성공):*
+```
+Event: [Business:PFIZARA:신약 개발 성공, 업계 주목]
+Analysis: 신약 성공 → 매출/이익 급증, 시장점유율 상승, 브랜드가치 상승
+Output: [Stock:PFIZARA:revenue:+200|profit:+120|market_share:+5|brand_value:+15]
+```
+
+*Market Competition (시장 경쟁):*
+```
+Event: [Business:GOLDMANE:경쟁사 공격적 마케팅, 점유율 하락]
+Analysis: 경쟁 압박 → 시장점유율 하락, 매출 감소
+Output: [Stock:GOLDMANE:market_share:-4|revenue:-60]
+```
+
+**CRITICAL Rules:**
+- **Affect multiple variables** (typically 3-5) - realistic events have cascading effects
+- **Include trade-offs** - investments reduce cash but boost R&D, expansion increases debt but revenue
+- **Respect constraints** - profit < revenue, shares ≤ 100%, brand_value 0-100
+- **Match magnitude** - 중규모 shouldn't cause ±500M changes
+- **Consider context** - larger companies (GOLDMANE) can handle bigger absolute changes than smaller ones
+
+**Output Format:**
+```
+[Stock:TICKER:var1:±value1|var2:±value2|var3:±value3]
+```
+
+Example complete response after seeing business event:
+```
+[Stock:GOLDMANE:revenue:+120|profit:+70|cash:-80|rd_progress:+12|influence:+5]
+```
 ]]
 
 -- ============================================
@@ -1545,6 +1602,59 @@ function parseStockSystemEnable(triggerId, message)
             setChatVar(triggerId, "stock_system_enabled", "1")
             setState(triggerId, "stock_system_enabled", "1")
             log("📈 주식 시스템 자동 활성화 (보조 모델 감지)")
+        end
+    end
+end
+
+-- 경영 시스템 활성화 태그 파싱: [Business:Enable:TICKER]
+function parseBusinessEnable(triggerId, message)
+    for ticker in message:gmatch("%[Business:Enable:([A-Z]+)%]") do
+        -- 티커별 캐릭터 매핑
+        local characterMap = {
+            GOLDMANE = "mirabel",
+            LUXORIA = "cordelia",
+            PFIZARA = "nepenthes"
+        }
+
+        local character = characterMap[ticker]
+        if character then
+            -- 경영 시스템 활성화
+            local currentEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "business_system_enabled", "1")
+                setState(triggerId, "business_system_enabled", "1")
+                log("💼 경영 시스템 활성화")
+            end
+
+            -- 캐릭터별 회사 가입
+            local joinedVar = character .. "_company_joined"
+            setChatVar(triggerId, joinedVar, "1")
+            setState(triggerId, joinedVar, "1")
+            log(string.format("💼 %s 회사 경영진 합류", ticker))
+
+            -- 회사 변수 초기화 (이미 초기화되지 않은 경우에만)
+            local revenueVar = ticker .. "_revenue"
+            if not getChatVar(triggerId, revenueVar) or getChatVar(triggerId, revenueVar) == "" then
+                -- 기본 회사 재무 상태 (티커별로 다름)
+                local defaults = {
+                    GOLDMANE = {revenue = 500, profit = 150, cash = 300, debt = 100, market_share = 22,
+                                brand_value = 85, employees = 450, rd_progress = 35, player_share = 15, influence = 20},
+                    LUXORIA = {revenue = 400, profit = 120, cash = 250, debt = 80, market_share = 18,
+                               brand_value = 90, employees = 380, rd_progress = 40, player_share = 15, influence = 20},
+                    PFIZARA = {revenue = 550, profit = 180, cash = 350, debt = 120, market_share = 25,
+                               brand_value = 80, employees = 520, rd_progress = 55, player_share = 15, influence = 20}
+                }
+
+                local vars = defaults[ticker]
+                if vars then
+                    for varName, value in pairs(vars) do
+                        local fullVar = ticker .. "_" .. varName
+                        setChatVar(triggerId, fullVar, tostring(value))
+                        setState(triggerId, fullVar, tostring(value))
+                    end
+                    log(string.format("💼 %s 회사 변수 초기화 완료", ticker))
+                end
+            end
         end
     end
 end
@@ -6548,11 +6658,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         isAuxiliaryOutput = true
     end
 
-    -- 보조 모델 출력일 때만 메인 모델의 태그를 파싱하여 변수 업데이트
+    -- 보조 모델 출력일 때 태그 파싱
     if isAuxiliaryOutput then
+        -- 1단계: 보조 모델 자신의 출력에서 변수 업데이트 태그 파싱
+        parseStockChanges(triggerId, data)
+
+        -- 2단계: 메인 모델 출력 찾기
         local chatData = getChat(triggerId)
         if chatData and chatData.message and #chatData.message > 0 then
-            -- 메인 모델 출력 찾기: 보조 모델(현재) 바로 이전 AI 메시지
             local aiMessageCount = 0
             for i = #chatData.message, 1, -1 do
                 local msg = chatData.message[i]
@@ -6563,10 +6676,10 @@ listenEdit("editDisplay", function(triggerId, data, meta)
                     if aiMessageCount == 2 then
                         local mainOutput = msg.data or ""
 
-                        -- 메인 모델 출력에서 주식 관련 태그 파싱
+                        -- 메인 모델 출력에서 관련 태그 파싱
                         parseStockSystemEnable(triggerId, mainOutput)
+                        parseBusinessEnable(triggerId, mainOutput)
                         parseClubChanges(triggerId, mainOutput)
-                        parseStockChanges(triggerId, mainOutput)
                         parseStockTrades(triggerId, mainOutput)
                         parseMarketIndex(triggerId, mainOutput)
 
@@ -6701,6 +6814,27 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     <div style="color:#26a69a;font-size:16px;font-weight:700">+%sG</div>
   </div>
 </div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
+    end)
+
+    -- 경영 시스템 활성화 태그 → 환영 알림 디스플레이 변환 (먼저 처리!)
+    data = data:gsub("%[Business:Enable:([A-Z]+)%]", function(ticker)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1f2937 0%%,#111827 100%%);border:2px solid #fbbf24;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(251,191,36,0.3)">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="background:#fbbf24;color:#000;font-size:12px;font-weight:700;padding:4px 10px;border-radius:5px">💼 경영진 합류</span>
+    <span style="color:#fbbf24;font-size:16px;font-weight:700">%s</span>
+  </div>
+  <div style="color:#d1d5db;font-size:14px;line-height:1.6">
+    공동 경영 파트너십이 시작되었습니다.<br>
+    회사 경영 권한과 경영 패널 접근이 활성화되었습니다.
+  </div>
+</div>]], name)
     end)
 
     -- 경영 이벤트 태그 → 비즈니스 알림 디스플레이 변환
