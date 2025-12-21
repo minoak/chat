@@ -45,23 +45,9 @@ Lily Valley Securities stock trading system. Enables stock investment gameplay.
 ```
 [StockBuy:TICKER:PRICE:QTY]   - Buy
 [StockSell:TICKER:PRICE:QTY]  - Sell
-[Stock:TICKER:PRICE:CHANGE|...]  - Price update
 ```
 
-### Display Tags
-```
-<StockChart:TICKER />  - Chart card
-<StockQuote:TICKER />  - Inline quote
-<StockPanel />         - Full panel
-```
-
-**Using Charts for Investment Decisions**:
-Before presenting investment choices, show relevant chart data:
-- **Pattern hints**: Display <StockChart:TICKER /> to show recent price trends
-- **Context**: Let {{user}} analyze chart patterns before deciding
-- **Example**: "Here's GOLDMANE's recent chart. Notice the trend?" <StockChart:GOLDMANE /> "Buy now, or wait?"
-
-Charts display last 12 candles - enough to spot trends, support/resistance levels.
+**Note**: Stock price updates are handled automatically by the auxiliary model. You only need to output trade tags when {{user}} makes buy/sell decisions.
 
 ---
 
