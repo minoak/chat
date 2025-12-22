@@ -1592,95 +1592,6 @@ function generateStockTicker(stockData)
     return html
 end
 
--- 주간 보고서 패널 생성: <StockPanel:TICKER />
-function generateStockPanel(triggerId, ticker)
-    -- 주식 시스템 활성화 체크
-    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then
-        return ""
-    end
-
-    -- 종목명 가져오기
-    local name = STOCK_NAMES[ticker] or ticker
-
-    -- 경영 변수 가져오기
-    local revenue = tonumber(getChatVar(triggerId, ticker .. "_revenue")) or 0
-    local profit = tonumber(getChatVar(triggerId, ticker .. "_profit")) or 0
-    local cash = tonumber(getChatVar(triggerId, ticker .. "_cash")) or 0
-    local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
-    local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
-    local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
-    local employees = tonumber(getChatVar(triggerId, ticker .. "_employees")) or 0
-    local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
-    local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
-    local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
-
-    -- 주가 정보
-    local price = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
-    local change = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_change")) or 0
-
-    -- 이익률 계산
-    local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
-
-    -- 등락 색상 (한국식: 상승 빨강, 하락 파랑)
-    local changeColor = change >= 0 and "#ef5350" or "#42a5f5"
-    local changeIcon = change >= 0 and "▲" or "▼"
-    local changeSign = change >= 0 and "+" or ""
-
-    -- 부채 경고 색상
-    local debtColor = debt > 500 and "#f85149" or "#8b949e"
-
-    local html = string.format([[
-<div style="background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
-  <div style="text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d">
-    <div style="color:#8b949e;font-size:12px;margin-bottom:4px">%s</div>
-    <div style="color:#f5f5f7;font-size:20px;font-weight:700;margin-bottom:8px">%s 주간 보고서</div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-      <span style="color:#f5f5f7;font-size:24px;font-weight:700">%sG</span>
-      <span style="color:%s;font-size:16px;font-weight:600">%s%d %s</span>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">📈 매출</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">💰 이익 (이익률)</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG <span style="color:#8b949e;font-size:12px">(%d%%)</span></div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">💵 현금</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">📊 점유율</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%d%%</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">⚠️ 부채</div>
-      <div style="color:%s;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">⭐ 브랜드</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%d</div>
-    </div>
-  </div>
-</div>]],
-    ticker,
-    name,
-    formatNumber(price), changeColor, changeSign, change, changeIcon,
-    formatNumber(revenue),
-    formatNumber(profit), profitMargin,
-    formatNumber(cash),
-    market_share,
-    debtColor, formatNumber(debt),
-    brand_value)
-
-    return html
-end
-
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5] 또는 [Stock:GOLDMANE:price:+10|market_share:+5]
 function parseStockChanges(triggerId, message)
     -- 주식 시스템 활성화 여부 확인
@@ -7491,11 +7402,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 </span>]], ticker, formatNumber(price), changeColor, changeSign, changePercent, arrow)
 
         return html
-    end)
-
-    -- 주간 보고서 패널: <StockPanel:TICKER />
-    data = data:gsub("<StockPanel:([A-Z]+)%s*/>", function(ticker)
-        return generateStockPanel(triggerId, ticker)
     end)
 
     -- 주간 보고서 변환

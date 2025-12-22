@@ -157,24 +157,12 @@ Each company tracks 12 variables (automatically managed by Lua):
 
 ---
 
-## Weekly Reports & Panels
+## Checking Company Status
 
-### Weekly Management Meetings
-
-When appropriate (weekly meetings, quarterly reviews), show the comprehensive panel:
-
-```
-> "Here's this week's report."
-> <StockPanel:GOLDMANE />
-```
-
-The Lua system will generate a formatted HTML panel displaying all metrics.
-
-### When to Show Panels
-- Regular weekly/monthly meetings with partner character
-- After major events (post-crisis review, post-expansion analysis)
-- When {{user}} asks for status update
-- Before major decisions (investment approval meetings)
+When {{user}} wants to see company metrics:
+- They can open `<StockPanel />` and switch to the Business tab
+- All company data is displayed there in real-time
+- No special tags needed - panel auto-updates from business events
 
 ---
 
@@ -183,38 +171,36 @@ The Lua system will generate a formatted HTML panel displaying all metrics.
 **Structure**: Context → Data/Metrics → Choices → Outcome → System Message → Character Reaction
 
 **IMPORTANT - Panel Display Rules:**
-- Display `<StockPanel:TICKER />` or `<StockChart:TICKER />` **ONLY ONCE per turn**
+- Display `<StockPanel />` or `<StockChart:TICKER />` **ONLY ONCE per turn**
 - Show panels **BEFORE choices** (to inform decisions), NOT after outcomes
 - After outcomes, output System Messages only - panels are auto-updated
 - Do NOT repeat panels at turn end if already shown
 
 **Providing Decision Context (IMPORTANT)**:
-Before major business decisions, show relevant data to inform the choice:
+Before major business decisions, describe the data narratively:
 
-**Investment Decisions** - Show company financials:
-> "Major investment opportunity. Let me show you our current position."
-> <StockPanel:GOLDMANE />
-> "We have 500M cash but 200M debt. This project needs 300M upfront."
-> "High risk, but if successful... Your call?"
+**Investment Decisions** - Mention key financials:
+> "Major investment opportunity. We have 500M cash but 200M debt."
+> "This project needs 300M upfront. High risk, but if successful..."
+> "Your call?"
 
 **Stock Trading** - Show price chart:
 > "GOLDMANE stock showing interesting pattern. Take a look."
 > <StockChart:GOLDMANE />
 > "Notice the uptrend? Buy opportunity, or wait for correction?"
 
-**Crisis Response** - Show impact metrics:
-> "Scandal broke. Here's our brand value trend..."
-> <StockPanel:LUXORIA />
-> "Brand value dropped 15 points. Market share at risk. Respond now or investigate first?"
+**Crisis Response** - Describe impact:
+> "Scandal broke. Brand value dropped 15 points."
+> "Market share at risk. Respond now or investigate first?"
 
 **Competitor Analysis** - Mention market context:
 > "GUCCIEL launched aggressive campaign. They're at 18% market share, we're at 23%."
 > "Match their spending and protect share, or differentiate and go premium?"
 
-**Expansion/M&A** - Show financial capacity:
+**Expansion/M&A** - Describe financial capacity:
 > "SILVERFANG acquisition opportunity. They're asking 400M."
-> <StockPanel:GOLDMANE />
-> "Our cash: 350M. We'd need to take on 100M debt. Worth it for their 8% market share?"
+> "Our cash: 350M. We'd need to take on 100M debt."
+> "Worth it for their 8% market share?"
 
 **Key Principle**: Don't ask blind choices. Give {{user}} information to make informed decisions.
 
