@@ -7411,6 +7411,48 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return html
     end)
 
+    -- ============================================
+    -- 시스템 메시지 디스플레이 변환
+    -- ============================================
+
+    -- 시스템 메시지를 감지하고 타입별로 스타일링
+    data = data:gsub("(%-+%s*System Message:%s*)([^\n]+)", function(prefix, content)
+        local messageType = "general"
+        local icon = "📌"
+        local bgColor = "#161b22"
+        local borderColor = "#30363d"
+        local textColor = "#8b949e"
+
+        -- 경영 이벤트 감지 (GOLDMANE, LUXORIA, PFIZARA)
+        if content:match("%[GOLDMANE%]") or content:match("%[LUXORIA%]") or content:match("%[PFIZARA%]") then
+            messageType = "business"
+            icon = "📊"
+            bgColor = "#1a1410"
+            borderColor = "#d4af37"
+            textColor = "#f5e6d3"
+        -- 주식 거래 감지
+        elseif content:match("bought.*share") or content:match("sold.*share") or
+               content:match("매수") or content:match("매도") or
+               content:match("Buy") or content:match("Sell") then
+            messageType = "stock"
+            icon = "💰"
+            bgColor = "#0d1821"
+            borderColor = "#58a6ff"
+            textColor = "#c9d1d9"
+        end
+
+        -- 스타일 적용된 HTML 생성
+        local html = string.format([[
+<div style='max-width:600px;margin:10px auto;background:%s;border-left:3px solid %s;border-radius:6px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.2)'>
+  <div style='display:flex;align-items:center;gap:8px'>
+    <span style='font-size:16px'>%s</span>
+    <span style='color:%s;font-size:13px;line-height:1.5'>%s</span>
+  </div>
+</div>]], bgColor, borderColor, icon, textColor, content)
+
+        return html
+    end)
+
     -- 주간 보고서 변환
     data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", convertWeeklyReport)
 
