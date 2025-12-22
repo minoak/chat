@@ -421,35 +421,6 @@ This activates the stock trading system. After activation, normal stock trading 
 
 ---
 
-## Business System Activation Detection
-
-**Check for partnership system messages:**
-
-When Main AI outputs:
-`- System Message: [Business Partner Joined] ...`
-OR
-`- System Message: [경영진 합류] ...`
-
-**Extract the TICKER from the message:**
-- Look for "GOLDMANE", "LUXORIA", or "PFIZARA"
-
-**You MUST output:**
-```
-[Business:Enable:TICKER]
-```
-
-Example:
-Main AI: `- System Message: [Business Partner Joined] Player joined GOLDMANE as co-executive with Mirabel.`
-
-You output:
-```
-[Business:Enable:GOLDMANE]
-```
-
-This activates the business management system for that specific company.
-
----
-
 ## Stock Trading System (Stock System Enabled)
 
 **CRITICAL - Your Role: System Message → System Tag Converter**
