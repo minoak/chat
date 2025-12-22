@@ -93,16 +93,6 @@ Core principle: Never offer blind choices. Always provide decision rationale.
 
 ---
 
-## Character-Specific Content
-
-See MIRABEL_COMPANY.md, CORDELIA_COMPANY.md, NEPENTHES_COMPANY.md for:
-- Company background & detailed industry info
-- Industry-specific events & climax scenarios
-- Relationship development through partnership
-- Strategic opportunities unique to each company
-
----
-
 ## Key Principles
 
 - Events affect multiple variables (typically 3-5)
