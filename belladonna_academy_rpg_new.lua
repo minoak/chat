@@ -569,19 +569,31 @@ You output:
 
 ## Stock/Business Panel Display
 
-**CRITICAL - Always output panel tag at the end:**
-
-After all your tags, ALWAYS output:
-```
-<StockPanel />
-```
-
-This displays the stock/business panel UI to the player.
-
-**Your output format:**
+**Output format:**
 ```
 [YourTags...]
 <StockPanel />
+<Panel>■★
+```
+
+**Rules:**
+- Output `<StockPanel />` ONCE, right before `<Panel>■★`
+- DO NOT output at the beginning
+- DO NOT output multiple times
+
+**Correct:**
+```
+[Affinity:Name:like][StockSell:TICKER:100:10]
+<StockPanel />
+<Panel>■★
+```
+
+**Wrong:**
+```
+<StockPanel />  ← NO! Don't output here
+[Affinity:Name:like]
+<StockPanel />
+<Panel>■★
 ```
 
 ]]
