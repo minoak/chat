@@ -44,24 +44,6 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 
 ---
 
-## Stock Account Activation
-
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::0}}}}
-
-**Stock Account Opening:**
-
-When player opens a stock trading account:
-
-`- System Message: [Stock Account Created] Player opened a stock trading account at Lily Valley Securities.`
-
-OR
-
-`- System Message: [주식 계좌 개설] 플레이어가 릴리밸리 증권에서 주식 계좌를 개설했다.`
-
-{{/if_pure}}
-
----
-
 {{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 
 ## Stock Trading System Messages
