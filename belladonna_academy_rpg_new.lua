@@ -383,12 +383,10 @@ Do NOT output these tags - Main AI already outputs them:
 ## System Activation
 
 **Stock System** - For stock trading:
-If Main AI narrative involves stock trading/investment AND stock_system_enabled is NOT 1:
-Output: [StockSystem:Enable]
+Activated by Main AI via lorebook (not by you)
 
 **Business System** - For company management:
 Activated when user accepts company partnership (set by lorebook, not by you)
-Do NOT auto-activate business system.
 
 The two systems are independent:
 - Stock trading: Requires stock_system_enabled = 1
@@ -402,24 +400,6 @@ Always end with <Panel>■★
 
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
-
-## Stock System Activation Detection
-
-**Check for account opening system messages:**
-
-When Main AI outputs:
-`- System Message: [Stock Account Created] ...`
-OR
-`- System Message: [주식 계좌 개설] ...`
-
-**You MUST output:**
-```
-[StockSystem:Enable]
-```
-
-This activates the stock trading system. After activation, normal stock trading becomes available.
-
----
 
 ## Stock Trading System (Stock System Enabled)
 

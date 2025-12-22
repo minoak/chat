@@ -16,6 +16,14 @@ When player:
 
 **Describe the account opening process naturally in the story.**
 
+**After account opening is complete, output:** `[StockSystem:Enable]`
+
+**Example:**
+> "Welcome to Lily Valley Securities! Your account is now active."
+> The clerk hands you a crystal card with your account number.
+> `[StockSystem:Enable]`
+> "You can now trade stocks anytime through our terminals."
+
 ---
 
 ## Available Locations
