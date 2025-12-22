@@ -565,6 +565,25 @@ You output:
 - Main panel's Business tab auto-updates with your tags
 - Panel display is Main AI's responsibility, not yours
 
+---
+
+## Stock/Business Panel Display
+
+**CRITICAL - Always output panel tag at the end:**
+
+After all your tags, ALWAYS output:
+```
+<StockPanel />
+```
+
+This displays the stock/business panel UI to the player.
+
+**Your output format:**
+```
+[YourTags...]
+<StockPanel />
+```
+
 ]]
 
 -- ============================================
@@ -7231,14 +7250,12 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return ""  -- 태그 제거
     end)
 
-    -- 주식 패널: 시스템 활성화 확인
-    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
-    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+    -- 주식 패널: 태그 확인 후 UI 생성
     local hasStockPanel = data:find("<StockPanel%s*/>")
     data = data:gsub("<StockPanel%s*/>", "")
 
-    -- 주식/경영 시스템이 활성화되어 있으면 항상 패널 표시
-    if stockEnabled == "1" or businessEnabled == "1" or hasStockPanel then
+    -- 태그가 있으면 패널 UI 생성
+    if hasStockPanel then
         -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
         local shouldShow = true
         if meta and meta.index then
