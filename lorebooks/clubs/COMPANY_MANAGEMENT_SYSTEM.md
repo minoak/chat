@@ -14,91 +14,105 @@ Player needs to join a company as co-executive with a partner character. See cha
 
 # Company Management System
 
-Universal mechanics for managing companies with partner characters.
+Player is co-executive with partner character. Current company: {{getvar::active_company_ticker}}
 
 ---
 
-## Roleplay Context
+## Current Company Status
 
-This lorebook provides business system mechanics and event templates.
+**Financial Variables:**
+- **cash** ({{getvar::{{getvar::active_company_ticker}}_cash}}M): Available funds for investments, R&D, marketing
+- **debt** ({{getvar::{{getvar::active_company_ticker}}_debt}}M): Outstanding loans, affects credit and risk
+- **revenue** ({{getvar::{{getvar::active_company_ticker}}_revenue}}M): Total sales, indicates company size
+- **profit** ({{getvar::{{getvar::active_company_ticker}}_profit}}M): Net earnings, must be < revenue
 
-**Business contexts** (meetings, strategy discussions, crisis response):
-Characters discuss company matters professionally with appropriate terminology. Financial metrics and strategic decisions are central.
+**Market Variables:**
+- **market_share** ({{getvar::{{getvar::active_company_ticker}}_market_share}}%): Industry position (0-100%)
+- **brand_value** ({{getvar::{{getvar::active_company_ticker}}_brand_value}}): Public perception and loyalty (0-100)
 
-**Personal contexts** (dates, meals, classes, casual time):
-Character personalities take priority over business roles. Business might come up casually, but keep it brief and natural - no extended financial analysis during a romantic dinner.
+**Operational Variables:**
+- **rd_progress** ({{getvar::{{getvar::active_company_ticker}}_rd_progress}}%): R&D completion (0-100%, resets after launch)
+- **employees** ({{getvar::{{getvar::active_company_ticker}}_employees}}): Workforce size
 
-The management partnership is part of their relationship, not a replacement for it. Balance business and personal appropriately.
-
----
-
-## System Overview
-
-Business event occurs → System message output → Auxiliary model automatically updates variables
-
----
-
-## Writing System Messages
-
-Connect variable values based on situation:
-
-**Financial Situations:**
-- Cash 500M, Debt 200M → Investment capacity: `[Business:TICKER:Major Investment] → cash:-300|rd_progress:+25`
-- Cash 100M, Debt 300M → Cash shortage: `[Business:TICKER:Emergency Funding] → debt:+150|cash:+150`
-- Revenue 800M, Profit 50M → Profitability improvement: `[Business:TICKER:Profitability Success] → profit:+80|revenue:+100`
-
-**Market Situations:**
-- Market share 25%, Competitor 18% → Leader: `[Business:TICKER:Market Dominance] → market_share:+5|brand_value:+10`
-- Market share 10%, Competitor 30% → Underdog: `[Business:TICKER:Aggressive Marketing] → cash:-150|market_share:+8`
-- Brand value 90 → Premium: `[Business:TICKER:Premium Line Launch] → brand_value:+8|revenue:+120`
-
-**Operational Situations:**
-- Employees 600 → Restructuring: `[Business:TICKER:Organizational Efficiency] → employees:-200|profit:+50`
-- R&D 80% → New product: `[Business:TICKER:Innovation Launch] → rd_progress:-80|revenue:+200|market_share:+10`
-- R&D 10% → Investment: `[Business:TICKER:R&D Expansion] → cash:-200|rd_progress:+35`
-
-**Player Influence:**
-- Ownership 30% → Strategic lead: `[Business:TICKER:Player-Led Strategy] → influence:+10|market_share:+6`
-- Ownership 5% → Limited influence (partner leads major decisions)
+**Player Variables:**
+- **player_ownership** ({{getvar::{{getvar::active_company_ticker}}_player_ownership}}%): Your stake in the company
+- **player_influence** ({{getvar::{{getvar::active_company_ticker}}_player_influence}}): Decision-making power
 
 ---
 
-## Providing Decision Context
+## Reading Company Position
 
-Explain situation with specific numbers before offering choices:
+**Strong Position:**
+- Cash > 300M, Debt < 200M → Can invest aggressively
+- Market share > 25% → Industry leader, can pressure competitors
+- Brand value > 70 → Premium pricing power
 
-**Financial Decisions:**
-> "There's a major investment opportunity. We have 500M cash but 200M debt."
-> "Project cost is 300M. High risk, but if successful..."
+**Weak Position:**
+- Cash < 150M, Debt > 300M → Need cash urgently, risky decisions
+- Market share < 15% → Underdog, need aggressive growth
+- Brand value < 40 → Vulnerable to scandals, need PR investment
 
-**Stock Trading (with chart display):**
-> "GOLDMANE's showing an interesting pattern."
-> <StockChart:GOLDMANE />
-> "See that uptrend? Should we buy now?"
+**Growth Opportunities:**
+- R&D 80%+ → Ready for product launch
+- Cash high + Debt low → M&A opportunities
+- Market share gap < 10% from leader → Overtake possible
 
-**Crisis Response:**
-> "Scandal broke. Brand value dropped 15 points."
-> "Market share is at risk. Should we respond now?"
-
-**Competitive Analysis:**
-> "GUCCIEL launched aggressive campaign. They're at 18%, we're at 23%."
-> "Match their investment to defend share, or go premium?"
-
-**Mergers & Acquisitions:**
-> "SILVERFANG acquisition opportunity. They want 400M."
-> "We have 350M cash. Need 100M debt."
-> "Adds 8% market share. Should we do it?"
-
-Core principle: Never offer blind choices. Always provide decision rationale.
+**Crisis Indicators:**
+- Debt > Cash by 2x → Bankruptcy risk
+- Market share dropping rapidly → Competitive threat
+- Brand value < 30 → Reputation crisis
 
 ---
 
-## Key Principles
+## Business Event Format
 
-- Events affect multiple variables (typically 3-5)
-- Consequences matter - poor decisions have real impact
-- Business outcomes influence character relationships
-- Some decisions have delayed effects (debt accumulation, R&D completion)
-- Balance business gameplay with character interactions
+When business decisions or events occur, output:
+
+`[Business:TICKER:Event Description] → var:±value|var:±value|var:±value`
+
+**Examples:**
+
+**Investment:**
+Current: Cash 500M, Debt 200M, R&D 45%
+Decision: Major R&D investment
+`[Business:GOLDMANE:AI Platform Development] → cash:-300|rd_progress:+35|player_influence:+5`
+
+**Crisis:**
+Current: Brand value 65, Revenue 800M
+Event: Data breach scandal
+`[Business:GOLDMANE:Data Breach Crisis] → brand_value:-20|revenue:-150|market_share:-4`
+
+**Success:**
+Current: R&D 90%, Market share 22%
+Event: Product launch succeeds
+`[Business:LUXORIA:Metaverse Fashion Line] → rd_progress:-90|revenue:+250|market_share:+8|brand_value:+12`
+
+**Competition:**
+Current: Market share 23% (competitor 28%)
+Decision: Aggressive marketing campaign
+`[Business:PFIZARA:Direct Competition Attack] → cash:-180|market_share:+6|brand_value:+4`
+
+---
+
+## Decision Presentation
+
+Always show current numbers before choices:
+
+**Example 1 - Investment Decision:**
+> "We have 420M cash, 180M debt. R&D is at 65%."
+> "This AI project costs 250M but could finish R&D."
+> "What do you think?"
+
+**Example 2 - Crisis Response:**
+> "Scandal hit. Brand value dropped to 58."
+> "Market share at 19%, down from 22%."
+> "PR campaign costs 120M. Do it now or ride it out?"
+
+**Example 3 - Market Opportunity:**
+> "Our share: 24%. GUCCIEL: 27%. APPELLE: 18%."
+> "We have 380M cash. Aggressive push could make us #1."
+> "Risk: If it fails, we lose market position."
+
+Always include specific numbers. No vague decisions.
 
 {{/if_pure}}
