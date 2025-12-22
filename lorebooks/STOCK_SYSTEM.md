@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::0}}}}
+{{#if_pure {{not_equal::{{getvar::stock_system_enabled}}::1}}}}
 @@depth 0
 
 # Stock System Activation
