@@ -6501,15 +6501,17 @@ end
 function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
     local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
-    local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
 
-    -- 변화량이 0이면 히스토리에서 계산
-    if change == 0 then
-        local history = getStockHistory(triggerId, ticker)
-        if #history >= 2 then
-            local prevPrice = history[#history - 1]
-            change = price - prevPrice
-        end
+    -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
+    local change = 0
+    local history = getStockHistory(triggerId, ticker)
+    if #history >= 2 then
+        local openPrice = history[1]
+        local closePrice = history[#history]
+        change = closePrice - openPrice
+    else
+        -- history 없으면 저장된 change 사용
+        change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
     end
 
     -- 등락률 계산
@@ -7379,16 +7381,18 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
 
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         local name = STOCK_NAMES[ticker] or ticker
 
-        -- 변화량이 0이면 히스토리에서 계산
-        if change == 0 then
-            local history = getStockHistory(triggerId, ticker)
-            if #history >= 2 then
-                local prevPrice = history[#history - 1]
-                change = price - prevPrice
-            end
+        -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
+        local change = 0
+        local history = getStockHistory(triggerId, ticker)
+        if #history >= 2 then
+            local openPrice = history[1]
+            local closePrice = history[#history]
+            change = closePrice - openPrice
+        else
+            -- history 없으면 저장된 change 사용
+            change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
         end
 
         -- 등락률 계산: (변화량 / 이전가격) × 100
@@ -7400,8 +7404,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local changeSign = changePercent > 0 and "+" or ""
         local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
 
-        -- 미니 차트 데이터 (최근 8개)
-        local history = getStockHistory(triggerId, ticker)
+        -- 미니 차트 데이터 (history는 이미 위에서 가져옴)
         local basePrice = STOCK_BASE_PRICES[ticker] or 100
         local miniChart = ""
         if #history >= 2 then

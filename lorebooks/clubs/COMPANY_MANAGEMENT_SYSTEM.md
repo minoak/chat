@@ -182,6 +182,12 @@ The Lua system will generate a formatted HTML panel displaying all metrics.
 
 **Structure**: Context → Data/Metrics → Choices → Outcome → System Message → Character Reaction
 
+**IMPORTANT - Panel Display Rules:**
+- Display `<StockPanel:TICKER />` or `<StockChart:TICKER />` **ONLY ONCE per turn**
+- Show panels **BEFORE choices** (to inform decisions), NOT after outcomes
+- After outcomes, output System Messages only - panels are auto-updated
+- Do NOT repeat panels at turn end if already shown
+
 **Providing Decision Context (IMPORTANT)**:
 Before major business decisions, show relevant data to inform the choice:
 
