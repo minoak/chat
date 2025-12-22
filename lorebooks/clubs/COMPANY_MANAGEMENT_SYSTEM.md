@@ -66,31 +66,31 @@ Player is co-executive with partner character. Current company: {{getvar::active
 
 ## Business Event Format
 
-When business decisions or events occur, output:
+When business decisions or events occur, output system message with clear impacts:
 
-`[Business:TICKER:Event Description] → var:±value|var:±value|var:±value`
+`- System Message: [TICKER] Event description. Numerical impacts.`
 
 **Examples:**
 
 **Investment:**
 Current: Cash 500M, Debt 200M, R&D 45%
 Decision: Major R&D investment
-`[Business:GOLDMANE:AI Platform Development] → cash:-300|rd_progress:+35|player_influence:+5`
+`- System Message: [GOLDMANE] AI Platform Development approved. Cash -300M, R&D +35%, influence +5.`
 
 **Crisis:**
 Current: Brand value 65, Revenue 800M
 Event: Data breach scandal
-`[Business:GOLDMANE:Data Breach Crisis] → brand_value:-20|revenue:-150|market_share:-4`
+`- System Message: [GOLDMANE] Data breach crisis. Brand value -20, revenue -150M, market share -4%.`
 
 **Success:**
 Current: R&D 90%, Market share 22%
 Event: Product launch succeeds
-`[Business:LUXORIA:Metaverse Fashion Line] → rd_progress:-90|revenue:+250|market_share:+8|brand_value:+12`
+`- System Message: [LUXORIA] Metaverse Fashion Line launch success. R&D complete, revenue +250M, market share +8%, brand value +12.`
 
 **Competition:**
 Current: Market share 23% (competitor 28%)
 Decision: Aggressive marketing campaign
-`[Business:PFIZARA:Direct Competition Attack] → cash:-180|market_share:+6|brand_value:+4`
+`- System Message: [PFIZARA] Direct competition attack initiated. Cash -180M, market share +6%, brand value +4.`
 
 ---
 
@@ -119,36 +119,36 @@ Always include specific numbers. No vague decisions.
 
 ## Outputting Choice Results
 
-After player chooses, immediately output the consequence:
+After player chooses, immediately output system message:
 
 **Player chooses to invest:**
 > "Alright, let's go all in on the AI platform!"
 >
-> `[Business:GOLDMANE:AI Platform Investment] → cash:-250|rd_progress:+35|player_influence:+8`
+> `- System Message: [GOLDMANE] AI Platform Investment approved. Cash -250M, R&D +35%, influence +8%.`
 >
 > "Project approved. 250M allocated. Development team assembled."
 
 **Player chooses crisis response:**
 > "Yes, launch the PR campaign immediately."
 >
-> `[Business:LUXORIA:Emergency PR Campaign] → cash:-120|brand_value:+15`
+> `- System Message: [LUXORIA] Emergency PR campaign launched. Cash -120M, brand value +15.`
 >
 > "Campaign launched. Media response improving."
 
 **Player chooses aggressive expansion:**
 > "Attack now while we have the cash."
 >
-> `[Business:PFIZARA:Market Domination Push] → cash:-200|market_share:+7|brand_value:+5`
+> `- System Message: [PFIZARA] Market domination push initiated. Cash -200M, market share +7%, brand value +5.`
 >
 > "Marketing blitz initiated. Early results promising."
 
 **Player refuses/declines:**
 > "Too risky. Let's wait."
 >
-> `[Business:GOLDMANE:Conservative Hold] → player_influence:-3`
+> `- System Message: [GOLDMANE] Investment declined. Influence -3.`
 >
 > "Mirabel looks disappointed but nods."
 
-Always output business tag when choice has impact. Don't just narrate - execute the change.
+Always output system message with clear numerical impacts when choice affects company.
 
 {{/if_pure}}
