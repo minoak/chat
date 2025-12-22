@@ -115,4 +115,40 @@ Always show current numbers before choices:
 
 Always include specific numbers. No vague decisions.
 
+---
+
+## Outputting Choice Results
+
+After player chooses, immediately output the consequence:
+
+**Player chooses to invest:**
+> "Alright, let's go all in on the AI platform!"
+>
+> `[Business:GOLDMANE:AI Platform Investment] → cash:-250|rd_progress:+35|player_influence:+8`
+>
+> "Project approved. 250M allocated. Development team assembled."
+
+**Player chooses crisis response:**
+> "Yes, launch the PR campaign immediately."
+>
+> `[Business:LUXORIA:Emergency PR Campaign] → cash:-120|brand_value:+15`
+>
+> "Campaign launched. Media response improving."
+
+**Player chooses aggressive expansion:**
+> "Attack now while we have the cash."
+>
+> `[Business:PFIZARA:Market Domination Push] → cash:-200|market_share:+7|brand_value:+5`
+>
+> "Marketing blitz initiated. Early results promising."
+
+**Player refuses/declines:**
+> "Too risky. Let's wait."
+>
+> `[Business:GOLDMANE:Conservative Hold] → player_influence:-3`
+>
+> "Mirabel looks disappointed but nods."
+
+Always output business tag when choice has impact. Don't just narrate - execute the change.
+
 {{/if_pure}}
