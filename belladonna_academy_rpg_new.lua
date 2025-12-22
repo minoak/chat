@@ -6022,7 +6022,9 @@ function generateBusinessView(triggerId)
         local marketPositionHtml
         if stockEnabled == "1" then
             -- 주식 시스템 활성화: 주가 포함 (2x2 그리드)
-            local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
+            local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price"))
+                            or tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+                            or STOCK_BASE_PRICES[ticker] or 0
             marketPositionHtml = string.format([[
     <!-- 시장 포지션 -->
     <div style='margin-bottom:16px'>
