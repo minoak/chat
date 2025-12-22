@@ -1637,6 +1637,10 @@ function parseStockChanges(triggerId, message)
                 setChatVar(triggerId, varName, tostring(newValue))
                 setState(triggerId, varName, tostring(newValue))
 
+                -- 변화량 저장 (경영 패널 표시용)
+                setChatVar(triggerId, varName .. "_change", tostring(valueNum))
+                setState(triggerId, varName .. "_change", tostring(valueNum))
+
                 -- 주가는 히스토리에도 추가
                 if key == "price" then
                     addPriceToHistory(triggerId, ticker, newValue)
@@ -5984,6 +5988,28 @@ function generateBusinessView(triggerId)
 
         log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
 
+        -- 변화량 가져오기
+        local revenue_change = tonumber(getChatVar(triggerId, ticker .. "_revenue_change")) or 0
+        local profit_change = tonumber(getChatVar(triggerId, ticker .. "_profit_change")) or 0
+        local cash_change = tonumber(getChatVar(triggerId, ticker .. "_cash_change")) or 0
+        local debt_change = tonumber(getChatVar(triggerId, ticker .. "_debt_change")) or 0
+        local market_share_change = tonumber(getChatVar(triggerId, ticker .. "_market_share_change")) or 0
+        local brand_value_change = tonumber(getChatVar(triggerId, ticker .. "_brand_value_change")) or 0
+        local influence_change = tonumber(getChatVar(triggerId, ticker .. "_influence_change")) or 0
+
+        -- 변화량 포맷 함수 (색상 + 화살표)
+        local function formatChange(change, isPercent)
+            if change == 0 then
+                return "<span style='color:#6e7681;font-size:11px'> →0</span>"
+            end
+            local color = change > 0 and "#3fb950" or "#f85149"
+            local arrow = change > 0 and "▲" or "▼"
+            local sign = change > 0 and "+" or ""
+            local suffix = isPercent and "%" or ""
+            return string.format("<span style='color:%s;font-size:11px'> %s%s%d%s</span>",
+                color, arrow, sign, change, suffix)
+        end
+
         -- 지표 계산
         local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
         local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
@@ -6004,11 +6030,11 @@ function generateBusinessView(triggerId)
       <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
-          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
@@ -6019,7 +6045,7 @@ function generateBusinessView(triggerId)
           <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
         </div>
       </div>
-    </div>]], market_share, brand_value, formatNumber(stockPrice), formatNumber(employees))
+    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(stockPrice), formatNumber(employees))
         else
             -- 경영 전용 모드: 주가 제외 (2x2 그리드)
             marketPositionHtml = string.format([[
@@ -6029,11 +6055,11 @@ function generateBusinessView(triggerId)
       <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
-          <div style='color:#d29922;font-size:15px;font-weight:600'>%d</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
@@ -6041,10 +6067,10 @@ function generateBusinessView(triggerId)
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>업계 영향력</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
         </div>
       </div>
-    </div>]], market_share, brand_value, formatNumber(employees), influence)
+    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(employees), influence, formatChange(influence_change, false))
         end
 
         html = html .. string.format([[
@@ -6061,19 +6087,19 @@ function generateBusinessView(triggerId)
       <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>매출</div>
-          <div style='color:#fff;font-size:15px;font-weight:600'>%sM</div>
+          <div style='color:#fff;font-size:15px;font-weight:600'>%sM%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%)</div>
-          <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>현금</div>
-          <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM</div>
+          <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM%s</div>
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%)</div>
-          <div style='color:%s;font-size:15px;font-weight:600'>%sM</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
         </div>
       </div>
     </div>
@@ -6090,7 +6116,7 @@ function generateBusinessView(triggerId)
         </div>
         <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
           <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>전략 기여도</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
         </div>
       </div>
     </div>
@@ -6101,10 +6127,12 @@ function generateBusinessView(triggerId)
     </div>
   </div>
 ]], ticker, company.sector, company.name, company.character,
-   formatNumber(revenue), profitMargin, profitColor, formatNumber(profit),
-   formatNumber(cash), debtRatio, debtColor, formatNumber(debt),
+   formatNumber(revenue), formatChange(revenue_change, false),
+   profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false),
+   formatNumber(cash), formatChange(cash_change, false),
+   debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false),
    marketPositionHtml,
-   rd_progress, influence, player_share)
+   rd_progress, influence, formatChange(influence_change, false), player_share)
     end
 
     html = html .. "</div>"
