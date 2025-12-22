@@ -1724,9 +1724,18 @@ function parseClubChanges(triggerId, message)
     -- 가입
     for clubType in message:gmatch("%[Club:Join:([^%]]+)%]") do
         if clubType == "stock" then
+            -- 동아리 가입 변수 설정
             setChatVar(triggerId, "club_stock_joined", "1")
             setState(triggerId, "club_stock_joined", "1")
             log("📈 주식투자 동아리 가입 (태그)")
+
+            -- 주식 시스템도 자동 활성화
+            local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "stock_system_enabled", "1")
+                setState(triggerId, "stock_system_enabled", "1")
+                log("📈 주식 시스템 자동 활성화 (동아리 가입)")
+            end
         end
     end
 
