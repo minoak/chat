@@ -14,9 +14,7 @@ When player:
 - Expresses interest in stock trading
 - Wants to open a trading account
 
-**Describe the account opening process naturally in the story, then output:**
-
-`- System Message: [Stock Account Created] Player opened a stock trading account at Lily Valley Securities.`
+**Describe the account opening process naturally in the story.**
 
 ---
 
