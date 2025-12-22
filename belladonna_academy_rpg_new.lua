@@ -392,28 +392,6 @@ The two systems are independent:
 - Stock trading: Requires stock_system_enabled = 1
 - Company management: Requires business_system_enabled = 1
 
----
-
-## Safety Mechanism: Echo Main AI Tags
-
-**CRITICAL - For safety, always re-output these tags if Main AI used them:**
-
-Check Main AI's output for these tags and echo them in your output:
-- `[StockSystem:Enable]` - Stock system activation
-- `[Club:Join:stock]` - Stock club join
-- `[Club:Leave:stock]` - Stock club leave
-- `[StockBuy:TICKER:PRICE:QTY]` - Stock purchase
-- `[StockSell:TICKER:PRICE:QTY]` - Stock sale
-- `[Market:INDEX:±CHANGE]` - Market index change
-
-**Why:** This creates redundancy. If Main AI outputs a tag, you echo it as backup.
-
-**Example:**
-Main AI: `The clerk nods. "Welcome to the Stock Club!" [Club:Join:stock]`
-You output: `[Club:Join:stock]` (echo for safety)
-
----
-
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
