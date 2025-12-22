@@ -39,8 +39,6 @@ OR
 
 Lily Valley Securities stock trading system. Account active.
 
-**For system message format, see SYSTEM_MESSAGE_GUIDE.md**
-
 ---
 
 ## Stock List
@@ -123,20 +121,11 @@ Shows compact price info inline. Use for quick mentions:
 > "TESLAM is at <StockQuote:TESLAM /> right now."
 > "Checked LUXORIA? <StockQuote:LUXORIA /> - not bad!"
 
-### Stock Panel: `<StockPanel />`
-
-Shows full trading panel (auto-displayed after trades via auxiliary AI):
-
-> "Let me show you the full market overview."
-> <StockPanel />
-
 **When to Use Display Tags:**
 - During stock-related conversations with characters
 - When player asks "how's the market?" or "show me the chart"
 - After receiving insider information from characters
 - During Stock Club activities
 - To enhance immersion when discussing investments
-
-**Note:** System messages for trades are separate - see SYSTEM_MESSAGE_GUIDE.md
 
 {{/if_pure}}
