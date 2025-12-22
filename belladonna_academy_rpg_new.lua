@@ -403,130 +403,235 @@ Always end with <Panel>■★
 -- Stock Management 프롬프트 (조건부 로딩)
 local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
 
+## Stock System Activation Detection
+
+**Check for account opening system messages:**
+
+When Main AI outputs:
+`- System Message: [Stock Account Created] ...`
+OR
+`- System Message: [주식 계좌 개설] ...`
+
+**You MUST output:**
+```
+[StockSystem:Enable]
+```
+
+This activates the stock trading system. After activation, normal stock trading becomes available.
+
+---
+
+## Business System Activation Detection
+
+**Check for partnership system messages:**
+
+When Main AI outputs:
+`- System Message: [Business Partner Joined] ...`
+OR
+`- System Message: [경영진 합류] ...`
+
+**Extract the TICKER from the message:**
+- Look for "GOLDMANE", "LUXORIA", or "PFIZARA"
+
+**You MUST output:**
+```
+[Business:Enable:TICKER]
+```
+
+Example:
+Main AI: `- System Message: [Business Partner Joined] Player joined GOLDMANE as co-executive with Mirabel.`
+
+You output:
+```
+[Business:Enable:GOLDMANE]
+```
+
+This activates the business management system for that specific company.
+
+---
+
 ## Stock Trading System (Stock System Enabled)
 
+**CRITICAL - Your Role: System Message → System Tag Converter**
+
+You convert Main AI's story-focused system messages into precise system tags for Lua processing.
+
+### Stock Trade Conversion
+
+**When Main AI outputs trade system messages:**
+
+**Format to look for:**
+- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.
+- System Message: 플레이어가 GOLDMANE 10주를 280G에 매수했다. 총 비용 2,800G.
+- System Message: Player sold 5 shares of LUXORIA at 230G each.
+- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다.
+
+**Step 1: Identify trade messages**
+Look for keywords:
+- Buy: "bought", "purchased", "매수"
+- Sell: "sold", "매도"
+
+**Step 2: Extract information**
+- Ticker: GOLDMANE, LUXORIA, PFIZARA, TESLAM, etc.
+- Quantity: Number before "shares" or "주"
+- Price: Number before "G" or "골드"
+- Action: Buy or Sell
+
+**Step 3: Output system tags**
+Format:
+- Buy: `[StockBuy:TICKER:PRICE:QTY]`
+- Sell: `[StockSell:TICKER:PRICE:QTY]`
+- Then: `<StockPanel />`
+
+**Examples:**
+
+Main AI:
+`- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.`
+
+You output:
+```
+[StockBuy:GOLDMANE:280:10]
+<StockPanel />
+```
+
+Main AI:
+`- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다. 총 수익 1,150G.`
+
+You output:
+```
+[StockSell:LUXORIA:230:5]
+<StockPanel />
+```
+
+### Market Information (No Action Required)
+
+**When Main AI outputs market information system messages:**
+
+**Format:**
+- System Message: GOLDMANE 주가가 280G로 상승했다. 분기 실적 호조.
+- System Message: 릴리벨리 지수가 1,050으로 상승.
+
+**Your action:**
+- DO NOT output any system tags
+- DO NOT output <StockPanel />
+- This is informational only, no player action involved
+
 **CRITICAL - Stock vs Item Distinction:**
-- Stock transactions are NOT items - DO NOT output [Item:...] tags for stocks
-- Stock transactions are NOT gold changes - DO NOT output [Gold:...] tags for stock trades
-- When you see [StockBuy:...] or [StockSell:...] tags from Main AI:
-  * These are automatically processed by the system
-  * You only need to output <StockPanel /> to show the updated portfolio
-  * DO NOT treat them as regular item purchases
+- Stock transactions are NOT items - DO NOT output [Item:...] tags
+- Stock transactions are NOT gold changes - DO NOT output [Gold:...] tags
+- The Lua system handles gold/inventory automatically via [StockBuy/Sell:...] tags
 
-**Stock Panel Display:**
-Only output <StockPanel /> when stock-related events occur:
-- After [StockBuy:...] or [StockSell:...] tags appear (trades completed)
-- After [Club:Join:stock] tag appears (joined stock club)
-- NEVER output it otherwise - user can open panel manually
-
-**Stock Information:**
-When Main AI outputs `<Stock>` tag with market news:
-- This is for display only, already shown in panel
-- DO NOT output <StockPanel /> for news updates
+---
 
 ## Business Management System (Business System Enabled)
 
-**Business System Activation:**
-When Main AI outputs `[Business:Enable:TICKER]` (e.g., `[Business:Enable:GOLDMANE]`):
-- This means the player has joined a company as co-executive
-- The system automatically initializes company variables
-- You should acknowledge this in your regular narrative output
-- DO NOT output variable update tags for activation (initialization is automatic)
-- DO NOT output <StockPanel:TICKER /> - business info is accessible via panel's business tab
+**Your Role: Analyze Business Events → Generate Variable Updates**
 
-**CRITICAL - Business Event Analysis:**
-When Main AI outputs business events, you must analyze them and update company variables.
+### Business Event Conversion
 
-**What you see from Main AI (TWO formats - handle BOTH):**
+**When Main AI outputs business event system messages:**
 
-*Format 1 - Tag (Preferred):*
-```
-[Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
-[Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
-[Business:PFIZARA:신약 개발 성공, 업계 주목]
-```
+**Format to look for:**
+`- System Message: [TICKER] <event description>. <scale>. <impact details>`
 
-*Format 2 - System Message (Fallback):*
-```
-System Message: [GOLDMANE] 신규 투자 프로젝트 승인, 중규모
-System Message: [LUXORIA] 스캔들 발생, 브랜드 이미지 타격
-System Message: [PFIZARA] 신약 개발 성공, 업계 주목
-```
+Examples:
+- System Message: [GOLDMANE] 신규 투자 프로젝트 승인. 중규모 투자, 초기 자본 100M 소요, R&D 15% 진척 예상.
+- System Message: [LUXORIA] 스캔들 발생. 브랜드 이미지 타격, 매출 80M 감소 우려.
+- System Message: [PFIZARA] 신약 개발 성공. 대규모 성과, 매출 200M 증가 예상.
 
-**IMPORTANT**: Check for BOTH formats. If you see either format, analyze the event and output variable updates.
+**Step 1: Extract information**
+- Ticker: In brackets [GOLDMANE], [LUXORIA], or [PFIZARA]
+- Event type: Investment, crisis, product launch, competition, etc.
+- Scale: 소규모/중규모/대규모/초대형 (Small/Medium/Large/Massive)
+- Impact hints: Often mentioned in the message
 
-**Your Analysis Process:**
-1. **Read the event description** - Understand what happened (investment, crisis, expansion, etc.)
-2. **Determine impact scale** - Event describes scale (소규모/중규모/대규모/초대형)
-3. **Calculate variable changes** - Apply realistic financial impacts
-4. **Output variable updates** - Use [Stock:TICKER:var:value] tags
+**Step 2: Analyze impact using financial logic**
 
-**Variable Types (10 per company):**
+**Variable Types (12 per company):**
 - **Financial**: revenue (매출M), profit (순이익M), cash (현금M), debt (부채M)
 - **Market**: market_share (시장점유율%), brand_value (브랜드가치)
 - **Operations**: employees (직원수), rd_progress (연구개발%)
 - **Player**: player_share (보유지분%), influence (경영영향력)
+- **Other**: reputation, valuation
 
 **Impact Scale Guidelines:**
-- **소규모**: ±10-50M revenue, ±5-20M profit, ±1-2% market share
-- **중규모**: ±50-150M revenue, ±20-70M profit, ±2-5% market share
-- **대규모**: ±150-400M revenue, ±70-200M profit, ±5-10% market share
-- **초대형**: ±400M+ revenue, ±200M+ profit, ±10%+ market share
+- **소규모 (Small)**: ±10-50M revenue, ±5-20M profit, ±1-2% market share
+- **중규모 (Medium)**: ±50-150M revenue, ±20-70M profit, ±2-5% market share
+- **대규모 (Large)**: ±150-400M revenue, ±70-200M profit, ±5-10% market share
+- **초대형 (Massive)**: ±400M+ revenue, ±200M+ profit, ±10%+ market share
 
-**Event Type Examples:**
+**Event Logic Examples:**
+- Investment → cash ↓, rd_progress ↑, future revenue potential ↑
+- Crisis/Scandal → brand_value ↓, revenue ↓, market_share ↓
+- Product Success → revenue ↑, profit ↑, market_share ↑, brand_value ↑
+- Competition → market_share ↓, revenue ↓
 
-*Investment Success (투자 성공):*
-```
-Event (Tag): [Business:GOLDMANE:신규 투자 프로젝트 승인, 중규모]
-OR
-Event (System Message): System Message: [GOLDMANE] 신규 투자 프로젝트 승인, 중규모
+**Step 3: Output system tags**
+Format: `[Stock:TICKER:var1:±value1|var2:±value2|var3:±value3]`
 
-Analysis: 중규모 투자 → 현금 감소, 미래 수익 증가 예상, R&D 진척
-Output: [Stock:GOLDMANE:cash:-100|rd_progress:+15|influence:+3]
-```
+**Examples:**
 
-*Crisis (위기):*
-```
-Event: [Business:LUXORIA:스캔들 발생, 브랜드 이미지 타격]
-Analysis: 스캔들 → 브랜드가치 하락, 매출 감소, 시장점유율 하락
-Output: [Stock:LUXORIA:brand_value:-20|revenue:-80|market_share:-3]
-```
+Main AI:
+`- System Message: [GOLDMANE] 신규 투자 프로젝트 승인. 중규모 투자.`
 
-*Product Launch Success (제품 출시 성공):*
+You analyze:
+- Event: Investment
+- Scale: Medium (중규모)
+- Logic: Investment requires upfront cash, boosts R&D, increases influence
+
+You output:
 ```
-Event: [Business:PFIZARA:신약 개발 성공, 업계 주목]
-Analysis: 신약 성공 → 매출/이익 급증, 시장점유율 상승, 브랜드가치 상승
-Output: [Stock:PFIZARA:revenue:+200|profit:+120|market_share:+5|brand_value:+15]
+[Stock:GOLDMANE:cash:-100|rd_progress:+15|influence:+3]
 ```
 
-*Market Competition (시장 경쟁):*
+Main AI:
+`- System Message: [LUXORIA] 스캔들 발생. 브랜드 이미지 타격.`
+
+You analyze:
+- Event: Crisis (scandal)
+- Impact: Brand damage, revenue loss, market share drop
+
+You output:
 ```
-Event: [Business:GOLDMANE:경쟁사 공격적 마케팅, 점유율 하락]
-Analysis: 경쟁 압박 → 시장점유율 하락, 매출 감소
-Output: [Stock:GOLDMANE:market_share:-4|revenue:-60]
+[Stock:LUXORIA:brand_value:-20|revenue:-80|market_share:-3]
+```
+
+Main AI:
+`- System Message: [PFIZARA] 신약 개발 성공. 대규모 성과.`
+
+You analyze:
+- Event: Product success
+- Scale: Large (대규모)
+- Impact: Major revenue/profit boost, market share gain
+
+You output:
+```
+[Stock:PFIZARA:revenue:+200|profit:+120|market_share:+5|brand_value:+15]
 ```
 
 **CRITICAL Rules:**
-- **Affect multiple variables** (typically 3-5) - realistic events have cascading effects
-- **Include trade-offs** - investments reduce cash but boost R&D, expansion increases debt but revenue
-- **Respect constraints** - profit < revenue, shares ≤ 100%, brand_value 0-100
-- **Match magnitude** - 중규모 shouldn't cause ±500M changes
-- **Consider context** - larger companies (GOLDMANE) can handle bigger absolute changes than smaller ones
-
-**Output Format:**
-```
-[Stock:TICKER:var1:±value1|var2:±value2|var3:±value3]
-```
-
-Example complete response after seeing business event:
-```
-[Stock:GOLDMANE:revenue:+120|profit:+70|cash:-80|rd_progress:+12|influence:+5]
-```
+- **Affect multiple variables** (typically 3-5) for realistic cascading effects
+- **Include trade-offs**: investments cost cash but boost future metrics
+- **Respect constraints**: profit < revenue, shares ≤ 100%, brand_value 0-100
+- **Match magnitude to scale**: 중규모 shouldn't cause ±500M changes
+- **Consider company size**: GOLDMANE (larger) can handle bigger absolute changes than smaller companies
 
 **IMPORTANT - Display:**
 - DO NOT output <StockPanel:TICKER /> after business events
 - Users can check company status via the Business tab in the main panel
-- Only output your regular narrative response with the variable update tags above
+- Only output the [Stock:TICKER:var:value|...] tags
+
+---
+
+## Legacy Format Support (Backward Compatibility)
+
+**For older conversations, also support direct tag formats:**
+
+If you see these old formats from Main AI:
+- `[StockBuy:TICKER:PRICE:QTY]` → Just output `<StockPanel />`
+- `[StockSell:TICKER:PRICE:QTY]` → Just output `<StockPanel />`
+- `[Business:TICKER:이벤트, 규모]` → Analyze and output `[Stock:TICKER:var:value|...]`
+
 ]]
 
 -- ============================================

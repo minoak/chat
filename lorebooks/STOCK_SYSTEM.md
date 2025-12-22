@@ -1,9 +1,47 @@
+{{#if_pure {{equal::{{getvar::stock_system_enabled}}::0}}}}
+@@depth 0
+
+# Stock Account Opening
+
+**Stock trading is currently unavailable. Player needs to open an account.**
+
+---
+
+## How to Activate
+
+When player:
+- Visits a securities company (Lily Valley Securities)
+- Expresses interest in stock trading
+- Wants to open a trading account
+
+**Describe the account opening process naturally in the story, then output:**
+
+`- System Message: [Stock Account Created] Player opened a stock trading account at Lily Valley Securities.`
+
+OR
+
+`- System Message: [주식 계좌 개설] 플레이어가 릴리밸리 증권에서 주식 계좌를 개설했다.`
+
+**The auxiliary model will activate the stock system automatically.**
+
+---
+
+## Available Locations
+
+- **Lily Valley Securities Main Branch** (Golden District)
+- **Lily Valley Securities Academy Branch** (Campus, near Library)
+- **Online Account Opening** (via MagiNet terminal)
+
+{{/if_pure}}
+
 {{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 @@depth 0
 
 # Stock Trading System
 
-Lily Valley Securities stock trading system. Enables stock investment gameplay.
+Lily Valley Securities stock trading system. Account active.
+
+**For system message format, see SYSTEM_MESSAGE_GUIDE.md**
 
 ---
 
@@ -39,29 +77,10 @@ Lily Valley Securities stock trading system. Enables stock investment gameplay.
 
 ---
 
-## Tag Format
+## Market Index
 
-### Stock Market Display
-
-Show stock prices and market activity naturally in the story using `<Stock>` tag:
-
-```
-<Stock>
-GOLDMANE (Golden Mane Vault): 280G, rising - Quarterly earnings beat
-MUTAGEN (Mutation Research Lab): 75G, falling - Clinical trial failure
-TESLAM (Thunder Magitech): 250G, stable - Waiting for product launch
-</Stock>
-```
-
-### Trade Tags
-
-When {{user}} buys or sells stocks:
-```
-[StockBuy:TICKER:PRICE:QTY]
-[StockSell:TICKER:PRICE:QTY]
-```
-
-Example: `[StockBuy:IRONFORGE:48:20]` - Bought 20 shares of IRONFORGE at 48G each
+**Lily Valley Index**: {{getvar::market_index}} (Base: 1000)
+**Economic Cycle**: {{getvar::economic_cycle}}
 
 ---
 
