@@ -7231,12 +7231,13 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return ""  -- 태그 제거
     end)
 
-    -- 주식 패널: 태그가 있는지 확인 후 제거
+    -- 주식 패널: 태그 또는 거래 태그 확인
     local hasStockPanel = data:find("<StockPanel%s*/>")
+    local hasStockTrade = data:find("%[StockBuy:") or data:find("%[StockSell:")
     data = data:gsub("<StockPanel%s*/>", "")
 
-    -- 태그가 있었다면 패널 UI 추가
-    if hasStockPanel then
+    -- 패널 태그가 있거나 주식 거래가 있었다면 패널 UI 추가
+    if hasStockPanel or hasStockTrade then
         -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
         local shouldShow = true
         if meta and meta.index then
