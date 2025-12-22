@@ -7415,8 +7415,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 시스템 메시지 디스플레이 변환
     -- ============================================
 
-    -- 시스템 메시지를 감지하고 타입별로 스타일링
-    data = data:gsub("(%-+%s*System Message:%s*)([^\n]+)", function(prefix, content)
+    -- 시스템 메시지를 감지하고 타입별로 스타일링 (backtick 있어도 처리)
+    data = data:gsub("`?(%-+%s*System Message:%s*)([^\n`]+)`?", function(prefix, content)
         local messageType = "general"
         local icon = "📌"
         local bgColor = "#161b22"
