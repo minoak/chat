@@ -6944,6 +6944,12 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- [Business:Enable:TICKER] 태그는 즉시 파싱 (메인 모델 출력일 때)
     parseBusinessEnable(triggerId, data)
 
+    -- 메인 모델 전용 태그들 항상 파싱 (보조 모델 유무 관계없이)
+    parseStockSystemEnable(triggerId, data)
+    parseClubChanges(triggerId, data)
+    parseStockTrades(triggerId, data)
+    parseMarketIndex(triggerId, data)
+
     -- ============================================
     -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)
     -- ============================================
