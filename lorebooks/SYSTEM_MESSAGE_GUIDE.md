@@ -63,20 +63,31 @@ Include: ticker, action (bought/sold), quantity, price per share.
 
 ## Business Management System Messages
 
-When business events occur, output system messages with impact details:
+When business events occur, output system messages with **explicit numerical values**:
 
 **Investment:**
-`- System Message: [GOLDMANE] Major investment approved. 300M spent on AI platform. R&D progress +25%.`
+`- System Message: [GOLDMANE] Major investment approved. Cash -300M, R&D +25%, influence +5.`
 
 **Crisis:**
-`- System Message: [LUXORIA] Scandal erupted. Brand value dropped 20 points. Revenue -150M expected.`
+`- System Message: [LUXORIA] Scandal erupted. Brand value -20, revenue -150M.`
 
 **Success:**
-`- System Message: [PFIZARA] New drug launch success. Revenue +250M. Market share +8%.`
+`- System Message: [PFIZARA] New drug launch success. Revenue +250M, market share +8%.`
 
 **Competition:**
-`- System Message: [GOLDMANE] Aggressive marketing campaign. 180M invested. Market share +6%.`
+`- System Message: [GOLDMANE] Marketing campaign launched. Cash -180M, market share +6%.`
 
-Format: `[TICKER]` + event description + numerical impacts.
+**CRITICAL Rules:**
+- **ALWAYS include specific numbers** with +/- signs
+- **Use variable-like terms**: cash, revenue, profit, debt, R&D, brand value, market share, influence, ownership
+- **Format**: `[TICKER] Event description. variable ±amount, variable ±amount.`
+
+**Wrong (too vague):**
+❌ `[GOLDMANE] 주가가 반등을 시작했습니다.` (no numbers)
+❌ `[LUXORIA] 브랜드 가치가 크게 상승했습니다.` (no specific amount)
+
+**Correct (clear values):**
+✅ `[GOLDMANE] Stock price rebounded. Price +15G, volume +20%.`
+✅ `[LUXORIA] Brand campaign success. Brand value +30, revenue +200M.`
 
 {{/if_pure}}
