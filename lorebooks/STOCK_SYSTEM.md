@@ -22,8 +22,6 @@ OR
 
 `- System Message: [주식 계좌 개설] 플레이어가 릴리밸리 증권에서 주식 계좌를 개설했다.`
 
-**The auxiliary model will activate the stock system automatically.**
-
 ---
 
 ## Available Locations
