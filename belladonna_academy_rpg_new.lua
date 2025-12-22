@@ -1543,9 +1543,10 @@ end
 
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5] 또는 [Stock:GOLDMANE:price:+10|market_share:+5]
 function parseStockChanges(triggerId, message)
-    -- 주식 시스템 활성화 여부 확인
+    -- 주식 또는 경영 시스템 활성화 여부 확인
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then return end
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
 
     for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
         -- 티커 추출 (첫 번째 항목)
