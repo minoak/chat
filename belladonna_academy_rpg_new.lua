@@ -567,34 +567,7 @@ You output:
 
 ---
 
-## Stock/Business Panel Display
-
-**Output format:**
-```
-[YourTags...]
-<StockPanel />
-<Panel>■★
-```
-
-**Rules:**
-- Output `<StockPanel />` ONCE, right before `<Panel>■★`
-- DO NOT output at the beginning
-- DO NOT output multiple times
-
-**Correct:**
-```
-[Affinity:Name:like][StockSell:TICKER:100:10]
-<StockPanel />
-<Panel>■★
-```
-
-**Wrong:**
-```
-<StockPanel />  ← NO! Don't output here
-[Affinity:Name:like]
-<StockPanel />
-<Panel>■★
-```
+Always end with <StockPanel /><Panel>■★
 
 ]]
 
