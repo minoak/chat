@@ -18,10 +18,6 @@ When player:
 
 `- System Message: [Stock Account Created] Player opened a stock trading account at Lily Valley Securities.`
 
-OR
-
-`- System Message: [주식 계좌 개설] 플레이어가 릴리밸리 증권에서 주식 계좌를 개설했다.`
-
 ---
 
 ## Available Locations
