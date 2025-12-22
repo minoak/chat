@@ -255,35 +255,54 @@ Auxiliary model tag output:
 
 {{/if_pure}}{{/if_pure}}
 
-{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+{{#if_pure {{equal::{{getvar::auxiliary_mode}}::0}}}}{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
 
 ---
 
-# STOCK MANAGEMENT TAG INSTRUCTIONS
+# BUSINESS MANAGEMENT TAG INSTRUCTIONS
 
 Company Partners only system.
 
 ## Trigger Condition
 
-When main model outputs "- System Message: [business event description]", analyze and generate stock management tags.
+When main model outputs `[Business:TICKER:Event] → var:value` format, parse and update business variables.
 
-## Output Format
+## Input Format
 
 ```
-[Stock:TICKER:variable:±value] or [Stock:TICKER:var1:±value1|var2:±value2|...]
+[Business:TICKER:Event Description] → var1:±value1|var2:±value2|var3:±value3
 ```
 
 **Tickers**: GOLDMANE (Mirabel), LUXORIA (Cordelia), PFIZARA (Nepenthes)
-**Variables**: revenue, profit, cash, debt, market_share, brand_value, employees, rd_progress, player_share, influence
+**Variables**: cash, debt, revenue, profit, market_share, brand_value, rd_progress, employees, player_ownership, player_influence
 
-## Business Realism Guidelines
+## Processing Rules
 
-Apply business realism: Match event scale to change magnitude, use realistic trade-offs, ensure business logic (profit < revenue, market_share ≤ 100%). Currency in Gold (G), companies in millions (M).
+1. Parse the `[Business:TICKER:Event] → var:value` tag from main model output
+2. Extract variable changes (e.g., `cash:-300|rd_progress:+25`)
+3. Apply changes to the corresponding company variables
+4. No additional analysis needed - main model specifies exact changes
 
 ## Examples
 
-- "투자 성공, 매출과 시장점유율 상승" → [Stock:GOLDMANE:revenue:+80|market_share:+2]
-- "스캔들로 브랜드 타격" → [Stock:LUXORIA:brand_value:-30|market_share:-3]
+**Input from main model:**
+```
+[Business:GOLDMANE:Major Investment] → cash:-300|rd_progress:+25
+```
+
+**Processing:**
+- GOLDMANE cash: -300
+- GOLDMANE rd_progress: +25
+
+**Input from main model:**
+```
+[Business:LUXORIA:Scandal Response] → cash:-80|brand_value:-5|market_share:-3
+```
+
+**Processing:**
+- LUXORIA cash: -80
+- LUXORIA brand_value: -5
+- LUXORIA market_share: -3
 
 ---
 
