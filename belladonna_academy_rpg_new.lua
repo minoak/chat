@@ -1628,8 +1628,18 @@ function parseStockChanges(triggerId, message)
                 local current = tonumber(getChatVar(triggerId, varName)) or 0
                 local newValue = current + valueNum
 
-                -- 음수 방지 (부채는 제외)
-                if key ~= "debt" and newValue < 0 then
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    -- 점유율: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "brand_value" then
+                    -- 브랜드 가치: 0-100 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "rd_progress" then
+                    -- 연구개발: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and newValue < 0 then
+                    -- 음수 방지 (부채는 제외)
                     newValue = 0
                 end
 
