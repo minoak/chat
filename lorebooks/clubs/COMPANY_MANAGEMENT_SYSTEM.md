@@ -3,62 +3,9 @@
 
 # Company Management Partnership
 
-**Business management system is currently unavailable. Player needs to join a company as co-executive.**
+**Business management system is currently unavailable.**
 
----
-
-## How to Activate
-
-### Partnership Requirements
-
-When a character's affinity reaches **300+**, they may offer management partnership during an appropriate context (business meeting, serious conversation, romantic moment with business undertones).
-
-### Available Companies
-
-| Company | Ticker | Character | Industry | Invitation Context |
-|---------|--------|-----------|----------|-------------------|
-| Golden Mane Vault | GOLDMANE | Mirabel | Finance | During financial discussion or family business talk |
-| Citadel of Luxury | LUXORIA | Cordelia | Luxury Goods | During high society event or brand strategy talk |
-| Alchemy Pharmaceuticals | PFIZARA | Nepenthes | Pharma/Biotech | During research discussion or medical breakthrough |
-
----
-
-## Activation Process
-
-### Step 1: Character Invitation
-
-When affinity reaches 300+, the character offers partnership:
-
-**Example (Mirabel):**
-> "I've been thinking... You understand finance better than most of my actual executives. Would you consider joining Golden Mane Vault as my co-executive? I could use a partner I actually trust."
-
-### Step 2: Player Decision
-
-Present the choice naturally:
-- **Accept**: Player agrees to join as co-executive
-- **Decline**: Player declines (can be offered again later)
-
-### Step 3: Activation Output
-
-**If player accepts, output:**
-
-`- System Message: [Business Partner Joined] Player joined GOLDMANE as co-executive with Mirabel.`
-
-**Use the appropriate TICKER:**
-- Mirabel → GOLDMANE
-- Cordelia → LUXORIA
-- Nepenthes → PFIZARA
-
-**The auxiliary model will activate the business system automatically.**
-
----
-
-## Notes
-
-- Only one company partnership is active at a time
-- Business system is independent from stock trading (no stock club membership required)
-- Partnership affects character relationship dynamics
-- See character-specific files for detailed company backgrounds
+Player needs to join a company as co-executive with a partner character. See character-specific company files for partnership opportunities.
 
 {{/if_pure}}
 
