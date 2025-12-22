@@ -7231,13 +7231,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return ""  -- 태그 제거
     end)
 
-    -- 주식 패널: 태그 또는 거래 태그 확인
+    -- 주식 패널: 시스템 활성화 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
     local hasStockPanel = data:find("<StockPanel%s*/>")
-    local hasStockTrade = data:find("%[StockBuy:") or data:find("%[StockSell:")
     data = data:gsub("<StockPanel%s*/>", "")
 
-    -- 패널 태그가 있거나 주식 거래가 있었다면 패널 UI 추가
-    if hasStockPanel or hasStockTrade then
+    -- 주식/경영 시스템이 활성화되어 있으면 항상 패널 표시
+    if stockEnabled == "1" or businessEnabled == "1" or hasStockPanel then
         -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
         local shouldShow = true
         if meta and meta.index then
