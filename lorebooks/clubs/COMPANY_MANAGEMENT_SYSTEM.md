@@ -44,10 +44,6 @@ Present the choice naturally:
 
 `- System Message: [Business Partner Joined] Player joined GOLDMANE as co-executive with Mirabel.`
 
-OR for Korean:
-
-`- System Message: [경영진 합류] 플레이어가 미라벨과 함께 GOLDMANE의 공동 경영자가 되었다.`
-
 **Use the appropriate TICKER:**
 - Mirabel → GOLDMANE
 - Cordelia → LUXORIA
@@ -73,8 +69,6 @@ OR for Korean:
 
 Universal mechanics for managing companies with partner characters.
 
-**For system message format, see SYSTEM_MESSAGE_GUIDE.md**
-
 ---
 
 ## Roleplay Context
@@ -93,62 +87,62 @@ The management partnership is part of their relationship, not a replacement for 
 
 ## System Overview
 
-경영 이벤트 발생 → 시스템 메시지 출력 → 보조모델이 자동으로 변수 업데이트
+Business event occurs → System message output → Auxiliary model automatically updates variables
 
 ---
 
-## 시스템 메시지 작성법
+## Writing System Messages
 
-상황에 따라 변수값을 연결해서 출력:
+Connect variable values based on situation:
 
-**재무 상황 연결:**
-- 현금 500M, 부채 200M → 투자 여력: `[Business:TICKER:대규모 투자] → cash:-300|rd_progress:+25`
-- 현금 100M, 부채 300M → 자금 부족: `[Business:TICKER:긴급 자금 조달] → debt:+150|cash:+150`
-- 매출 800M, 순이익 50M → 수익성 개선: `[Business:TICKER:수익성 개선 성공] → profit:+80|revenue:+100`
+**Financial Situations:**
+- Cash 500M, Debt 200M → Investment capacity: `[Business:TICKER:Major Investment] → cash:-300|rd_progress:+25`
+- Cash 100M, Debt 300M → Cash shortage: `[Business:TICKER:Emergency Funding] → debt:+150|cash:+150`
+- Revenue 800M, Profit 50M → Profitability improvement: `[Business:TICKER:Profitability Success] → profit:+80|revenue:+100`
 
-**시장 상황 연결:**
-- 점유율 25%, 경쟁사 18% → 리더: `[Business:TICKER:시장 지배력 확대] → market_share:+5|brand_value:+10`
-- 점유율 10%, 경쟁사 30% → 약자: `[Business:TICKER:공격적 마케팅] → cash:-150|market_share:+8`
-- 브랜드가치 90 → 프리미엄: `[Business:TICKER:프리미엄 라인 출시] → brand_value:+8|revenue:+120`
+**Market Situations:**
+- Market share 25%, Competitor 18% → Leader: `[Business:TICKER:Market Dominance] → market_share:+5|brand_value:+10`
+- Market share 10%, Competitor 30% → Underdog: `[Business:TICKER:Aggressive Marketing] → cash:-150|market_share:+8`
+- Brand value 90 → Premium: `[Business:TICKER:Premium Line Launch] → brand_value:+8|revenue:+120`
 
-**운영 상황 연결:**
-- 직원 600명 → 구조조정: `[Business:TICKER:조직 효율화] → employees:-200|profit:+50`
-- R&D 80% → 신제품: `[Business:TICKER:혁신 제품 출시] → rd_progress:-80|revenue:+200|market_share:+10`
-- R&D 10% → 투자: `[Business:TICKER:R&D 투자 확대] → cash:-200|rd_progress:+35`
+**Operational Situations:**
+- Employees 600 → Restructuring: `[Business:TICKER:Organizational Efficiency] → employees:-200|profit:+50`
+- R&D 80% → New product: `[Business:TICKER:Innovation Launch] → rd_progress:-80|revenue:+200|market_share:+10`
+- R&D 10% → Investment: `[Business:TICKER:R&D Expansion] → cash:-200|rd_progress:+35`
 
-**플레이어 영향력:**
-- 지분 30% → 전략 주도: `[Business:TICKER:플레이어 주도 전략] → influence:+10|market_share:+6`
-- 지분 5% → 영향력 약함 (주요 결정은 파트너가 주도)
+**Player Influence:**
+- Ownership 30% → Strategic lead: `[Business:TICKER:Player-Led Strategy] → influence:+10|market_share:+6`
+- Ownership 5% → Limited influence (partner leads major decisions)
 
 ---
 
-## 의사결정 맥락 제공
+## Providing Decision Context
 
-선택지 제공 전 구체적 숫자로 상황 설명:
+Explain situation with specific numbers before offering choices:
 
-**재무 결정:**
-> "대규모 투자 기회예요. 현금은 500M이지만 부채가 200M 있어요."
-> "프로젝트 비용이 300M이에요. 고위험이지만 성공하면..."
+**Financial Decisions:**
+> "There's a major investment opportunity. We have 500M cash but 200M debt."
+> "Project cost is 300M. High risk, but if successful..."
 
-**주식 거래 (차트 표시):**
-> "GOLDMANE 주가가 흥미로운 패턴이에요."
+**Stock Trading (with chart display):**
+> "GOLDMANE's showing an interesting pattern."
 > <StockChart:GOLDMANE />
-> "상승 추세 보이죠? 지금 살까요?"
+> "See that uptrend? Should we buy now?"
 
-**위기 대응:**
-> "스캔들이 터졌어요. 브랜드가치 15 떨어졌어요."
-> "시장점유율 위험해요. 지금 대응할까요?"
+**Crisis Response:**
+> "Scandal broke. Brand value dropped 15 points."
+> "Market share is at risk. Should we respond now?"
 
-**경쟁 분석:**
-> "GUCCIEL이 공격적 캠페인 시작. 걔네 18%, 우리 23%."
-> "같은 금액 투자해서 점유율 지킬까요, 프리미엄으로 갈까요?"
+**Competitive Analysis:**
+> "GUCCIEL launched aggressive campaign. They're at 18%, we're at 23%."
+> "Match their investment to defend share, or go premium?"
 
-**인수합병:**
-> "SILVERFANG 인수 기회. 요구 금액 400M."
-> "우리 현금 350M. 부채 100M 필요."
-> "시장점유율 8% 추가인데 할까요?"
+**Mergers & Acquisitions:**
+> "SILVERFANG acquisition opportunity. They want 400M."
+> "We have 350M cash. Need 100M debt."
+> "Adds 8% market share. Should we do it?"
 
-핵심: 맹목적 선택지 제공 금지. 판단 근거 제공 필수.
+Core principle: Never offer blind choices. Always provide decision rationale.
 
 ---
 
