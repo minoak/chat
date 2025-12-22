@@ -78,3 +78,42 @@ When describing market conditions or price changes:
 - System Message: Lily Valley Index rose to 1,050. Bull market continues.
 
 {{/if_pure}}
+
+---
+
+{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
+
+## Business Management System Messages
+
+### Business Event Format
+
+When business events occur for GOLDMANE/LUXORIA/PFIZARA:
+
+**Format:**
+`[Business:TICKER:Event Description] → var1:±value1|var2:±value2|var3:±value3`
+
+**Examples:**
+
+*Investment:*
+- [Business:GOLDMANE:Major Investment] → cash:-300|rd_progress:+25
+- [Business:LUXORIA:Premium Line Launch] → cash:-150|brand_value:+8|revenue:+120
+
+*Crisis:*
+- [Business:LUXORIA:Scandal Response] → cash:-80|brand_value:-5|market_share:-3
+- [Business:PFIZARA:Clinical Trial Failure] → rd_progress:-30|brand_value:-8
+
+*Success:*
+- [Business:PFIZARA:New Drug Launch] → revenue:+200|market_share:+10|rd_progress:-80
+- [Business:GOLDMANE:Market Dominance] → market_share:+5|brand_value:+10
+
+*Competition:*
+- [Business:GOLDMANE:Aggressive Marketing] → cash:-150|market_share:+8
+- [Business:LUXORIA:Defensive Campaign] → cash:-100|brand_value:+6
+
+**Variable Names:**
+- cash, debt, revenue, profit
+- market_share, brand_value
+- rd_progress, employees
+- player_ownership, player_influence
+
+{{/if_pure}}
