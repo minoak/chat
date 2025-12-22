@@ -525,96 +525,78 @@ You output:
 
 ## Business Management System (Business System Enabled)
 
-**Your Role: Analyze Business Events → Generate Variable Updates**
+**Your Role: Parse Business Tags → Generate Variable Update Tags**
 
 ### Business Event Conversion
 
-**When Main AI outputs business event system messages:**
+**When Main AI outputs business event tags:**
 
 **Format to look for:**
-`- System Message: [TICKER] <event description>. <scale>. <impact details>`
+`[Business:TICKER:Event Description] → var1:±value1|var2:±value2|var3:±value3`
 
 Examples:
-- System Message: [GOLDMANE] 신규 투자 프로젝트 승인. 중규모 투자, 초기 자본 100M 소요, R&D 15% 진척 예상.
-- System Message: [LUXORIA] 스캔들 발생. 브랜드 이미지 타격, 매출 80M 감소 우려.
-- System Message: [PFIZARA] 신약 개발 성공. 대규모 성과, 매출 200M 증가 예상.
+- [Business:GOLDMANE:Major Investment] → cash:-300|rd_progress:+25
+- [Business:LUXORIA:Scandal Response] → cash:-80|brand_value:-5|market_share:-3
+- [Business:PFIZARA:New Drug Launch] → revenue:+200|market_share:+10|rd_progress:-80
 
-**Step 1: Extract information**
-- Ticker: In brackets [GOLDMANE], [LUXORIA], or [PFIZARA]
-- Event type: Investment, crisis, product launch, competition, etc.
-- Scale: 소규모/중규모/대규모/초대형 (Small/Medium/Large/Massive)
-- Impact hints: Often mentioned in the message
+**Step 1: Detect business tag**
+Look for pattern: `[Business:TICKER:Event] → var:value|var:value|...`
+- Ticker: GOLDMANE, LUXORIA, or PFIZARA
+- Event: Description (for context/logging only)
+- Variables: After the `→` arrow
 
-**Step 2: Analyze impact using financial logic**
-
-**Variable Types (12 per company):**
-- **Financial**: revenue (매출M), profit (순이익M), cash (현금M), debt (부채M)
-- **Market**: market_share (시장점유율%), brand_value (브랜드가치)
-- **Operations**: employees (직원수), rd_progress (연구개발%)
-- **Player**: player_share (보유지분%), influence (경영영향력)
-- **Other**: reputation, valuation
-
-**Impact Scale Guidelines:**
-- **소규모 (Small)**: ±10-50M revenue, ±5-20M profit, ±1-2% market share
-- **중규모 (Medium)**: ±50-150M revenue, ±20-70M profit, ±2-5% market share
-- **대규모 (Large)**: ±150-400M revenue, ±70-200M profit, ±5-10% market share
-- **초대형 (Massive)**: ±400M+ revenue, ±200M+ profit, ±10%+ market share
-
-**Event Logic Examples:**
-- Investment → cash ↓, rd_progress ↑, future revenue potential ↑
-- Crisis/Scandal → brand_value ↓, revenue ↓, market_share ↓
-- Product Success → revenue ↑, profit ↑, market_share ↑, brand_value ↑
-- Competition → market_share ↓, revenue ↓
+**Step 2: Parse variable changes**
+Extract each `var:value` pair:
+- Variable names: cash, debt, revenue, profit, market_share, brand_value, rd_progress, employees, player_ownership, player_influence
+- Values: Can be positive (+) or negative (-)
+- Format: `cash:-300` means cash decreases by 300
 
 **Step 3: Output system tags**
-Format: `[Stock:TICKER:var1:±value1|var2:±value2|var3:±value3]`
+Convert to Lua-readable format: `[Stock:TICKER:var1:±value1|var2:±value2|...]`
 
 **Examples:**
 
 Main AI:
-`- System Message: [GOLDMANE] 신규 투자 프로젝트 승인. 중규모 투자.`
+`[Business:GOLDMANE:Major Investment] → cash:-300|rd_progress:+25`
 
-You analyze:
-- Event: Investment
-- Scale: Medium (중규모)
-- Logic: Investment requires upfront cash, boosts R&D, increases influence
+You parse:
+- Ticker: GOLDMANE
+- Variables: cash:-300, rd_progress:+25
 
 You output:
 ```
-[Stock:GOLDMANE:cash:-100|rd_progress:+15|influence:+3]
+[Stock:GOLDMANE:cash:-300|rd_progress:+25]
 ```
 
 Main AI:
-`- System Message: [LUXORIA] 스캔들 발생. 브랜드 이미지 타격.`
+`[Business:LUXORIA:Premium Line Launch] → cash:-150|brand_value:+8|revenue:+120`
 
-You analyze:
-- Event: Crisis (scandal)
-- Impact: Brand damage, revenue loss, market share drop
+You parse:
+- Ticker: LUXORIA
+- Variables: cash:-150, brand_value:+8, revenue:+120
 
 You output:
 ```
-[Stock:LUXORIA:brand_value:-20|revenue:-80|market_share:-3]
+[Stock:LUXORIA:cash:-150|brand_value:+8|revenue:+120]
 ```
 
 Main AI:
-`- System Message: [PFIZARA] 신약 개발 성공. 대규모 성과.`
+`[Business:PFIZARA:Clinical Trial Failure] → rd_progress:-30|brand_value:-8`
 
-You analyze:
-- Event: Product success
-- Scale: Large (대규모)
-- Impact: Major revenue/profit boost, market share gain
+You parse:
+- Ticker: PFIZARA
+- Variables: rd_progress:-30, brand_value:-8
 
 You output:
 ```
-[Stock:PFIZARA:revenue:+200|profit:+120|market_share:+5|brand_value:+15]
+[Stock:PFIZARA:rd_progress:-30|brand_value:-8]
 ```
 
 **CRITICAL Rules:**
-- **Affect multiple variables** (typically 3-5) for realistic cascading effects
-- **Include trade-offs**: investments cost cash but boost future metrics
-- **Respect constraints**: profit < revenue, shares ≤ 100%, brand_value 0-100
-- **Match magnitude to scale**: 중규모 shouldn't cause ±500M changes
-- **Consider company size**: GOLDMANE (larger) can handle bigger absolute changes than smaller companies
+- **Direct parsing only** - No analysis or interpretation needed
+- **Exact values** - Use the exact values Main AI specified
+- **No modification** - Do NOT adjust, analyze, or change the values
+- **Format conversion** - Simply convert `[Business:...]` to `[Stock:...]` format
 
 **CRITICAL - Display Panel Rules:**
 - **NEVER output `<StockPanel:TICKER />` or `<StockPanel />` after business events**
@@ -640,10 +622,6 @@ If you see these old formats from Main AI:
 **Example:**
 Main AI: `[StockBuy:GOLDMANE:280:10]`
 You output: `<StockPanel />` (NOT `[StockBuy:GOLDMANE:280:10]` again!)
-
-**For business events:**
-If you see: `[Business:TICKER:이벤트, 규모]`
-Analyze and output: `[Stock:TICKER:var:value|...]`
 
 ]]
 
