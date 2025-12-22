@@ -616,10 +616,11 @@ You output:
 - **Match magnitude to scale**: 중규모 shouldn't cause ±500M changes
 - **Consider company size**: GOLDMANE (larger) can handle bigger absolute changes than smaller companies
 
-**IMPORTANT - Display:**
-- DO NOT output <StockPanel:TICKER /> after business events
-- Users can check company status via the Business tab in the main panel
-- Only output the [Stock:TICKER:var:value|...] tags
+**CRITICAL - Display Panel Rules:**
+- **NEVER output `<StockPanel:TICKER />` or `<StockPanel />` after business events**
+- **ONLY output the `[Stock:TICKER:var:value|...]` tags**
+- Main panel's Business tab auto-updates with your tags
+- Panel display is Main AI's responsibility, not yours
 
 ---
 
