@@ -3441,11 +3441,14 @@ function callAuxiliaryModel(triggerId, mainResponse)
         -- 중복 태그 블록 제거: 첫 번째 <Panel>■★ 이후 모든 내용 삭제
         local panelPos = result:find("<Panel>■★", 1, true)
         if panelPos then
-            local afterPanel = result:sub(panelPos + 11)  -- "<Panel>■★" 이후 내용
-            if afterPanel:find("%[Affinity:", 1, false) or afterPanel:find("<Panel>", 1, true) then
-                -- 이후에 태그나 Panel이 더 있으면 중복으로 간주, 첫 번째까지만 자름
-                result = result:sub(1, panelPos + 10)  -- "<Panel>■★" 포함
-                log("⚠️ 중복 태그 블록 감지 및 제거")
+            -- "<Panel>■★"의 실제 바이트 길이: <Panel>(7) + ■(3) + ★(3) = 13
+            local markerEnd = panelPos + 12  -- 마커의 마지막 바이트 위치 (0-indexed)
+            local afterPanel = result:sub(markerEnd + 1)  -- 마커 이후 내용
+
+            -- 마커 뒤에 어떤 내용이든 있으면 제거 (공백, 텍스트, 태그 등)
+            if afterPanel and #afterPanel > 0 and afterPanel:match("%S") then
+                result = result:sub(1, markerEnd)  -- "<Panel>■★"까지만 포함
+                log("⚠️ <Panel>■★ 이후 불필요한 내용 제거: " .. afterPanel:sub(1, 50))
             end
         end
 
