@@ -38,3 +38,45 @@ Clearly display key status updates and progress for the {{user}}. This includes:
 ## Examples
 `- System Message: 회복포션을 마셨다. 따뜻한 기운이 온몸을 감싼다.`
 `- System Message: 경험치 500 획득. 레벨업까지 1,200 남음.`
+
+---
+
+{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+
+## Stock Trading System Messages
+
+When player trades stocks, output system messages:
+
+**Buy:**
+`- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total: 2,800G.`
+
+**Sell:**
+`- System Message: Player sold 5 shares of LUXORIA at 230G each. Total: 1,150G.`
+
+Include: ticker, action (bought/sold), quantity, price per share.
+
+{{/if_pure}}
+
+---
+
+{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
+
+## Business Management System Messages
+
+When business events occur, output system messages with impact details:
+
+**Investment:**
+`- System Message: [GOLDMANE] Major investment approved. 300M spent on AI platform. R&D progress +25%.`
+
+**Crisis:**
+`- System Message: [LUXORIA] Scandal erupted. Brand value dropped 20 points. Revenue -150M expected.`
+
+**Success:**
+`- System Message: [PFIZARA] New drug launch success. Revenue +250M. Market share +8%.`
+
+**Competition:**
+`- System Message: [GOLDMANE] Aggressive marketing campaign. 180M invested. Market share +6%.`
+
+Format: `[TICKER]` + event description + numerical impacts.
+
+{{/if_pure}}

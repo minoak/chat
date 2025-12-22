@@ -259,50 +259,67 @@ Auxiliary model tag output:
 
 ---
 
-# BUSINESS MANAGEMENT TAG INSTRUCTIONS
+# BUSINESS MANAGEMENT SYSTEM MESSAGES
 
 Company Partners only system.
 
 ## Trigger Condition
 
-When main model outputs `[Business:TICKER:Event] → var:value` format, parse and update business variables.
+When main model outputs business system messages: `- System Message: [TICKER] ...`
+
+## Your Role
+
+Analyze business event descriptions and convert to variable update tags.
 
 ## Input Format
 
 ```
-[Business:TICKER:Event Description] → var1:±value1|var2:±value2|var3:±value3
+- System Message: [TICKER] Event description. Numerical impacts mentioned.
 ```
 
 **Tickers**: GOLDMANE (Mirabel), LUXORIA (Cordelia), PFIZARA (Nepenthes)
-**Variables**: cash, debt, revenue, profit, market_share, brand_value, rd_progress, employees, player_ownership, player_influence
 
-## Processing Rules
+## Variable Types
 
-1. Parse the `[Business:TICKER:Event] → var:value` tag from main model output
-2. Extract variable changes (e.g., `cash:-300|rd_progress:+25`)
-3. Apply changes to the corresponding company variables
-4. No additional analysis needed - main model specifies exact changes
+**Financial**: cash, debt, revenue, profit
+**Market**: market_share, brand_value
+**Operations**: rd_progress, employees
+**Player**: player_ownership, player_influence
+
+## Processing Steps
+
+1. Find system message with `[TICKER]` format
+2. Extract event type (investment, crisis, success, competition)
+3. Parse numerical impacts from description
+4. Output: `[Stock:TICKER:var:±value|var:±value|...]`
 
 ## Examples
 
-**Input from main model:**
+**Input:**
+`- System Message: [GOLDMANE] Major investment approved. 300M spent on AI platform. R&D progress +25%.`
+
+**Analysis:**
+- Event: Investment
+- Cash impact: -300M
+- R&D impact: +25%
+
+**Output:**
 ```
-[Business:GOLDMANE:Major Investment] → cash:-300|rd_progress:+25
+[Stock:GOLDMANE:cash:-300|rd_progress:+25]
 ```
 
-**Processing:**
-- GOLDMANE cash: -300
-- GOLDMANE rd_progress: +25
+**Input:**
+`- System Message: [LUXORIA] Scandal erupted. Brand value dropped 20 points. Revenue -150M expected.`
 
-**Input from main model:**
-```
-[Business:LUXORIA:Scandal Response] → cash:-80|brand_value:-5|market_share:-3
-```
+**Analysis:**
+- Event: Crisis
+- Brand impact: -20
+- Revenue impact: -150M
 
-**Processing:**
-- LUXORIA cash: -80
-- LUXORIA brand_value: -5
-- LUXORIA market_share: -3
+**Output:**
+```
+[Stock:LUXORIA:brand_value:-20|revenue:-150]
+```
 
 ---
 
