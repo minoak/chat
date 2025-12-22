@@ -1749,6 +1749,9 @@ function parseStockTrades(triggerId, message)
         local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
         local cost = priceNum * qtyNum
 
+        -- 거래 가격을 시장가로 업데이트 (매수/매도 가격 = 현재 시장가)
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+
         if gold >= cost then
             -- 골드 차감 (state + chatVar 동기화)
             local newGold = gold - cost
@@ -1780,6 +1783,9 @@ function parseStockTrades(triggerId, message)
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+
+        -- 거래 가격을 시장가로 업데이트
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
 
         if currentQty >= qtyNum then
             -- 보유량 차감 (state + chatVar 동기화)
