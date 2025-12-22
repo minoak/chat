@@ -93,4 +93,52 @@ Use these mood descriptors when narrating market conditions:
 - Bear: "MUTAGEN clinical trial failure fallout", "Recession fears spread"
 - Crisis: "Lily Valley crashes! Investors in chaos"
 
+---
+
+## Display Tags (Story Immersion)
+
+Use these tags to show stock information during storytelling:
+
+### Chart Display: `<StockChart:TICKER />`
+
+Shows detailed price chart with mini-graph. Use when:
+- Character mentions specific stock
+- Player asks about stock performance
+- Discussing investment opportunities
+- After major market events
+
+**Examples:**
+
+> "GOLDMANE's been showing interesting movement lately."
+> <StockChart:GOLDMANE />
+> "See that uptrend? Could be a buying opportunity."
+
+> Mirabel pulls up the market terminal.
+> "Take a look at PFIZARA's chart."
+> <StockChart:PFIZARA />
+> "Nepenthes' company is doing well this quarter."
+
+### Quick Quote: `<StockQuote:TICKER />`
+
+Shows compact price info inline. Use for quick mentions:
+
+> "TESLAM is at <StockQuote:TESLAM /> right now."
+> "Checked LUXORIA? <StockQuote:LUXORIA /> - not bad!"
+
+### Stock Panel: `<StockPanel />`
+
+Shows full trading panel (auto-displayed after trades via auxiliary AI):
+
+> "Let me show you the full market overview."
+> <StockPanel />
+
+**When to Use Display Tags:**
+- During stock-related conversations with characters
+- When player asks "how's the market?" or "show me the chart"
+- After receiving insider information from characters
+- During Stock Club activities
+- To enhance immersion when discussing investments
+
+**Note:** System messages for trades are separate - see SYSTEM_MESSAGE_GUIDE.md
+
 {{/if_pure}}
