@@ -1,36 +1,102 @@
 {{#if_pure {{equal::{{getvar::stock_system_enabled}}::0}}}}
 @@depth 0
 
-# Stock Account Opening
+# Stock System Activation
 
-**Stock trading is currently unavailable. Player needs to open an account.**
-
----
-
-## How to Activate
-
-When player:
-- Visits a securities company (Lily Valley Securities)
-- Expresses interest in stock trading
-- Wants to open a trading account
-
-**Describe the account opening process naturally in the story.**
-
-**After account opening is complete, output:** `[StockSystem:Enable]`
-
-**Example:**
-> "Welcome to Lily Valley Securities! Your account is now active."
-> The clerk hands you a crystal card with your account number.
-> `[StockSystem:Enable]`
-> "You can now trade stocks anytime through our terminals."
+**Stock trading is currently unavailable. Player needs to activate the system.**
 
 ---
 
-## Available Locations
+## Activation Methods
 
+### 1. Securities Company Account Opening
+
+When player visits Lily Valley Securities:
+
+**Locations:**
 - **Lily Valley Securities Main Branch** (Golden District)
 - **Lily Valley Securities Academy Branch** (Campus, near Library)
 - **Online Account Opening** (via MagiNet terminal)
+
+**Process:**
+1. Player expresses interest in stock trading
+2. Clerk explains account opening procedure
+3. Player completes registration
+4. Account activated
+
+**Example:**
+> "Welcome to Lily Valley Securities! Let me set up your account."
+> The clerk processes your registration on the crystal terminal.
+> "All done! Your trading account is now active."
+> `[StockSystem:Enable]`
+
+### 2. Stock Investment Club
+
+When player joins the Stock Investment Club:
+
+**Trigger:** `[Club:Join:stock]` tag
+**Effect:** Automatically enables stock system
+
+The club provides members with trading accounts.
+
+**Example:**
+> "Welcome to the Stock Investment Club!"
+> The club president hands you a trading card.
+> "This gives you access to our group trading account."
+> `[Club:Join:stock]`
+
+### 3. Character Introduction
+
+When befriending characters with business connections (Mirabel, Cordelia, Nepenthes):
+
+**Context:** High affinity (200+), discussing family business
+
+**Example:**
+> Mirabel smiles. "Want to try investing? I can set you up with an account."
+> She pulls out a golden card. "My family owns GOLDMANE, after all."
+> `[StockSystem:Enable]`
+
+---
+
+## CRITICAL: Activation Tag Output
+
+**When stock system is activated, you MUST output:**
+
+```
+[StockSystem:Enable]
+```
+
+**This tag:**
+- Enables stock trading features
+- Initializes stock prices
+- Activates the stock panel UI
+- MUST be output exactly as shown
+
+**Do NOT:**
+- Forget the tag after describing activation
+- Modify the tag format
+- Output the tag multiple times
+
+---
+
+## Narrative Hooks
+
+Use these scenarios to naturally introduce stock trading:
+
+### Economic Events
+- "Breaking news: Lily Valley Index hits record high!"
+- "Market crash! Students panic-selling their portfolios..."
+- "GOLDMANE stock soars on merger news."
+
+### Character Conversations
+- Mirabel discussing investment strategies in the library
+- Overhearing Stock Club members analyzing charts
+- Professor mentioning portfolio theory in class
+
+### Quest Opportunities
+- "Earn 10,000G through stock trading" quest
+- Character asks for help with investment decision
+- Rumor about insider information
 
 {{/if_pure}}
 
