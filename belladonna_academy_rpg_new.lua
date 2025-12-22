@@ -628,9 +628,21 @@ You output:
 **For older conversations, also support direct tag formats:**
 
 If you see these old formats from Main AI:
-- `[StockBuy:TICKER:PRICE:QTY]` → Just output `<StockPanel />`
-- `[StockSell:TICKER:PRICE:QTY]` → Just output `<StockPanel />`
-- `[Business:TICKER:이벤트, 규모]` → Analyze and output `[Stock:TICKER:var:value|...]`
+- `[StockBuy:TICKER:PRICE:QTY]`
+- `[StockSell:TICKER:PRICE:QTY]`
+
+**CRITICAL - DO NOT repeat the tag:**
+- Main AI already output the tag
+- You ONLY output: `<StockPanel />`
+- DO NOT copy/repeat `[StockBuy:...]` or `[StockSell:...]` tags
+
+**Example:**
+Main AI: `[StockBuy:GOLDMANE:280:10]`
+You output: `<StockPanel />` (NOT `[StockBuy:GOLDMANE:280:10]` again!)
+
+**For business events:**
+If you see: `[Business:TICKER:이벤트, 규모]`
+Analyze and output: `[Stock:TICKER:var:value|...]`
 
 ]]
 
