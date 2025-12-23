@@ -7467,6 +7467,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         -- 변화량 계산: changeValue가 제공되면 우선 사용, 아니면 history 기준
         local change = 0
         local updateNotice = ""
+        local history = getStockHistory(triggerId, ticker)  -- 항상 history 가져오기
 
         if changeValue and changeValue ~= "" then
             -- 태그에서 변화값이 제공된 경우
@@ -7483,7 +7484,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
             end
         else
             -- history 전체 기간 기준 (차트 방향과 일치)
-            local history = getStockHistory(triggerId, ticker)
             if #history >= 2 then
                 local openPrice = history[1]
                 local closePrice = history[#history]
