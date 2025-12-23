@@ -7356,8 +7356,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
     end
 
-    -- 개별 종목 차트 카드: <StockChart:TICKER />
-    data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
+    -- 개별 종목 차트 카드: <StockChart:TICKER /> 또는 <StockChart:TICKER:±value />
+    data = data:gsub("<StockChart:([A-Z]+):?([%+%-]?%d+%.?%d*)?%s*/>", function(ticker, changeValue)
         -- 주식 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
         if stockEnabled ~= "1" then
@@ -7367,16 +7367,34 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
         local name = STOCK_NAMES[ticker] or ticker
 
-        -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
+        -- 변화량 계산: changeValue가 제공되면 우선 사용, 아니면 history 기준
         local change = 0
-        local history = getStockHistory(triggerId, ticker)
-        if #history >= 2 then
-            local openPrice = history[1]
-            local closePrice = history[#history]
-            change = closePrice - openPrice
+        local updateNotice = ""
+
+        if changeValue and changeValue ~= "" then
+            -- 태그에서 변화값이 제공된 경우
+            change = tonumber(changeValue) or 0
+            -- 업데이트 알림 표시
+            if change ~= 0 then
+                local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+                local changeSign = change > 0 and "+" or ""
+                updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+            end
         else
-            -- history 없으면 저장된 change 사용
-            change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+            -- history 전체 기간 기준 (차트 방향과 일치)
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local openPrice = history[1]
+                local closePrice = history[#history]
+                change = closePrice - openPrice
+            else
+                -- history 없으면 저장된 change 사용
+                change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+            end
         end
 
         -- 등락률 계산: (변화량 / 이전가격) × 100
@@ -7432,7 +7450,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     </div>
   </div>
   %s
-</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart)
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
 
         return html
     end)
