@@ -1607,7 +1607,21 @@ function parseStockChanges(triggerId, message)
 
                 -- 현재 값 가져오기
                 local current = tonumber(getChatVar(triggerId, varName)) or 0
-                local newValue = current + valueNum
+
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")  -- +나 -로 시작하면 변화값
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                end
 
                 -- 값 범위 제약 적용
                 if key == "market_share" or key == "player_share" then
@@ -1629,15 +1643,15 @@ function parseStockChanges(triggerId, message)
                 setState(triggerId, varName, tostring(newValue))
 
                 -- 변화량 저장 (경영 패널 표시용)
-                setChatVar(triggerId, varName .. "_change", tostring(valueNum))
-                setState(triggerId, varName .. "_change", tostring(valueNum))
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
 
                 -- 주가는 히스토리에도 추가
                 if key == "price" then
                     addPriceToHistory(triggerId, ticker, newValue)
                 end
 
-                log(string.format("📊 %s %s: %d → %d (%+d)", ticker, key, current, newValue, valueNum))
+                log(string.format("📊 %s %s: %d → %d (%+d) [%s]", ticker, key, current, newValue, changeAmount, isDelta and "delta" or "absolute"))
             end
         end
 
