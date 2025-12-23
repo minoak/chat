@@ -7356,8 +7356,94 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
     end
 
-    -- 개별 종목 차트 카드: <StockChart:TICKER /> 또는 <StockChart:TICKER:±value />
-    data = data:gsub("<StockChart:([A-Z]+):?([%+%-]?%d+%.?%d*)?%s*/>", function(ticker, changeValue)
+    -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
+    data = data:gsub("<StockChart:([A-Z]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
+        -- 주식 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        if stockEnabled ~= "1" then
+            return ""
+        end
+
+        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화값 사용
+        local change = tonumber(changeValue) or 0
+        local updateNotice = ""
+
+        -- 업데이트 알림 표시
+        if change ~= 0 then
+            local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+            local changeSign = change > 0 and "+" or ""
+            updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터
+        local history = getStockHistory(triggerId, ticker)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
+        local miniChart = ""
+        if #history >= 2 then
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
+            for _, p in ipairs(history) do
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
+    </div>
+  </div>
+  %s
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
+
+        return html
+    end)
+
+    -- 개별 종목 차트 카드 (변화값 없음): <StockChart:TICKER />
+    data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
         -- 주식 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
         if stockEnabled ~= "1" then
