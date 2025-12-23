@@ -3769,6 +3769,27 @@ function clearRpgChanges(triggerId)
     setChatVar(triggerId, "player_exp_change", "0")
 end
 
+-- 경영/주식 변화량 초기화
+function clearBusinessChanges(triggerId)
+    -- 주식 시스템 변화량 초기화
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        setState(triggerId, "stock_" .. ticker .. "_change", 0)
+    end
+    setState(triggerId, "market_index_change", 0)
+
+    -- 경영 시스템 변화량 초기화
+    local businessTickers = {"GOLDMANE", "LUXORIA", "PFIZARA"}
+    local businessVars = {"revenue", "profit", "cash", "debt", "market_share", "brand_value", "employees", "rd_progress", "player_share", "influence"}
+
+    for _, ticker in ipairs(businessTickers) do
+        for _, var in ipairs(businessVars) do
+            setChatVar(triggerId, ticker .. "_" .. var .. "_change", "0")
+        end
+    end
+
+    addDebugLog("System", "경영/주식 변화량 초기화 완료")
+end
+
 -- ============================================
 -- 장소 별칭 시스템 (로어북 기준)
 -- ============================================
@@ -4972,6 +4993,9 @@ function processOutput(triggerId)
         clearRpgChanges(triggerId)
         takeRpgSnapshot(triggerId)     -- 현재 턴 시작 전 상태 저장
     end
+
+    -- 경영/주식 변화량 초기화 (시스템 활성화 여부 관계없이 항상 실행)
+    clearBusinessChanges(triggerId)
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
     local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
