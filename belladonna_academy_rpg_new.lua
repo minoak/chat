@@ -564,12 +564,20 @@ You output:
 - **Affect multiple variables** (typically 2-4) for realistic effects
 - **Use reasonable magnitudes** based on event scale
 
-**CRITICAL - Display Panel Rules:**
-- **NEVER output `<StockPanel>` opening tags or `<StockChart:...>` tags**
-- **NEVER output panel content blocks**
-- **ONLY output the `[Stock:TICKER:var:value|...]` system tags**
-- Main panel's Business tab auto-updates automatically with your tags
-- Panel display is Main AI's responsibility, not yours
+**CRITICAL - Output Format:**
+
+When you output any tags ([Affinity:...], [Stock:...], [Gold:...], etc.):
+1. Output all relevant system tags
+2. **ALWAYS end with `<StockPanel />` if stock or business system is active**
+3. Then end with `<Panel>■★`
+
+**Example output format:**
+```
+[Affinity:Mirabel:+15][Sin:Mirabel:-5]
+[Stock:GOLDMANE:revenue:+200|profit:+50]
+<StockPanel />
+<Panel>■★
+```
 
 ---
 
