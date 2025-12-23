@@ -624,7 +624,28 @@ function removeDuplicateTags(mainResponse, auxiliaryResponse)
     end
 
     log("✅ [중복제거] 완료: " .. removedCount .. "개 제거됨")
-    log("📝 필터링 후 보조 응답 길이: " .. #filtered)
+
+    -- 2단계: 보조 응답 내에서 자체 중복 제거 (리롤 시 같은 태그 반복 방지)
+    local seenTags = {}
+    local selfDedupedCount = 0
+
+    filtered = filtered:gsub("(%[%w+:[^%]]+%])", function(tag)
+        if seenTags[tag] then
+            -- 이미 본 태그면 제거
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
+            -- 처음 보는 태그면 유지하고 기록
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    if selfDedupedCount > 0 then
+        log("✅ [자체중복제거] 완료: " .. selfDedupedCount .. "개 제거됨")
+    end
+    log("📝 최종 보조 응답 길이: " .. #filtered)
 
     return filtered
 end
