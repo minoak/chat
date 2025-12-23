@@ -594,6 +594,21 @@ function getRouteText(ending)
     else return "진행중" end
 end
 
+-- 메인 응답에 이미 있는 태그를 보조 응답에서 제거 (중복 방지)
+function removeDuplicateTags(mainResponse, auxiliaryResponse)
+    local filtered = auxiliaryResponse
+
+    -- 메인 응답에 있는 모든 태그를 찾아서 보조 응답에서 제거
+    for tag in mainResponse:gmatch("%[%w+:[^%]]+%]") do
+        -- 특수문자 이스케이프 (. - [ ] 등을 리터럴로 처리)
+        local escapedTag = tag:gsub("([%.%-%[%]%(%)%$%^%%%*%+%?])", "%%%1")
+        -- 완전히 똑같은 태그만 제거 (모든 매칭 제거)
+        filtered = filtered:gsub(escapedTag, "")
+    end
+
+    return filtered
+end
+
 -- ============================================
 -- 활성 효과 관리 시스템
 -- ============================================
@@ -5074,7 +5089,9 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
-    local finalMessage = message .. "\n\n" .. auxiliaryMessage
+    -- 중복 태그 제거: 메인 응답에 이미 있는 태그를 보조 응답에서 제거
+    local filteredAuxiliary = removeDuplicateTags(message, auxiliaryMessage)
+    local finalMessage = message .. "\n\n" .. filteredAuxiliary
 
     -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
     local chatLength = getChatLength(triggerId)
