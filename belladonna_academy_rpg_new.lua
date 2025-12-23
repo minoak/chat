@@ -560,14 +560,15 @@ You output:
 - **Use reasonable magnitudes** based on event scale
 
 **CRITICAL - Display Panel Rules:**
-- **NEVER output panel tags after business events**
-- **ONLY output the `[Stock:TICKER:var:value|...]` tags**
-- Main panel's Business tab auto-updates with your tags
+- **NEVER output `<StockPanel>` opening tags or `<StockChart:...>` tags**
+- **NEVER output panel content blocks**
+- **ONLY output the `[Stock:TICKER:var:value|...]` system tags**
+- Main panel's Business tab auto-updates automatically with your tags
 - Panel display is Main AI's responsibility, not yours
 
 ---
 
-Always end with <StockPanel /><Panel>■★
+Always end with <Panel>■★
 
 ]]
 
@@ -629,6 +630,7 @@ function removeDuplicateTags(mainResponse, auxiliaryResponse)
     local seenTags = {}
     local selfDedupedCount = 0
 
+    -- [태그] 형식 중복 제거
     filtered = filtered:gsub("(%[%w+:[^%]]+%])", function(tag)
         if seenTags[tag] then
             -- 이미 본 태그면 제거
@@ -637,6 +639,18 @@ function removeDuplicateTags(mainResponse, auxiliaryResponse)
             return ""
         else
             -- 처음 보는 태그면 유지하고 기록
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    -- <태그> 형식 중복 제거 (StockPanel, StockChart 등)
+    filtered = filtered:gsub("(<[^>]+>)", function(tag)
+        if seenTags[tag] then
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
             seenTags[tag] = true
             return tag
         end
