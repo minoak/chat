@@ -597,14 +597,34 @@ end
 -- 메인 응답에 이미 있는 태그를 보조 응답에서 제거 (중복 방지)
 function removeDuplicateTags(mainResponse, auxiliaryResponse)
     local filtered = auxiliaryResponse
+    local removedCount = 0
+
+    log("🔍 [중복제거] 시작")
+    log("📝 메인 응답 길이: " .. #mainResponse)
+    log("📝 보조 응답 길이: " .. #auxiliaryResponse)
 
     -- 메인 응답에 있는 모든 태그를 찾아서 보조 응답에서 제거
     for tag in mainResponse:gmatch("%[%w+:[^%]]+%]") do
-        -- 특수문자 이스케이프 (. - [ ] 등을 리터럴로 처리)
-        local escapedTag = tag:gsub("([%.%-%[%]%(%)%$%^%%%*%+%?])", "%%%1")
-        -- 완전히 똑같은 태그만 제거 (모든 매칭 제거)
-        filtered = filtered:gsub(escapedTag, "")
+        log("🔍 메인 태그 발견: " .. tag)
+
+        -- 보조 응답에 이 태그가 있는지 확인 (plain text search)
+        if filtered:find(tag, 1, true) then
+            log("⚠️ 보조에서 중복 발견! 제거: " .. tag)
+
+            -- plain text 치환으로 정확히 일치하는 문자열만 제거
+            local startPos = 1
+            while true do
+                local foundStart, foundEnd = filtered:find(tag, startPos, true)
+                if not foundStart then break end
+                filtered = filtered:sub(1, foundStart - 1) .. filtered:sub(foundEnd + 1)
+                removedCount = removedCount + 1
+                startPos = foundStart
+            end
+        end
     end
+
+    log("✅ [중복제거] 완료: " .. removedCount .. "개 제거됨")
+    log("📝 필터링 후 보조 응답 길이: " .. #filtered)
 
     return filtered
 end
