@@ -1834,6 +1834,43 @@ function parseStockTrades(triggerId, message)
     end
 end
 
+-- 주가 차트 업데이트 태그 파싱: <StockChart:TICKER:±value />
+function parseStockChartUpdate(triggerId, message)
+    -- 주식 시스템 활성화 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then return end
+
+    -- <StockChart:TICKER:±value /> 또는 <StockChart:TICKER:value /> 파싱
+    for ticker, change in message:gmatch("<StockChart:([A-Z]+):([%+%-]?%d+%.?%d*)") do
+        local changeNum = tonumber(change)
+        if not changeNum then
+            log("⚠️ StockChart 파싱 실패: 잘못된 값 형식 (" .. change .. ")")
+            goto continue
+        end
+
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or 0
+        local newPrice = currentPrice + changeNum
+
+        -- 가격이 0 미만으로 떨어지지 않도록
+        if newPrice < 0 then
+            newPrice = 0
+        end
+
+        -- 가격 업데이트 (state + chatVar 동기화)
+        setState(triggerId, "stock_" .. ticker .. "_price", math.floor(newPrice))
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(math.floor(newPrice)))
+
+        -- 변화값 저장 (차트 표시용)
+        setState(triggerId, "stock_" .. ticker .. "_change", math.floor(changeNum))
+        setChatVar(triggerId, "stock_" .. ticker .. "_change", tostring(math.floor(changeNum)))
+
+        log(string.format("📊 %s 차트 업데이트: %dG → %dG (%+dG)",
+            ticker, currentPrice, math.floor(newPrice), math.floor(changeNum)))
+
+        ::continue::
+    end
+end
+
 -- 주가 히스토리 초기화 (12개 캔들용 기본값 생성)
 function initStockHistory(triggerId, ticker)
     local historyKey = "stock_" .. ticker .. "_history"
@@ -4998,6 +5035,7 @@ function processOutput(triggerId)
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
         parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
 
         -- 턴마다 효과 duration 감소
@@ -6990,6 +7028,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     parseStockSystemEnable(triggerId, data)
     parseClubChanges(triggerId, data)
     parseStockTrades(triggerId, data)
+    parseStockChartUpdate(triggerId, data)
     parseMarketIndex(triggerId, data)
 
     -- ============================================
@@ -7011,6 +7050,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         -- 1단계: 보조 모델 자신의 출력에서 변수 업데이트 태그 파싱
         parseStockChanges(triggerId, data)  -- 경영 변수 & 주가 변동
         parseStockTrades(triggerId, data)   -- 주식 매매 (보조 AI가 출력)
+        parseStockChartUpdate(triggerId, data)  -- 차트 업데이트 (가격 변화)
 
         -- 2단계: 메인 모델 출력 찾기
         local chatData = getChat(triggerId)
@@ -7029,6 +7069,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
                         parseStockSystemEnable(triggerId, mainOutput)
                         parseClubChanges(triggerId, mainOutput)
                         parseStockTrades(triggerId, mainOutput)
+                        parseStockChartUpdate(triggerId, mainOutput)
                         parseMarketIndex(triggerId, mainOutput)
 
                         break  -- 메인 모델 메시지 처리 완료
@@ -7891,6 +7932,7 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
         parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
     end
 
