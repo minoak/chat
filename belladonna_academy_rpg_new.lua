@@ -8256,6 +8256,14 @@ _G["reroll_auxiliary"] = function(triggerId)
         updateRpgDisplayVars(triggerId)
     end
 
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입 (리롤용)
+    local panelMarker = "<Panel>■★"
+    local panelPos = auxiliaryMessage:find(panelMarker, 1, true)
+    if panelPos then
+        auxiliaryMessage = auxiliaryMessage:sub(1, panelPos - 1) .. "<StockPanel />\n" .. auxiliaryMessage:sub(panelPos)
+        addDebugLog("System", "리롤: <StockPanel /> 자동 삽입 완료")
+    end
+
     -- 메시지 업데이트 (음수 인덱스 사용)
     -- -2 = 임시 메시지(-1) 앞의 실제 AI 응답
     local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
