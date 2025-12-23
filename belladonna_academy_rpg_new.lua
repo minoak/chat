@@ -1664,7 +1664,7 @@ function parseBusinessEnable(triggerId, message)
         log("🔍 [Business:Enable:...] 태그 발견! 파싱 시작")
     end
 
-    for ticker in message:gmatch("%[Business:Enable:([A-Z]+)%]") do
+    for ticker in message:gmatch("%[Business:Enable:([A-Z%-]+)%]") do
         log(string.format("🔍 파싱된 티커: %s", ticker))
 
         -- 티커별 캐릭터 매핑
@@ -1784,7 +1784,7 @@ function parseStockTrades(triggerId, message)
     if stockEnabled ~= "1" then return end
 
     -- 매수: [StockBuy:GOLDMANE:280:10]
-    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
+    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z%-]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
@@ -1821,7 +1821,7 @@ function parseStockTrades(triggerId, message)
     end
 
     -- 매도: [StockSell:GOLDMANE:290:5]
-    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z]+):(%d+):(%d+)%]") do
+    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z%-]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
@@ -1864,7 +1864,7 @@ function parseStockChartUpdate(triggerId, message)
     if stockEnabled ~= "1" then return end
 
     -- <StockChart:TICKER:±value /> 또는 <StockChart:TICKER:value /> 파싱
-    for ticker, change in message:gmatch("<StockChart:([A-Z]+):([%+%-]?%d+%.?%d*)") do
+    for ticker, change in message:gmatch("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)") do
         local changeNum = tonumber(change)
         if not changeNum then
             log("⚠️ StockChart 파싱 실패: 잘못된 값 형식 (" .. change .. ")")
@@ -7169,7 +7169,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end)
 
     -- 주식 매수 태그 → 간단한 인라인 표시
-    data = data:gsub("%[StockBuy:([A-Z]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+    data = data:gsub("%[StockBuy:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         return string.format([[
@@ -7182,7 +7182,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end)
 
     -- 주식 매도 태그 → 간단한 인라인 표시
-    data = data:gsub("%[StockSell:([A-Z]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+    data = data:gsub("%[StockSell:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         return string.format([[
@@ -7217,7 +7217,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 태그는 나중에 일괄 제거됨
 
     -- 경영 시스템 활성화 태그 → 환영 알림 디스플레이 변환 (먼저 처리!)
-    data = data:gsub("%[Business:Enable:([A-Z]+)%]", function(ticker)
+    data = data:gsub("%[Business:Enable:([A-Z%-]+)%]", function(ticker)
         local companyNames = {
             GOLDMANE = "골든메인 금광",
             LUXORIA = "럭소리아 명품관",
@@ -7238,7 +7238,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end)
 
     -- 경영 이벤트 태그 → 비즈니스 알림 디스플레이 변환
-    data = data:gsub("%[Business:([A-Z]+):([^%]]+)%]", function(ticker, event)
+    data = data:gsub("%[Business:([A-Z%-]+):([^%]]+)%]", function(ticker, event)
         local companyNames = {
             GOLDMANE = "골든메인 금광",
             LUXORIA = "럭소리아 명품관",
@@ -7368,7 +7368,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end
 
     -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
-    data = data:gsub("<StockChart:([A-Z]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
+    data = data:gsub("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
         -- 주식 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
         if stockEnabled ~= "1" then
@@ -7454,7 +7454,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end)
 
     -- 개별 종목 차트 카드 (변화값 없음): <StockChart:TICKER />
-    data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
+    data = data:gsub("<StockChart:([A-Z%-]+)%s*/>", function(ticker)
         -- 주식 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
         if stockEnabled ~= "1" then
@@ -7554,7 +7554,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     end)
 
     -- 간단 시세 인라인: <StockQuote:TICKER />
-    data = data:gsub("<StockQuote:([A-Z]+)%s*/>", function(ticker)
+    data = data:gsub("<StockQuote:([A-Z%-]+)%s*/>", function(ticker)
         -- 주식 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
         if stockEnabled ~= "1" then
