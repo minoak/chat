@@ -163,24 +163,42 @@ Use these mood descriptors when narrating market conditions:
 
 Use these tags to show stock information during storytelling:
 
-### Chart Display: `<StockChart:TICKER />`
+### Chart Display with Price Update: `<StockChart:TICKER:±value />`
 
-Shows detailed price chart with mini-graph. Use when:
-- Character mentions specific stock
-- Player asks about stock performance
-- Discussing investment opportunities
-- After major market events
+**NEW FORMAT** - This tag does TWO things at once:
+1. **Visual**: Shows stock chart with price change indicator
+2. **System**: Updates stock price automatically
+
+**Syntax:**
+- `<StockChart:TICKER:+value />` - Price increases by value
+- `<StockChart:TICKER:-value />` - Price decreases by value
+- `<StockChart:TICKER />` - Display only (no price change)
+
+**When to use price updates:**
+- Breaking news affects stock price
+- Company announcements (earnings, scandals, product launches)
+- Market reactions to player actions
+- Economic events
 
 **Examples:**
 
-> "GOLDMANE's been showing interesting movement lately."
-> <StockChart:GOLDMANE />
-> "See that uptrend? Could be a buying opportunity."
+> "Breaking news: GOLDMANE announces record profits!"
+> <StockChart:GOLDMANE:+15 />
+> The stock surges on strong earnings.
 
-> Mirabel pulls up the market terminal.
-> "Take a look at PFIZARA's chart."
-> <StockChart:PFIZARA />
-> "Nepenthes' company is doing well this quarter."
+> Mirabel grimaces. "LUXORIA scandal hit hard."
+> <StockChart:LUXORIA:-30 />
+> "Brand value took a nosedive."
+
+> "PFIZARA's new drug got FDA approval!"
+> <StockChart:PFIZARA:+25 />
+> Nepenthes beams with pride.
+
+**Display-only (no price change):**
+
+> "Let me show you TESLAM's performance."
+> <StockChart:TESLAM />
+> "See the trend? Volatile but promising."
 
 ### Quick Quote: `<StockQuote:TICKER />`
 
