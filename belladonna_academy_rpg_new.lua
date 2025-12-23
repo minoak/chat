@@ -7521,33 +7521,6 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
     end
 
-    -- 경영 패널: 태그 확인 후 UI 생성
-    local hasBusinessPanel = data:find("<BusinessPanel%s*/>")
-    if hasBusinessPanel then
-        addDebugLog("BusinessPanel", "태그 발견")
-    end
-    data = data:gsub("<BusinessPanel%s*/>", "")
-
-    -- 태그가 있으면 패널 UI 생성
-    if hasBusinessPanel then
-        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
-        local shouldShow = true
-        if meta and meta.index then
-            local chatLength = getChatLength(triggerId)
-            shouldShow = (meta.index >= chatLength - 1)
-            addDebugLog("BusinessPanel", string.format("표시 체크: index=%d, chatLength=%d, shouldShow=%s", meta.index, chatLength, tostring(shouldShow)))
-        else
-            addDebugLog("BusinessPanel", "meta 없음 - 바로 표시")
-        end
-        if shouldShow then
-            addDebugLog("BusinessPanel", "UI 생성 시작")
-            data = data .. generateBusinessView(triggerId)
-            addDebugLog("BusinessPanel", "UI 추가 완료")
-        else
-            addDebugLog("BusinessPanel", "shouldShow=false, UI 생성 스킵")
-        end
-    end
-
     -- 디버그 패널: 태그 확인 후 UI 생성
     local hasDebugPanel = data:find("<DebugPanel%s*/>")
     data = data:gsub("<DebugPanel%s*/>", "")
