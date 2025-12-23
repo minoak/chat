@@ -7566,10 +7566,11 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     data = data:gsub("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
         addDebugLog("StockChart", string.format("태그 발견: %s, 변화값: %s", ticker, changeValue))
 
-        -- 주식 시스템 활성화 체크
+        -- 주식 또는 경영 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-        if stockEnabled ~= "1" then
-            addDebugLog("StockChart", "주식 시스템 비활성화 - 태그 무시")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            addDebugLog("StockChart", "주식/경영 시스템 비활성화 - 태그 무시")
             return ""
         end
 
@@ -7653,9 +7654,10 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- 개별 종목 차트 카드 (변화값 없음): <StockChart:TICKER />
     data = data:gsub("<StockChart:([A-Z%-]+)%s*/>", function(ticker)
-        -- 주식 시스템 활성화 체크
+        -- 주식 또는 경영 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-        if stockEnabled ~= "1" then
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
             return ""
         end
 
