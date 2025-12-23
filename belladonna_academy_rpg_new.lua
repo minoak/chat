@@ -478,6 +478,11 @@ You output:
 
 **When Main AI outputs business system messages:**
 
+**CRITICAL - ONLY parse "- System Message:" lines:**
+- **IGNORE** `<BusinessPanel>` blocks - these are display only
+- **IGNORE** narrative text describing company status
+- **ONLY** convert lines starting with `- System Message: [TICKER]`
+
 **Format to look for:**
 `- System Message: [TICKER] <event description>. <numerical impacts>`
 
@@ -1647,8 +1652,8 @@ function parseStockChanges(triggerId, message)
                 elseif key == "rd_progress" then
                     -- 연구개발: 0-100% 범위
                     newValue = math.max(0, math.min(100, newValue))
-                elseif key ~= "debt" and newValue < 0 then
-                    -- 음수 방지 (부채는 제외)
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    -- 음수 방지 (부채와 순이익은 제외 - 적자 가능)
                     newValue = 0
                 end
 
