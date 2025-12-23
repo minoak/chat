@@ -3321,6 +3321,11 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
 
     -- 메인 AI 응답 추가 (CombatChoice 블록은 제거 - 보조 모델 혼란 방지)
     local cleanedResponse = mainResponse:gsub("<CombatChoice>.-</CombatChoice>", "")
+
+    -- 주식 거래 태그 제거 (메인 모델이 이미 출력했으므로 보조 모델에게 전달하지 않음)
+    cleanedResponse = cleanedResponse:gsub("%[StockBuy:[^%]]+%]", "")
+    cleanedResponse = cleanedResponse:gsub("%[StockSell:[^%]]+%]", "")
+
     userPrompt = userPrompt .. "\n## Main AI Response to Analyze:\n"
     userPrompt = userPrompt .. cleanedResponse
 
