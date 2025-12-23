@@ -5217,9 +5217,12 @@ function processOutput(triggerId)
     -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입
     local panelMarker = "<Panel>■★"
     local panelPos = filteredAuxiliary:find(panelMarker, 1, true)
+    addDebugLog("System", string.format("보조 응답 길이: %d, Panel 마커 위치: %s", #filteredAuxiliary, tostring(panelPos)))
     if panelPos then
         filteredAuxiliary = filteredAuxiliary:sub(1, panelPos - 1) .. "<StockPanel />\n" .. filteredAuxiliary:sub(panelPos)
-        addDebugLog("System", "보조 응답에 <StockPanel /> 자동 추가")
+        addDebugLog("System", "✅ <StockPanel /> 자동 삽입 완료")
+    else
+        addDebugLog("System", "⚠️ <Panel>■★ 마커를 찾을 수 없음 - 보조 응답: " .. filteredAuxiliary:sub(1, 100))
     end
 
     local finalMessage = message .. "\n\n" .. filteredAuxiliary
