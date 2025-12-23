@@ -5832,8 +5832,7 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Location:[^%]]+%]", "")
     -- 주식/동아리/시장 태그 제거 (AI 요청에서 제거, 디스플레이 변환은 editDisplay에서)
     data = data:gsub("%[Stock:[^%]]+%]", "")
-    data = data:gsub("%[StockBuy:[^%]]+%]", "")
-    data = data:gsub("%[StockSell:[^%]]+%]", "")
+    -- StockBuy/StockSell은 인라인 디스플레이로 변환되므로 제거하지 않음
     data = data:gsub("%[Club:[^%]]+%]", "")
     data = data:gsub("%[StatsEvaluated%]", "")
     data = data:gsub("%[Market:[^%]]+%]", "")
@@ -7165,6 +7164,32 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 주식 시세 태그 → 티커 디스플레이 변환
     data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
         return generateStockTicker(stockData)
+    end)
+
+    -- 주식 매수 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockBuy:([A-Z]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#2d1a1a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #ef5350'>
+  <span style='color:#ef5350'>💰</span>
+  <span style='color:#ef5350;font-weight:600'>매수</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
+    end)
+
+    -- 주식 매도 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockSell:([A-Z]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#1a2d2a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #26a69a'>
+  <span style='color:#26a69a'>💵</span>
+  <span style='color:#26a69a;font-weight:600'>매도</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
     end)
 
     -- 동아리 가입/탈퇴 태그 → 알림 디스플레이 변환
