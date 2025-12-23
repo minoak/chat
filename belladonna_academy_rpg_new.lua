@@ -472,97 +472,14 @@ You output:
 
 ## Business Management System (Business System Enabled)
 
-**Your Role: Analyze System Messages → Generate Variable Update Tags**
+**Your Role: Convert Main AI's narrative to system tags**
 
-### Business Event Conversion
+### Business System Note
 
-**When Main AI outputs business system messages:**
-
-**CRITICAL - ONLY parse "- System Message:" lines:**
-- **IGNORE** `<BusinessPanel>` blocks - these are display only
-- **IGNORE** narrative text describing company status
-- **ONLY** convert lines starting with `- System Message: [TICKER]`
-
-**Format to look for:**
-`- System Message: [TICKER] <event description>. <numerical impacts>`
-
-Examples:
-- System Message: [GOLDMANE] Major investment approved. 300M spent on AI platform. R&D progress +25%.
-- System Message: [LUXORIA] Scandal erupted. Brand value dropped 20 points. Revenue -150M expected.
-- System Message: [PFIZARA] New drug launch success. Revenue +250M. Market share +8%.
-
-**Step 1: Extract information**
-- Ticker: In brackets [GOLDMANE], [LUXORIA], or [PFIZARA]
-- Event type: Investment, crisis, product launch, competition, etc.
-- Numerical impacts: Parse from description (300M, +25%, -20 points, etc.)
-
-**Step 2: Analyze impact and convert to variables**
-
-**Variable Types:**
-- **Financial**: cash, debt, revenue, profit
-- **Market**: market_share, brand_value
-- **Operations**: rd_progress, employees
-- **Player**: player_ownership, player_influence
-
-**Impact Guidelines:**
-- "spent 300M" or "300M invested" → cash:-300
-- "R&D progress +25%" → rd_progress:+25
-- "brand value dropped 20 points" → brand_value:-20
-- "revenue +250M" or "revenue increase 250M" → revenue:+250
-- "market share +8%" → market_share:+8
-
-**Step 3: Output system tags**
-Format: `[Stock:TICKER:var1:±value1|var2:±value2|var3:±value3]`
-
-**Examples:**
-
-Main AI:
-`- System Message: [GOLDMANE] Major investment approved. 300M spent on AI platform. R&D progress +25%.`
-
-You analyze:
-- Ticker: GOLDMANE
-- Event: Investment
-- Cash: -300M (spent)
-- R&D: +25%
-
-You output:
-```
-[Stock:GOLDMANE:cash:-300|rd_progress:+25]
-```
-
-Main AI:
-`- System Message: [LUXORIA] Scandal erupted. Brand value dropped 20 points. Revenue -150M expected.`
-
-You analyze:
-- Ticker: LUXORIA
-- Event: Crisis
-- Brand: -20 points
-- Revenue: -150M
-
-You output:
-```
-[Stock:LUXORIA:brand_value:-20|revenue:-150]
-```
-
-Main AI:
-`- System Message: [PFIZARA] New drug launch success. Revenue +250M. Market share +8%.`
-
-You analyze:
-- Ticker: PFIZARA
-- Event: Product success
-- Revenue: +250M
-- Market share: +8%
-
-You output:
-```
-[Stock:PFIZARA:revenue:+250|market_share:+8]
-```
-
-**CRITICAL Rules:**
-- **Parse numerical impacts** from system message descriptions
-- **Convert to variable changes** using business logic
-- **Affect multiple variables** (typically 2-4) for realistic effects
-- **Use reasonable magnitudes** based on event scale
+**Business management is now handled directly by Main AI:**
+- Main AI outputs `<Business:TICKER:var:value|...>` tags in the story
+- You do NOT need to convert business events to tags
+- Focus only on character relationship tags ([Affinity:], [Sin:])
 
 **CRITICAL - Output Format:**
 
@@ -1684,6 +1601,78 @@ function parseStockChanges(triggerId, message)
 
         ::continue::
     end
+end
+
+-- 경영 태그 파싱: <Business:GOLDMANE:revenue:+200|profit:+50>
+function parseBusinessTags(triggerId, message)
+    -- 경영 시스템 활성화 여부 확인
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if businessEnabled ~= "1" then return message end
+
+    -- <Business:TICKER:var:value|var2:value2> 형식 파싱
+    local resultMessage = message:gsub("<Business:([A-Z%-]+):([^>]+)>", function(ticker, varsData)
+        addDebugLog("Business", string.format("태그 발견: %s", ticker))
+
+        -- 변수 파싱
+        for entry in varsData:gmatch("([^|]+)") do
+            local key, value = entry:match("([a-z_]+):([%+%-]?%d+)")
+            if key and value then
+                local valueNum = tonumber(value)
+                local varName = ticker .. "_" .. key
+
+                -- 현재 값 가져오기
+                local current = tonumber(getChatVar(triggerId, varName)) or 0
+
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                    addDebugLog("Business", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                    addDebugLog("Business", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
+                end
+
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    newValue = 0
+                end
+
+                -- 값 저장
+                setChatVar(triggerId, varName, tostring(newValue))
+                setState(triggerId, varName, tostring(newValue))
+
+                -- 변화량 저장
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
+
+                log(string.format("💼 %s %s: %d → %d (%+d)", ticker, key, current, newValue, changeAmount))
+            end
+        end
+
+        -- 태그를 UI 카드로 변환
+        local companyName = STOCK_NAMES[ticker] or ticker
+        return string.format([[
+<div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:8px;padding:12px 16px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,0.3)'>
+  <div style='display:flex;align-items:center;gap:8px;margin-bottom:8px'>
+    <span style='font-size:16px'>💼</span>
+    <span style='font-size:14px;font-weight:600;color:#fff'>%s</span>
+    <span style='font-size:11px;color:#8b949e'>경영 현황 업데이트</span>
+  </div>
+  <div style='font-size:12px;color:#c9d1d9'>회사 지표가 변경되었습니다. 경영 패널에서 확인하세요.</div>
+</div>]], companyName)
+    end)
+
+    return resultMessage
 end
 
 -- 주식 시스템 활성화 태그 파싱: [StockSystem:Enable]
@@ -7248,6 +7237,9 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     parseStockTrades(triggerId, data)
     parseStockChartUpdate(triggerId, data)
     parseMarketIndex(triggerId, data)
+
+    -- <Business:TICKER:var:value> 태그 파싱 및 UI 변환
+    data = parseBusinessTags(triggerId, data)
 
     -- ============================================
     -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)

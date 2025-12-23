@@ -66,31 +66,51 @@ Player is co-executive with partner character. Current company: {{getvar::active
 
 ## Business Event Format
 
-When business decisions or events occur, output system message with clear impacts:
+When business decisions or events occur, output business tags to update company metrics:
 
-`- System Message: [TICKER] Event description. Numerical impacts.`
+**Tag Format:** `<Business:TICKER:var:value|var2:value2|...>`
+
+**Value Types:**
+- With `+` or `-` prefix: **Change amount** (add/subtract from current value)
+- Without prefix: **Absolute value** (set to that exact value)
 
 **Examples:**
 
-**Investment:**
+**Investment Decision:**
 Current: Cash 500M, Debt 200M, R&D 45%
 Decision: Major R&D investment
-`- System Message: [GOLDMANE] AI Platform Development approved. Cash -300M, R&D +35%, influence +5.`
+```
+> "Alright, let's invest in the AI platform!"
+> <Business:GOLDMANE:cash:-300|rd_progress:+35|influence:+5>
+> "Investment approved. 300M allocated to R&D."
+```
 
-**Crisis:**
+**Crisis Event:**
 Current: Brand value 65, Revenue 800M
 Event: Data breach scandal
-`- System Message: [GOLDMANE] Data breach crisis. Brand value -20, revenue -150M, market share -4%.`
+```
+> "Breaking: Data breach at Goldmane Financial!"
+> <Business:GOLDMANE:brand_value:-20|revenue:-150|market_share:-4>
+> "Stock plummeted as customers fled."
+```
 
-**Success:**
+**Product Launch Success:**
 Current: R&D 90%, Market share 22%
 Event: Product launch succeeds
-`- System Message: [LUXORIA] Metaverse Fashion Line launch success. R&D complete, revenue +250M, market share +8%, brand value +12.`
+```
+> "The Metaverse Fashion Line is a hit!"
+> <Business:LUXORIA:rd_progress:0|revenue:+250|market_share:+8|brand_value:+12>
+> "Sales exceeded all projections."
+```
 
-**Competition:**
+**Competition Attack:**
 Current: Market share 23% (competitor 28%)
 Decision: Aggressive marketing campaign
-`- System Message: [PFIZARA] Direct competition attack initiated. Cash -180M, market share +6%, brand value +4.`
+```
+> "Launch the marketing blitz!"
+> <Business:PFIZARA:cash:-180|market_share:+6|brand_value:+4>
+> "Campaign launched. Early results promising."
+```
 
 ---
 
@@ -156,36 +176,49 @@ Always include specific numbers. No vague decisions.
 
 ## Outputting Choice Results
 
-After player chooses, immediately output system message:
+After player chooses, immediately output business tag with impacts:
 
 **Player chooses to invest:**
+```
 > "Alright, let's go all in on the AI platform!"
->
-> `- System Message: [GOLDMANE] AI Platform Investment approved. Cash -250M, R&D +35%, influence +8%.`
->
+> <Business:GOLDMANE:cash:-250|rd_progress:+35|influence:+8>
 > "Project approved. 250M allocated. Development team assembled."
+```
 
 **Player chooses crisis response:**
+```
 > "Yes, launch the PR campaign immediately."
->
-> `- System Message: [LUXORIA] Emergency PR campaign launched. Cash -120M, brand value +15.`
->
+> <Business:LUXORIA:cash:-120|brand_value:+15>
 > "Campaign launched. Media response improving."
+```
 
 **Player chooses aggressive expansion:**
+```
 > "Attack now while we have the cash."
->
-> `- System Message: [PFIZARA] Market domination push initiated. Cash -200M, market share +7%, brand value +5.`
->
+> <Business:PFIZARA:cash:-200|market_share:+7|brand_value:+5>
 > "Marketing blitz initiated. Early results promising."
+```
 
 **Player refuses/declines:**
+```
 > "Too risky. Let's wait."
->
-> `- System Message: [GOLDMANE] Investment declined. Influence -3.`
->
+> <Business:GOLDMANE:influence:-3>
 > "Mirabel looks disappointed but nods."
+```
 
-Always output system message with clear numerical impacts when choice affects company.
+**Random Event (no player choice):**
+```
+> News breaks: "Tech rival GUCCIEL launches competing product!"
+> <Business:GOLDMANE:market_share:-5|revenue:-80>
+> Mirabel grimaces. "This will hurt our Q3 numbers."
+```
+
+**IMPORTANT:**
+- Output `<Business:TICKER:var:value|...>` tag BETWEEN narrative text
+- Tag integrates naturally with the story flow
+- System automatically displays update card and refreshes panel
+- Use clear variable names: cash, debt, revenue, profit, market_share, brand_value, rd_progress, employees, influence
+
+Always output business tag with clear numerical impacts when events affect the company.
 
 {{/if_pure}}
