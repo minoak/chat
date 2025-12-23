@@ -1636,10 +1636,12 @@ function parseStockChanges(triggerId, message)
                     -- 변화값: 현재값에 더하기
                     newValue = current + valueNum
                     changeAmount = valueNum
+                    addDebugLog("Parsing", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
                 else
                     -- 절대값: 그 값으로 설정
                     newValue = valueNum
                     changeAmount = valueNum - current
+                    addDebugLog("Parsing", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
                 end
 
                 -- 값 범위 제약 적용
@@ -6227,6 +6229,125 @@ function generateBusinessView(triggerId)
 end
 
 -- ============================================
+-- 디버그 패널 시스템
+-- ============================================
+
+-- 디버그 로그 저장 (최대 50개)
+local MAX_DEBUG_LOGS = 50
+local debugLogs = {}
+
+-- 디버그 로그 추가 함수
+function addDebugLog(category, message)
+    local timestamp = os.date("%H:%M:%S")
+    local logEntry = {
+        time = timestamp,
+        category = category,
+        message = message
+    }
+
+    table.insert(debugLogs, 1, logEntry)  -- 최신 로그를 맨 위에
+
+    -- 최대 개수 초과 시 오래된 로그 제거
+    while #debugLogs > MAX_DEBUG_LOGS do
+        table.remove(debugLogs)
+    end
+
+    -- 일반 로그도 출력
+    log(string.format("[%s] %s", category, message))
+end
+
+-- 디버그 패널 UI 생성
+function generateDebugPanel(triggerId)
+    local collapseState = getState(triggerId, "debug_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
+
+    local html = [[
+<div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
+
+    -- 헤더
+    local collapseIcon = isCollapsed and "▼" or "▲"
+    html = html .. string.format([[
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>🐛</span>
+      <span style='font-size:15px;font-weight:600;color:#fff'>디버그 패널</span>
+      <span style='font-size:12px;color:#8b949e'>(%d개)</span>
+    </div>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <button type='button' risu-btn='debug_clear' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:11px;cursor:pointer'>초기화</button>
+      <button type='button' risu-btn='debug_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
+    </div>
+  </div>]], isCollapsed and "none" or "1px solid #30363d", #debugLogs, collapseIcon)
+
+    -- 내용 (펼쳐져 있을 때만)
+    if not isCollapsed then
+        html = html .. [[
+  <div style='padding:16px;max-height:400px;overflow-y:auto;background:#0d1117'>]]
+
+        if #debugLogs == 0 then
+            html = html .. [[
+    <div style='text-align:center;padding:40px 20px;color:#8b949e'>
+      <div style='font-size:14px'>디버그 로그가 없습니다</div>
+      <div style='font-size:12px;margin-top:8px;color:#6e7681'>시스템 동작 시 로그가 여기에 표시됩니다</div>
+    </div>]]
+        else
+            for _, entry in ipairs(debugLogs) do
+                local categoryColor = "#58a6ff"
+                local categoryIcon = "📌"
+
+                if entry.category == "BusinessPanel" then
+                    categoryColor = "#d29922"
+                    categoryIcon = "💼"
+                elseif entry.category == "StockPanel" then
+                    categoryColor = "#3fb950"
+                    categoryIcon = "📈"
+                elseif entry.category == "StockChart" then
+                    categoryColor = "#a371f7"
+                    categoryIcon = "📊"
+                elseif entry.category == "Parsing" then
+                    categoryColor = "#f85149"
+                    categoryIcon = "🔍"
+                elseif entry.category == "Variable" then
+                    categoryColor = "#ffa657"
+                    categoryIcon = "💾"
+                end
+
+                html = html .. string.format([[
+    <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px;margin-bottom:8px'>
+      <div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>
+        <span style='font-size:12px'>%s</span>
+        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+        <span style='font-size:10px;color:#6e7681;margin-left:auto'>%s</span>
+      </div>
+      <div style='font-size:12px;color:#c9d1d9;line-height:1.5;word-break:break-word'>%s</div>
+    </div>]], categoryIcon, categoryColor, entry.category, entry.time, entry.message)
+            end
+        end
+
+        html = html .. "</div>"
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- 디버그 패널 토글 버튼
+_G["debug_toggle_collapse"] = function(triggerId)
+    local current = getState(triggerId, "debug_panel_collapsed")
+    local newState = (current == "0") and "1" or "0"
+    setState(triggerId, "debug_panel_collapsed", newState)
+    addDebugLog("System", string.format("디버그 패널 %s", newState == "0" and "펼침" or "접음"))
+    return true
+end
+
+-- 디버그 로그 초기화 버튼
+_G["debug_clear"] = function(triggerId)
+    debugLogs = {}
+    addDebugLog("System", "디버그 로그 초기화됨")
+    return true
+end
+
+-- ============================================
 -- 주식 패널 UI 생성 함수
 -- ============================================
 
@@ -7403,7 +7524,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 경영 패널: 태그 확인 후 UI 생성
     local hasBusinessPanel = data:find("<BusinessPanel%s*/>")
     if hasBusinessPanel then
-        log("💼 BusinessPanel 태그 발견!")
+        addDebugLog("BusinessPanel", "태그 발견")
     end
     data = data:gsub("<BusinessPanel%s*/>", "")
 
@@ -7414,15 +7535,24 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         if meta and meta.index then
             local chatLength = getChatLength(triggerId)
             shouldShow = (meta.index >= chatLength - 1)
-            log(string.format("💼 BusinessPanel 표시 체크: index=%d, chatLength=%d, shouldShow=%s", meta.index, chatLength, tostring(shouldShow)))
+            addDebugLog("BusinessPanel", string.format("표시 체크: index=%d, chatLength=%d, shouldShow=%s", meta.index, chatLength, tostring(shouldShow)))
         else
-            log("💼 BusinessPanel meta 없음 - 바로 표시")
+            addDebugLog("BusinessPanel", "meta 없음 - 바로 표시")
         end
         if shouldShow then
-            log("💼 BusinessPanel UI 생성 중...")
+            addDebugLog("BusinessPanel", "UI 생성 시작")
             data = data .. generateBusinessView(triggerId)
-            log("💼 BusinessPanel UI 추가 완료")
+            addDebugLog("BusinessPanel", "UI 추가 완료")
+        else
+            addDebugLog("BusinessPanel", "shouldShow=false, UI 생성 스킵")
         end
+    end
+
+    -- 디버그 패널: 태그 확인 후 UI 생성
+    local hasDebugPanel = data:find("<DebugPanel%s*/>")
+    data = data:gsub("<DebugPanel%s*/>", "")
+    if hasDebugPanel then
+        data = data .. generateDebugPanel(triggerId)
     end
 
     -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
