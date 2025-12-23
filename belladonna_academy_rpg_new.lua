@@ -1792,6 +1792,7 @@ function parseStockTrades(triggerId, message)
 
         -- 거래 가격을 시장가로 업데이트 (매수/매도 가격 = 현재 시장가)
         setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
 
         if gold >= cost then
             -- 골드 차감 (state + chatVar 동기화)
@@ -1827,6 +1828,7 @@ function parseStockTrades(triggerId, message)
 
         -- 거래 가격을 시장가로 업데이트
         setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
 
         if currentQty >= qtyNum then
             -- 보유량 차감 (state + chatVar 동기화)
@@ -1869,7 +1871,7 @@ function parseStockChartUpdate(triggerId, message)
             goto continue
         end
 
-        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or 0
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or STOCK_BASE_PRICES[ticker] or 100
         local newPrice = currentPrice + changeNum
 
         -- 가격이 0 미만으로 떨어지지 않도록
