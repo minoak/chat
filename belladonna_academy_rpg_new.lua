@@ -7070,7 +7070,7 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 보조 모델 출력일 때 태그 파싱
     if isAuxiliaryOutput then
         -- 1단계: 보조 모델 자신의 출력에서 변수 업데이트 태그 파싱
-        parseStockChanges(triggerId, data)  -- 경영 변수 & 주가 변동
+        -- parseStockChanges는 processOutput에서 이미 처리됨 (중복 방지)
         parseStockTrades(triggerId, data)   -- 주식 매매 (보조 AI가 출력)
         parseStockChartUpdate(triggerId, data)  -- 차트 업데이트 (가격 변화)
 
