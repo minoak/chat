@@ -7400,6 +7400,23 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         end
     end
 
+    -- 경영 패널: 태그 확인 후 UI 생성
+    local hasBusinessPanel = data:find("<BusinessPanel%s*/>")
+    data = data:gsub("<BusinessPanel%s*/>", "")
+
+    -- 태그가 있으면 패널 UI 생성
+    if hasBusinessPanel then
+        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
+        local shouldShow = true
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            shouldShow = (meta.index >= chatLength - 1)
+        end
+        if shouldShow then
+            data = data .. generateBusinessView(triggerId)
+        end
+    end
+
     -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
     data = data:gsub("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
         -- 주식 시스템 활성화 체크
