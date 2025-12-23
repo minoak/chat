@@ -566,18 +566,16 @@ You output:
 
 **CRITICAL - Output Format:**
 
-When you output any tags ([Affinity:...], [Stock:...], [Gold:...], etc.):
-1. Output all relevant system tags
-2. **ALWAYS end with `<StockPanel />` if stock or business system is active**
-3. Then end with `<Panel>■★`
+Output all relevant system tags and end with `<Panel>■★`
 
-**Example output format:**
+**Example output:**
 ```
 [Affinity:Mirabel:+15][Sin:Mirabel:-5]
 [Stock:GOLDMANE:revenue:+200|profit:+50]
-<StockPanel />
 <Panel>■★
 ```
+
+**Note:** Stock panel will be automatically displayed by the system.
 
 ---
 
@@ -5215,6 +5213,15 @@ function processOutput(triggerId)
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
     -- 중복 태그 제거: 메인 응답에 이미 있는 태그를 보조 응답에서 제거
     local filteredAuxiliary = removeDuplicateTags(message, auxiliaryMessage)
+
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입
+    local panelMarker = "<Panel>■★"
+    local panelPos = filteredAuxiliary:find(panelMarker, 1, true)
+    if panelPos then
+        filteredAuxiliary = filteredAuxiliary:sub(1, panelPos - 1) .. "<StockPanel />\n" .. filteredAuxiliary:sub(panelPos)
+        addDebugLog("System", "보조 응답에 <StockPanel /> 자동 추가")
+    end
+
     local finalMessage = message .. "\n\n" .. filteredAuxiliary
 
     -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
