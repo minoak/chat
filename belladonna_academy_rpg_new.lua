@@ -6180,15 +6180,13 @@ function generateBusinessView(triggerId)
       <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%</div>
     </div>
   </div>
-%s
 ]], ticker, company.sector, company.name, company.character,
    formatNumber(revenue), formatChange(revenue_change, false),
    profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false),
    formatNumber(cash), formatChange(cash_change, false),
    debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false),
    marketPositionHtml,
-   rd_progress, influence, formatChange(influence_change, false), player_share,
-   stockEnabled == "1" and ("<StockChart:" .. ticker .. " />") or "")
+   rd_progress, influence, formatChange(influence_change, false), player_share)
     end
 
     html = html .. "</div>"

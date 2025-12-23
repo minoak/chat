@@ -94,6 +94,43 @@ Decision: Aggressive marketing campaign
 
 ---
 
+## Stock Chart Display
+
+When discussing company performance or stock price, use stock chart tags to visualize data:
+
+**Tag Format:**
+- `<StockChart:TICKER />` - Display current stock chart with price
+- `<StockChart:TICKER:±value />` - Display chart AND update stock price
+
+**When to Use:**
+- Discussing company financial performance
+- Showing market reaction to events
+- Comparing before/after major decisions
+- Partner character explaining market trends
+
+**Examples:**
+
+**After major event:**
+> "The product launch was a huge success."
+> <StockChart:GOLDMANE:+25 />
+> "Stock surged 25G on the news."
+
+**Discussing current status:**
+> Mirabel pulled up the trading terminal.
+> <StockChart:GOLDMANE />
+> "Here's our current market position."
+
+**Market analysis:**
+> "Let me show you all three companies."
+> <StockChart:GOLDMANE />
+> <StockChart:LUXORIA />
+> <StockChart:PFIZARA />
+> "The competition is heating up."
+
+Use these tags naturally in business conversations. Stock system automatically synchronizes with business metrics.
+
+---
+
 ## Decision Presentation
 
 Always show current numbers before choices:
