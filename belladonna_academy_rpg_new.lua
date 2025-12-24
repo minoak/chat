@@ -6566,8 +6566,9 @@ function generateStockBoardView(triggerId)
 <div style='max-height:350px;overflow-y:auto'>]]
 
     for _, ticker in ipairs(STOCK_TICKERS) do
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
 
         -- 변화량이 0이면 히스토리에서 계산
         if change == 0 then
@@ -6685,7 +6686,8 @@ end
 -- 차트 뷰 (증권사 스타일 라인 그래프)
 function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
-    local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+    local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+    price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
 
     -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
     local change = 0
@@ -6988,8 +6990,9 @@ function generateStockChartView(triggerId, ticker)
 
     for _, t in ipairs(STOCK_TICKERS) do
         local isSelected = t == ticker
-        local tPrice = getState(triggerId, "stock_" .. t .. "_price") or STOCK_BASE_PRICES[t]
-        local tChange = getState(triggerId, "stock_" .. t .. "_change") or 0
+        local tPrice = tonumber(getState(triggerId, "stock_" .. t .. "_price"))
+        tPrice = (tPrice and tPrice > 0) and tPrice or STOCK_BASE_PRICES[t]
+        local tChange = tonumber(getState(triggerId, "stock_" .. t .. "_change")) or 0
 
         -- 변화량이 0이면 히스토리에서 계산
         if tChange == 0 then
@@ -7124,7 +7127,8 @@ function generateStockAssetView(triggerId)
         local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         if owned > 0 then
             local avgPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_avg")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
-            local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or STOCK_BASE_PRICES[ticker]
+            local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
             local value = currentPrice * owned
             local profit = (currentPrice - avgPrice) * owned
             stockValue = stockValue + value
@@ -7577,7 +7581,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
             return ""
         end
 
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
         local name = STOCK_NAMES[ticker] or ticker
 
         -- 변화값 사용
@@ -7664,7 +7669,8 @@ listenEdit("editDisplay", function(triggerId, data, meta)
             return ""
         end
 
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
         local name = STOCK_NAMES[ticker] or ticker
 
         -- 변화량 계산: changeValue가 제공되면 우선 사용, 아니면 history 기준
@@ -7765,8 +7771,9 @@ listenEdit("editDisplay", function(triggerId, data, meta)
             return ""
         end
 
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
         local name = STOCK_NAMES[ticker] or ticker
 
         -- 변화량이 0이면 히스토리에서 계산
@@ -8466,7 +8473,8 @@ _G["stock_exit"] = function(triggerId)
     for _, ticker in ipairs(STOCK_TICKERS) do
         local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
         if owned > 0 then
-            local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+            local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
             local value = owned * price
             totalValue = totalValue + value
             table.insert(holdings, string.format("%s %d주", ticker, owned))
@@ -8501,7 +8509,8 @@ for _, ticker in ipairs(stockTickers) do
     _G["stock_select_" .. ticker] = function(triggerId)
         setState(triggerId, "stock_selected_ticker", ticker)
         -- 선택 가격을 해당 종목 현재가로 초기화
-        local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
         setState(triggerId, "stock_selected_price", currentPrice)
         -- 차트 뷰로 자동 전환
         local currentView = getState(triggerId, "stock_current_view") or "asset"
