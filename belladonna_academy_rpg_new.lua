@@ -1379,7 +1379,8 @@ end
 -- 시장 지수 태그 파싱: [Market:1050:+2.5:뉴스 내용]
 function parseMarketIndex(triggerId, message)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then return end
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
 
     for indexStr, changeStr, news in message:gmatch("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]") do
         local index = tonumber(indexStr)
@@ -1387,11 +1388,12 @@ function parseMarketIndex(triggerId, message)
 
         if index and change then
             setState(triggerId, "market_index", index)
-            setState(triggerId, "market_change", change)
+            setState(triggerId, "market_index_change", change)  -- 변수명 수정: market_change → market_index_change
             setState(triggerId, "market_news", news)
             setState(triggerId, "market_update_time", os.time())
 
             local level = getMarketLevel(index)
+            addDebugLog("Variable", string.format("시장 지수: %d (%+.1f%%) - %s", index, change, level.label))
             log(string.format("📊 시장 지수: %d (%+.1f%%) - %s [%s]", index, change, level.label, news))
         end
     end
