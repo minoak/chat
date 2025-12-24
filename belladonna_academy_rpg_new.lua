@@ -1891,9 +1891,10 @@ end
 
 -- 주가 차트 업데이트 태그 파싱: <StockChart:TICKER:±value />
 function parseStockChartUpdate(triggerId, message)
-    -- 주식 시스템 활성화 확인
+    -- 주식 또는 경영 시스템 활성화 확인
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then return end
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
 
     -- <StockChart:TICKER:±value /> 또는 <StockChart:TICKER:value /> 파싱
     for ticker, change in message:gmatch("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)") do
@@ -7757,9 +7758,10 @@ listenEdit("editDisplay", function(triggerId, data, meta)
 
     -- 간단 시세 인라인: <StockQuote:TICKER />
     data = data:gsub("<StockQuote:([A-Z%-]+)%s*/>", function(ticker)
-        -- 주식 시스템 활성화 체크
+        -- 주식 또는 경영 시스템 활성화 체크
         local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-        if stockEnabled ~= "1" then
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
             return ""
         end
 
