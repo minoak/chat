@@ -6316,6 +6316,8 @@ function generateDebugPanel(triggerId)
       <span style='font-size:12px;color:#8b949e'>(%d개)</span>
     </div>
     <div style='display:flex;align-items:center;gap:8px'>
+      <button type='button' risu-btn='test_tag_parsing' onclick='event.stopPropagation();' style='padding:4px 8px;background:#1f6feb;border:1px solid #58a6ff;border-radius:4px;color:#fff;font-size:11px;cursor:pointer'>🧪 태그테스트</button>
+      <button type='button' risu-btn='test_auxiliary_mode' onclick='event.stopPropagation();' style='padding:4px 8px;background:#1f6feb;border:1px solid #58a6ff;border-radius:4px;color:#fff;font-size:11px;cursor:pointer'>🧪 보조모델테스트</button>
       <button type='button' risu-btn='debug_clear' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:11px;cursor:pointer'>초기화</button>
       <button type='button' risu-btn='debug_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
     </div>
@@ -8560,3 +8562,92 @@ _G["leave_stock_club"] = function(triggerId)
 end
 
 log("📈 주식 시스템 버튼 핸들러 등록 완료 (20종목 선택 + 뷰3개)")
+
+-- ============================================
+-- 태그 파싱 테스트 함수
+-- ============================================
+
+_G["test_tag_parsing"] = function(triggerId)
+    log("🧪 === 태그 파싱 테스트 시작 ===")
+
+    local testResults = {}
+
+    -- 1. 주식 태그 테스트
+    log("🧪 [1] 주식 태그 테스트")
+    local stockTestMessage = "[Stock:GOLDMANE:285:+5|LUXORIA:218:-2]"
+    parseStockChanges(triggerId, stockTestMessage)
+    local goldmanePrice = getState(triggerId, "stock_GOLDMANE_price")
+    local luxoriaPrice = getState(triggerId, "stock_LUXORIA_price")
+    table.insert(testResults, string.format("✓ Stock: GOLDMANE=%s, LUXORIA=%s", goldmanePrice, luxoriaPrice))
+
+    -- 2. 시장 지수 테스트
+    log("🧪 [2] 시장 지수 테스트")
+    local marketTestMessage = "[Market:1050:+2.5:테크주 강세]"
+    parseMarketIndex(triggerId, marketTestMessage)
+    local marketIndex = getState(triggerId, "market_index")
+    local marketChange = getState(triggerId, "market_index_change")
+    table.insert(testResults, string.format("✓ Market: index=%s, change=%s", marketIndex, marketChange))
+
+    -- 3. 경영 태그 테스트
+    log("🧪 [3] 경영 태그 테스트")
+    setChatVar(triggerId, "business_system_enabled", "1")
+    setState(triggerId, "business_system_enabled", "1")
+    local businessTestMessage = "<Business:GOLDMANE:cash:-100|revenue:+50>"
+    local result = parseBusinessTags(triggerId, businessTestMessage)
+    local goldmaneCash = getState(triggerId, "GOLDMANE_cash")
+    local goldmaneRevenue = getState(triggerId, "GOLDMANE_revenue")
+    table.insert(testResults, string.format("✓ Business: cash=%s, revenue=%s", goldmaneCash, goldmaneRevenue))
+
+    -- 4. 주식 매매 테스트
+    log("🧪 [4] 주식 매매 테스트")
+    setChatVar(triggerId, "stock_system_enabled", "1")
+    setState(triggerId, "stock_system_enabled", "1")
+    setChatVar(triggerId, "player_gold", "10000")
+    local tradeTestMessage = "[StockBuy:GOLDMANE:280:10]"
+    parseStockTrades(triggerId, tradeTestMessage)
+    local goldmaneQty = getChatVar(triggerId, "stock_GOLDMANE_qty")
+    local playerGold = getChatVar(triggerId, "player_gold")
+    table.insert(testResults, string.format("✓ Trade: qty=%s, gold=%s", goldmaneQty, playerGold))
+
+    -- 5. RPG 태그 테스트
+    log("🧪 [5] RPG 태그 테스트")
+    local rpgTestMessage = "[Stat:str:+5][Gold:+100][EXP:+50]"
+    parseStatChanges(triggerId, rpgTestMessage)
+    parseGoldChanges(triggerId, rpgTestMessage)
+    parseExpChanges(triggerId, rpgTestMessage)
+    local strChange = getChatVar(triggerId, "player_str_change")
+    local goldChange = getChatVar(triggerId, "player_gold_change")
+    local expChange = getChatVar(triggerId, "player_exp_change")
+    table.insert(testResults, string.format("✓ RPG: str_change=%s, gold_change=%s, exp_change=%s", strChange, goldChange, expChange))
+
+    -- 결과 출력
+    local resultText = "🧪 태그 파싱 테스트 결과\n\n" .. table.concat(testResults, "\n")
+    alertNormal(triggerId, resultText)
+    log("🧪 === 테스트 완료 ===")
+    log(resultText)
+end
+
+_G["test_auxiliary_mode"] = function(triggerId)
+    local mode = getState(triggerId, "auxiliary_mode") or "0"
+    local modeText = mode == "0" and "OFF (로어북)" or (mode == "1" and "Main 모델" or "Aux 모델")
+
+    local testMessage = "테스트 메시지입니다."
+    log("🧪 현재 보조 모드: " .. modeText)
+
+    local startTime = os.clock()
+
+    if mode == "0" then
+        log("⏭️ 모드 0: 보조모델 호출 안 함")
+        local result = "<Panel>■★"
+        local elapsed = os.clock() - startTime
+        alertNormal(triggerId, string.format("🧪 보조모델 OFF 테스트\n모드: %s\n시간: %.3f초\n결과: %s", modeText, elapsed, result))
+    else
+        log("📞 모드 1/2: 보조모델 호출")
+        local result = callAuxiliaryModel(triggerId, testMessage)
+        local elapsed = os.clock() - startTime
+        alertNormal(triggerId, string.format("🧪 보조모델 ON 테스트\n모드: %s\n시간: %.3f초\n응답 길이: %d", modeText, elapsed, #result))
+    end
+end
+
+log("🧪 테스트 함수 등록 완료: test_tag_parsing, test_auxiliary_mode")
+
