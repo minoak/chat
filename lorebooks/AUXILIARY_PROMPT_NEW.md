@@ -17,7 +17,6 @@
 [Season:X][Week:N][Day:X][Time:X][Location:X][Weather:X]{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
 [Market:INDEX:CHANGE:News][Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]{{/if_pure}}{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
 <Business:TICKER:var:±value|var:±value>{{/if_pure}}
-<DebugPanel />
 <Panel>■★
 
 ---
