@@ -4990,8 +4990,16 @@ function processOutput(triggerId)
     clearBusinessChanges(triggerId)
 
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
-    local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
-    log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+        log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
+    end
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
@@ -8154,8 +8162,16 @@ _G["reroll_auxiliary"] = function(triggerId)
     log("↩️ 스냅샷 복원 완료")
 
     -- 보조모델 다시 호출
-    local auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
-    log("🔄 보조모델 재호출 완료")
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
+        log("🔄 보조모델 재호출 완료")
+    end
 
     -- 태그 파싱 (메인 + 보조)
     local combinedSource = mainResponse .. "\n" .. auxiliaryMessage
