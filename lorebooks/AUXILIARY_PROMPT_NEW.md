@@ -15,7 +15,7 @@
 [Heal:amount][Effect:Action:Name:Bonus][Trait:Action:Name:Desc]
 [Combat:Enemy:Power][Combat:End]
 [Season:X][Week:N][Day:X][Time:X][Location:X][Weather:X]{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
-[Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]{{/if_pure}}{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
+[Market:INDEX:CHANGE:News][Stock:TICKER:PRICE:CHANGE|...][StockBuy:TICKER:PRICE:QTY][StockSell:TICKER:PRICE:QTY]{{/if_pure}}{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
 <Business:TICKER:var:±value|var:±value>{{/if_pure}}
 <Panel>■★
 
@@ -108,15 +108,20 @@ When main model outputs `<Stock>` tag, generate stock prices.
 ## Format
 
 ```
+[Market:INDEX:CHANGE:News]
 [Stock:TICKER:PRICE:CHANGE|TICKER:PRICE:CHANGE|...]
 ```
 
-- PRICE: Integer (Gold)
-- CHANGE: Daily change (+N/-N/0)
+- **Market**: Overall market index (e.g., 1050) and change (e.g., +2.5)
+- **Stock**: Individual stock prices
+  - PRICE: Integer (Gold)
+  - CHANGE: Daily change (+N/-N/0)
 
 ## Price Rules
 
-Based on `<Stock>` tag hints:
+**Market Index**: Generate based on overall market sentiment (900~1200 range, ±0.5~3.0 typical)
+
+**Individual Stocks**: Based on `<Stock>` tag hints:
 - "surge/skyrocket": +8~15
 - "rise/up": +2~7
 - "stable": -1~1
