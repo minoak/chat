@@ -8625,6 +8625,8 @@ _G["test_tag_parsing"] = function(triggerId)
     alertNormal(triggerId, resultText)
     log("🧪 === 테스트 완료 ===")
     log(resultText)
+    addDebugLog("Test", "태그 파싱 테스트 완료")
+    return true
 end
 
 _G["test_auxiliary_mode"] = function(triggerId)
@@ -8641,12 +8643,15 @@ _G["test_auxiliary_mode"] = function(triggerId)
         local result = "<Panel>■★"
         local elapsed = os.clock() - startTime
         alertNormal(triggerId, string.format("🧪 보조모델 OFF 테스트\n모드: %s\n시간: %.3f초\n결과: %s", modeText, elapsed, result))
+        addDebugLog("Test", string.format("보조모델 OFF (%.3f초)", elapsed))
     else
         log("📞 모드 1/2: 보조모델 호출")
         local result = callAuxiliaryModel(triggerId, testMessage)
         local elapsed = os.clock() - startTime
         alertNormal(triggerId, string.format("🧪 보조모델 ON 테스트\n모드: %s\n시간: %.3f초\n응답 길이: %d", modeText, elapsed, #result))
+        addDebugLog("Test", string.format("보조모델 %s (%.3f초, %d자)", modeText, elapsed, #result))
     end
+    return true
 end
 
 log("🧪 테스트 함수 등록 완료: test_tag_parsing, test_auxiliary_mode")
