@@ -72,24 +72,93 @@ function simulateAuxiliaryOutfit(imageTag, context)
 end
 
 -- ============================================
+-- 보조모델 프롬프트 생성
+-- ============================================
+
+function generateAuxiliaryPrompt(mainOutput, context)
+    return string.format([[
+---
+
+# IMAGE TAG OUTFIT CORRECTION
+
+Analyze the main model output and add outfit context to image tags.
+
+## Current Context
+
+- **Time**: %s (Morning/Afternoon/Evening/Night)
+- **Location**: %s
+
+## Outfit Rules
+
+**Time-based (default):**
+- Morning/Afternoon → add `_교복`
+- Evening → add `_일상복`
+- Night → add `_잠옷`
+
+**Location-based (PRIORITY - overrides time):**
+- Ballroom → add `_이브닝드레스`
+- Garden → add `_원피스`
+- Beach → add `_수영복`
+- Gym → add `_운동복`
+
+## Task
+
+Find all `<img="...">` tags in the main output below and add appropriate outfit suffix.
+
+**Output format:**
+```
+[IMG_FIX:original_tag→corrected_tag]
+```
+
+**Example:**
+- Context: Time=Evening, Location=Dormitory
+- Found: `<img="Margaret.nervous">`
+- Output: `[IMG_FIX:<img="Margaret.nervous">→<img="Margaret.nervous_일상복">]`
+
+## Main Model Output
+
+%s
+
+---
+
+**Now output the IMG_FIX tags:**
+]], context.time, context.location, mainOutput)
+end
+
+-- ============================================
 -- 테스트 케이스
 -- ============================================
 
 print("=== 이미지 태그 복장 접미사 추가 테스트 시작 ===\n")
+print("=" .. string.rep("=", 70))
+print("보조모델 테스트용 프롬프트 생성")
+print("=" .. string.rep("=", 70) .. "\n")
 
 -- 컨텍스트 설정
 local context = getContext()
 print(string.format("컨텍스트: 시간=%s, 장소=%s\n", context.time, context.location))
 
 -- 테스트 1: 기본 케이스 (Evening + Dormitory → _일상복)
+print("\n" .. string.rep("-", 70))
 print("테스트 1: 기본 복장 추가 (저녁 + 기숙사)")
+print(string.rep("-", 70))
 local test1_main = 'She looks nervous. <img="Margaret.nervous"> "I need to tell you something."'
 local test1_tag = '<img="Margaret.nervous">'
-local test1_aux = simulateAuxiliaryOutfit(test1_tag, context) .. '\n[Affinity:Margaret:like]\n<Panel>■★'
 
-print("보조모델 출력:", test1_aux)
+-- 보조모델 프롬프트 생성
+local test1_prompt = generateAuxiliaryPrompt(test1_main, context)
+print("\n📋 보조모델에게 전달할 프롬프트:")
+print(string.rep("=", 70))
+print(test1_prompt)
+print(string.rep("=", 70))
+
+-- 보조모델 시뮬레이션 (실제로는 AI가 이 부분을 수행)
+local test1_aux = simulateAuxiliaryOutfit(test1_tag, context) .. '\n[Affinity:Margaret:like]\n<Panel>■★'
+print("\n✅ 보조모델 예상 출력:", test1_aux)
+
+-- Lua가 수정 적용
 local result1 = applyImageTagFixes(test1_main, test1_aux)
-print("원본:", test1_main)
+print("\n원본:", test1_main)
 print("결과:", result1)
 print()
 
@@ -108,16 +177,27 @@ print("결과:", result2)
 print()
 
 -- 테스트 3: 특수 장소 (Ballroom → _이브닝드레스)
+print("\n" .. string.rep("-", 70))
 print("테스트 3: 특수 장소 우선 적용 (무도회장)")
+print(string.rep("-", 70))
 local test3_main = 'Celestia enters gracefully. <img="Celestia.confident"> The crowd gasps.'
 local test3_tag = '<img="Celestia.confident">'
 local ballroom_context = {time = "Evening", location = "Ballroom"}
-local test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
 
-print("컨텍스트: 시간=Evening, 장소=Ballroom")
-print("보조모델 출력:", test3_aux)
+-- 보조모델 프롬프트 생성
+local test3_prompt = generateAuxiliaryPrompt(test3_main, ballroom_context)
+print("\n📋 보조모델에게 전달할 프롬프트:")
+print(string.rep("=", 70))
+print(test3_prompt)
+print(string.rep("=", 70))
+
+-- 보조모델 시뮬레이션
+local test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
+print("\n✅ 보조모델 예상 출력:", test3_aux)
+
+-- Lua가 수정 적용
 local result3 = applyImageTagFixes(test3_main, test3_aux)
-print("원본:", test3_main)
+print("\n원본:", test3_main)
 print("결과:", result3)
 print()
 
@@ -163,11 +243,34 @@ print("원본:", test6_main)
 print("결과:", result6)
 print()
 
+print("\n" .. string.rep("=", 70))
 print("=== 테스트 완료 ===")
-print("\n예상 결과:")
+print(string.rep("=", 70))
+
+print("\n📊 예상 결과 요약:")
 print("테스트 1: _일상복 추가 (Evening + Dormitory)")
 print("테스트 2: _교복 추가 (Morning)")
 print("테스트 3: _이브닝드레스 추가 (Ballroom 우선)")
 print("테스트 4: 두 캐릭터 모두 _일상복")
 print("테스트 5: _잠옷 추가 (Night)")
 print("테스트 6: _원피스 추가 (Garden 우선)")
+
+print("\n" .. string.rep("=", 70))
+print("💡 실제 보조모델 테스트 방법")
+print(string.rep("=", 70))
+print([[
+
+1. 위에서 출력된 "📋 보조모델에게 전달할 프롬프트" 섹션을 복사
+2. RisuAI의 보조모델 채팅에 붙여넣기
+3. 보조모델의 출력이 "✅ 보조모델 예상 출력"과 일치하는지 확인
+
+예상 출력 형식:
+  [IMG_FIX:<img="Character.emotion">→<img="Character.emotion_복장">]
+
+실제 통합 시:
+  - AUXILIARY_PROMPT_NEW.md에 IMAGE TAG CORRECTION 섹션 추가
+  - belladonna_academy_rpg_new.lua에 applyImageTagFixes() 함수 추가
+  - processOutput()에서 보조모델 응답에 applyImageTagFixes() 적용
+
+]])
+print(string.rep("=", 70))
