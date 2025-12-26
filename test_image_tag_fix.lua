@@ -96,7 +96,7 @@ end
 -- 보조모델 호출
 -- ============================================
 
-function callRealAuxiliaryModel(prompt)
+function callRealAuxiliaryModel(triggerId, prompt)
     clearDebugLog()
 
     if not USE_REAL_MODEL then
@@ -111,6 +111,7 @@ function callRealAuxiliaryModel(prompt)
     end
 
     addDebug("✅ axLLM 함수 발견")
+    addDebug("   triggerId: " .. tostring(triggerId))
 
     local messages = {
         {
@@ -127,7 +128,7 @@ function callRealAuxiliaryModel(prompt)
     addDebug("   메시지 개수: " .. #messages)
 
     local success, response = pcall(function()
-        return axLLM(nil, messages)
+        return axLLM(triggerId, messages)  -- ← triggerId 전달!
     end)
 
     addDebug("📥 pcall success=" .. tostring(success))
@@ -230,7 +231,7 @@ function processTestOutput(triggerId)
     addDebug("📋 프롬프트 생성 완료")
 
     -- 보조모델 호출
-    local auxResponse, err = callRealAuxiliaryModel(prompt)
+    local auxResponse, err = callRealAuxiliaryModel(triggerId, prompt)
 
     -- 출력 생성
     local output = "\n\n" .. string.rep("=", 60) .. "\n"
