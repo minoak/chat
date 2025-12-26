@@ -1,83 +1,47 @@
--- 이미지 태그 복장 접미사 추가 테스트 코드
+-- 이미지 태그 복장 접미사 테스트 (채팅 통합 버전)
 -- 보조모델이 시간/장소 기반으로 "_일상복", "_교복" 등 접미사 추가
 
 -- ============================================
 -- 설정
 -- ============================================
 
--- 실제 보조모델 호출 여부 (RisuAI 환경에서만 작동)
 local USE_REAL_MODEL = true  -- true: 실제 API 호출, false: 시뮬레이션만
 
 -- ============================================
--- 테스트용 헬퍼 함수
+-- 디버그 로그
 -- ============================================
-function escapePattern(str)
-    return str:gsub("([%.%+%-%*%?%[%]%(%)%%])", "%%%1")
+
+local debugLog = {}
+
+function addDebug(msg)
+    table.insert(debugLog, msg)
 end
 
--- 이미지 태그 수정 적용 함수
-function applyImageTagFixes(data, auxiliaryOutput)
-    local fixCount = 0
-    local fixes = {}
-
-    -- [IMG_FIX:wrong→correct] 패턴 찾기
-    for wrongTag, correctTag in auxiliaryOutput:gmatch("%[IMG_FIX:(.-)→(.-)%]") do
-        -- 특수문자 이스케이프
-        local escapedWrong = escapePattern(wrongTag)
-
-        -- 교체 (첫 번째 발견만)
-        local oldData = data
-        data = data:gsub(escapedWrong, correctTag, 1)
-
-        if data ~= oldData then
-            fixCount = fixCount + 1
-            table.insert(fixes, {
-                wrong = wrongTag,
-                correct = correctTag
-            })
-            print(string.format("✓ 수정: %s → %s", wrongTag, correctTag))
-        else
-            print(string.format("✗ 실패: '%s' 찾을 수 없음", wrongTag))
-        end
+function getDebugOutput()
+    if #debugLog == 0 then
+        return ""
     end
-
-    print(string.format("\n총 %d개 태그 수정 완료\n", fixCount))
-    return data, fixes
+    local output = "\n\n" .. string.rep("=", 60) .. "\n📋 **디버그 로그**\n" .. string.rep("=", 60) .. "\n"
+    for _, msg in ipairs(debugLog) do
+        output = output .. msg .. "\n"
+    end
+    output = output .. string.rep("=", 60)
+    return output
 end
 
--- 컨텍스트 시뮬레이션 (실제로는 {{getvar}} 사용)
+function clearDebugLog()
+    debugLog = {}
+end
+
+-- ============================================
+-- 컨텍스트 (시간/장소)
+-- ============================================
+
 function getContext()
     return {
         time = "Evening",      -- Morning/Afternoon/Evening/Night
-        location = "Dormitory" -- Classroom/Dormitory/MainHall/Garden 등
+        location = "Dormitory" -- Classroom/Dormitory/MainHall/Garden/Ballroom 등
     }
-end
-
--- 보조모델 시뮬레이션: 컨텍스트 기반 복장 선택
-function simulateAuxiliaryOutfit(imageTag, context)
-    -- 시간대별 기본 복장
-    local timeOutfits = {
-        Morning = "_교복",
-        Afternoon = "_교복",
-        Evening = "_일상복",
-        Night = "_잠옷"
-    }
-
-    -- 장소별 특수 복장 (우선순위)
-    local locationOutfits = {
-        Ballroom = "_이브닝드레스",
-        Garden = "_원피스",
-        Beach = "_수영복",
-        Gym = "_운동복"
-    }
-
-    -- 장소 우선, 없으면 시간대
-    local outfit = locationOutfits[context.location] or timeOutfits[context.time] or "_일상복"
-
-    -- 태그에 복장 접미사 추가
-    local modifiedTag = imageTag:gsub('(")', outfit .. '%1')
-
-    return string.format("[IMG_FIX:%s→%s]", imageTag, modifiedTag)
 end
 
 -- ============================================
@@ -135,32 +99,12 @@ Find all `<img="...">` tags in the main output below and add appropriate outfit 
 end
 
 -- ============================================
--- 디버그 로그 수집 (최종 출력용)
--- ============================================
-
-local debugLog = {}
-
-function addDebug(msg)
-    table.insert(debugLog, msg)
-    print(msg)  -- 콘솔에도 출력
-end
-
-function getDebugOutput()
-    if #debugLog == 0 then
-        return ""
-    end
-    return "\n" .. string.rep("=", 70) .. "\n📋 디버그 로그:\n" ..
-           string.rep("=", 70) .. "\n" ..
-           table.concat(debugLog, "\n") ..
-           "\n" .. string.rep("=", 70)
-end
-
--- ============================================
--- 실제 보조모델 호출 (RisuAI API 사용)
+-- 실제 보조모델 호출
 -- ============================================
 
 function callRealAuxiliaryModel(prompt)
-    -- 설정에서 비활성화되어 있으면 바로 반환
+    clearDebugLog()
+
     if not USE_REAL_MODEL then
         addDebug("⏭️  USE_REAL_MODEL=false - 시뮬레이션 모드")
         return nil, "USE_REAL_MODEL=false"
@@ -175,7 +119,6 @@ function callRealAuxiliaryModel(prompt)
 
     addDebug("✅ axLLM 함수 발견 - 호출 준비")
 
-    -- RisuAI 메시지 형식으로 변환
     local messages = {
         {
             role = "system",
@@ -190,7 +133,6 @@ function callRealAuxiliaryModel(prompt)
     addDebug("🔄 보조모델 API 호출 시작...")
     addDebug("   메시지 개수: " .. #messages)
 
-    -- axLLM 호출
     local success, response = pcall(function()
         return axLLM(nil, messages)
     end)
@@ -234,218 +176,136 @@ function callRealAuxiliaryModel(prompt)
 end
 
 -- ============================================
--- 테스트 케이스
+-- 보조모델 시뮬레이션 (폴백용)
 -- ============================================
 
-print("=== 이미지 태그 복장 접미사 추가 테스트 시작 ===\n")
-print("=" .. string.rep("=", 70))
-print("보조모델 실시간 호출 테스트")
-print("=" .. string.rep("=", 70))
-print()
-print("설정:")
-print("  USE_REAL_MODEL = " .. tostring(USE_REAL_MODEL))
-print()
-if USE_REAL_MODEL then
-    print("🔥 실제 보조모델 API 호출 모드")
-    print("   - RisuAI 환경에서 실제 AI를 호출합니다")
-    print("   - 보조모델이 IMG_FIX 태그를 생성하는지 확인합니다")
-    print("   - API 미지원 시 자동으로 시뮬레이션으로 전환됩니다")
-else
-    print("🔧 시뮬레이션 전용 모드")
-    print("   - 실제 API를 호출하지 않고 예상 결과만 표시합니다")
-    print("   - USE_REAL_MODEL을 true로 변경하면 실제 테스트가 가능합니다")
-end
-print("=" .. string.rep("=", 70) .. "\n")
+function simulateAuxiliaryOutfit(imageTag, context)
+    local timeOutfits = {
+        Morning = "_교복",
+        Afternoon = "_교복",
+        Evening = "_일상복",
+        Night = "_잠옷"
+    }
 
--- 컨텍스트 설정
-local context = getContext()
-print(string.format("컨텍스트: 시간=%s, 장소=%s\n", context.time, context.location))
+    local locationOutfits = {
+        Ballroom = "_이브닝드레스",
+        Garden = "_원피스",
+        Beach = "_수영복",
+        Gym = "_운동복"
+    }
 
--- 테스트 1: 기본 케이스 (Evening + Dormitory → _일상복)
-print("\n" .. string.rep("-", 70))
-print("테스트 1: 기본 복장 추가 (저녁 + 기숙사)")
-print(string.rep("-", 70))
-local test1_main = 'She looks nervous. <img="Margaret.nervous"> "I need to tell you something."'
-local test1_tag = '<img="Margaret.nervous">'
+    local outfit = locationOutfits[context.location] or timeOutfits[context.time] or "_일상복"
+    local modifiedTag = imageTag:gsub('(")', outfit .. '%1')
 
--- 보조모델 프롬프트 생성
-local test1_prompt = generateAuxiliaryPrompt(test1_main, context)
-print("\n📋 보조모델에게 전달할 프롬프트:")
-print(string.rep("=", 70))
-print(test1_prompt)
-print(string.rep("=", 70))
-
--- ⚡ 실제 보조모델 호출
-local test1_aux_real, test1_error = callRealAuxiliaryModel(test1_prompt)
-
--- 보조모델 응답 (실제 또는 시뮬레이션)
-local test1_aux
-if test1_aux_real then
-    print("\n🤖 실제 보조모델 출력:")
-    print(test1_aux_real)
-    test1_aux = test1_aux_real
-else
-    -- 실패 시 시뮬레이션으로 폴백
-    print("\n⚠️  보조모델 호출 실패: " .. tostring(test1_error))
-    test1_aux = simulateAuxiliaryOutfit(test1_tag, context)
-    print("🔧 시뮬레이션 출력:", test1_aux)
+    return string.format("[IMG_FIX:%s→%s]", imageTag, modifiedTag)
 end
 
--- 예상 출력 표시
-local test1_expected = simulateAuxiliaryOutfit(test1_tag, context)
-print("\n✅ 예상 출력:", test1_expected)
+-- ============================================
+-- 채팅 이벤트 핸들러
+-- ============================================
 
--- Lua가 수정 적용
-local result1 = applyImageTagFixes(test1_main, test1_aux)
-print("\n원본:", test1_main)
-print("결과:", result1)
+_G["onUserInput"] = function(data, triggerId)
+    -- 사용자 입력을 메인 모델 출력처럼 처리
+    local mainOutput = data
 
--- 검증
-if test1_aux_real and test1_aux_real:find("%[IMG_FIX:") then
-    print("✅ 테스트 성공: 보조모델이 IMG_FIX 태그를 생성했습니다!")
-else
-    print("⚠️  시뮬레이션 모드 또는 API 미지원")
-end
-print()
+    -- 출력 시작
+    local output = "\n" .. string.rep("=", 60) .. "\n"
+    output = output .. "🧪 **이미지 태그 복장 테스트**\n"
+    output = output .. string.rep("=", 60) .. "\n\n"
 
--- 테스트 2: 아침 시간대 (Morning → _교복)
-print("테스트 2: 아침 시간대 (교복)")
-local test2_main = 'Mirabel waves cheerfully. <img="Mirabel.happy"> "Good morning!"'
-local test2_tag = '<img="Mirabel.happy">'
-local morning_context = {time = "Morning", location = "Classroom"}
-local test2_aux = simulateAuxiliaryOutfit(test2_tag, morning_context)
+    -- 컨텍스트 정보
+    local context = getContext()
+    output = output .. "⏰ **컨텍스트**: 시간=" .. context.time .. ", 장소=" .. context.location .. "\n\n"
 
-print("컨텍스트: 시간=Morning, 장소=Classroom")
-print("보조모델 출력:", test2_aux)
-local result2 = applyImageTagFixes(test2_main, test2_aux)
-print("원본:", test2_main)
-print("결과:", result2)
-print()
+    -- 메인 출력 표시
+    output = output .. "📝 **입력 메시지**:\n" .. mainOutput .. "\n\n"
 
--- 테스트 3: 특수 장소 (Ballroom → _이브닝드레스)
-print("\n" .. string.rep("-", 70))
-print("테스트 3: 특수 장소 우선 적용 (무도회장)")
-print(string.rep("-", 70))
-local test3_main = 'Celestia enters gracefully. <img="Celestia.confident"> The crowd gasps.'
-local test3_tag = '<img="Celestia.confident">'
-local ballroom_context = {time = "Evening", location = "Ballroom"}
+    -- 이미지 태그 찾기
+    local hasImageTag = mainOutput:find('<img="[^"]+">') ~= nil
 
--- 보조모델 프롬프트 생성
-local test3_prompt = generateAuxiliaryPrompt(test3_main, ballroom_context)
-print("\n📋 보조모델에게 전달할 프롬프트:")
-print(string.rep("=", 70))
-print(test3_prompt)
-print(string.rep("=", 70))
-
--- ⚡ 실제 보조모델 호출
-local test3_aux_real, test3_error = callRealAuxiliaryModel(test3_prompt)
-
--- 보조모델 응답 (실제 또는 시뮬레이션)
-local test3_aux
-if test3_aux_real then
-    print("\n🤖 실제 보조모델 출력:")
-    print(test3_aux_real)
-    test3_aux = test3_aux_real
-else
-    -- 실패 시 시뮬레이션으로 폴백
-    print("\n⚠️  보조모델 호출 실패: " .. tostring(test3_error))
-    test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
-    print("🔧 시뮬레이션 출력:", test3_aux)
-end
-
--- 예상 출력 표시
-local test3_expected = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
-print("\n✅ 예상 출력:", test3_expected)
-
--- Lua가 수정 적용
-local result3 = applyImageTagFixes(test3_main, test3_aux)
-print("\n원본:", test3_main)
-print("결과:", result3)
-
--- 검증
-if test3_aux_real and test3_aux_real:find("%[IMG_FIX:") then
-    print("✅ 테스트 성공: 보조모델이 IMG_FIX 태그를 생성했습니다!")
-    if test3_aux_real:find("_이브닝드레스") then
-        print("✅ 장소 우선순위 적용 확인: Ballroom → _이브닝드레스")
+    if not hasImageTag then
+        output = output .. "⚠️  이미지 태그가 없습니다. 테스트하려면 `<img=\"캐릭터.감정\">` 형식의 태그를 포함해주세요.\n"
+        output = output .. "\n**예시**: Margaret looks nervous <img=\"Margaret.nervous\">\n"
+        addToContext(triggerId, output, "assistant")
+        return true
     end
-else
-    print("⚠️  시뮬레이션 모드 또는 API 미지원")
+
+    -- 보조모델 프롬프트 생성
+    local prompt = generateAuxiliaryPrompt(mainOutput, context)
+
+    output = output .. "📋 **보조모델 프롬프트 생성 완료**\n\n"
+
+    -- 보조모델 호출
+    local auxResponse, error = callRealAuxiliaryModel(prompt)
+
+    if auxResponse then
+        output = output .. "✅ **보조모델 응답**:\n```\n" .. auxResponse .. "\n```\n\n"
+
+        -- IMG_FIX 태그 찾기
+        local fixFound = auxResponse:find("%[IMG_FIX:") ~= nil
+
+        if fixFound then
+            output = output .. "🎉 **성공!** 보조모델이 IMG_FIX 태그를 생성했습니다!\n\n"
+
+            -- 최종 결과 표시
+            output = output .. "📤 **최종 결과**:\n"
+
+            -- 실제 교체 적용 (간단 버전)
+            local result = mainOutput
+            for wrongTag, correctTag in auxResponse:gmatch("%[IMG_FIX:(.-)→(.-)%]") do
+                local escaped = wrongTag:gsub("([%.%+%-%*%?%[%]%(%)%%])", "%%%1")
+                result = result:gsub(escaped, correctTag, 1)
+                output = output .. "  • " .. wrongTag .. " → " .. correctTag .. "\n"
+            end
+
+            output = output .. "\n" .. result .. "\n"
+        else
+            output = output .. "⚠️  보조모델이 IMG_FIX 태그를 생성하지 않았습니다.\n"
+        end
+    else
+        output = output .. "❌ **보조모델 호출 실패**: " .. tostring(error) .. "\n\n"
+
+        -- 시뮬레이션 폴백
+        output = output .. "🔧 **시뮬레이션 모드로 전환**\n\n"
+
+        for imageTag in mainOutput:gmatch('<img="[^"]+">') do
+            local simResult = simulateAuxiliaryOutfit(imageTag, context)
+            output = output .. "  " .. simResult .. "\n"
+        end
+    end
+
+    -- 디버그 로그 추가
+    output = output .. getDebugOutput()
+
+    -- 출력
+    addToContext(triggerId, output, "assistant")
+    return true
 end
-print()
 
--- 테스트 4: 여러 캐릭터 동시 처리
-print("테스트 4: 여러 캐릭터 동시 처리")
-local test4_main = '<img="Mirabel.happy"> talks to <img="Aurelia.neutral"> in the evening.'
-local test4_tag1 = '<img="Mirabel.happy">'
-local test4_tag2 = '<img="Aurelia.neutral">'
-local test4_aux = simulateAuxiliaryOutfit(test4_tag1, context) .. '\n' ..
-                  simulateAuxiliaryOutfit(test4_tag2, context)
+-- 초기화 메시지
+_G["onStart"] = function(data, triggerId)
+    local msg = [[
+🧪 **이미지 태그 복장 테스트 스크립트 로드됨**
 
-print("보조모델 출력:", test4_aux)
-local result4 = applyImageTagFixes(test4_main, test4_aux)
-print("원본:", test4_main)
-print("결과:", result4)
-print()
+이 스크립트는 보조모델이 이미지 태그에 복장 접미사를 추가하는지 테스트합니다.
 
--- 테스트 5: 야간 (Night → _잠옷)
-print("테스트 5: 야간 시간대 (잠옷)")
-local test5_main = 'Lilith yawns sleepily. <img="Lilith.tired"> Time for bed.'
-local test5_tag = '<img="Lilith.tired">'
-local night_context = {time = "Night", location = "Dormitory"}
-local test5_aux = simulateAuxiliaryOutfit(test5_tag, night_context)
+**사용 방법**:
+메시지에 이미지 태그를 포함해서 전송하세요.
 
-print("컨텍스트: 시간=Night, 장소=Dormitory")
-print("보조모델 출력:", test5_aux)
-local result5 = applyImageTagFixes(test5_main, test5_aux)
-print("원본:", test5_main)
-print("결과:", result5)
-print()
+**예시**:
+```
+Margaret looks nervous. <img="Margaret.nervous"> "I have something to tell you."
+```
 
--- 테스트 6: 정원 특수 복장
-print("테스트 6: 정원 특수 복장 (원피스)")
-local test6_main = 'Rosalie sits on a bench. <img="Rosalie.peaceful">'
-local test6_tag = '<img="Rosalie.peaceful">'
-local garden_context = {time = "Afternoon", location = "Garden"}
-local test6_aux = simulateAuxiliaryOutfit(test6_tag, garden_context)
+**현재 설정**:
+- USE_REAL_MODEL: ]] .. tostring(USE_REAL_MODEL) .. [[
 
-print("컨텍스트: 시간=Afternoon, 장소=Garden")
-print("보조모델 출력:", test6_aux)
-local result6 = applyImageTagFixes(test6_main, test6_aux)
-print("원본:", test6_main)
-print("결과:", result6)
-print()
+- 시간: Evening
+- 장소: Dormitory
 
-print("\n" .. string.rep("=", 70))
-print("=== 테스트 완료 ===")
-print(string.rep("=", 70))
+메시지를 보내면 보조모델이 자동으로 복장(_일상복 등)을 추가합니다!
+]]
 
-print("\n📊 예상 결과 요약:")
-print("테스트 1: _일상복 추가 (Evening + Dormitory)")
-print("테스트 2: _교복 추가 (Morning)")
-print("테스트 3: _이브닝드레스 추가 (Ballroom 우선)")
-print("테스트 4: 두 캐릭터 모두 _일상복")
-print("테스트 5: _잠옷 추가 (Night)")
-print("테스트 6: _원피스 추가 (Garden 우선)")
-
-print("\n" .. string.rep("=", 70))
-print("💡 실제 보조모델 테스트 방법")
-print(string.rep("=", 70))
-print([[
-
-1. 위에서 출력된 "📋 보조모델에게 전달할 프롬프트" 섹션을 복사
-2. RisuAI의 보조모델 채팅에 붙여넣기
-3. 보조모델의 출력이 "✅ 보조모델 예상 출력"과 일치하는지 확인
-
-예상 출력 형식:
-  [IMG_FIX:<img="Character.emotion">→<img="Character.emotion_복장">]
-
-실제 통합 시:
-  - AUXILIARY_PROMPT_NEW.md에 IMAGE TAG CORRECTION 섹션 추가
-  - belladonna_academy_rpg_new.lua에 applyImageTagFixes() 함수 추가
-  - processOutput()에서 보조모델 응답에 applyImageTagFixes() 적용
-
-]])
-print(string.rep("=", 70))
-
--- 디버그 로그 출력
-print(getDebugOutput())
+    addToContext(triggerId, msg, "assistant")
+    return true
+end
