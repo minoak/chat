@@ -170,13 +170,17 @@ function callRealAuxiliaryModel(prompt)
     end)
 
     if success and response then
-        -- response는 { success = true, response = "..." } 형태
-        if response.success and response.response then
-            local text = response.response
+        -- response는 { success = true, result = "..." } 형태 (line 3516 참고)
+        if response.success and response.result then
+            local text = response.result
             print("✅ 보조모델 응답 받음 (" .. #text .. " chars)")
             return text
+        elseif response.success == false then
+            print("❌ 보조모델 응답 실패: " .. tostring(response.result))
+            return nil
         else
             print("❌ 보조모델 응답 형식 오류")
+            print("   response 구조: " .. tostring(response))
             return nil
         end
     else
