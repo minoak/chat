@@ -145,31 +145,43 @@ function callRealAuxiliaryModel(prompt)
         return nil
     end
 
-    -- RisuAI의 requestChatCompletion API 사용
+    -- RisuAI의 axLLM API 사용
     -- 이 함수는 RisuAI 환경에서만 작동합니다
 
     print("\n🔄 보조모델 API 호출 중...")
 
-    -- RisuAI API를 통해 보조모델 호출
-    local success, response = pcall(function()
-        return requestChatCompletion({
+    -- RisuAI 메시지 형식으로 변환
+    local messages = {
+        {
             role = "system",
-            content = "You are an auxiliary model for an RPG system. Follow instructions precisely.",
-            messages = {{
-                role = "user",
-                content = prompt
-            }},
-            temperature = 0.3,  -- 일관성을 위해 낮은 temperature
-            maxTokens = 500
-        })
+            content = "You are an auxiliary model for an RPG system. Follow instructions precisely and output only the requested tags."
+        },
+        {
+            role = "user",
+            content = prompt
+        }
+    }
+
+    -- axLLM 호출 (triggerId 없이 테스트)
+    local success, response = pcall(function()
+        -- axLLM은 triggerId가 필요하므로 nil로 시도
+        -- 실제 환경에서는 triggerId를 전달받아야 함
+        return axLLM(nil, messages)
     end)
 
     if success and response then
-        print("✅ 보조모델 응답 받음 (" .. #response .. " chars)")
-        return response
+        -- response는 { success = true, response = "..." } 형태
+        if response.success and response.response then
+            local text = response.response
+            print("✅ 보조모델 응답 받음 (" .. #text .. " chars)")
+            return text
+        else
+            print("❌ 보조모델 응답 형식 오류")
+            return nil
+        end
     else
         print("❌ 보조모델 호출 실패 - 시뮬레이션 모드로 전환")
-        print("   사유: RisuAI 환경이 아니거나 API 미지원")
+        print("   사유: " .. tostring(response))
         return nil
     end
 end
