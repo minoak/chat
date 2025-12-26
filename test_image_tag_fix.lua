@@ -1,7 +1,16 @@
 -- 이미지 태그 복장 접미사 추가 테스트 코드
 -- 보조모델이 시간/장소 기반으로 "_일상복", "_교복" 등 접미사 추가
 
+-- ============================================
+-- 설정
+-- ============================================
+
+-- 실제 보조모델 호출 여부 (RisuAI 환경에서만 작동)
+local USE_REAL_MODEL = true  -- true: 실제 API 호출, false: 시뮬레이션만
+
+-- ============================================
 -- 테스트용 헬퍼 함수
+-- ============================================
 function escapePattern(str)
     return str:gsub("([%.%+%-%*%?%[%]%(%)%%])", "%%%1")
 end
@@ -126,12 +135,67 @@ Find all `<img="...">` tags in the main output below and add appropriate outfit 
 end
 
 -- ============================================
+-- 실제 보조모델 호출 (RisuAI API 사용)
+-- ============================================
+
+function callRealAuxiliaryModel(prompt)
+    -- 설정에서 비활성화되어 있으면 바로 반환
+    if not USE_REAL_MODEL then
+        print("\n⏭️  USE_REAL_MODEL=false - 시뮬레이션 모드")
+        return nil
+    end
+
+    -- RisuAI의 requestChatCompletion API 사용
+    -- 이 함수는 RisuAI 환경에서만 작동합니다
+
+    print("\n🔄 보조모델 API 호출 중...")
+
+    -- RisuAI API를 통해 보조모델 호출
+    local success, response = pcall(function()
+        return requestChatCompletion({
+            role = "system",
+            content = "You are an auxiliary model for an RPG system. Follow instructions precisely.",
+            messages = {{
+                role = "user",
+                content = prompt
+            }},
+            temperature = 0.3,  -- 일관성을 위해 낮은 temperature
+            maxTokens = 500
+        })
+    end)
+
+    if success and response then
+        print("✅ 보조모델 응답 받음 (" .. #response .. " chars)")
+        return response
+    else
+        print("❌ 보조모델 호출 실패 - 시뮬레이션 모드로 전환")
+        print("   사유: RisuAI 환경이 아니거나 API 미지원")
+        return nil
+    end
+end
+
+-- ============================================
 -- 테스트 케이스
 -- ============================================
 
 print("=== 이미지 태그 복장 접미사 추가 테스트 시작 ===\n")
 print("=" .. string.rep("=", 70))
-print("보조모델 테스트용 프롬프트 생성")
+print("보조모델 실시간 호출 테스트")
+print("=" .. string.rep("=", 70))
+print()
+print("설정:")
+print("  USE_REAL_MODEL = " .. tostring(USE_REAL_MODEL))
+print()
+if USE_REAL_MODEL then
+    print("🔥 실제 보조모델 API 호출 모드")
+    print("   - RisuAI 환경에서 실제 AI를 호출합니다")
+    print("   - 보조모델이 IMG_FIX 태그를 생성하는지 확인합니다")
+    print("   - API 미지원 시 자동으로 시뮬레이션으로 전환됩니다")
+else
+    print("🔧 시뮬레이션 전용 모드")
+    print("   - 실제 API를 호출하지 않고 예상 결과만 표시합니다")
+    print("   - USE_REAL_MODEL을 true로 변경하면 실제 테스트가 가능합니다")
+end
 print("=" .. string.rep("=", 70) .. "\n")
 
 -- 컨텍스트 설정
@@ -152,14 +216,36 @@ print(string.rep("=", 70))
 print(test1_prompt)
 print(string.rep("=", 70))
 
--- 보조모델 시뮬레이션 (실제로는 AI가 이 부분을 수행)
-local test1_aux = simulateAuxiliaryOutfit(test1_tag, context) .. '\n[Affinity:Margaret:like]\n<Panel>■★'
-print("\n✅ 보조모델 예상 출력:", test1_aux)
+-- ⚡ 실제 보조모델 호출
+local test1_aux_real = callRealAuxiliaryModel(test1_prompt)
+
+-- 보조모델 응답 (실제 또는 시뮬레이션)
+local test1_aux
+if test1_aux_real then
+    print("\n🤖 실제 보조모델 출력:")
+    print(test1_aux_real)
+    test1_aux = test1_aux_real
+else
+    -- 실패 시 시뮬레이션으로 폴백
+    test1_aux = simulateAuxiliaryOutfit(test1_tag, context)
+    print("\n🔧 시뮬레이션 출력:", test1_aux)
+end
+
+-- 예상 출력 표시
+local test1_expected = simulateAuxiliaryOutfit(test1_tag, context)
+print("\n✅ 예상 출력:", test1_expected)
 
 -- Lua가 수정 적용
 local result1 = applyImageTagFixes(test1_main, test1_aux)
 print("\n원본:", test1_main)
 print("결과:", result1)
+
+-- 검증
+if test1_aux_real and test1_aux_real:find("%[IMG_FIX:") then
+    print("✅ 테스트 성공: 보조모델이 IMG_FIX 태그를 생성했습니다!")
+else
+    print("⚠️  시뮬레이션 모드 또는 API 미지원")
+end
 print()
 
 -- 테스트 2: 아침 시간대 (Morning → _교복)
@@ -191,14 +277,39 @@ print(string.rep("=", 70))
 print(test3_prompt)
 print(string.rep("=", 70))
 
--- 보조모델 시뮬레이션
-local test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
-print("\n✅ 보조모델 예상 출력:", test3_aux)
+-- ⚡ 실제 보조모델 호출
+local test3_aux_real = callRealAuxiliaryModel(test3_prompt)
+
+-- 보조모델 응답 (실제 또는 시뮬레이션)
+local test3_aux
+if test3_aux_real then
+    print("\n🤖 실제 보조모델 출력:")
+    print(test3_aux_real)
+    test3_aux = test3_aux_real
+else
+    -- 실패 시 시뮬레이션으로 폴백
+    test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
+    print("\n🔧 시뮬레이션 출력:", test3_aux)
+end
+
+-- 예상 출력 표시
+local test3_expected = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
+print("\n✅ 예상 출력:", test3_expected)
 
 -- Lua가 수정 적용
 local result3 = applyImageTagFixes(test3_main, test3_aux)
 print("\n원본:", test3_main)
 print("결과:", result3)
+
+-- 검증
+if test3_aux_real and test3_aux_real:find("%[IMG_FIX:") then
+    print("✅ 테스트 성공: 보조모델이 IMG_FIX 태그를 생성했습니다!")
+    if test3_aux_real:find("_이브닝드레스") then
+        print("✅ 장소 우선순위 적용 확인: Ballroom → _이브닝드레스")
+    end
+else
+    print("⚠️  시뮬레이션 모드 또는 API 미지원")
+end
 print()
 
 -- 테스트 4: 여러 캐릭터 동시 처리
