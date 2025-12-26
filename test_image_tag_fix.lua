@@ -200,15 +200,18 @@ end
 function processTestOutput(triggerId)
     addDebug("🔄 processTestOutput 시작")
 
-    -- 마지막 메시지 가져오기
-    local messages = getContext(triggerId)
-    if not messages or #messages == 0 then
+    -- 마지막 메시지 가져오기 (메인 스크립트와 동일한 방법)
+    local mainOutput = getCharacterLastMessage(triggerId)
+    if not mainOutput then
         addDebug("❌ 메시지 없음")
         return
     end
 
-    local lastMsg = messages[#messages]
-    local mainOutput = lastMsg.data
+    -- 이미 처리된 메시지 스킵
+    if mainOutput:find("<Panel>■★", 1, true) then
+        addDebug("⏭️ 이미 처리된 메시지 - 스킵")
+        return
+    end
 
     addDebug("📨 메시지 받음: " .. #mainOutput .. " chars")
 
