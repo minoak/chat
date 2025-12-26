@@ -135,20 +135,45 @@ Find all `<img="...">` tags in the main output below and add appropriate outfit 
 end
 
 -- ============================================
+-- 디버그 로그 수집 (최종 출력용)
+-- ============================================
+
+local debugLog = {}
+
+function addDebug(msg)
+    table.insert(debugLog, msg)
+    print(msg)  -- 콘솔에도 출력
+end
+
+function getDebugOutput()
+    if #debugLog == 0 then
+        return ""
+    end
+    return "\n" .. string.rep("=", 70) .. "\n📋 디버그 로그:\n" ..
+           string.rep("=", 70) .. "\n" ..
+           table.concat(debugLog, "\n") ..
+           "\n" .. string.rep("=", 70)
+end
+
+-- ============================================
 -- 실제 보조모델 호출 (RisuAI API 사용)
 -- ============================================
 
 function callRealAuxiliaryModel(prompt)
     -- 설정에서 비활성화되어 있으면 바로 반환
     if not USE_REAL_MODEL then
-        print("\n⏭️  USE_REAL_MODEL=false - 시뮬레이션 모드")
-        return nil
+        addDebug("⏭️  USE_REAL_MODEL=false - 시뮬레이션 모드")
+        return nil, "USE_REAL_MODEL=false"
     end
 
-    -- RisuAI의 axLLM API 사용
-    -- 이 함수는 RisuAI 환경에서만 작동합니다
+    -- axLLM 함수 존재 여부 확인
+    if type(axLLM) ~= "function" then
+        addDebug("❌ axLLM 함수가 존재하지 않음 (type: " .. type(axLLM) .. ")")
+        addDebug("   RisuAI 환경이 아니거나 스크립트가 제대로 로드되지 않았습니다")
+        return nil, "axLLM function not found"
+    end
 
-    print("\n🔄 보조모델 API 호출 중...")
+    addDebug("✅ axLLM 함수 발견 - 호출 준비")
 
     -- RisuAI 메시지 형식으로 변환
     local messages = {
@@ -162,31 +187,49 @@ function callRealAuxiliaryModel(prompt)
         }
     }
 
-    -- axLLM 호출 (triggerId 없이 테스트)
+    addDebug("🔄 보조모델 API 호출 시작...")
+    addDebug("   메시지 개수: " .. #messages)
+
+    -- axLLM 호출
     local success, response = pcall(function()
-        -- axLLM은 triggerId가 필요하므로 nil로 시도
-        -- 실제 환경에서는 triggerId를 전달받아야 함
         return axLLM(nil, messages)
     end)
 
+    addDebug("📥 pcall 결과: success=" .. tostring(success))
+
     if success and response then
-        -- response는 { success = true, result = "..." } 형태 (line 3516 참고)
-        if response.success and response.result then
-            local text = response.result
-            print("✅ 보조모델 응답 받음 (" .. #text .. " chars)")
-            return text
-        elseif response.success == false then
-            print("❌ 보조모델 응답 실패: " .. tostring(response.result))
-            return nil
+        addDebug("✅ 응답 객체 수신")
+        addDebug("   response type: " .. type(response))
+
+        if type(response) == "table" then
+            addDebug("   response.success: " .. tostring(response.success))
+            addDebug("   response.result type: " .. type(response.result))
+
+            if response.success and response.result then
+                local text = response.result
+                addDebug("✅ 보조모델 응답 받음 (" .. #text .. " chars)")
+                if #text > 100 then
+                    addDebug("   응답 미리보기: " .. text:sub(1, 100) .. "...")
+                else
+                    addDebug("   응답 전체: " .. text)
+                end
+                return text, nil
+            elseif response.success == false then
+                local errMsg = tostring(response.result)
+                addDebug("❌ 보조모델 응답 실패: " .. errMsg)
+                return nil, errMsg
+            else
+                addDebug("❌ 응답 형식 오류 - success 또는 result 필드 없음")
+                return nil, "Invalid response format"
+            end
         else
-            print("❌ 보조모델 응답 형식 오류")
-            print("   response 구조: " .. tostring(response))
-            return nil
+            addDebug("❌ 응답이 테이블이 아님: " .. tostring(response))
+            return nil, "Response is not a table"
         end
     else
-        print("❌ 보조모델 호출 실패 - 시뮬레이션 모드로 전환")
-        print("   사유: " .. tostring(response))
-        return nil
+        local errMsg = tostring(response)
+        addDebug("❌ pcall 실패: " .. errMsg)
+        return nil, errMsg
     end
 end
 
@@ -233,7 +276,7 @@ print(test1_prompt)
 print(string.rep("=", 70))
 
 -- ⚡ 실제 보조모델 호출
-local test1_aux_real = callRealAuxiliaryModel(test1_prompt)
+local test1_aux_real, test1_error = callRealAuxiliaryModel(test1_prompt)
 
 -- 보조모델 응답 (실제 또는 시뮬레이션)
 local test1_aux
@@ -243,8 +286,9 @@ if test1_aux_real then
     test1_aux = test1_aux_real
 else
     -- 실패 시 시뮬레이션으로 폴백
+    print("\n⚠️  보조모델 호출 실패: " .. tostring(test1_error))
     test1_aux = simulateAuxiliaryOutfit(test1_tag, context)
-    print("\n🔧 시뮬레이션 출력:", test1_aux)
+    print("🔧 시뮬레이션 출력:", test1_aux)
 end
 
 -- 예상 출력 표시
@@ -294,7 +338,7 @@ print(test3_prompt)
 print(string.rep("=", 70))
 
 -- ⚡ 실제 보조모델 호출
-local test3_aux_real = callRealAuxiliaryModel(test3_prompt)
+local test3_aux_real, test3_error = callRealAuxiliaryModel(test3_prompt)
 
 -- 보조모델 응답 (실제 또는 시뮬레이션)
 local test3_aux
@@ -304,8 +348,9 @@ if test3_aux_real then
     test3_aux = test3_aux_real
 else
     -- 실패 시 시뮬레이션으로 폴백
+    print("\n⚠️  보조모델 호출 실패: " .. tostring(test3_error))
     test3_aux = simulateAuxiliaryOutfit(test3_tag, ballroom_context)
-    print("\n🔧 시뮬레이션 출력:", test3_aux)
+    print("🔧 시뮬레이션 출력:", test3_aux)
 end
 
 -- 예상 출력 표시
@@ -401,3 +446,6 @@ print([[
 
 ]])
 print(string.rep("=", 70))
+
+-- 디버그 로그 출력
+print(getDebugOutput())
