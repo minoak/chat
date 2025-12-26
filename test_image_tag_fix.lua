@@ -236,42 +236,59 @@ function processTestOutput(triggerId)
     -- 보조모델 호출
     local auxResponse, err = callRealAuxiliaryModel(triggerId, prompt)
 
-    -- 출력 생성
-    local output = "\n\n" .. string.rep("=", 60) .. "\n"
-    output = output .. "🧪 **이미지 태그 복장 테스트 결과**\n"
-    output = output .. string.rep("=", 60) .. "\n\n"
+    local modifiedOutput = mainOutput  -- 원본 복사
+    local debugInfo = "\n\n" .. string.rep("=", 60) .. "\n"
+    debugInfo = debugInfo .. "🧪 **이미지 태그 복장 테스트 결과**\n"
+    debugInfo = debugInfo .. string.rep("=", 60) .. "\n\n"
 
     if auxResponse then
-        output = output .. "✅ **보조모델 응답**:\n```\n" .. auxResponse .. "\n```\n\n"
+        debugInfo = debugInfo .. "✅ **보조모델 응답**:\n```\n" .. auxResponse .. "\n```\n\n"
 
         local fixFound = auxResponse:find("%[IMG_FIX:") ~= nil
 
         if fixFound then
-            output = output .. "🎉 **성공!** IMG_FIX 태그 생성됨!\n\n"
-            output = output .. "📤 **수정 내용**:\n"
+            debugInfo = debugInfo .. "🎉 **성공!** IMG_FIX 태그 생성됨!\n\n"
+            debugInfo = debugInfo .. "📤 **수정 내용**:\n"
 
+            -- 실제 이미지 태그 수정 적용
             for wrongTag, correctTag in auxResponse:gmatch("%[IMG_FIX:(.-)→(.-)%]") do
-                output = output .. "  • " .. wrongTag .. " → " .. correctTag .. "\n"
+                local escaped = wrongTag:gsub("([%.%+%-%*%?%[%]%(%)%%])", "%%%1")
+                local before = modifiedOutput
+                modifiedOutput = modifiedOutput:gsub(escaped, correctTag, 1)
+
+                if modifiedOutput ~= before then
+                    debugInfo = debugInfo .. "  ✓ " .. wrongTag .. " → " .. correctTag .. "\n"
+                    addDebug("✓ 태그 수정: " .. wrongTag .. " → " .. correctTag)
+                else
+                    debugInfo = debugInfo .. "  ✗ 실패: " .. wrongTag .. "\n"
+                    addDebug("✗ 수정 실패: " .. wrongTag)
+                end
             end
         else
-            output = output .. "⚠️  IMG_FIX 태그 없음\n"
+            debugInfo = debugInfo .. "⚠️  IMG_FIX 태그 없음\n"
         end
     else
-        output = output .. "❌ **보조모델 호출 실패**: " .. tostring(err) .. "\n\n"
-        output = output .. "🔧 **시뮬레이션 결과**:\n"
+        debugInfo = debugInfo .. "❌ **보조모델 호출 실패**: " .. tostring(err) .. "\n\n"
+        debugInfo = debugInfo .. "🔧 **시뮬레이션 결과**:\n"
 
         for imageTag in mainOutput:gmatch('<img="[^"]+">') do
             local simResult = simulateAuxiliaryOutfit(imageTag, context)
-            output = output .. "  " .. simResult .. "\n"
+            debugInfo = debugInfo .. "  " .. simResult .. "\n"
         end
     end
 
-    -- 디버그 로그
-    output = output .. getDebugOutput()
+    -- 디버그 로그 추가
+    debugInfo = debugInfo .. getDebugOutput()
 
-    -- 메시지 추가
-    addToContext(triggerId, output, "assistant")
-    addDebug("✅ 출력 완료")
+    -- 최종 메시지 = 수정된 원본 + 디버그 정보
+    local finalMessage = modifiedOutput .. debugInfo
+
+    -- 메시지 교체 (메인 스크립트 방식)
+    local chatLength = getChatLength(triggerId)
+    local lastIndex = chatLength - 1
+    setChat(triggerId, lastIndex, finalMessage)
+
+    addDebug("✅ 메시지 업데이트 완료 (index: " .. lastIndex .. ")")
 end
 
 -- ============================================
