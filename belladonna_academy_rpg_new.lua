@@ -91,7 +91,13 @@ local characters = {
      stats = {str = 55, dex = 60, int = 75, luk = 70}},  -- 일러스트레이터 (전투력: 305)
 
     {display = "Clover", storage = "clover", icon = "🍀", is_main = false,
-     stats = {str = 52, dex = 58, int = 78, luk = 72}}  -- 연금술사, 운빨 (전투력: 298)
+     stats = {str = 52, dex = 58, int = 78, luk = 72}},  -- 연금술사, 운빨 (전투력: 298)
+
+    {display = "Noctis", storage = "noctis", icon = "👹", is_main = false,
+     stats = {str = 45, dex = 55, int = 95, luk = 65}},  -- 봉인된 마왕, 메타인식 (전투력: 600)
+
+    {display = "Pennywise", storage = "pennywise", icon = "📈", is_main = false,
+     stats = {str = 65, dex = 70, int = 80, luk = 30}}  -- 주식중독자, LUK 저주 (전투력: 620)
 }
 
 local affinityChanges = {
@@ -122,7 +128,7 @@ local SIN_MAX = 30
 
 local STAT_MIN = 0
 local STAT_MAX = 100
-local STAT_DEFAULT = 0
+local STAT_DEFAULT = 40  -- Average person baseline (41-50 = Average)
 
 local playerStats = {"str", "int", "dex", "cha", "luk", "vit"}
 
@@ -175,7 +181,7 @@ You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative a
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
 [Combat:Name:Power][Combat:End]
 [Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
-<StockPanel /><Panel>■★
+<Panel>■★
 
 ## Relationship Tags (Only for Characters in Scene)
 [Affinity:Name:level] - THIS TURN feelings: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
@@ -192,52 +198,159 @@ Game State Panel shows current. Output ONLY when Main AI describes changes.
 [Season:계절] - New semester only
 
 ## RPG Tags
-[Stat:stat:±value] - str/int/dex/cha/luk/vit (±1~5 typical, ±10+ major). [StatsEvaluated]시 ± 없이
-[Gold:±value] - Money change
+[Stat:stat:±value] - str/int/dex/cha/luk/vit (±1~5 typical, ±10+ major)
+- Use ± for stat changes from training, items, events, etc.
+- If Main AI outputs stats with absolute values (no ±), preserve that format
+
+[Gold:±value] - ONLY when {{user}} ACTUALLY spends or receives money
+- ✓ Bought item: [Gold:-50]
+- ✓ Received reward: [Gold:+100]
+- ✗ NPC mentions price: NO TAG
+- ✗ {{user}} asks "How much?": NO TAG
+- CRITICAL: Mentioned prices ≠ actual transactions
+
+**IMPORTANT - Check Current Gold in Game State:**
+Before outputting [Gold:-X], CHECK "Player Status" section in Current Game State.
+- If Current Gold < X, DO NOT output the tag (insufficient funds)
+- Only output if transaction is affordable
+- Example: Current Gold: 50 → [Gold:-100] is INVALID, skip the tag
+
+[Damage:amount] - Combat power loss from damage/injury
+- Output when {{user}} takes damage in combat
+- Output when {{user}} gets injured from events/accidents
+- Amount: Estimated CP loss (20~100 typical, 150~300 severe, 400+ critical)
+- Works with existing [Heal:amount] for recovery
+
 [Item:Add:Name:Qty:Effect] / [Item:Remove:Name:Qty] - Non-consumables(학생증,열쇠) return after use
 [EXP:±value] - +10~100
 [Heal:amount] - CP recovery 20~100
 
 ## Effect/Trait Tags - {{user}} ONLY
-[Effect:Add:Name:StatBonus] - Temporary boost ({{user}} only, NOT NPCs)
-[Effect:Remove:Name] - Remove effect
-[Effect:Merge:Old1+Old2→New:StatBonus] - Combine similar effects
-[Trait:Add:Name:Desc] - Permanent trait ({{user}} only, NOT NPCs)
-[Trait:Merge:Old1+Old2→New:Desc] - Combine similar traits
+
+**Effect Format** (temporary boosts with duration):
+```
+[Effect:Add:Name:StatType:Value:Duration:Desc]
+```
+- StatType: str_bonus, int_bonus, dex_bonus, cha_bonus, luk_bonus, vit_bonus, all_bonus
+- Value: numeric bonus (2-5 typical, 6-8 strong, 9-10 exceptional) **MAX 10**
+- Duration: Turn count (1-10 typical, 0 = permanent)
+- Desc: Short description
+
+**Value Guidelines (CRITICAL - MAX 10):**
+With new stat system (41-50 = Average), bonuses must be conservative:
+- **Weak effects**: +2~3 (minor potions, small buffs)
+- **Medium effects**: +4~5 (good potions, meal buffs)
+- **Strong effects**: +6~8 (powerful magic, major blessings)
+- **Exceptional effects**: +9~10 (rare artifacts, divine blessings) **MAXIMUM**
+- **NEVER exceed +10** - Even mythical permanent effects cap at +10
+
+**Duration Guidelines (CRITICAL):**
+- **Temporary effects (1-10 turns)**: Potions, buffs, meal bonuses, temporary blessings
+  - Potion: 3-5 turns
+  - Food buff: 2-3 turns
+  - Magic buff: 5-10 turns
+  - Quick boost: 1-2 turns
+- **Permanent effects (0 turns)**: Major achievements, permanent transformations, equipment bonuses
+  - Must be narratively justified as permanent
+  - Examples: Divine blessing, body transformation, soul contract
+- **Default to temporary**: When unsure, use 3-5 turns
+
+**Examples**:
+✓ [Effect:Add:힘의 물약:str_bonus:4:3:근육이 불끈] - Potion lasts 3 turns
+✓ [Effect:Add:식사 효과:all_bonus:2:2:배불러서 기분 좋음] - Meal buff 2 turns
+✓ [Effect:Add:성녀의 축복:str_bonus:10:0:영구적 신성한 힘] - Permanent max blessing
+✗ [Effect:Add:물약:str+15] - EXCEEDS MAX! Use 10 or less
+
+**Trait Format** (always permanent):
+```
+[Trait:Add:Name:Desc]
+```
+Traits are inherently permanent character changes.
 
 **CRITICAL: Effect/Trait tags are for {{user}} only.**
-**NPC changes (Mirabel gets stronger, Celestia learns magic) → Narrative description ONLY. NO tags.**
+**NPC changes → Narrative description ONLY. NO tags.**
 
-**CRITICAL StatBonus Format (MUST follow):**
-✓ SINGLE stat only: str+15, int+10, dex+5, all_bonus+8
-✗ NEVER multiple: "str+10, int+5" or "ALLSTATS +20, CHA +10"
-
-**Multiple stats → Separate tags:**
-✓ [Effect:Add:축복_힘:str+10][Effect:Add:축복_지능:int+10]
-✗ [Effect:Add:축복:str+10, int+10]
+**Remove Tags**:
+```
+[Effect:Remove:Name]
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+[Trait:Remove:Name]
+[Trait:Merge:Old1+Old2→New:Desc]
+```
 
 ## Growth System - Effect/Trait Synthesis
-Effects/Traits show player's growth. Merge similar ones → stronger versions (reduces token usage, shows progression).
 
-**When to Merge (check current lists above):**
-- Similar theme/concept 2+ times: 작은축복+중간축복→성녀의축복
-- Same stat stacking: str+5, str+10 → str+15 with upgraded name
-- Related concepts: 빠른발+민첩함→신속함, 학습+집중→천재성
+**PURPOSE**: Merge similar Effects/Traits to prevent bloat and show progression.
 
-**Merge Examples:**
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복:str+20]
-✓ [Effect:Merge:빠른학습+높은집중력→천재적재능:int+15]
-✓ [Trait:Merge:검술입문+검술수련→검술숙련:검에 대한 깊은 이해]
+**DECISION PROCESS:**
+1. Check {{PLAYER_TRAITS_SECTION}} and {{PLAYER_EFFECTS_SECTION}} above
+2. 2+ similar exist (including new)? → MERGE | Only 1? → ADD
+3. Bonus calculation:
+   - 2 items: Sum values (str+3 + str+5 = str+8)
+   - 3+ items: Sum + small bonus (str+3 x3 = str+9 + str+2 bonus = str+11)
+4. ONE stat per tag (multi-stat = separate tags)
 
-**Multiple stat merge → Separate effects:**
-✓ [Effect:Merge:작은축복+중간축복→성녀의축복_힘:str+15]
-   [Effect:Add:성녀의축복_매력:cha+10]
-✗ [Effect:Merge:작은축복+중간축복→성녀의축복:str+15, cha+10]
+**MERGE TRIGGERS:**
+- Same name 2+: "작은 축복" x3 → "성녀의 축복"
+- Same stat stacking: "빠른 발걸음:dex+3" + "민첩한 몸:dex+5" → "신속함:dex+8"
+- Related concepts: "빠른 학습" + "높은 집중력" → "천재적 재능"
+- Narrative upgrade: "The blessing intensifies!" + "작은 축복:str+3" → "중간 축복:str+7"
 
+**DON'T MERGE:**
+✗ Different themes/stats: "축복:str+5" + "지능:int+5" → Keep separate
+✗ Only 1 instance → Just ADD
+✗ Traits vs Effects → Different types
+
+**PROGRESSION TIERS (MAX +10):**
+T1: 작은/약한 (Minor/Weak) +2~3 → T2: 중간 (Medium) +4~5 → T3: 강한 (Strong) +6~8 → T4: 성녀의/신성한 (Saint's/Divine) +9~10 **MAX**
+
+**FORMAT & BEHAVIOR (CRITICAL):**
+```
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+```
+- Use full format with duration
+- Duration: Highest of merged effects, or 0 if any is permanent
+- **CRITICAL: Result value MUST NOT exceed +10**
+- Examples:
+  ✓ [Effect:Merge:작은축복 x3→성녀의축복:str_bonus:8:0:영구적 힘] - 3 identical (+2 each = 6, +2 bonus = 8)
+  ✓ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:7:5:빠른 움직임] - Two effects (+3+4=7)
+  ✗ [Effect:Merge:A+B→C:str+15] - EXCEEDS MAX! Cap at +10
+  ✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats (use separate tags)
+
+**IMPORTANT - Merge AUTO-REMOVES old effects:**
+When you output [Effect:Merge:A+B→C:...], the system automatically:
+1. Removes "A" from the list
+2. Removes "B" from the list
+3. Adds "C" to the list
+
+You do NOT need to manually output [Effect:Remove:A] or [Effect:Remove:B].
+ONLY output the Merge tag - Lua handles the rest.
+
+**CURRENT PLAYER STATUS:**
 {{PLAYER_TRAITS_SECTION}}
 {{PLAYER_EFFECTS_SECTION}}
 
-**Decision logic:** Check above lists → similar 2+? Merge. Otherwise Add new.
+**EXAMPLES:**
+
+Ex1: Temporary effects merge (3 potions → stronger temporary effect)
+Current: "힘의물약:str+5 (3턴)", "힘의물약:str+5 (2턴)" | New: "힘의물약:str+5 (4턴)"
+→ [Effect:Merge:힘의물약 x3→상급힘의물약:str_bonus:20:4:강력한 근육 증강]
+Result: All 3 potions removed, 1 stronger 4-turn effect added
+
+Ex2: Permanent blessing merge (Merge auto-removes both old effects)
+Current: "작은 축복:str+5 (영구)" | New: "중간 축복:str+8 (영구)"
+→ [Effect:Merge:작은축복+중간축복→성녀의축복:str_bonus:20:0:영원한 신성한 힘]
+Result: Both removed, one permanent powerful effect remains
+
+Ex3: Different themes - NO merge (Just add with proper duration)
+Current: "축복:str+10 (영구)" | New from narrative: "Food buff"
+→ [Effect:Add:든든한식사:all_bonus:5:2:배불러서 힘이 난다]
+Result: Both remain, blessing permanent, food buff expires in 2 turns
+
+Ex4: Mixed duration (temporary + permanent → keep longer duration)
+Current: "빠른발걸음:dex+5 (3턴)", "민첩한몸:dex+8 (영구)"
+→ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:13:0:영구적 민첩성]
+Result: Merged into permanent (one was permanent, so result is permanent)
 
 ## Combat Tags
 Check Game State for "⚔️ Combat Status: ACTIVE"
@@ -247,26 +360,144 @@ Check Game State for "⚔️ Combat Status: ACTIVE"
 - Works for ANY challenge: combat, exams, negotiations, skills
 - [Combat:End] when resolved. NEVER with <CombatChoice> same turn
 
+**Combat Damage Tracking**: During active combat, output [Damage:amount] when {{user}} takes hits/damage
+- Check combat choice results (failure, partial success with cost)
+- Estimate damage based on enemy power and outcome severity
+- Example: Failed STR check vs 500 power enemy → [Damage:80]
+- Example: Successful but risky action → [Damage:30]
+- CRITICAL: Combat damage must be tracked, combat power should NOT stay at max during fights
+
 ## Weekly System
 Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|INT:+N|STR:+N|...</WeeklyReport>[Day:금요일][Time:저녁]
 - Stats as individual fields: INT:+3|STR:+2|CHA:+1 (only stats that changed)
 Monday: [Week:X+1][Day:월요일][Time:오전]
 Exams (Week 6,12): [Exam:midterm:87:23]
 
-## Stock Panel (Stock Club Members Only)
-When Main AI outputs `<Stock>` tag or [Stock:...] tag, output:
-<StockPanel /> - Display stock trading panel
-
 ## Tags NOT to Output (Main AI handles these)
 Do NOT output these tags - Main AI already outputs them:
 - [Club:Join:...], [Club:Leave:...] - Club membership
-- [Stock:...] - Stock prices
-- [StockBuy:...], [StockSell:...] - Stock trades
+- [Stock:...] - Stock prices (only when stock_system_enabled = 1)
+- [StockBuy:...], [StockSell:...] - Stock trades (only when stock_system_enabled = 1)
+- Company management tags (revenue, profit, etc.) - Only when business_system_enabled = 1
+
+## System Activation
+
+**Stock System** - For stock trading:
+Activated by Main AI via lorebook (not by you)
+
+**Business System** - For company management:
+Activated when user accepts company partnership (set by lorebook, not by you)
+
+The two systems are independent:
+- Stock trading: Requires stock_system_enabled = 1
+- Company management: Requires business_system_enabled = 1
 
 ## Characters
 Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
 
 Always end with <Panel>■★
+]]
+
+-- Stock Management 프롬프트 (조건부 로딩)
+local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
+
+## Stock Trading System (Stock System Enabled)
+
+**CRITICAL - Your Role: System Message → System Tag Converter**
+
+You convert Main AI's story-focused system messages into precise system tags for Lua processing.
+
+### Stock Trade Conversion
+
+**When Main AI outputs trade system messages:**
+
+**Format to look for:**
+- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.
+- System Message: 플레이어가 GOLDMANE 10주를 280G에 매수했다. 총 비용 2,800G.
+- System Message: Player sold 5 shares of LUXORIA at 230G each.
+- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다.
+
+**Step 1: Identify trade messages**
+Look for keywords:
+- Buy: "bought", "purchased", "매수"
+- Sell: "sold", "매도"
+
+**Step 2: Extract information**
+- Ticker: GOLDMANE, LUXORIA, PFIZARA, TESLAM, etc.
+- Quantity: Number before "shares" or "주"
+- Price: Number before "G" or "골드"
+- Action: Buy or Sell
+
+**Step 3: Output system tags**
+Format:
+- Buy: `[StockBuy:TICKER:PRICE:QTY]`
+- Sell: `[StockSell:TICKER:PRICE:QTY]`
+
+**Examples:**
+
+Main AI:
+`- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.`
+
+You output:
+```
+[StockBuy:GOLDMANE:280:10]
+```
+
+Main AI:
+`- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다. 총 수익 1,150G.`
+
+You output:
+```
+[StockSell:LUXORIA:230:5]
+```
+
+### Market Information (No Action Required)
+
+**When Main AI outputs market information system messages:**
+
+**Format:**
+- System Message: GOLDMANE 주가가 280G로 상승했다. 분기 실적 호조.
+- System Message: 릴리벨리 지수가 1,050으로 상승.
+
+**Your action:**
+- DO NOT output any system tags
+- This is informational only, no player action involved
+
+**CRITICAL - Stock vs Item Distinction:**
+- Stock transactions are NOT items - DO NOT output [Item:...] tags
+- Stock transactions are NOT gold changes - DO NOT output [Gold:...] tags
+- The Lua system handles gold/inventory automatically via [StockBuy/Sell:...] tags
+
+---
+
+## Business Management System (Business System Enabled)
+
+**Your Role: Convert Main AI's narrative to system tags**
+
+### Business System Note
+
+**Business management is now handled directly by Main AI:**
+- Main AI outputs `<Business:TICKER:var:value|...>` tags in the story
+- You do NOT need to convert business events to tags
+- Focus only on character relationship tags ([Affinity:], [Sin:])
+
+**CRITICAL - Output Format:**
+
+Output all relevant system tags and end with `<Panel>■★`
+
+**Example output:**
+```
+[Affinity:Mirabel:+15][Sin:Mirabel:-5]
+[Stock:GOLDMANE:revenue:+200|profit:+50]
+<Panel>■★
+```
+
+**Note:** Stock panel will be automatically displayed by the system.
+
+---
+
+Always end with <Panel>■★
+
 ]]
 
 -- ============================================
@@ -290,6 +521,75 @@ function getRouteText(ending)
     if ending == "pure_love" then return "순애"
     elseif ending == "redemption" then return "구원"
     else return "진행중" end
+end
+
+-- 메인 응답에 이미 있는 태그를 보조 응답에서 제거 (중복 방지)
+function removeDuplicateTags(mainResponse, auxiliaryResponse)
+    local filtered = auxiliaryResponse
+    local removedCount = 0
+
+    log("🔍 [중복제거] 시작")
+    log("📝 메인 응답 길이: " .. #mainResponse)
+    log("📝 보조 응답 길이: " .. #auxiliaryResponse)
+
+    -- 메인 응답에 있는 모든 태그를 찾아서 보조 응답에서 제거
+    for tag in mainResponse:gmatch("%[%w+:[^%]]+%]") do
+        log("🔍 메인 태그 발견: " .. tag)
+
+        -- 보조 응답에 이 태그가 있는지 확인 (plain text search)
+        if filtered:find(tag, 1, true) then
+            log("⚠️ 보조에서 중복 발견! 제거: " .. tag)
+
+            -- plain text 치환으로 정확히 일치하는 문자열만 제거
+            local startPos = 1
+            while true do
+                local foundStart, foundEnd = filtered:find(tag, startPos, true)
+                if not foundStart then break end
+                filtered = filtered:sub(1, foundStart - 1) .. filtered:sub(foundEnd + 1)
+                removedCount = removedCount + 1
+                startPos = foundStart
+            end
+        end
+    end
+
+    log("✅ [중복제거] 완료: " .. removedCount .. "개 제거됨")
+
+    -- 2단계: 보조 응답 내에서 자체 중복 제거 (리롤 시 같은 태그 반복 방지)
+    local seenTags = {}
+    local selfDedupedCount = 0
+
+    -- [태그] 형식 중복 제거
+    filtered = filtered:gsub("(%[%w+:[^%]]+%])", function(tag)
+        if seenTags[tag] then
+            -- 이미 본 태그면 제거
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
+            -- 처음 보는 태그면 유지하고 기록
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    -- <태그> 형식 중복 제거 (StockPanel, StockChart 등)
+    filtered = filtered:gsub("(<[^>]+>)", function(tag)
+        if seenTags[tag] then
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    if selfDedupedCount > 0 then
+        log("✅ [자체중복제거] 완료: " .. selfDedupedCount .. "개 제거됨")
+    end
+    log("📝 최종 보조 응답 길이: " .. #filtered)
+
+    return filtered
 end
 
 -- ============================================
@@ -669,6 +969,7 @@ function parseGoldChanges(triggerId, message)
         local new = math.max(0, current + change)
 
         setChatVar(triggerId, "player_gold", tostring(new))
+        setState(triggerId, "player_gold", new)  -- state에도 동기화
 
         -- 변경량 추적
         local prevChange = tonumber(getChatVar(triggerId, "player_gold_change")) or 0
@@ -735,6 +1036,29 @@ function parseHeal(triggerId, message)
         log(string.format("💚 전투력 회복 +%d | 현재: %d/%d", actualHeal, newPower, maxPower))
 
         -- 회복 후 부상 상태 업데이트
+        updateInjuryEffect(triggerId)
+    end
+end
+
+-- 전투력 피해 파싱
+function parseDamage(triggerId, message)
+    for amountStr in message:gmatch("%[Damage:(%d+)%]") do
+        local damageAmount = tonumber(amountStr) or 0
+
+        -- 현재 전투력과 최대 전투력
+        local maxPower = calculateCombatPower(triggerId)
+        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+
+        -- 피해 적용 (0 미만 불가)
+        local newPower = math.max(0, currentPower - damageAmount)
+        local actualDamage = currentPower - newPower
+
+        setChatVar(triggerId, "player_combat_power", tostring(newPower))
+        setState(triggerId, "player_combat_power", newPower)
+
+        log(string.format("💔 전투력 손실 -%d | 현재: %d/%d", actualDamage, newPower, maxPower))
+
+        -- 피해 후 부상 상태 업데이트
         updateInjuryEffect(triggerId)
     end
 end
@@ -1055,7 +1379,8 @@ end
 -- 시장 지수 태그 파싱: [Market:1050:+2.5:뉴스 내용]
 function parseMarketIndex(triggerId, message)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then return end
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
 
     for indexStr, changeStr, news in message:gmatch("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]") do
         local index = tonumber(indexStr)
@@ -1063,55 +1388,15 @@ function parseMarketIndex(triggerId, message)
 
         if index and change then
             setState(triggerId, "market_index", index)
-            setState(triggerId, "market_change", change)
+            setState(triggerId, "market_index_change", change)  -- 변수명 수정: market_change → market_index_change
             setState(triggerId, "market_news", news)
             setState(triggerId, "market_update_time", os.time())
 
             local level = getMarketLevel(index)
+            addDebugLog("Variable", string.format("시장 지수: %d (%+.1f%%) - %s", index, change, level.label))
             log(string.format("📊 시장 지수: %d (%+.1f%%) - %s [%s]", index, change, level.label, news))
         end
     end
-end
-
--- 시장 패널 UI 생성
-function generateMarketPanel(triggerId)
-    local index = getState(triggerId, "market_index") or MARKET_BASE_INDEX
-    local change = getState(triggerId, "market_change") or 0
-    local news = getState(triggerId, "market_news") or "시장 뉴스 없음"
-    local season = getChatVar(triggerId, "current_season") or "봄"
-    local week = getChatVar(triggerId, "week_of_season") or "1"
-
-    local level = getMarketLevel(index)
-    local changeColor = change >= 0 and "#ef5350" or "#26a69a"
-    local changeSign = change >= 0 and "+" or ""
-    local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
-
-    local html = string.format([[
-<div style="background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border-radius:12px;padding:16px;margin:12px 0;border:1px solid #30363d;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:20px">📊</span>
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#fff">릴리벨리 지수</div>
-        <div style="font-size:11px;color:#8b949e">%s학기 %s주차</div>
-      </div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:24px;font-weight:700;color:#fff">%s</div>
-      <div style="font-size:14px;font-weight:600;color:%s">%s%s%.1f%% %s</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-    <span style="padding:4px 10px;background:%s;border-radius:6px;font-size:12px;font-weight:600;color:#fff">%s</span>
-    <span style="font-size:12px;color:#8b949e">%s</span>
-  </div>
-  <div style="background:#21262d;border-radius:8px;padding:10px 12px">
-    <div style="font-size:11px;color:#58a6ff;margin-bottom:4px">📰 최신 뉴스</div>
-    <div style="font-size:13px;color:#c9d1d9;line-height:1.4">%s</div>
-  </div>
-</div>]], season, week, formatNumber(index), changeColor, changeSign, arrow, change, level.color, level.label, level.name, news)
-
-    return html
 end
 
 -- ============================================
@@ -1127,6 +1412,18 @@ function initStockSystem(triggerId)
     if not getChatVar(triggerId, "economic_cycle") then
         setChatVar(triggerId, "economic_cycle", "stable")  -- stable, bull, bear, boom, crisis
         setState(triggerId, "economic_cycle", "stable")
+    end
+
+    -- 모든 주식 가격 초기화 (로어북 변수 접근용)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        if not getState(triggerId, "stock_" .. ticker .. "_price") then
+            local basePrice = STOCK_BASE_PRICES[ticker] or 100
+            setState(triggerId, "stock_" .. ticker .. "_price", basePrice)
+            setState(triggerId, "stock_" .. ticker .. "_change", 0)
+            -- 가격 히스토리 초기화
+            initStockHistory(triggerId, ticker)
+            log(string.format("📊 %s 주가 초기화: %dG", ticker, basePrice))
+        end
     end
 
     -- 핵심 3개 기업 경영 변수 초기화
@@ -1181,7 +1478,7 @@ function initStockSystem(triggerId)
         end
     end
 
-    log("📊 주식 시스템 초기화 완료 (경영 변수 12개 × 3개 기업)")
+    log("📊 주식 시스템 초기화 완료 (20개 종목 가격 + 경영 변수 12개 × 3개 기업)")
 end
 
 -- ============================================
@@ -1197,7 +1494,7 @@ function generateStockTicker(stockData)
         if ticker and price and change then
             local changeNum = tonumber(change) or 0
             local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
-            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
+            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
             local sign = changeNum > 0 and "+" or ""
             local name = STOCK_NAMES[ticker] or ticker
 
@@ -1219,94 +1516,12 @@ function generateStockTicker(stockData)
     return html
 end
 
--- 주간 보고서 패널 생성: <StockPanel:TICKER />
-function generateStockPanel(triggerId, ticker)
-    -- 종목명 가져오기
-    local name = STOCK_NAMES[ticker] or ticker
-
-    -- 경영 변수 가져오기
-    local revenue = tonumber(getChatVar(triggerId, ticker .. "_revenue")) or 0
-    local profit = tonumber(getChatVar(triggerId, ticker .. "_profit")) or 0
-    local cash = tonumber(getChatVar(triggerId, ticker .. "_cash")) or 0
-    local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
-    local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
-    local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
-    local employees = tonumber(getChatVar(triggerId, ticker .. "_employees")) or 0
-    local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
-    local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
-    local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
-
-    -- 주가 정보
-    local price = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price")) or 0
-    local change = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_change")) or 0
-
-    -- 이익률 계산
-    local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
-
-    -- 등락 색상
-    local changeColor = change >= 0 and "#ef5350" or "#26a69a"
-    local changeIcon = change >= 0 and "▲" or "▼"
-    local changeSign = change >= 0 and "+" or ""
-
-    -- 부채 경고 색상
-    local debtColor = debt > 500 and "#f85149" or "#8b949e"
-
-    local html = string.format([[
-<div style="background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
-  <div style="text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d">
-    <div style="color:#8b949e;font-size:12px;margin-bottom:4px">%s</div>
-    <div style="color:#f5f5f7;font-size:20px;font-weight:700;margin-bottom:8px">%s 주간 보고서</div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-      <span style="color:#f5f5f7;font-size:24px;font-weight:700">%sG</span>
-      <span style="color:%s;font-size:16px;font-weight:600">%s%d %s</span>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">📈 매출</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">💰 이익 (이익률)</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG <span style="color:#8b949e;font-size:12px">(%d%%)</span></div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">💵 현금</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">📊 점유율</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%d%%</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">⚠️ 부채</div>
-      <div style="color:%s;font-size:16px;font-weight:600">%sG</div>
-    </div>
-    <div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px">
-      <div style="color:#8b949e;font-size:11px;margin-bottom:4px">⭐ 브랜드</div>
-      <div style="color:#f5f5f7;font-size:16px;font-weight:600">%d</div>
-    </div>
-  </div>
-</div>]],
-    ticker,
-    name,
-    formatNumber(price), changeColor, changeSign, change, changeIcon,
-    formatNumber(revenue),
-    formatNumber(profit), profitMargin,
-    formatNumber(cash),
-    market_share,
-    debtColor, formatNumber(debt),
-    brand_value)
-
-    return html
-end
-
 -- 주식 태그 파싱: [Stock:GOLDMANE:280:+5] 또는 [Stock:GOLDMANE:price:+10|market_share:+5]
 function parseStockChanges(triggerId, message)
-    -- 주식 시스템 활성화 여부 확인
+    -- 주식 또는 경영 시스템 활성화 여부 확인
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then return end
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
 
     for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
         -- 티커 추출 (첫 번째 항목)
@@ -1336,10 +1551,36 @@ function parseStockChanges(triggerId, message)
 
                 -- 현재 값 가져오기
                 local current = tonumber(getChatVar(triggerId, varName)) or 0
-                local newValue = current + valueNum
 
-                -- 음수 방지 (부채는 제외)
-                if key ~= "debt" and newValue < 0 then
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")  -- +나 -로 시작하면 변화값
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                    addDebugLog("Parsing", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                    addDebugLog("Parsing", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
+                end
+
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    -- 점유율: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "brand_value" then
+                    -- 브랜드 가치: 0-100 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "rd_progress" then
+                    -- 연구개발: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    -- 음수 방지 (부채와 순이익은 제외 - 적자 가능)
                     newValue = 0
                 end
 
@@ -1347,16 +1588,185 @@ function parseStockChanges(triggerId, message)
                 setChatVar(triggerId, varName, tostring(newValue))
                 setState(triggerId, varName, tostring(newValue))
 
+                -- 변화량 저장 (경영 패널 표시용)
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
+
                 -- 주가는 히스토리에도 추가
                 if key == "price" then
                     addPriceToHistory(triggerId, ticker, newValue)
                 end
 
-                log(string.format("📊 %s %s: %d → %d (%+d)", ticker, key, current, newValue, valueNum))
+                log(string.format("📊 %s %s: %d → %d (%+d) [%s]", ticker, key, current, newValue, changeAmount, isDelta and "delta" or "absolute"))
             end
         end
 
         ::continue::
+    end
+end
+
+-- 경영 태그 파싱: <Business:GOLDMANE:revenue:+200|profit:+50>
+function parseBusinessTags(triggerId, message)
+    -- 경영 시스템 활성화 여부 확인
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if businessEnabled ~= "1" then return message end
+
+    -- <Business:TICKER:var:value|var2:value2> 형식 파싱
+    local resultMessage = message:gsub("<Business:([A-Z%-]+):([^>]+)>", function(ticker, varsData)
+        addDebugLog("Business", string.format("태그 발견: %s", ticker))
+
+        -- 변수 파싱
+        for entry in varsData:gmatch("([^|]+)") do
+            local key, value = entry:match("([a-z_]+):([%+%-]?%d+)")
+            if key and value then
+                local valueNum = tonumber(value)
+                local varName = ticker .. "_" .. key
+
+                -- 현재 값 가져오기
+                local current = tonumber(getChatVar(triggerId, varName)) or 0
+
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                    addDebugLog("Business", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                    addDebugLog("Business", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
+                end
+
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    newValue = 0
+                end
+
+                -- 값 저장
+                setChatVar(triggerId, varName, tostring(newValue))
+                setState(triggerId, varName, tostring(newValue))
+
+                -- 변화량 저장
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
+
+                log(string.format("💼 %s %s: %d → %d (%+d)", ticker, key, current, newValue, changeAmount))
+            end
+        end
+
+        -- 태그를 UI 카드로 변환
+        local companyName = STOCK_NAMES[ticker] or ticker
+        return string.format([[
+<div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:8px;padding:12px 16px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,0.3)'>
+  <div style='display:flex;align-items:center;gap:8px;margin-bottom:8px'>
+    <span style='font-size:16px'>💼</span>
+    <span style='font-size:14px;font-weight:600;color:#fff'>%s</span>
+    <span style='font-size:11px;color:#8b949e'>경영 현황 업데이트</span>
+  </div>
+  <div style='font-size:12px;color:#c9d1d9'>회사 지표가 변경되었습니다. 경영 패널에서 확인하세요.</div>
+</div>]], companyName)
+    end)
+
+    return resultMessage
+end
+
+-- 주식 시스템 활성화 태그 파싱: [StockSystem:Enable]
+function parseStockSystemEnable(triggerId, message)
+    if message:match("%[StockSystem:Enable%]") then
+        local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if currentEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (보조 모델 감지)")
+        end
+    end
+end
+
+-- 경영 시스템 활성화 태그 파싱: [Business:Enable:TICKER]
+function parseBusinessEnable(triggerId, message)
+    -- 디버깅: 태그 검색 시작
+    if message:match("%[Business:Enable:") then
+        log("🔍 [Business:Enable:...] 태그 발견! 파싱 시작")
+    end
+
+    for ticker in message:gmatch("%[Business:Enable:([A-Z%-]+)%]") do
+        log(string.format("🔍 파싱된 티커: %s", ticker))
+
+        -- 티커별 캐릭터 매핑
+        local characterMap = {
+            GOLDMANE = "mirabel",
+            LUXORIA = "cordelia",
+            PFIZARA = "nepenthes"
+        }
+
+        local character = characterMap[ticker]
+        if character then
+            log(string.format("✅ 캐릭터 매핑 성공: %s -> %s", ticker, character))
+
+            -- 경영 시스템 활성화
+            local currentEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "business_system_enabled", "1")
+                setState(triggerId, "business_system_enabled", "1")
+                log("💼 경영 시스템 활성화")
+            else
+                log("💼 경영 시스템 이미 활성화됨")
+            end
+
+            -- 캐릭터별 회사 가입
+            local joinedVar = character .. "_company_joined"
+            setChatVar(triggerId, joinedVar, "1")
+            setState(triggerId, joinedVar, "1")
+            log(string.format("💼 %s 회사 경영진 합류", ticker))
+
+            -- 회사 변수 초기화
+            local revenueVar = ticker .. "_revenue"
+            local existingRevenue = getChatVar(triggerId, revenueVar)
+
+            log(string.format("🔍 기존 revenue 값: %s (타입: %s)", tostring(existingRevenue), type(existingRevenue)))
+
+            -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"이거나, "null"인 경우
+            local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0" or existingRevenue == "null"
+
+            log(string.format("🔍 초기화 필요 여부: %s", tostring(shouldInitialize)))
+
+            if shouldInitialize then
+                -- 기본 회사 재무 상태 (티커별로 다름)
+                local defaults = {
+                    GOLDMANE = {revenue = 500, profit = 150, cash = 300, debt = 100, market_share = 22,
+                                brand_value = 85, employees = 450, rd_progress = 35, player_share = 15, influence = 20},
+                    LUXORIA = {revenue = 400, profit = 120, cash = 250, debt = 80, market_share = 18,
+                               brand_value = 90, employees = 380, rd_progress = 40, player_share = 15, influence = 20},
+                    PFIZARA = {revenue = 550, profit = 180, cash = 350, debt = 120, market_share = 25,
+                               brand_value = 80, employees = 520, rd_progress = 55, player_share = 15, influence = 20}
+                }
+
+                local vars = defaults[ticker]
+                if vars then
+                    log(string.format("🔍 기본값 로드 성공: revenue=%d", vars.revenue))
+                    for varName, value in pairs(vars) do
+                        local fullVar = ticker .. "_" .. varName
+                        setChatVar(triggerId, fullVar, tostring(value))
+                        setState(triggerId, fullVar, tostring(value))
+                        log(string.format("📝 변수 설정: %s = %s", fullVar, tostring(value)))
+                    end
+                    log(string.format("💼 %s 회사 변수 초기화 완료 (revenue=%d, profit=%d, cash=%d)", ticker, vars.revenue, vars.profit, vars.cash))
+                else
+                    log(string.format("❌ %s 기본값 로드 실패", ticker))
+                end
+            else
+                log(string.format("💼 %s 회사 변수 이미 존재 (revenue=%s), 초기화 생략", ticker, existingRevenue))
+            end
+        else
+            log(string.format("❌ 캐릭터 매핑 실패: %s", ticker))
+        end
     end
 end
 
@@ -1365,12 +1775,18 @@ function parseClubChanges(triggerId, message)
     -- 가입
     for clubType in message:gmatch("%[Club:Join:([^%]]+)%]") do
         if clubType == "stock" then
+            -- 동아리 가입 변수 설정
             setChatVar(triggerId, "club_stock_joined", "1")
             setState(triggerId, "club_stock_joined", "1")
-            -- 주식 시스템 활성화
-            setChatVar(triggerId, "stock_system_enabled", "1")
-            setState(triggerId, "stock_system_enabled", "1")
             log("📈 주식투자 동아리 가입 (태그)")
+
+            -- 주식 시스템도 자동 활성화
+            local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "stock_system_enabled", "1")
+                setState(triggerId, "stock_system_enabled", "1")
+                log("📈 주식 시스템 자동 활성화 (동아리 가입)")
+            end
         end
     end
 
@@ -1379,14 +1795,6 @@ function parseClubChanges(triggerId, message)
         if clubType == "stock" then
             setChatVar(triggerId, "club_stock_joined", "0")
             setState(triggerId, "club_stock_joined", "0")
-            -- 경영 참여 중이 아니면 주식 시스템도 비활성화
-            local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
-            local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
-            local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
-            if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
-                setChatVar(triggerId, "stock_system_enabled", "0")
-                setState(triggerId, "stock_system_enabled", "0")
-            end
             log("📉 주식투자 동아리 탈퇴 (태그)")
         end
     end
@@ -1394,19 +1802,35 @@ end
 
 -- 주식 매매 태그 파싱: [StockBuy:TICKER:PRICE:QTY] / [StockSell:TICKER:PRICE:QTY]
 function parseStockTrades(triggerId, message)
+    -- 거래 태그가 있으면 주식 시스템 자동 활성화
+    if message:match("%[Stock[BS][ue][yl]l?:") then
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if stockEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (거래 태그 감지)")
+        end
+    end
+
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
     if stockEnabled ~= "1" then return end
 
     -- 매수: [StockBuy:GOLDMANE:280:10]
-    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z]+):(%d+):(%d+)%]") do
+    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z%-]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
         local cost = priceNum * qtyNum
 
+        -- 거래 가격을 시장가로 업데이트 (매수/매도 가격 = 현재 시장가)
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
+
         if gold >= cost then
-            -- 골드 차감
-            setChatVar(triggerId, "player_gold", tostring(gold - cost))
+            -- 골드 차감 (state + chatVar 동기화)
+            local newGold = gold - cost
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
 
             -- 보유량 업데이트
             local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
@@ -1415,50 +1839,110 @@ function parseStockTrades(triggerId, message)
             local newQty = currentQty + qtyNum
             local newAvg = math.floor(totalCost / newQty)
 
+            -- state + chatVar 동기화
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
             setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+            setState(triggerId, "stock_" .. ticker .. "_avg", newAvg)
             setChatVar(triggerId, "stock_" .. ticker .. "_avg", tostring(newAvg))
 
             log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
         else
+            -- 골드 부족 실패 (로그만 기록, 사용자 알림 없음)
             log(string.format("❌ 매수 실패: 골드 부족 (%dG 필요, %dG 보유)", cost, gold))
         end
     end
 
     -- 매도: [StockSell:GOLDMANE:290:5]
-    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z]+):(%d+):(%d+)%]") do
+    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z%-]+):(%d+):(%d+)%]") do
         local priceNum = tonumber(price)
         local qtyNum = tonumber(qty)
         local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
 
+        -- 거래 가격을 시장가로 업데이트
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
+
         if currentQty >= qtyNum then
-            -- 보유량 차감
+            -- 보유량 차감 (state + chatVar 동기화)
             local newQty = currentQty - qtyNum
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
             setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
 
-            -- 골드 추가
+            -- 골드 추가 (state + chatVar 동기화)
             local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
             local revenue = priceNum * qtyNum
-            setChatVar(triggerId, "player_gold", tostring(gold + revenue))
+            local newGold = gold + revenue
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
 
-            -- 전량 매도시 평단가 초기화
+            -- 전량 매도시 평단가 초기화 (state + chatVar 동기화)
             if newQty == 0 then
+                setState(triggerId, "stock_" .. ticker .. "_avg", 0)
                 setChatVar(triggerId, "stock_" .. ticker .. "_avg", "0")
             end
 
             log(string.format("📉 매도: %s %d주 @ %dG (+%dG)", ticker, qtyNum, priceNum, revenue))
         else
+            -- 보유량 부족 실패 (로그만 기록, 사용자 알림 없음)
             log(string.format("❌ 매도 실패: 보유량 부족 (%d주 필요, %d주 보유)", qtyNum, currentQty))
         end
+    end
+end
+
+-- 주가 차트 업데이트 태그 파싱: <StockChart:TICKER:±value />
+function parseStockChartUpdate(triggerId, message)
+    -- 주식 또는 경영 시스템 활성화 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
+
+    -- <StockChart:TICKER:±value /> 또는 <StockChart:TICKER:value /> 파싱
+    for ticker, change in message:gmatch("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)") do
+        local changeNum = tonumber(change)
+        if not changeNum then
+            log("⚠️ StockChart 파싱 실패: 잘못된 값 형식 (" .. change .. ")")
+            goto continue
+        end
+
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or STOCK_BASE_PRICES[ticker] or 100
+        local newPrice = currentPrice + changeNum
+
+        -- 가격이 0 미만으로 떨어지지 않도록
+        if newPrice < 0 then
+            newPrice = 0
+        end
+
+        -- 가격 업데이트 (state + chatVar 동기화)
+        setState(triggerId, "stock_" .. ticker .. "_price", math.floor(newPrice))
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(math.floor(newPrice)))
+
+        -- 변화값 저장 (차트 표시용)
+        setState(triggerId, "stock_" .. ticker .. "_change", math.floor(changeNum))
+        setChatVar(triggerId, "stock_" .. ticker .. "_change", tostring(math.floor(changeNum)))
+
+        log(string.format("📊 %s 차트 업데이트: %dG → %dG (%+dG)",
+            ticker, currentPrice, math.floor(newPrice), math.floor(changeNum)))
+
+        ::continue::
     end
 end
 
 -- 주가 히스토리 초기화 (12개 캔들용 기본값 생성)
 function initStockHistory(triggerId, ticker)
     local historyKey = "stock_" .. ticker .. "_history"
-    local existing = getChatVar(triggerId, historyKey)
+    local existingChat = getChatVar(triggerId, historyKey)
+    local existingState = getState(triggerId, historyKey)
 
-    -- 이미 히스토리가 있으면 스킵
-    if existing and existing ~= "" then
+    -- 이미 히스토리가 있으면 스킵 (chatVar와 state 둘 다 체크)
+    if (existingChat and existingChat ~= "") or (existingState and existingState ~= "") then
+        -- chatVar에만 있으면 state로 복사
+        if existingChat and existingChat ~= "" and (not existingState or existingState == "") then
+            setState(triggerId, historyKey, existingChat)
+        end
+        -- state에만 있으면 chatVar로 복사
+        if existingState and existingState ~= "" and (not existingChat or existingChat == "") then
+            setChatVar(triggerId, historyKey, existingState)
+        end
         return
     end
 
@@ -1475,11 +1959,11 @@ function initStockHistory(triggerId, ticker)
     local pattern = seed % 6
     -- 0: 상승 후 하락, 1: 하락 후 상승, 2: 급등, 3: 급락, 4: 횡보 후 급등, 5: 횡보 후 급락
 
-    -- 12개 기본 가격 생성
+    -- 20개 데이터 포인트 생성 (더 풍부한 차트)
     local prices = {}
     local price = basePrice
 
-    for i = 1, 12 do
+    for i = 1, 20 do
         seed = (seed * 1103515245 + 12345) % 2147483648
         local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
 
@@ -1487,29 +1971,29 @@ function initStockHistory(triggerId, ticker)
         local changePercent = 0
 
         if pattern == 0 then  -- 상승 후 하락
-            if i <= 6 then
+            if i <= 10 then
                 changePercent = 2 + rand * 2  -- +1% ~ +3%
             else
                 changePercent = -2.5 + rand * 2  -- -3.5% ~ -1.5%
             end
         elseif pattern == 1 then  -- 하락 후 상승
-            if i <= 6 then
+            if i <= 10 then
                 changePercent = -2 + rand * 2
             else
                 changePercent = 2.5 + rand * 2
             end
         elseif pattern == 2 then  -- 급등
-            changePercent = 1.5 + rand * 1.5 + (i * 0.2)  -- 점점 가속
+            changePercent = 1.5 + rand * 1.5 + (i * 0.15)  -- 점점 가속
         elseif pattern == 3 then  -- 급락
-            changePercent = -1.5 + rand * 1.5 - (i * 0.2)
+            changePercent = -1.5 + rand * 1.5 - (i * 0.15)
         elseif pattern == 4 then  -- 횡보 후 급등
-            if i <= 8 then
+            if i <= 14 then
                 changePercent = rand * 1.5
             else
                 changePercent = 3 + rand * 2
             end
         elseif pattern == 5 then  -- 횡보 후 급락
-            if i <= 8 then
+            if i <= 14 then
                 changePercent = rand * 1.5
             else
                 changePercent = -3 + rand * 2
@@ -1519,20 +2003,22 @@ function initStockHistory(triggerId, ticker)
         -- 가격 변동 적용 (기준가 기반 %)
         local change = math.floor(basePrice * changePercent / 100)
         price = price + change
-        price = math.max(math.floor(basePrice * 0.7), price)  -- 최소 70%
-        price = math.min(math.floor(basePrice * 1.4), price)  -- 최대 140%
+        price = math.max(math.floor(basePrice * 0.6), price)  -- 최소 60% (더 넓은 범위)
+        price = math.min(math.floor(basePrice * 1.5), price)  -- 최대 150%
 
         table.insert(prices, tostring(price))
     end
 
-    setChatVar(triggerId, historyKey, table.concat(prices, ","))
-    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern)
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
+    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern .. " (20개 데이터)")
 end
 
--- 주가 히스토리에 새 가격 추가 (12개 유지)
+-- 주가 히스토리에 새 가격 추가 (20개 유지)
 function addPriceToHistory(triggerId, ticker, newPrice)
     local historyKey = "stock_" .. ticker .. "_history"
-    local history = getChatVar(triggerId, historyKey) or ""
+    local history = getChatVar(triggerId, historyKey) or getState(triggerId, historyKey) or ""
     local prices = {}
 
     -- 기존 히스토리 파싱
@@ -1543,24 +2029,44 @@ function addPriceToHistory(triggerId, ticker, newPrice)
     -- 새 가격 추가
     table.insert(prices, tostring(newPrice))
 
-    -- 12개만 유지
-    while #prices > 12 do
+    -- 20개만 유지
+    while #prices > 20 do
         table.remove(prices, 1)
     end
 
-    setChatVar(triggerId, historyKey, table.concat(prices, ","))
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
 end
 
--- 주가 히스토리 가져오기 (없으면 초기화)
+-- 주가 히스토리 가져오기 (없으면 초기화, 부족하면 재생성)
 function getStockHistory(triggerId, ticker)
-    initStockHistory(triggerId, ticker)
-
     local historyKey = "stock_" .. ticker .. "_history"
-    local history = getChatVar(triggerId, historyKey) or ""
+    -- state 우선, chatVar 폴백
+    local history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
     local prices = {}
 
     for price in history:gmatch("([^,]+)") do
         table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+    end
+
+    -- 히스토리가 없거나 20개 미만이면 강제 재생성
+    if #prices < 20 then
+        -- 기존 데이터 삭제
+        setChatVar(triggerId, historyKey, "")
+        setState(triggerId, historyKey, "")
+
+        -- 새로 생성
+        initStockHistory(triggerId, ticker)
+
+        -- 다시 읽기
+        history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
+        prices = {}
+        for price in history:gmatch("([^,]+)") do
+            table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+        end
+
+        log("📊 주가 히스토리 재생성: " .. ticker .. " (" .. #prices .. "개)")
     end
 
     return prices
@@ -1950,59 +2456,123 @@ function parseEffects(triggerId, message)
 end
 
 function parseEffect(triggerId, tag)
-    -- [Effect:Merge:OldName1+OldName2→NewName:StatBonus] 형식 먼저 체크
-    local mergePart, newName, statBonus = tag:match("%[Effect:Merge:([^→]+)→([^:]+):([^%]]+)%]")
+    -- [Effect:Merge:Old→New:StatType:Value:Duration:Desc] 전체 형식 먼저 체크
+    local mergeMatch = tag:match("%[Effect:Merge:([^→]+)→(.+)%]")
 
-    if mergePart and newName and statBonus then
-        -- 합성할 효과 이름들 추출 (+ 또는 x로 구분)
-        local oldNames = {}
-        for name in mergePart:gmatch("[^+x]+") do
-            local trimmed = name:match("^%s*(.-)%s*$")  -- 공백 제거
-            if trimmed and trimmed ~= "" then
-                table.insert(oldNames, trimmed)
+    if mergeMatch then
+        local mergePart = mergeMatch
+        local afterArrow = tag:match("→(.+)%]")
+
+        if afterArrow then
+            -- ':'로 분할하여 파라미터 추출
+            local params = {}
+            for param in afterArrow:gmatch("[^:]+") do
+                table.insert(params, param:match("^%s*(.-)%s*$"))
+            end
+
+            -- 전체 형식: Name:StatType:Value:Duration:Desc
+            if #params >= 5 then
+                local newName = params[1]
+                local effectType = params[2]
+                local value = tonumber(params[3]) or 0
+                local duration = tonumber(params[4]) or 0
+                local desc = params[5]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- 새 효과 추가
+                addEffect(triggerId, newName, effectType, value, duration, desc)
+
+                if #removed > 0 then
+                    log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d, %d턴)",
+                        table.concat(removed, " + "), newName, effectType, value, duration))
+                end
+                return
+            end
+
+            -- 간략 형식 (하위 호환): Name:StatBonus
+            if #params >= 2 then
+                local newName = params[1]
+                local statBonus = params[2]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- StatBonus 파싱
+                local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+
+                if stat and sign and valueStr then
+                    local value = tonumber(valueStr) or 0
+                    if sign == "-" then value = -value end
+
+                    local effectType = stat:lower() .. "_bonus"
+                    addEffect(triggerId, newName, effectType, value, 0, newName)
+
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (간략): [%s] → %s (%s %+d)",
+                            table.concat(removed, " + "), newName, stat:upper(), value))
+                    end
+                else
+                    addEffect(triggerId, newName, "display", 0, 0, statBonus)
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
+                            table.concat(removed, " + "), newName))
+                    end
+                end
+                return
             end
         end
+    end
 
-        -- 기존 효과들 제거
-        local removed = {}
-        for _, oldName in ipairs(oldNames) do
-            if removeEffect(triggerId, oldName) then
-                table.insert(removed, oldName)
-            end
-        end
+    -- [Effect:Add:Name:StatType:Value:Duration:Desc] 전체 형식 (우선 시도)
+    local parts = {}
+    for part in tag:gmatch("[^:]+") do
+        table.insert(parts, part:match("^%s*(.-)%s*$"))  -- 공백 제거
+    end
 
-        -- 새 효과 추가 (Add와 동일한 로직)
-        local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+    if parts[1] == "[Effect" and parts[2] == "Add" and #parts >= 7 then
+        -- 전체 형식: [Effect:Add:Name:StatType:Value:Duration:Desc]
+        local name = parts[3]
+        local effectType = parts[4]
+        local value = tonumber(parts[5]) or 0
+        local duration = tonumber(parts[6]) or 0
+        local desc = parts[7]:gsub("%]$", "")  -- 마지막 ] 제거
 
-        if stat and sign and valueStr then
-            local value = tonumber(valueStr) or 0
-            if sign == "-" then
-                value = -value
-            end
-
-            local effectType = stat:lower() .. "_bonus"
-            local desc = newName
-            local duration = 0
-
-            addEffect(triggerId, newName, effectType, value, duration, desc)
-
-            if #removed > 0 then
-                log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d)",
-                    table.concat(removed, " + "), newName, stat:upper(), value))
-            end
-        else
-            -- 표시용 Effect
-            addEffect(triggerId, newName, "display", 0, 0, statBonus)
-
-            if #removed > 0 then
-                log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
-                    table.concat(removed, " + "), newName))
-            end
-        end
+        addEffect(triggerId, name, effectType, value, duration, desc)
+        log(string.format("✨ Effect 추가: %s (%s %+d, %d턴)", name, effectType, value, duration))
         return
     end
 
-    -- [Effect:Add:Name:StatBonus] 형식 파싱
+    -- [Effect:Add:Name:StatBonus] 간략 형식 (하위 호환)
     local actionAdd, name, statBonus = tag:match("%[Effect:(Add):([^:]+):([^%]]+)%]")
 
     if actionAdd == "Add" and name and statBonus then
@@ -2021,9 +2591,9 @@ function parseEffect(triggerId, tag)
             local duration = 0  -- 영구 효과 (나중에 Remove로 제거)
 
             addEffect(triggerId, name, effectType, value, duration, desc)
-            log(string.format("✨ Effect 추가: %s (%s %+d)", name, stat:upper(), value))
+            log(string.format("✨ Effect 추가 (간략): %s (%s %+d)", name, stat:upper(), value))
         else
-            -- 스탯 보너스 없는 순수 표시용 Effect (출혈 멈춤, 기력 회복 등)
+            -- 스탯 보너스 없는 순수 표시용 Effect
             addEffect(triggerId, name, "display", 0, 0, statBonus)
             log(string.format("✨ Effect 추가 (표시용): %s (%s)", name, statBonus))
         end
@@ -2808,7 +3378,17 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
     end
 
     -- SYSTEM 메시지: AUXILIARY_BASE_PROMPT (규칙)
-    local systemPrompt = AUXILIARY_BASE_PROMPT:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
+    local systemPrompt = AUXILIARY_BASE_PROMPT
+
+    -- Stock 또는 Business 시스템이 활성화되어 있으면 관련 프롬프트 추가
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+    if stockEnabled == "1" or businessEnabled == "1" then
+        systemPrompt = systemPrompt .. AUXILIARY_STOCK_MANAGEMENT_PROMPT
+    end
+
+    -- 플레이어 특성/효과 섹션 삽입
+    systemPrompt = systemPrompt:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
     systemPrompt = systemPrompt:gsub("{{PLAYER_EFFECTS_SECTION}}", effectsSection)
 
     -- USER 메시지: 게임 상태 + 메인 AI 응답
@@ -2867,8 +3447,13 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
 
     userPrompt = userPrompt .. "===========================================\n"
 
-    -- 메인 AI 응답 추가 (CombatChoice 블록은 제거 - 보조 모델 혼란 방지)
-    local cleanedResponse = mainResponse:gsub("<CombatChoice>.-</CombatChoice>", "")
+    -- 메인 AI 응답 추가
+    local cleanedResponse = mainResponse
+
+    -- 주식 거래 태그 제거 (메인 모델이 이미 출력했으므로 보조 모델에게 전달하지 않음)
+    cleanedResponse = cleanedResponse:gsub("%[StockBuy:[^%]]+%]", "")
+    cleanedResponse = cleanedResponse:gsub("%[StockSell:[^%]]+%]", "")
+
     userPrompt = userPrompt .. "\n## Main AI Response to Analyze:\n"
     userPrompt = userPrompt .. cleanedResponse
 
@@ -2943,11 +3528,14 @@ function callAuxiliaryModel(triggerId, mainResponse)
         -- 중복 태그 블록 제거: 첫 번째 <Panel>■★ 이후 모든 내용 삭제
         local panelPos = result:find("<Panel>■★", 1, true)
         if panelPos then
-            local afterPanel = result:sub(panelPos + 11)  -- "<Panel>■★" 이후 내용
-            if afterPanel:find("%[Affinity:", 1, false) or afterPanel:find("<Panel>", 1, true) then
-                -- 이후에 태그나 Panel이 더 있으면 중복으로 간주, 첫 번째까지만 자름
-                result = result:sub(1, panelPos + 10)  -- "<Panel>■★" 포함
-                log("⚠️ 중복 태그 블록 감지 및 제거")
+            -- "<Panel>■★"의 실제 바이트 길이: <Panel>(7) + ■(3) + ★(3) = 13
+            local markerEnd = panelPos + 12  -- 마커의 마지막 바이트 위치 (0-indexed)
+            local afterPanel = result:sub(markerEnd + 1)  -- 마커 이후 내용
+
+            -- 마커 뒤에 어떤 내용이든 있으면 제거 (공백, 텍스트, 태그 등)
+            if afterPanel and #afterPanel > 0 and afterPanel:match("%S") then
+                result = result:sub(1, markerEnd)  -- "<Panel>■★"까지만 포함
+                log("⚠️ <Panel>■★ 이후 불필요한 내용 제거: " .. afterPanel:sub(1, 50))
             end
         end
 
@@ -3171,6 +3759,27 @@ function clearRpgChanges(triggerId)
 
     setChatVar(triggerId, "player_gold_change", "0")
     setChatVar(triggerId, "player_exp_change", "0")
+end
+
+-- 경영/주식 변화량 초기화
+function clearBusinessChanges(triggerId)
+    -- 주식 시스템 변화량 초기화
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        setState(triggerId, "stock_" .. ticker .. "_change", 0)
+    end
+    setState(triggerId, "market_index_change", 0)
+
+    -- 경영 시스템 변화량 초기화
+    local businessTickers = {"GOLDMANE", "LUXORIA", "PFIZARA"}
+    local businessVars = {"revenue", "profit", "cash", "debt", "market_share", "brand_value", "employees", "rd_progress", "player_share", "influence"}
+
+    for _, ticker in ipairs(businessTickers) do
+        for _, var in ipairs(businessVars) do
+            setChatVar(triggerId, ticker .. "_" .. var .. "_change", "0")
+        end
+    end
+
+    addDebugLog("System", "경영/주식 변화량 초기화 완료")
 end
 
 -- ============================================
@@ -4208,7 +4817,7 @@ function onStart(triggerId)
         -- 주식 시스템 변수 초기화
         initStockSystem(triggerId)
 
-        -- 플레이어 스탯 (기본값 50, 보조모델이 초기 할당 전까지)
+        -- 플레이어 스탯 (기본값 40 = 평범한 일반인, 능력평가 전까지)
         for _, stat in ipairs(playerStats) do
             setState(triggerId, "player_" .. stat, STAT_DEFAULT)
             setChatVar(triggerId, "player_" .. stat, tostring(STAT_DEFAULT))
@@ -4242,6 +4851,8 @@ function onStart(triggerId)
         -- 능력평가 완료 플래그 (로어북용)
         setState(triggerId, "ability_eval_status", 0)
         setChatVar(triggerId, "ability_eval_status", "0")
+        setState(triggerId, "stats_evaluated", "false")
+        setChatVar(triggerId, "stats_evaluated", "false")
 
         -- RPG 시스템 기본 활성화
         setState(triggerId, "rpg_system_enabled", true)
@@ -4375,9 +4986,20 @@ function processOutput(triggerId)
         takeRpgSnapshot(triggerId)     -- 현재 턴 시작 전 상태 저장
     end
 
+    -- 경영/주식 변화량 초기화 (시스템 활성화 여부 관계없이 항상 실행)
+    clearBusinessChanges(triggerId)
+
     -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
-    local auxiliaryMessage = callAuxiliaryModel(triggerId, message)
-    log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+        log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
+    end
 
     -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
     local combinedSource = message .. "\n" .. auxiliaryMessage
@@ -4492,13 +5114,16 @@ function processOutput(triggerId)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
         parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
         parseItems(triggerId, combinedSource)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
         parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
 
         -- 턴마다 효과 duration 감소
@@ -4513,26 +5138,40 @@ function processOutput(triggerId)
     log("🔍 메시지 체크: " .. (message:find("%[StatsEvaluated%]") and "태그 발견!" or "태그 없음"))
     if message:find("%[StatsEvaluated%]") then
         local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+        local statsEvaluated = getChatVar(triggerId, "stats_evaluated")
         log("🔍 currentLevel = " .. currentLevel)
 
-        if currentLevel == 0 then
-            -- 레벨 0 → 1로 상승 (능력평가 완료)
-            setState(triggerId, "player_level", 1)
-            setChatVar(triggerId, "player_level", "1")
-            setState(triggerId, "player_exp", 0)
-            setChatVar(triggerId, "player_exp", "0")
-            setState(triggerId, "player_exp_to_next", 100)
-            setChatVar(triggerId, "player_exp_to_next", "100")
+        if statsEvaluated ~= "true" then
+            -- 능력평가 완료 플래그 설정
+            setState(triggerId, "stats_evaluated", "true")
+            setChatVar(triggerId, "stats_evaluated", "true")
+
+            -- 레벨이 0이면 1로 상승
+            if currentLevel == 0 then
+                setState(triggerId, "player_level", 1)
+                setChatVar(triggerId, "player_level", "1")
+                setState(triggerId, "player_exp", 0)
+                setChatVar(triggerId, "player_exp", "0")
+                setState(triggerId, "player_exp_to_next", 100)
+                setChatVar(triggerId, "player_exp_to_next", "100")
+            end
+
             setState(triggerId, "ability_eval_status", 1)
             setChatVar(triggerId, "ability_eval_status", "1")
 
             -- 스냅샷 즉시 업데이트 (다음 턴에 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_stats_evaluated", "true")
             setChatVar(triggerId, "snapshot_ability_eval_status", "1")
-            setChatVar(triggerId, "snapshot_player_level", "1")
+            if currentLevel == 0 then
+                setChatVar(triggerId, "snapshot_player_level", "1")
+            end
 
-            log("✅ 능력평가 완료 - 레벨 1 달성!")
+            log("✅ 능력평가 완료!")
+            log("🔧 stats_evaluated = true")
             log("🔧 ability_eval_status = " .. tostring(getState(triggerId, "ability_eval_status")))
-            log("🔧 player_level = " .. tostring(getState(triggerId, "player_level")))
+            if currentLevel == 0 then
+                log("🔧 player_level: 0 → 1")
+            end
         end
     end
 
@@ -4596,7 +5235,21 @@ function processOutput(triggerId)
     end
 
     -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
-    local finalMessage = message .. "\n\n" .. auxiliaryMessage
+    -- 중복 태그 제거: 메인 응답에 이미 있는 태그를 보조 응답에서 제거
+    local filteredAuxiliary = removeDuplicateTags(message, auxiliaryMessage)
+
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입
+    local panelMarker = "<Panel>■★"
+    local panelPos = filteredAuxiliary:find(panelMarker, 1, true)
+    addDebugLog("System", string.format("보조 응답 길이: %d, Panel 마커 위치: %s", #filteredAuxiliary, tostring(panelPos)))
+    if panelPos then
+        filteredAuxiliary = filteredAuxiliary:sub(1, panelPos - 1) .. "<StockPanel />\n" .. filteredAuxiliary:sub(panelPos)
+        addDebugLog("System", "✅ <StockPanel /> 자동 삽입 완료")
+    else
+        addDebugLog("System", "⚠️ <Panel>■★ 마커를 찾을 수 없음 - 보조 응답: " .. filteredAuxiliary:sub(1, 100))
+    end
+
+    local finalMessage = message .. "\n\n" .. filteredAuxiliary
 
     -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
     local chatLength = getChatLength(triggerId)
@@ -5248,6 +5901,7 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Item:[^%]]+%]", "")
     data = data:gsub("%[EXP:[^%]]+%]", "")
     data = data:gsub("%[Heal:[^%]]+%]", "")
+    data = data:gsub("%[Damage:[^%]]+%]", "")
     data = data:gsub("%[Effect:[^%]]+%]", "")
     data = data:gsub("%[Trait:[^%]]+%]", "")
     data = data:gsub("%[Combat:[^%]]+%]", "")
@@ -5257,8 +5911,7 @@ listenEdit("editRequest", function(triggerId, data)
     data = data:gsub("%[Location:[^%]]+%]", "")
     -- 주식/동아리/시장 태그 제거 (AI 요청에서 제거, 디스플레이 변환은 editDisplay에서)
     data = data:gsub("%[Stock:[^%]]+%]", "")
-    data = data:gsub("%[StockBuy:[^%]]+%]", "")
-    data = data:gsub("%[StockSell:[^%]]+%]", "")
+    -- StockBuy/StockSell은 인라인 디스플레이로 변환되므로 제거하지 않음
     data = data:gsub("%[Club:[^%]]+%]", "")
     data = data:gsub("%[StatsEvaluated%]", "")
     data = data:gsub("%[Market:[^%]]+%]", "")
@@ -5382,81 +6035,467 @@ local function convertWeeklyReport(content)
 end
 
 -- ============================================
+-- 경영 현황 뷰 생성 함수
+-- ============================================
+
+function generateBusinessView(triggerId)
+    local html = [[<div style='padding:16px'>]]
+
+    -- 주식 시스템 활성화 여부 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
+
+    -- 경영 중인 회사 확인
+    local companies = {}
+
+    if getChatVar(triggerId, "mirabel_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "GOLDMANE",
+            name = "골든메인 금광",
+            sector = "Finance",
+            character = "Mirabel von Goldenrose"
+        })
+    end
+
+    if getChatVar(triggerId, "cordelia_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "LUXORIA",
+            name = "럭소리아 명품관",
+            sector = "Luxury",
+            character = "Cordelia von Edelstein"
+        })
+    end
+
+    if getChatVar(triggerId, "nepenthes_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "PFIZARA",
+            name = "파이자라 제약",
+            sector = "Pharma",
+            character = "Nepenthes von Dormien"
+        })
+    end
+
+    -- 경영 중인 회사가 없는 경우
+    if #companies == 0 then
+        html = html .. [[
+  <div style='text-align:center;padding:40px 20px;color:#8b949e'>
+    <div style='font-size:48px;margin-bottom:16px'>💼</div>
+    <div style='font-size:15px;font-weight:600;color:#c9d1d9;margin-bottom:8px'>경영 중인 회사 없음</div>
+    <div style='font-size:13px;line-height:1.6'>
+      캐릭터 호감도 300+ 달성 시<br>
+      회사 경영 파트너십을 제안받을 수 있습니다
+    </div>
+  </div>
+</div>]]
+        return html
+    end
+
+    -- 각 회사 정보 표시
+    for _, company in ipairs(companies) do
+        local ticker = company.ticker
+
+        log(string.format("🔍 [generateBusinessView] %s 정보 읽기 시작", ticker))
+
+        -- 변수 가져오기
+        local revenueStr = getChatVar(triggerId, ticker .. "_revenue")
+        local profitStr = getChatVar(triggerId, ticker .. "_profit")
+        local cashStr = getChatVar(triggerId, ticker .. "_cash")
+
+        log(string.format("🔍 [generateBusinessView] %s_revenue = '%s' (타입: %s)", ticker, tostring(revenueStr), type(revenueStr)))
+        log(string.format("🔍 [generateBusinessView] %s_profit = '%s' (타입: %s)", ticker, tostring(profitStr), type(profitStr)))
+        log(string.format("🔍 [generateBusinessView] %s_cash = '%s' (타입: %s)", ticker, tostring(cashStr), type(cashStr)))
+
+        local revenue = tonumber(revenueStr) or 0
+        local profit = tonumber(profitStr) or 0
+        local cash = tonumber(cashStr) or 0
+        local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
+        local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
+        local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
+        local employees = tonumber(getChatVar(triggerId, ticker .. "_employees")) or 0
+        local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
+        local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
+        local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
+
+        log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
+
+        -- 변화량 가져오기
+        local revenue_change = tonumber(getChatVar(triggerId, ticker .. "_revenue_change")) or 0
+        local profit_change = tonumber(getChatVar(triggerId, ticker .. "_profit_change")) or 0
+        local cash_change = tonumber(getChatVar(triggerId, ticker .. "_cash_change")) or 0
+        local debt_change = tonumber(getChatVar(triggerId, ticker .. "_debt_change")) or 0
+        local market_share_change = tonumber(getChatVar(triggerId, ticker .. "_market_share_change")) or 0
+        local brand_value_change = tonumber(getChatVar(triggerId, ticker .. "_brand_value_change")) or 0
+        local influence_change = tonumber(getChatVar(triggerId, ticker .. "_influence_change")) or 0
+
+        -- 변화량 포맷 함수 (색상 + 화살표)
+        local function formatChange(change, isPercent)
+            if change == 0 then
+                return "<span style='color:#6e7681;font-size:11px'> →0</span>"
+            end
+            local color = change > 0 and "#3fb950" or "#f85149"
+            local arrow = change > 0 and "▲" or "▼"
+            local sign = change > 0 and "+" or ""
+            local suffix = isPercent and "%" or ""
+            return string.format("<span style='color:%s;font-size:11px'> %s%s%d%s</span>",
+                color, arrow, sign, change, suffix)
+        end
+
+        -- 지표 계산
+        local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
+        local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
+
+        -- 색상 결정
+        local profitColor = profit >= 0 and "#3fb950" or "#f85149"
+        local debtColor = debtRatio > 70 and "#f85149" or (debtRatio > 40 and "#d29922" or "#8b949e")
+
+        -- 시장 포지션 섹션 HTML (주식 시스템 활성화 여부에 따라 다르게 구성)
+        local marketPositionHtml
+        if stockEnabled == "1" then
+            -- 주식 시스템 활성화: 주가 포함 (2x2 그리드)
+            local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price"))
+                            or tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+                            or STOCK_BASE_PRICES[ticker] or 0
+            marketPositionHtml = string.format([[
+    <!-- 시장 포지션 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
+          <div style='color:#ffd700;font-size:15px;font-weight:600'>%sG</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
+          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
+        </div>
+      </div>
+    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(stockPrice), formatNumber(employees))
+        else
+            -- 경영 전용 모드: 주가 제외 (2x2 그리드)
+            marketPositionHtml = string.format([[
+    <!-- 시장 포지션 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
+          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
+          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>업계 영향력</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
+        </div>
+      </div>
+    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(employees), influence, formatChange(influence_change, false))
+        end
+
+        html = html .. string.format([[
+  <div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3)'>
+    <div style='text-align:center;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid #21262d'>
+      <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>%s | %s</div>
+      <div style='color:#58a6ff;font-size:18px;font-weight:700;margin-bottom:4px'>%s</div>
+      <div style='color:#8b949e;font-size:12px'>공동 경영 파트너: %s</div>
+    </div>
+
+    <!-- 재무 현황 -->
+    <div style='margin-bottom:16px'>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📊 재무 현황</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>매출</div>
+          <div style='color:#fff;font-size:15px;font-weight:600'>%sM%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%)</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>현금</div>
+          <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM%s</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%)</div>
+          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
+        </div>
+      </div>
+    </div>
+
+%s
+
+    <!-- 운영 및 경영 참여 -->
+    <div>
+      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>⚙️ 운영 현황</div>
+      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>R&D 진척도</div>
+          <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%</div>
+        </div>
+        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
+          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>전략 기여도</div>
+          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
+        </div>
+      </div>
+    </div>
+
+    <div style='margin-top:12px;padding-top:12px;border-top:1px solid #21262d;text-align:center'>
+      <div style='color:#8b949e;font-size:11px'>보유 지분</div>
+      <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%</div>
+    </div>
+  </div>
+]], ticker, company.sector, company.name, company.character,
+   formatNumber(revenue), formatChange(revenue_change, false),
+   profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false),
+   formatNumber(cash), formatChange(cash_change, false),
+   debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false),
+   marketPositionHtml,
+   rd_progress, influence, formatChange(influence_change, false), player_share)
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- ============================================
+-- 디버그 패널 시스템
+-- ============================================
+
+-- 디버그 로그 저장 (최대 50개)
+local MAX_DEBUG_LOGS = 50
+local debugLogs = {}
+
+-- 디버그 로그 추가 함수
+function addDebugLog(category, message)
+    local timestamp = os.date("%H:%M:%S")
+    local logEntry = {
+        time = timestamp,
+        category = category,
+        message = message
+    }
+
+    table.insert(debugLogs, 1, logEntry)  -- 최신 로그를 맨 위에
+
+    -- 최대 개수 초과 시 오래된 로그 제거
+    while #debugLogs > MAX_DEBUG_LOGS do
+        table.remove(debugLogs)
+    end
+
+    -- 일반 로그도 출력
+    log(string.format("[%s] %s", category, message))
+end
+
+-- 디버그 패널 UI 생성
+function generateDebugPanel(triggerId)
+    local collapseState = getState(triggerId, "debug_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
+
+    local html = [[
+<div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
+
+    -- 헤더
+    local collapseIcon = isCollapsed and "▼" or "▲"
+    html = html .. string.format([[
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>🐛</span>
+      <span style='font-size:15px;font-weight:600;color:#fff'>디버그 패널</span>
+      <span style='font-size:12px;color:#8b949e'>(%d개)</span>
+    </div>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <button type='button' risu-btn='debug_clear' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:11px;cursor:pointer'>초기화</button>
+      <button type='button' risu-btn='debug_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
+    </div>
+  </div>]], isCollapsed and "none" or "1px solid #30363d", #debugLogs, collapseIcon)
+
+    -- 내용 (펼쳐져 있을 때만)
+    if not isCollapsed then
+        html = html .. [[
+  <div style='padding:16px;max-height:400px;overflow-y:auto;background:#0d1117'>]]
+
+        if #debugLogs == 0 then
+            html = html .. [[
+    <div style='text-align:center;padding:40px 20px;color:#8b949e'>
+      <div style='font-size:14px'>디버그 로그가 없습니다</div>
+      <div style='font-size:12px;margin-top:8px;color:#6e7681'>시스템 동작 시 로그가 여기에 표시됩니다</div>
+    </div>]]
+        else
+            for _, entry in ipairs(debugLogs) do
+                local categoryColor = "#58a6ff"
+                local categoryIcon = "📌"
+
+                if entry.category == "BusinessPanel" then
+                    categoryColor = "#d29922"
+                    categoryIcon = "💼"
+                elseif entry.category == "StockPanel" then
+                    categoryColor = "#3fb950"
+                    categoryIcon = "📈"
+                elseif entry.category == "StockChart" then
+                    categoryColor = "#a371f7"
+                    categoryIcon = "📊"
+                elseif entry.category == "Parsing" then
+                    categoryColor = "#f85149"
+                    categoryIcon = "🔍"
+                elseif entry.category == "Variable" then
+                    categoryColor = "#ffa657"
+                    categoryIcon = "💾"
+                end
+
+                html = html .. string.format([[
+    <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px;margin-bottom:8px'>
+      <div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>
+        <span style='font-size:12px'>%s</span>
+        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+        <span style='font-size:10px;color:#6e7681;margin-left:auto'>%s</span>
+      </div>
+      <div style='font-size:12px;color:#c9d1d9;line-height:1.5;word-break:break-word'>%s</div>
+    </div>]], categoryIcon, categoryColor, entry.category, entry.time, entry.message)
+            end
+        end
+
+        html = html .. "</div>"
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- 디버그 패널 토글 버튼
+_G["debug_toggle_collapse"] = function(triggerId)
+    local current = getState(triggerId, "debug_panel_collapsed")
+    local newState = (current == "0") and "1" or "0"
+    setState(triggerId, "debug_panel_collapsed", newState)
+    addDebugLog("System", string.format("디버그 패널 %s", newState == "0" and "펼침" or "접음"))
+    return true
+end
+
+-- 디버그 로그 초기화 버튼
+_G["debug_clear"] = function(triggerId)
+    debugLogs = {}
+    addDebugLog("System", "디버그 로그 초기화됨")
+    return true
+end
+
+-- ============================================
 -- 주식 패널 UI 생성 함수
 -- ============================================
 
 -- 현재 뷰에 따른 주식 패널 HTML 생성
 function generateStockPanelUI(triggerId)
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
-    if stockEnabled ~= "1" then
-        -- 주식 시스템 미활성화 시 자동 활성화 (테스트용)
-        setChatVar(triggerId, "stock_system_enabled", "1")
-        setState(triggerId, "stock_system_enabled", "1")
-        log("📈 주식 동아리 자동 가입 (테스트)")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or getState(triggerId, "business_system_enabled")
+
+    -- 주식 또는 경영 시스템 중 하나라도 활성화되어 있어야 패널 표시
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then
+        return ""
     end
 
-    local currentView = getState(triggerId, "stock_current_view") or "board"
+    -- 기본 뷰 결정: 주식 활성화 시 자산, 경영만 활성화 시 경영
+    local defaultView = (stockEnabled == "1") and "asset" or "business"
+    local currentView = getState(triggerId, "stock_current_view") or defaultView
     local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
-    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+
+    -- 골드 읽기 및 동기화
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+    end
+
+    -- 기본값: 접힌 상태 (stock_panel_collapsed가 "0"일 때만 펼침)
+    local collapseState = getState(triggerId, "stock_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
 
     -- 컨테이너 시작
     local html = [[
 <div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
 
-    -- 헤더 (제목 + 보유금)
+    -- 헤더 (제목 + 보유금 + 접기 버튼)
+    local collapseIcon = isCollapsed and "▼" or "▲"
     html = html .. string.format([[
-  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
     <div style='display:flex;align-items:center;gap:8px'>
       <span style='font-size:16px'>📈</span>
       <span style='font-size:15px;font-weight:600;color:#fff'>릴리 벨리 증권</span>
     </div>
-    <div style='display:flex;align-items:center;gap:4px'>
-      <span style='font-size:12px;color:#8b949e'>보유</span>
-      <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
+    <div style='display:flex;align-items:center;gap:12px'>
+      <div style='display:flex;align-items:center;gap:4px'>
+        <span style='font-size:12px;color:#8b949e'>보유</span>
+        <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
+      </div>
+      <button type='button' risu-btn='stock_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
     </div>
-  </div>]], formatNumber(gold))
+  </div>]], isCollapsed and "none" or "1px solid #30363d", formatNumber(gold), collapseIcon)
 
-    -- 탭 버튼
-    html = html .. [[
+    -- 접혀있지 않을 때만 내용 표시
+    if not isCollapsed then
+        -- 탭 구성 (활성화된 시스템에 따라 동적 생성)
+        html = html .. [[
   <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
 
-    local tabs = {
-        {id = "board", label = "시세"},
-        {id = "chart", label = "차트"},
-        {id = "asset", label = "자산"}
-    }
+        local tabs = {}
 
-    for _, tab in ipairs(tabs) do
-        local isActive = currentView == tab.id
-        if isActive then
-            html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
-        else
-            html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
+        -- 주식 시스템 활성화 시 주식 탭 추가
+        if stockEnabled == "1" then
+            table.insert(tabs, {id = "board", label = "시세"})
+            table.insert(tabs, {id = "chart", label = "차트"})
+            table.insert(tabs, {id = "asset", label = "자산"})
         end
-    end
 
-    html = html .. "</div>"
+        -- 경영 시스템 활성화 시 경영 탭 추가
+        if businessEnabled == "1" then
+            table.insert(tabs, {id = "business", label = "경영"})
+        end
 
-    -- 뷰 내용
-    html = html .. "<div style='background:#0d1117'>"
-    if currentView == "board" then
-        html = html .. generateStockBoardView(triggerId)
-    elseif currentView == "chart" then
-        html = html .. generateStockChartView(triggerId, selectedTicker)
-    elseif currentView == "asset" then
-        html = html .. generateStockAssetView(triggerId)
-    end
+        for _, tab in ipairs(tabs) do
+            local isActive = currentView == tab.id
+            if isActive then
+                html = html .. string.format([[
+    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
+            else
+                html = html .. string.format([[
+    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
+            end
+        end
 
-    html = html .. "</div>"  -- 뷰 컨테이너 닫기
+        html = html .. "</div>"
 
-    -- 하단 버튼 영역 (거래 종료)
-    html = html .. [[
+        -- 뷰 내용
+        html = html .. "<div style='background:#0d1117'>"
+        if currentView == "board" then
+            html = html .. generateStockBoardView(triggerId)
+        elseif currentView == "chart" then
+            html = html .. generateStockChartView(triggerId, selectedTicker)
+        elseif currentView == "asset" then
+            html = html .. generateStockAssetView(triggerId)
+        elseif currentView == "business" then
+            html = html .. generateBusinessView(triggerId)
+        end
+
+        html = html .. "</div>"  -- 뷰 컨테이너 닫기
+
+        -- 하단 버튼 영역 (거래 종료)
+        html = html .. [[
   <div style='padding:12px 16px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px'>
     <button type='button' risu-btn='stock_exit' onclick='event.stopPropagation();' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
-  </div>
-</div>]]  -- 메인 컨테이너 닫기
+  </div>]]
+    end
+
+    html = html .. "</div>"  -- 메인 컨테이너 닫기
 
     return html
 end
@@ -5486,28 +6525,36 @@ function generateStockBoardView(triggerId)
   </div>
   <div style='display:flex;flex-direction:column;gap:6px'>]]
 
-        -- 뉴스 파싱: TICKER:direction:reason|...
-        for item in newsData:gmatch("[^|]+") do
-            local ticker, direction, reason = item:match("([^:]+):([^:]+):(.+)")
-            if ticker and reason then
-                local dirIcon = "📊"
-                local dirColor = "#8b949e"
-                if direction == "up" then
+        -- 뉴스 파싱: TICKER:direction:headline||...
+        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
+            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if ticker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+
+                if direction == "rising" or direction == "up" then
                     dirIcon = "📈"
                     dirColor = "#ef5350"
-                elseif direction == "down" then
+                elseif direction == "falling" or direction == "down" then
                     dirIcon = "📉"
-                    dirColor = "#26a69a"
+                    dirColor = "#42a5f5"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
                 end
 
+                -- 헤드라인 (bullet points를 줄바꿈으로)
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px'>• </span>")
+
                 html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:#21262d;border-radius:6px'>
-      <span style='font-size:12px'>%s</span>
+    <div style='display:flex;align-items:flex-start;gap:8px;padding:8px;background:#21262d;border-radius:6px;border-left:3px solid %s'>
+      <span style='font-size:13px'>%s</span>
       <div style='flex:1'>
-        <span style='font-size:12px;font-weight:600;color:%s'>%s</span>
-        <span style='font-size:11px;color:#8b949e'> - %s</span>
+        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+        <div style='font-size:10px;color:#c9d1d9;margin-top:2px;line-height:1.4'>%s</div>
       </div>
-    </div>]], dirIcon, dirColor, ticker, reason)
+    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
             end
         end
 
@@ -5527,13 +6574,29 @@ function generateStockBoardView(triggerId)
 <div style='max-height:350px;overflow-y:auto'>]]
 
     for _, ticker in ipairs(STOCK_TICKERS) do
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]  -- 이전 가격
+                change = price - prevPrice
+            end
+        end
+
+        -- state 우선, chatVar 폴백 (변수명 수정: _owned -> _qty)
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         local name = STOCK_NAMES[ticker] or ticker
 
-        -- 등락 색상 (상승 빨강, 하락 청록)
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 등락 색상 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
         local rowBg = owned > 0 and "rgba(255,215,0,0.05)" or "transparent"
 
         html = html .. string.format([[
@@ -5551,7 +6614,7 @@ function generateStockBoardView(triggerId)
   <div style='flex:1;text-align:right'>
     <span style='font-size:13px;color:%s'>%d</span>
   </div>
-</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, change, owned > 0 and "#ffd700" or "#8b949e", owned)
+</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, changePercent, owned > 0 and "#ffd700" or "#8b949e", owned)
     end
 
     html = html .. "</div>"
@@ -5631,10 +6694,26 @@ end
 -- 차트 뷰 (증권사 스타일 라인 그래프)
 function generateStockChartView(triggerId, ticker)
     local name = STOCK_NAMES[ticker] or ticker
-    local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
-    local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-    local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-    local changeSign = change > 0 and "+" or ""
+    local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+    price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+
+    -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
+    local change = 0
+    local history = getStockHistory(triggerId, ticker)
+    if #history >= 2 then
+        local openPrice = history[1]
+        local closePrice = history[#history]
+        change = closePrice - openPrice
+    else
+        -- history 없으면 저장된 change 사용
+        change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+    end
+
+    -- 등락률 계산
+    local prevPrice = price - change
+    local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+    local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+    local changeSign = changePercent > 0 and "+" or ""
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
     -- 헤더: 종목 정보
@@ -5647,10 +6726,10 @@ function generateStockChartView(triggerId, ticker)
     </div>
     <div style='text-align:right'>
       <div style='font-size:24px;font-weight:700;color:%s'>%s<span style='font-size:14px;color:#787b86'>G</span></div>
-      <div style='font-size:12px;color:%s;margin-top:2px'>%s%d%%</div>
+      <div style='font-size:12px;color:%s;margin-top:2px'>%s%.1f%%</div>
     </div>
   </div>
-</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, change)
+</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, changePercent)
 
     -- 가격 히스토리 가져오기
     local history = getStockHistory(triggerId, ticker)
@@ -5686,8 +6765,8 @@ function generateStockChartView(triggerId, ticker)
             table.insert(points, string.format("%.1f,%.1f", x, y))
         end
 
-        -- 색상 결정
-        local lineColor = (closePrice >= openPrice) and "#26a69a" or "#ef5350"
+        -- 색상 결정 (한국식: 빨강=상승, 파랑=하락)
+        local lineColor = (closePrice >= openPrice) and "#ef5350" or "#42a5f5"
         local isUp = closePrice >= openPrice
 
         -- 그라데이션 영역
@@ -5823,6 +6902,95 @@ function generateStockChartView(triggerId, ticker)
 </div>]], info.desc, info.sector, info.size, finColor, info.financial, volColor, info.volatility, info.upFactors, info.downFactors, info.insider)
     end
 
+    -- 뉴스 섹션 (있으면 표시)
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[
+<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
+  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📰 시장 뉴스</div>
+  <div style='display:flex;flex-direction:column;gap:6px'>]]
+
+        -- 뉴스 파싱: TICKER:direction:headline||...
+        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
+            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+            local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+                local dirText = ""
+
+                -- direction이 있으면 아이콘/색상 설정
+                if direction == "rising" or direction == "up" then
+                    dirIcon = "📈"
+                    dirColor = "#ef5350"
+                    dirText = "상승"
+                elseif direction == "falling" or direction == "down" then
+                    dirIcon = "📉"
+                    dirColor = "#42a5f5"
+                    dirText = "하락"
+                elseif direction == "stable" then
+                    dirIcon = "📊"
+                    dirText = "안정"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
+                    dirText = "급락"
+                elseif direction == "unknown" then
+                    dirIcon = "📰"
+                    dirColor = "#58a6ff"
+                    dirText = ""
+                end
+
+                local isRelated = newsTicker == ticker
+                local bgColor = isRelated and "#1c1f26" or "#0d1117"
+                local tickerColor = isRelated and "#ffd700" or "#58a6ff"
+
+                -- 뉴스 헤드라인 (bullet points를 줄바꿈으로 변환)
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e'>• </span>")
+
+                html = html .. string.format([[
+    <div style='display:flex;align-items:flex-start;gap:8px;padding:10px;background:%s;border-radius:6px;border-left:3px solid %s;margin-bottom:6px'>
+      <span style='font-size:14px'>%s</span>
+      <div style='flex:1'>
+        <div style='display:flex;gap:8px;align-items:center;margin-bottom:4px'>
+          <span style='font-size:12px;font-weight:700;color:%s'>%s</span>
+          %s
+        </div>
+        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
+      </div>
+    </div>]], bgColor, isRelated and dirColor or "#30363d", dirIcon, tickerColor, newsTicker,
+                    dirText ~= "" and string.format("<span style='font-size:10px;padding:2px 6px;background:%s;border-radius:3px;color:#fff'>%s</span>", dirColor, dirText) or "",
+                    formattedHeadline)
+            end
+        end
+
+        html = html .. [[
+  </div>
+</div>]]
+    end
+
+    -- 시장 지수 섹션
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
+    local marketSign = marketChange > 0 and "+" or ""
+    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+
+    html = html .. string.format([[
+<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
+  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📊 릴리벨리 지수</div>
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161b22;border-radius:6px'>
+    <div>
+      <div style='font-size:12px;color:#8b949e'>LBLY Index</div>
+      <div style='font-size:18px;font-weight:700;color:#fff'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:14px;font-weight:600;color:%s'>%s%s%.2f%%</div>
+      <div style='font-size:11px;color:#8b949e'>전일대비</div>
+    </div>
+  </div>
+</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
+
     -- 종목 선택 (스크롤 가능)
     html = html .. [[
 <div style='background:#161b22;padding:12px;border-radius:0 0 8px 8px;border-top:1px solid #30363d'>
@@ -5830,22 +6998,36 @@ function generateStockChartView(triggerId, ticker)
 
     for _, t in ipairs(STOCK_TICKERS) do
         local isSelected = t == ticker
-        local tPrice = getState(triggerId, "stock_" .. t .. "_price") or STOCK_BASE_PRICES[t]
-        local tChange = getState(triggerId, "stock_" .. t .. "_change") or 0
-        local tColor = tChange > 0 and "#ef5350" or (tChange < 0 and "#26a69a" or "#8b949e")
+        local tPrice = tonumber(getState(triggerId, "stock_" .. t .. "_price"))
+        tPrice = (tPrice and tPrice > 0) and tPrice or STOCK_BASE_PRICES[t]
+        local tChange = tonumber(getState(triggerId, "stock_" .. t .. "_change")) or 0
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if tChange == 0 then
+            local history = getStockHistory(triggerId, t)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                tChange = tPrice - prevPrice
+            end
+        end
+
+        -- 등락률 계산
+        local tPrevPrice = tPrice - tChange
+        local tChangePercent = (tPrevPrice > 0 and tChange ~= 0) and ((tChange / tPrevPrice) * 100) or 0
+        local tColor = tChangePercent > 0 and "#ef5350" or (tChangePercent < 0 and "#42a5f5" or "#8b949e")
 
         if isSelected then
             html = html .. string.format([[
     <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:600;color:#fff'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChange)
+    </button>]], t, t, tColor, tChangePercent)
         else
             html = html .. string.format([[
     <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
       <div style='font-size:12px;font-weight:500;color:#8b949e'>%s</div>
       <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChange)
+    </button>]], t, t, tColor, tChangePercent)
         end
     end
 
@@ -5855,7 +7037,93 @@ end
 
 -- 내 자산 뷰
 function generateStockAssetView(triggerId)
-    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    local html = ""
+
+    -- ============================================
+    -- 시장 지수 섹션
+    -- ============================================
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
+    local marketSign = marketChange > 0 and "+" or ""
+    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+
+    html = html .. string.format([[
+<div style='background:linear-gradient(135deg,#0d1117 0%%,#1a1f35 100%%);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:center'>
+    <div>
+      <div style='font-size:11px;color:#8b949e;margin-bottom:4px'>📊 릴리벨리 지수</div>
+      <div style='font-size:24px;font-weight:700;color:#fff'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:18px;font-weight:700;color:%s'>%s%s%.2f%%</div>
+      <div style='font-size:11px;color:#8b949e'>전일대비</div>
+    </div>
+  </div>
+</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
+
+    -- ============================================
+    -- 뉴스 섹션
+    -- ============================================
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[
+<div style='background:#0d1117;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #30363d'>
+  <div style='font-size:13px;color:#58a6ff;font-weight:600;margin-bottom:10px'>📰 시장 뉴스</div>
+  <div style='display:flex;flex-direction:column;gap:8px'>]]
+
+        -- 뉴스 파싱
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
+            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if ticker and headline then
+                local dirIcon = "📰"
+                local dirColor = "#58a6ff"
+
+                if direction == "rising" or direction == "up" then
+                    dirIcon = "📈"
+                    dirColor = "#ef5350"
+                elseif direction == "falling" or direction == "down" then
+                    dirIcon = "📉"
+                    dirColor = "#42a5f5"
+                elseif direction == "crashing" then
+                    dirIcon = "📉"
+                    dirColor = "#ef5350"
+                end
+
+                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px;margin-left:16px'>• </span>")
+
+                html = html .. string.format([[
+    <div style='display:flex;align-items:flex-start;gap:10px;padding:10px;background:#161b22;border-radius:8px;border-left:3px solid %s'>
+      <span style='font-size:14px'>%s</span>
+      <div style='flex:1'>
+        <div style='font-size:12px;font-weight:700;color:%s;margin-bottom:4px'>%s</div>
+        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
+      </div>
+    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
+            end
+        end
+
+        html = html .. [[
+  </div>
+</div>]]
+    end
+
+    -- ============================================
+    -- 포트폴리오 요약
+    -- ============================================
+
+    -- state 우선, chatVar 폴백
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+
+    -- chatVar에만 있고 state에 없으면 동기화
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+        log("💰 골드 state 동기화: " .. goldChat .. "G")
+    end
+
     local totalValue = gold
     local totalProfit = 0
     local stockValue = 0
@@ -5863,10 +7131,12 @@ function generateStockAssetView(triggerId)
     -- 먼저 총 계산
     local holdings = {}
     for _, ticker in ipairs(STOCK_TICKERS) do
-        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+        -- state 우선, chatVar 폴백
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         if owned > 0 then
-            local avgPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
-            local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+            local avgPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_avg")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
+            local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
             local value = currentPrice * owned
             local profit = (currentPrice - avgPrice) * owned
             stockValue = stockValue + value
@@ -5885,11 +7155,11 @@ function generateStockAssetView(triggerId)
     end
     totalValue = gold + stockValue
 
-    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#26a69a"
+    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#42a5f5"
     local totalProfitSign = totalProfit >= 0 and "+" or ""
 
     -- 총 자산 헤더 (카드 스타일)
-    local html = string.format([[
+    html = html .. string.format([[
 <div style='background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);padding:20px;border-radius:12px;margin-bottom:12px'>
   <div style='font-size:12px;color:#8b949e;margin-bottom:4px'>총 평가자산</div>
   <div style='font-size:32px;font-weight:700;color:#fff'>%s<span style='font-size:16px;color:#8b949e;margin-left:4px'>G</span></div>
@@ -5940,7 +7210,7 @@ function generateStockAssetView(triggerId)
 
     if #holdings > 0 then
         for _, h in ipairs(holdings) do
-            local profitColor = h.profit >= 0 and "#ef5350" or "#26a69a"
+            local profitColor = h.profit >= 0 and "#ef5350" or "#42a5f5"
             local profitSign = h.profit >= 0 and "+" or ""
 
             html = html .. string.format([[
@@ -5970,238 +7240,77 @@ end
 
 listenEdit("editDisplay", function(triggerId, data, meta)
     -- ============================================
-    -- 스토리 중간 태그 → 디스플레이 변환
+    -- 0단계: 시스템 활성화 태그 우선 처리 (HTML 변환 전)
     -- ============================================
 
-    -- 주식 시세 태그 → 티커 디스플레이 변환
-    data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
-        return generateStockTicker(stockData)
-    end)
+    -- [Business:Enable:TICKER] 태그는 즉시 파싱 (메인 모델 출력일 때)
+    parseBusinessEnable(triggerId, data)
 
-    -- 동아리 가입/탈퇴 태그 → 알림 디스플레이 변환
-    data = data:gsub("%[Club:Join:([^%]]+)%]", function(clubId)
-        local clubNames = {
-            stock = "주식투자 동아리",
-        }
-        local clubName = clubNames[clubId] or clubId
-        return string.format('<div style="background:#1a472a;border-left:4px solid #2ea043;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#7ee787">📋 <b>%s</b> 가입!</div>', clubName)
-    end)
-    data = data:gsub("%[Club:Leave:([^%]]+)%]", function(clubId)
-        local clubNames = {
-            stock = "주식투자 동아리",
-        }
-        local clubName = clubNames[clubId] or clubId
-        return string.format('<div style="background:#3d1f1f;border-left:4px solid #f85149;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#ffa198">📋 <b>%s</b> 탈퇴</div>', clubName)
-    end)
+    -- 메인 모델 전용 태그들 항상 파싱 (보조 모델 유무 관계없이)
+    parseStockSystemEnable(triggerId, data)
+    parseClubChanges(triggerId, data)
+    parseStockTrades(triggerId, data)
+    parseStockChartUpdate(triggerId, data)
+    parseMarketIndex(triggerId, data)
 
-    -- StatsEvaluated 태그 → 알림 디스플레이 변환
-    data = data:gsub("%[StatsEvaluated%]", '<div style="background:#2d1f3d;border-left:4px solid #a371f7;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#d2a8ff">✨ <b>능력 평가 완료!</b></div>')
-
-    -- 주식 매수 태그 → 매수 알림 디스플레이 변환
-    data = data:gsub("%[StockBuy:([A-Z]+):(%d+):(%d+)%]", function(ticker, price, qty)
-        local name = STOCK_NAMES[ticker] or ticker
-        local total = tonumber(price) * tonumber(qty)
-        return string.format([[
-<div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-    <span style="background:#ef5350;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">매수</span>
-    <span style="color:#ef5350;font-size:14px;font-weight:600">%s</span>
-    <span style="color:#8b949e;font-size:12px">%s</span>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div style="color:#c9d1d9;font-size:13px">
-      <span style="color:#8b949e">수량</span> <b>%s주</b> × <span style="color:#8b949e">단가</span> <b>%sG</b>
-    </div>
-    <div style="color:#ef5350;font-size:16px;font-weight:700">-%sG</div>
-  </div>
-</div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
-    end)
-
-    -- 주식 매도 태그 → 매도 알림 디스플레이 변환
-    data = data:gsub("%[StockSell:([A-Z]+):(%d+):(%d+)%]", function(ticker, price, qty)
-        local name = STOCK_NAMES[ticker] or ticker
-        local total = tonumber(price) * tonumber(qty)
-        return string.format([[
-<div style="background:linear-gradient(135deg,#1a2d2a 0%%,#121a18 100%%);border:1px solid #26a69a;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(38,166,154,0.2)">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-    <span style="background:#26a69a;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">매도</span>
-    <span style="color:#26a69a;font-size:14px;font-weight:600">%s</span>
-    <span style="color:#8b949e;font-size:12px">%s</span>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <div style="color:#c9d1d9;font-size:13px">
-      <span style="color:#8b949e">수량</span> <b>%s주</b> × <span style="color:#8b949e">단가</span> <b>%sG</b>
-    </div>
-    <div style="color:#26a69a;font-size:16px;font-weight:700">+%sG</div>
-  </div>
-</div>]], ticker, name, qty, formatNumber(tonumber(price)), formatNumber(total))
-    end)
-
-    -- Market 태그 → 시장 뉴스 디스플레이 변환
-    data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
-        local changeNum = tonumber(change) or 0
-        local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
-        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#26a69a" or "#8b949e")
-        local sign = changeNum > 0 and "+" or ""
-        return string.format('<div style="background:#1a1f2e;border-left:4px solid #58a6ff;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#c9d1d9">📰 <span style="color:#8b949e">릴리벨리 지수</span> <span style="color:#fff;font-weight:600">%s</span> <span style="color:%s">%s%s%.1f%%</span> │ %s</div>', index, color, arrow, sign, changeNum, news)
-    end)
+    -- <Business:TICKER:var:value> 태그 파싱 및 UI 변환
+    data = parseBusinessTags(triggerId, data)
 
     -- ============================================
-    -- 기존 디스플레이 변환 (주식 패널 등)
+    -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)
     -- ============================================
 
-    -- <Stock> 태그 파싱 및 뉴스 저장
-    data = data:gsub("<Stock>(.-)</Stock>", function(content)
-        local newsItems = {}
-        for line in content:gmatch("[^\r\n]+") do
-            -- 형식: TICKER: PRICEg, DIRECTION - REASON
-            local ticker, price, direction, reason = line:match("([A-Z]+):%s*(%d+)g?,%s*(%w+)%s*%-%s*(.+)")
-            if ticker and reason then
-                table.insert(newsItems, {
-                    ticker = ticker,
-                    price = tonumber(price) or 0,
-                    direction = direction,
-                    reason = reason:gsub("^%s*(.-)%s*$", "%1")  -- trim
-                })
+    -- 보조 모델 출력인지 확인: 보조 모델은 주로 태그만 출력하고 스토리 텍스트가 적음
+    -- 또는 특정 마커를 확인
+    local isAuxiliaryOutput = false
+
+    -- 보조 모델 판별: [Affinity:, [Stat:, [Gold: 같은 태그가 있으면 보조 모델 출력
+    if data:match("%[Affinity:") or data:match("%[Stat:") or data:match("%[Gold:") or
+       data:match("%[Sin:") or data:match("%[Item:") or data:match("%[EXP:") then
+        isAuxiliaryOutput = true
+    end
+
+    -- 보조 모델 출력일 때 태그 파싱
+    if isAuxiliaryOutput then
+        -- 1단계: 보조 모델 자신의 출력에서 변수 업데이트 태그 파싱
+        -- parseStockChanges는 processOutput에서 이미 처리됨 (중복 방지)
+        parseStockTrades(triggerId, data)   -- 주식 매매 (보조 AI가 출력)
+        parseStockChartUpdate(triggerId, data)  -- 차트 업데이트 (가격 변화)
+
+        -- 2단계: 메인 모델 출력 찾기
+        local chatData = getChat(triggerId)
+        if chatData and chatData.message and #chatData.message > 0 then
+            local aiMessageCount = 0
+            for i = #chatData.message, 1, -1 do
+                local msg = chatData.message[i]
+                if msg.role == "assistant" or msg.role == "char" then
+                    aiMessageCount = aiMessageCount + 1
+
+                    -- 2번째 AI 메시지가 메인 모델 출력
+                    if aiMessageCount == 2 then
+                        local mainOutput = msg.data or ""
+
+                        -- 메인 모델 출력에서 관련 태그 파싱
+                        parseStockSystemEnable(triggerId, mainOutput)
+                        parseClubChanges(triggerId, mainOutput)
+                        parseStockTrades(triggerId, mainOutput)
+                        parseStockChartUpdate(triggerId, mainOutput)
+                        parseMarketIndex(triggerId, mainOutput)
+
+                        break  -- 메인 모델 메시지 처리 완료
+                    end
+                end
             end
-        end
-        -- 뉴스가 있으면 상태에 저장
-        if #newsItems > 0 then
-            -- JSON 형태로 저장
-            local newsJson = ""
-            for i, item in ipairs(newsItems) do
-                if i > 1 then newsJson = newsJson .. "|" end
-                newsJson = newsJson .. item.ticker .. ":" .. item.direction .. ":" .. item.reason
-            end
-            setState(triggerId, "stock_news", newsJson)
-            setState(triggerId, "stock_news_time", os.time())
-            log("📰 주식 뉴스 저장: " .. #newsItems .. "건")
-        end
-        return ""  -- 태그 제거
-    end)
-
-    -- 시장 지수 패널: <MarketPanel /> (최신 채팅에만 표시)
-    local hasMarketPanel = data:find("<MarketPanel%s*/>")
-    data = data:gsub("<MarketPanel%s*/>", "")
-
-    if hasMarketPanel then
-        local shouldShow = true
-        if meta and meta.index then
-            local chatLength = getChatLength(triggerId)
-            shouldShow = (meta.index >= chatLength - 1)
-        end
-        if shouldShow then
-            -- 시장 지수 초기화 (없으면)
-            initMarketIndex(triggerId)
-            data = generateMarketPanel(triggerId) .. data
         end
     end
 
-    -- 주식 패널: 태그가 있는지 확인 후 제거
-    local hasStockPanel = data:find("<StockPanel%s*/>")
-    data = data:gsub("<StockPanel%s*/>", "")
+    -- ============================================
+    -- 2단계: 현재 출력의 HTML 변환 (디스플레이용)
+    -- ============================================
 
-    -- 태그가 있었다면 패널 UI 추가
-    if hasStockPanel then
-        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
-        local shouldShow = true
-        if meta and meta.index then
-            local chatLength = getChatLength(triggerId)
-            shouldShow = (meta.index >= chatLength - 1)
-        end
-        if shouldShow then
-            data = data .. generateStockPanelUI(triggerId)
-        end
-    end
-
-    -- 개별 종목 차트 카드: <StockChart:TICKER />
-    data = data:gsub("<StockChart:([A-Z]+)%s*/>", function(ticker)
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-        local name = STOCK_NAMES[ticker] or ticker
-
-        -- 색상 결정
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-        local changeSign = change > 0 and "+" or ""
-        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
-
-        -- 미니 차트 데이터 (최근 8개)
-        local history = getStockHistory(triggerId, ticker)
-        local basePrice = STOCK_BASE_PRICES[ticker] or 100
-        local miniChart = ""
-        if #history >= 2 then
-            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
-            local minP = math.floor(basePrice * 0.80)
-            local maxP = math.floor(basePrice * 1.20)
-            -- 실제 데이터가 범위를 벗어나면 확장
-            for _, p in ipairs(history) do
-                if p < minP then minP = p - 5 end
-                if p > maxP then maxP = p + 5 end
-            end
-            local range = maxP - minP
-            if range == 0 then range = 1 end
-
-            -- SVG 미니 차트
-            local points = {}
-            local chartW, chartH = 120, 40
-            for i, p in ipairs(history) do
-                local x = (i - 1) * (chartW / (#history - 1))
-                local y = chartH - ((p - minP) / range * chartH)
-                table.insert(points, string.format("%.1f,%.1f", x, y))
-            end
-            local lineColor = change >= 0 and "#ef5350" or "#26a69a"
-            miniChart = string.format([[
-<svg width='%d' height='%d' style='margin-top:8px'>
-  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
-</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
-        end
-
-        -- 카드 HTML
-        local html = string.format([[
-<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
-  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
-    <div>
-      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
-      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
-    </div>
-    <div style='text-align:right'>
-      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
-      <div style='font-size:13px;color:%s;font-weight:600'>%s%d%% %s</div>
-    </div>
-  </div>
-  %s
-</div>]], ticker, name, formatNumber(price), changeColor, changeSign, change, arrow, miniChart)
-
-        return html
-    end)
-
-    -- 간단 시세 인라인: <StockQuote:TICKER />
-    data = data:gsub("<StockQuote:([A-Z]+)%s*/>", function(ticker)
-        local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker] or 100
-        local change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
-        local name = STOCK_NAMES[ticker] or ticker
-
-        local changeColor = change > 0 and "#ef5350" or (change < 0 and "#26a69a" or "#8b949e")
-        local changeSign = change > 0 and "+" or ""
-        local arrow = change > 0 and "▲" or (change < 0 and "▼" or "─")
-
-        local html = string.format([[
-<span style='display:inline-flex;align-items:center;gap:6px;background:#161b22;padding:4px 10px;border-radius:6px;font-size:13px;border:1px solid #30363d'>
-  <span style='color:#fff;font-weight:600'>%s</span>
-  <span style='color:#8b949e'>%sG</span>
-  <span style='color:%s;font-weight:500'>%s%d%% %s</span>
-</span>]], ticker, formatNumber(price), changeColor, changeSign, change, arrow)
-
-        return html
-    end)
-
-    -- 주간 보고서 패널: <StockPanel:TICKER />
-    data = data:gsub("<StockPanel:([A-Z]+)%s*/>", function(ticker)
-        return generateStockPanel(triggerId, ticker)
-    end)
-
-    -- 전투 선택지 변환 (모바일 반응형)
-    data = data:gsub("<CombatChoice>(.-)</CombatChoice>", function(content)
+    -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치 (Lua에서 .는 줄바꿈 제외)
+    data = data:gsub("<CombatChoice>([%s%S]-)</CombatChoice>", function(content)
         local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
         local choiceIndex = 1
 
@@ -6257,8 +7366,526 @@ listenEdit("editDisplay", function(triggerId, data, meta)
         return html
     end)
 
+    -- 주식 시세 태그 → 티커 디스플레이 변환
+    data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
+        return generateStockTicker(stockData)
+    end)
+
+    -- 주식 매수 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockBuy:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#2d1a1a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #ef5350'>
+  <span style='color:#ef5350'>💰</span>
+  <span style='color:#ef5350;font-weight:600'>매수</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
+    end)
+
+    -- 주식 매도 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockSell:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#1a2d2a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #26a69a'>
+  <span style='color:#26a69a'>💵</span>
+  <span style='color:#26a69a;font-weight:600'>매도</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
+    end)
+
+    -- 동아리 가입/탈퇴 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[Club:Join:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#1a472a;border-left:4px solid #2ea043;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#7ee787">📋 <b>%s</b> 가입!</div>', clubName)
+    end)
+    data = data:gsub("%[Club:Leave:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#3d1f1f;border-left:4px solid #f85149;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#ffa198">📋 <b>%s</b> 탈퇴</div>', clubName)
+    end)
+
+    -- StatsEvaluated 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[StatsEvaluated%]", '<div style="background:#2d1f3d;border-left:4px solid #a371f7;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#d2a8ff">✨ <b>능력 평가 완료!</b></div>')
+
+    -- 주식 매수/매도 태그는 디스플레이 변환하지 않음 (시스템 기능만 사용)
+    -- 태그는 나중에 일괄 제거됨
+
+    -- 경영 시스템 활성화 태그 → 환영 알림 디스플레이 변환 (먼저 처리!)
+    data = data:gsub("%[Business:Enable:([A-Z%-]+)%]", function(ticker)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1f2937 0%%,#111827 100%%);border:2px solid #fbbf24;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(251,191,36,0.3)">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="background:#fbbf24;color:#000;font-size:12px;font-weight:700;padding:4px 10px;border-radius:5px">💼 경영진 합류</span>
+    <span style="color:#fbbf24;font-size:16px;font-weight:700">%s</span>
+  </div>
+  <div style="color:#d1d5db;font-size:14px;line-height:1.6">
+    공동 경영 파트너십이 시작되었습니다.<br>
+    회사 경영 권한과 경영 패널 접근이 활성화되었습니다.
+  </div>
+</div>]], name)
+    end)
+
+    -- 경영 이벤트 태그 → 비즈니스 알림 디스플레이 변환
+    data = data:gsub("%[Business:([A-Z%-]+):([^%]]+)%]", function(ticker, event)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);border:1px solid #58a6ff;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(88,166,255,0.2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="background:#58a6ff;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">경영</span>
+    <span style="color:#58a6ff;font-size:14px;font-weight:600">%s</span>
+  </div>
+  <div style="color:#c9d1d9;font-size:13px;line-height:1.6">%s</div>
+</div>]], name, event)
+    end)
+
+    -- 주식 거래 실패 메시지 표시 (비활성화 - 사용자 요청)
+    -- local tradeError = getChatVar(triggerId, "stock_trade_error") or ""
+    -- if tradeError ~= "" then
+    --     data = data .. string.format([[
+-- <div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
+--   <div style="color:#ef5350;font-size:14px;font-weight:600">%s</div>
+-- </div>]], tradeError)
+    -- end
+
+    -- Market 태그 → 시장 뉴스 디스플레이 변환
+    data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
+        local changeNum = tonumber(change) or 0
+        local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
+        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
+        local sign = changeNum > 0 and "+" or ""
+        return string.format('<div style="background:#1a1f2e;border-left:4px solid #58a6ff;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#c9d1d9">📰 <span style="color:#8b949e">릴리벨리 지수</span> <span style="color:#fff;font-weight:600">%s</span> <span style="color:%s">%s%s%.1f%%</span> │ %s</div>', index, color, arrow, sign, changeNum, news)
+    end)
+
+    -- ============================================
+    -- 기존 디스플레이 변환 (주식 패널 등)
+    -- ============================================
+
+    -- <Stock> 태그 파싱 및 뉴스 저장
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치
+    data = data:gsub("<Stock>([%s%S]-)</Stock>", function(content)
+        local newsItems = {}
+        local currentNews = nil
+
+        for line in content:gmatch("[^\r\n]+") do
+            line = line:gsub("^%s*(.-)%s*$", "%1")  -- trim
+            if line ~= "" then
+                -- 형식 1: TICKER: PRICEg, DIRECTION - REASON
+                local ticker1, price, direction, reason = line:match("([A-Z]+)[^:]*:%s*(%d+)[Gg]?,%s*(%w+)%s*%-%s*(.+)")
+                if ticker1 and reason then
+                    table.insert(newsItems, {
+                        ticker = ticker1,
+                        price = tonumber(price) or 0,
+                        direction = direction,
+                        headline = reason:gsub("^%s*(.-)%s*$", "%1"),
+                        details = {}
+                    })
+                else
+                    -- 형식 2: 뉴스 기사 형식
+                    -- 헤드라인: [속보] 골든메인(GOLDMANE), ...
+                    local ticker2, headline = line:match("%(([A-Z]+)%)%s*,?%s*(.+)")
+                    if ticker2 and headline then
+                        -- 새 뉴스 아이템 시작
+                        currentNews = {
+                            ticker = ticker2,
+                            price = 0,
+                            direction = "unknown",
+                            headline = headline,
+                            details = {}
+                        }
+                        table.insert(newsItems, currentNews)
+                    elseif currentNews and line:match("^%-") then
+                        -- 현재 뉴스의 상세 내용 (bullet point)
+                        local detail = line:gsub("^%-%s*", "")
+                        table.insert(currentNews.details, detail)
+
+                        -- 목표 주가에서 가격 추출 시도
+                        local targetPrice = detail:match("목표%s*주가[^:]*:%s*%d+[Gg]?%s*%-%>%s*(%d+)[Gg]?")
+                        if targetPrice and currentNews.price == 0 then
+                            currentNews.price = tonumber(targetPrice) or 0
+                        end
+                    end
+                end
+            end
+        end
+
+        -- 뉴스가 있으면 상태에 저장
+        if #newsItems > 0 then
+            -- JSON 형태로 저장 (개선된 형식)
+            local newsJson = ""
+            for i, item in ipairs(newsItems) do
+                if i > 1 then newsJson = newsJson .. "||" end  -- 뉴스 구분자
+
+                -- 헤드라인
+                local fullHeadline = item.headline
+                -- 상세 내용 추가 (최대 2개)
+                if #item.details > 0 then
+                    for j = 1, math.min(2, #item.details) do
+                        fullHeadline = fullHeadline .. " • " .. item.details[j]
+                    end
+                end
+
+                newsJson = newsJson .. item.ticker .. ":" .. (item.direction or "unknown") .. ":" .. fullHeadline
+            end
+            setState(triggerId, "stock_news", newsJson)
+            setState(triggerId, "stock_news_time", os.time())
+            log("📰 주식 뉴스 저장: " .. #newsItems .. "건")
+        end
+        return ""  -- 태그 제거
+    end)
+
+    -- 주식 패널: 태그 확인 후 UI 생성
+    local hasStockPanel = data:find("<StockPanel%s*/>")
+    data = data:gsub("<StockPanel%s*/>", "")
+
+    -- 태그가 있으면 패널 UI 생성
+    if hasStockPanel then
+        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
+        local shouldShow = true
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            shouldShow = (meta.index >= chatLength - 1)
+        end
+        if shouldShow then
+            data = data .. generateStockPanelUI(triggerId)
+        end
+    end
+
+    -- 디버그 패널: 태그 확인 후 UI 생성
+    local hasDebugPanel = data:find("<DebugPanel%s*/>")
+    data = data:gsub("<DebugPanel%s*/>", "")
+    if hasDebugPanel then
+        data = data .. generateDebugPanel(triggerId)
+    end
+
+    -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
+    data = data:gsub("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
+        addDebugLog("StockChart", string.format("태그 발견: %s, 변화값: %s", ticker, changeValue))
+
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            addDebugLog("StockChart", "주식/경영 시스템 비활성화 - 태그 무시")
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화값 사용
+        local change = tonumber(changeValue) or 0
+        local updateNotice = ""
+
+        -- 업데이트 알림 표시
+        if change ~= 0 then
+            local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+            local changeSign = change > 0 and "+" or ""
+            updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터
+        local history = getStockHistory(triggerId, ticker)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
+        local miniChart = ""
+        if #history >= 2 then
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
+            for _, p in ipairs(history) do
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
+    </div>
+  </div>
+  %s
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
+
+        return html
+    end)
+
+    -- 개별 종목 차트 카드 (변화값 없음): <StockChart:TICKER />
+    data = data:gsub("<StockChart:([A-Z%-]+)%s*/>", function(ticker)
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화량 계산: changeValue가 제공되면 우선 사용, 아니면 history 기준
+        local change = 0
+        local updateNotice = ""
+        local history = getStockHistory(triggerId, ticker)  -- 항상 history 가져오기
+
+        if changeValue and changeValue ~= "" then
+            -- 태그에서 변화값이 제공된 경우
+            change = tonumber(changeValue) or 0
+            -- 업데이트 알림 표시
+            if change ~= 0 then
+                local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+                local changeSign = change > 0 and "+" or ""
+                updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+            end
+        else
+            -- history 전체 기간 기준 (차트 방향과 일치)
+            if #history >= 2 then
+                local openPrice = history[1]
+                local closePrice = history[#history]
+                change = closePrice - openPrice
+            else
+                -- history 없으면 저장된 change 사용
+                change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+            end
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터 (history는 이미 위에서 가져옴)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
+        local miniChart = ""
+        if #history >= 2 then
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
+            for _, p in ipairs(history) do
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
+    </div>
+  </div>
+  %s
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
+
+        return html
+    end)
+
+    -- 간단 시세 인라인: <StockQuote:TICKER />
+    data = data:gsub("<StockQuote:([A-Z%-]+)%s*/>", function(ticker)
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                change = price - prevPrice
+            end
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        local html = string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#161b22;padding:4px 10px;border-radius:6px;font-size:13px;border:1px solid #30363d'>
+  <span style='color:#fff;font-weight:600'>%s</span>
+  <span style='color:#8b949e'>%sG</span>
+  <span style='color:%s;font-weight:500'>%s%.1f%% %s</span>
+</span>]], ticker, formatNumber(price), changeColor, changeSign, changePercent, arrow)
+
+        return html
+    end)
+
+    -- ============================================
+    -- 시스템 메시지 디스플레이 변환
+    -- ============================================
+
+    -- 시스템 메시지를 감지하고 타입별로 스타일링 (backtick 있어도 처리)
+    data = data:gsub("`?(%-+%s*System Message:%s*)([^\n`]+)`?", function(prefix, content)
+        local messageType = "general"
+        local icon = "📌"
+        local bgColor = "#161b22"
+        local borderColor = "#30363d"
+        local textColor = "#8b949e"
+
+        -- 경영 이벤트 감지 (GOLDMANE, LUXORIA, PFIZARA)
+        if content:match("%[GOLDMANE%]") or content:match("%[LUXORIA%]") or content:match("%[PFIZARA%]") then
+            messageType = "business"
+            icon = "📊"
+            bgColor = "#1a1410"
+            borderColor = "#d4af37"
+            textColor = "#f5e6d3"
+        -- 주식 거래 감지
+        elseif content:match("bought.*share") or content:match("sold.*share") or
+               content:match("매수") or content:match("매도") or
+               content:match("Buy") or content:match("Sell") then
+            messageType = "stock"
+            icon = "💰"
+            bgColor = "#0d1821"
+            borderColor = "#58a6ff"
+            textColor = "#c9d1d9"
+        end
+
+        -- 스타일 적용된 HTML 생성
+        local html = string.format([[
+<div style='max-width:600px;margin:10px auto;background:%s;border-left:3px solid %s;border-radius:6px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.2)'>
+  <div style='display:flex;align-items:center;gap:8px'>
+    <span style='font-size:16px'>%s</span>
+    <span style='color:%s;font-size:13px;line-height:1.5'>%s</span>
+  </div>
+</div>]], bgColor, borderColor, icon, textColor, content)
+
+        return html
+    end)
+
     -- 주간 보고서 변환
     data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", convertWeeklyReport)
+
+    -- ============================================
+    -- 보조 AI 리롤 버튼 추가
+    -- ============================================
+
+    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
+    if auxiliaryMode ~= "0" then
+        -- meta 정보가 있고 마지막 메시지인지 확인
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            local position = meta.index - chatLength
+            if position == -1 then
+                -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
+                local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
+                                           data:find("%[Sin:", 1, false) or
+                                           data:find("%[Location:", 1, false) or
+                                           data:find("<Panel", 1, true)
+
+                -- 이미 리롤 버튼이 없고 보조 출력이 있으면 버튼 추가
+                if hasAuxiliaryOutput and not data:find('risu%-btn="reroll_auxiliary"', 1, true) then
+                    local rerollButton = [[
+
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
+<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
+</div>]]
+                    data = data .. rerollButton
+                end
+            end
+        end
+    end
 
     return data
 end)
@@ -6408,8 +8035,8 @@ _G["reset_all_stats_to_50"] = function(triggerId)
 
     for _, stat in ipairs(stats) do
         local key = "player_" .. stat
-        setChatVar(triggerId, key, "50")
-        setState(triggerId, key, 50)
+        setChatVar(triggerId, key, "40")
+        setState(triggerId, key, 40)
     end
 
     -- 레벨도 1로 초기화
@@ -6418,6 +8045,10 @@ _G["reset_all_stats_to_50"] = function(triggerId)
     setChatVar(triggerId, "player_exp", "0")
     setState(triggerId, "player_exp", 0)
 
+    -- 스탯 평가 완료로 설정 (스탯이 할당되었으므로)
+    setChatVar(triggerId, "stats_evaluated", "true")
+    setState(triggerId, "stats_evaluated", "true")
+
     -- 전투력 재계산
     local maxCombatPower = calculateCombatPower(triggerId)
     setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
@@ -6425,8 +8056,8 @@ _G["reset_all_stats_to_50"] = function(triggerId)
     setState(triggerId, "player_combat_power_max", maxCombatPower)
     setState(triggerId, "player_combat_power", maxCombatPower)
 
-    alertNormal(triggerId, "모든 스탯이 50으로 초기화되었습니다. (레벨 1, EXP 0)")
-    log("🔄 스탯 초기화: 모든 스탯 50, 레벨 1")
+    alertNormal(triggerId, "모든 스탯이 40으로 초기화되었습니다. (레벨 1, EXP 0)")
+    log("🔄 스탯 초기화: 모든 스탯 40, 레벨 1")
     return true
 end
 
@@ -6498,6 +8129,7 @@ _G["reroll_auxiliary"] = function(triggerId)
     mainResponse = mainResponse:gsub("%[Item:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[EXP:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Heal:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Damage:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Effect:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Trait:[^%]]+%]", "")
     mainResponse = mainResponse:gsub("%[Combat:[^%]]+%]", "")
@@ -6530,8 +8162,16 @@ _G["reroll_auxiliary"] = function(triggerId)
     log("↩️ 스냅샷 복원 완료")
 
     -- 보조모델 다시 호출
-    local auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
-    log("🔄 보조모델 재호출 완료")
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
+        log("🔄 보조모델 재호출 완료")
+    end
 
     -- 태그 파싱 (메인 + 보조)
     local combinedSource = mainResponse .. "\n" .. auxiliaryMessage
@@ -6626,13 +8266,16 @@ _G["reroll_auxiliary"] = function(triggerId)
         parseGoldChanges(triggerId, combinedSource)
         parseExpChanges(triggerId, combinedSource)
         parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
         parseItems(triggerId, combinedSource)
         parseTraits(triggerId, combinedSource)
         parseEffects(triggerId, combinedSource)
         parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
         parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
         parseStockChanges(triggerId, combinedSource)  -- 주식 시세
         parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
         parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
     end
 
@@ -6643,6 +8286,14 @@ _G["reroll_auxiliary"] = function(triggerId)
 
     if rpgEnabled then
         updateRpgDisplayVars(triggerId)
+    end
+
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입 (리롤용)
+    local panelMarker = "<Panel>■★"
+    local panelPos = auxiliaryMessage:find(panelMarker, 1, true)
+    if panelPos then
+        auxiliaryMessage = auxiliaryMessage:sub(1, panelPos - 1) .. "<StockPanel />\n" .. auxiliaryMessage:sub(panelPos)
+        addDebugLog("System", "리롤: <StockPanel /> 자동 삽입 완료")
     end
 
     -- 메시지 업데이트 (음수 인덱스 사용)
@@ -6704,51 +8355,6 @@ log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모�
 -- ============================================
 -- 보조 AI 리롤 버튼 표시 (editDisplay)
 -- ============================================
-
-listenEdit("editDisplay", function(triggerId, data, meta)
-    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
-    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
-    if auxiliaryMode == "0" then
-        return data
-    end
-
-    -- meta 정보가 없으면 버튼 표시 안함
-    if not meta or not meta.index then
-        return data
-    end
-
-    -- 마지막 메시지(-1)가 아니면 버튼 표시 안함
-    local chatLength = getChatLength(triggerId)
-    local position = meta.index - chatLength
-    if position ~= -1 then
-        return data
-    end
-
-    -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
-    -- 사용자 메시지나 순수 AI 응답(보조모델 없음)은 제외
-    local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
-                               data:find("%[Sin:", 1, false) or
-                               data:find("%[Location:", 1, false) or
-                               data:find("<Panel", 1, true)
-
-    if not hasAuxiliaryOutput then
-        return data
-    end
-
-    -- 이미 리롤 버튼이 있으면 중복 추가 방지
-    if data:find('risu%-btn="reroll_auxiliary"', 1, true) then
-        return data
-    end
-
-    -- 리롤 버튼 (우측 하단 배치)
-    local rerollButton = [[
-
-<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
-<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
-</div>]]
-
-    return data .. rerollButton
-end)
 
 -- ============================================
 -- 보조 AI 리롤 버튼 클릭 핸들러
@@ -6826,9 +8432,18 @@ onButtonClick = async(function(triggerId, code)
 
     -- 주식 패널 종료 핸들러
     if code == "stock_exit" then
-        setState(triggerId, "stock_current_view", "board")
+        setState(triggerId, "stock_current_view", "asset")
         setState(triggerId, "stock_last_trade_msg", "")
         log("📈 주식 패널 종료")
+    end
+
+    -- 주식 패널 접기/펼치기 토글
+    if code == "stock_toggle_collapse" then
+        local currentState = getState(triggerId, "stock_panel_collapsed")
+        -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+        local newState = (currentState == "0") and "1" or "0"
+        setState(triggerId, "stock_panel_collapsed", newState)
+        log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
     end
 end)
 
@@ -6855,6 +8470,15 @@ _G["stock_view_asset"] = function(triggerId)
     log("💼 주식 뷰 전환: 내 자산")
 end
 
+-- 주식 패널 접기/펼치기 토글
+_G["stock_toggle_collapse"] = function(triggerId)
+    local currentState = getState(triggerId, "stock_panel_collapsed")
+    -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+    local newState = (currentState == "0") and "1" or "0"
+    setState(triggerId, "stock_panel_collapsed", newState)
+    log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
+end
+
 -- 거래 종료 버튼 (스토리 진행)
 _G["stock_exit"] = function(triggerId)
     -- 포트폴리오 요약 생성
@@ -6865,7 +8489,8 @@ _G["stock_exit"] = function(triggerId)
     for _, ticker in ipairs(STOCK_TICKERS) do
         local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
         if owned > 0 then
-            local price = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+            local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
             local value = owned * price
             totalValue = totalValue + value
             table.insert(holdings, string.format("%s %d주", ticker, owned))
@@ -6900,11 +8525,12 @@ for _, ticker in ipairs(stockTickers) do
     _G["stock_select_" .. ticker] = function(triggerId)
         setState(triggerId, "stock_selected_ticker", ticker)
         -- 선택 가격을 해당 종목 현재가로 초기화
-        local currentPrice = getState(triggerId, "stock_" .. ticker .. "_price") or STOCK_BASE_PRICES[ticker]
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
         setState(triggerId, "stock_selected_price", currentPrice)
         -- 차트 뷰로 자동 전환
-        local currentView = getState(triggerId, "stock_current_view") or "board"
-        if currentView == "board" then
+        local currentView = getState(triggerId, "stock_current_view") or "asset"
+        if currentView == "asset" then
             setState(triggerId, "stock_current_view", "chart")
         end
         log("📌 종목 선택: " .. ticker .. " @ " .. currentPrice .. "G")
@@ -6925,14 +8551,10 @@ end
 _G["leave_stock_club"] = function(triggerId)
     setChatVar(triggerId, "club_stock_joined", "0")
     setState(triggerId, "club_stock_joined", "0")
-    -- 경영 참여 중이 아니면 주식 시스템도 비활성화
-    local miraJoined = getChatVar(triggerId, "mirabel_company_joined") or "0"
-    local cordJoined = getChatVar(triggerId, "cordelia_company_joined") or "0"
-    local nepeJoined = getChatVar(triggerId, "nepenthes_company_joined") or "0"
-    if miraJoined ~= "1" and cordJoined ~= "1" and nepeJoined ~= "1" then
-        setChatVar(triggerId, "stock_system_enabled", "0")
-        setState(triggerId, "stock_system_enabled", "0")
-    end
+    -- 주식 시스템 비활성화
+    setChatVar(triggerId, "stock_system_enabled", "0")
+    setState(triggerId, "stock_system_enabled", "0")
+    -- 경영 시스템은 독립적으로 유지 (회사 경영 중이면 계속 활성화)
     alertNormal(triggerId, "📉 주식투자 동아리에서 탈퇴했습니다.")
     log("📉 주식투자 동아리 탈퇴 완료")
 end

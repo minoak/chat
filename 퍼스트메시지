@@ -458,8 +458,16 @@
 <!-- 코델리아 -->
 <div class="bella-ui-content-container bella-ui-content-cordelia">
 <div class="bella-stat-section">
-<div class="bella-stat-title">💎 코델리아</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">💎 코델리아 폰 에델슈타인</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_cordelia_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_cordelia_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_cordelia_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_cordelia_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -473,7 +481,15 @@
 <div class="bella-ui-content-container bella-ui-content-suah">
 <div class="bella-stat-section">
 <div class="bella-stat-title">🎀 수아</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_suah_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_suah_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_suah_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_suah_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -486,8 +502,16 @@
 <!-- 아델하이드 -->
 <div class="bella-ui-content-container bella-ui-content-adelheid">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🗡️ 아델하이드</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">🗡️ 아델하이드 폰 아이젠슈타인</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_adelheid_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_adelheid_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_adelheid_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_adelheid_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -500,8 +524,16 @@
 <!-- 로잘리 -->
 <div class="bella-ui-content-container bella-ui-content-rosalie">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🌹 로잘리</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">🌹 로잘리 폰 더블베리</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_rosalie_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_rosalie_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_rosalie_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_rosalie_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -514,8 +546,16 @@
 <!-- 미카 -->
 <div class="bella-ui-content-container bella-ui-content-mika">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🐱 미카</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">🐱 미카 폰 쉬바르츠펠</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_mika_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_mika_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_mika_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_mika_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -528,8 +568,16 @@
 <!-- 클로버 -->
 <div class="bella-ui-content-container bella-ui-content-clover">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🍀 클로버</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">🍀 클로버 폰 리버클로버</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_clover_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_clover_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_clover_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_clover_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
@@ -542,13 +590,21 @@
 <!-- 녹티스 -->
 <div class="bella-ui-content-container bella-ui-content-noctis">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🌙 녹티스</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">👹 녹티스</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_noctis_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_noctis_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_noctis_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_noctis_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
-<button type="button" class="bella-scenario-btn" risu-trigger="greeting29"><span>🌙</span><span>시나리오 1</span></button>
-<button type="button" class="bella-scenario-btn" risu-trigger="greeting30"><span>🌙</span><span>시나리오 2</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting29"><span>👹</span><span>봉인된 마왕</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting30"><span>🎮</span><span>심심한 마왕</span></button>
 </div>
 </div>
 </div>
@@ -556,13 +612,21 @@
 <!-- 페니와이즈 -->
 <div class="bella-ui-content-container bella-ui-content-pennywise">
 <div class="bella-stat-section">
-<div class="bella-stat-title">🎪 페니와이즈</div>
-<div class="bella-placeholder">시나리오 준비 중...</div>
+<div class="bella-stat-title">📈 페니와이즈</div>
+<div class="bella-stat-group">
+<span class="bella-stat-label">💝 호감도 조정</span>
+<div class="bella-stat-buttons">
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_pennywise_minus_100">-100</button>
+<button type="button" class="bella-stat-btn negative" risu-trigger="adjust_pennywise_minus_50">-50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_pennywise_plus_50">+50</button>
+<button type="button" class="bella-stat-btn positive" risu-trigger="adjust_pennywise_plus_100">+100</button>
+</div>
+</div>
 </div>
 <div class="bella-scenario-section">
 <div class="bella-scenario-grid">
-<button type="button" class="bella-scenario-btn" risu-trigger="greeting31"><span>🎪</span><span>시나리오 1</span></button>
-<button type="button" class="bella-scenario-btn" risu-trigger="greeting32"><span>🎪</span><span>시나리오 2</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting31"><span>📈</span><span>주식 토론</span></button>
+<button type="button" class="bella-scenario-btn" risu-trigger="greeting32"><span>💸</span><span>급발진 중</span></button>
 </div>
 </div>
 </div>

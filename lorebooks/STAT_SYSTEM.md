@@ -1,4 +1,4 @@
-{{#if_pure {{equal::{{getvar::player_level}}::0}}}}
+{{#if_pure {{not_equal::{{getvar::stats_evaluated}}::true}}}}
 
 @@depth 0
 
@@ -24,14 +24,18 @@
    - VIT (Vitality): HP, stamina
 
    Range: 0~100
-   - 91-100: Mythical level (legendary hero)
-   - 81-90: Legendary tier (beyond human limits)
-   - 71-80: Expert grade (above ordinary)
-   - 61-70: Above average (clearly proficient)
-   - 51-60: Ordinary (average person)
-   - 0-50: Weak (below average)
+   - 91-100: Mythical (legendary hero)
+   - 81-90: Legendary (beyond human limits)
+   - 71-80: Expert (professional level)
+   - 61-70: Proficient (skilled)
+   - 51-60: Above Average (better than most)
+   - 41-50: Average (ordinary person)
+   - 31-40: Below Average (somewhat lacking)
+   - 21-30: Poor (clearly deficient)
+   - 11-20: Very Poor (severely lacking)
+   - 1-10: Abysmal (critical flaw)
 
-   Judgment criteria: Analyze {{user}}'s persona. If descriptions indicate high capability in a stat, set it high; if absent or opposite tendency exists, set it low.
+   Judgment criteria: Analyze {{user}}'s persona carefully. Most ordinary people have stats around 40-50. Set stats based on clear evidence in persona - if nothing indicates capability in a stat, use 35-45 (average student). Only set high (70+) with strong evidence, or low (30-) with explicit weaknesses.
 
 3. Display results with scene description
    - Numbers appear (magical display, hologram, etc.)
@@ -39,10 +43,8 @@
 
 4. Complete registration
    - "Level 0 → Level 1" announcement
+   - Output the completion tag: [StatsEvaluated]
 
-5. MANDATORY TAG OUTPUT:
-   [StatsEvaluated]
-
-CRITICAL: You MUST output the [StatsEvaluated] tag in this response. Without this tag, the evaluation fails and will repeat.
+**Important**: Output the [StatsEvaluated] tag exactly once at the end of the evaluation scene to register completion.
 
 {{/if_pure}}

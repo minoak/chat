@@ -1,205 +1,224 @@
-{{#if_pure {{equal::{{getvar::stock_system_enabled}}::1}}}}
+{{#if_pure {{equal::{{getvar::business_system_enabled}}::0}}}}
+@@depth 0
+
+# Company Management Partnership
+
+**Business management system is currently unavailable.**
+
+Player needs to join a company as co-executive with a partner character. See character-specific company files for partnership opportunities.
+
+{{/if_pure}}
+
+{{#if_pure {{equal::{{getvar::business_system_enabled}}::1}}}}
 @@depth 0
 
 # Company Management System
 
-Universal mechanics for managing companies in the Stock Club.
+Player is co-executive with partner character. Current company: {{getvar::active_company_ticker}}
 
 ---
 
-## System Overview
+## Current Company Status
 
-When {{user}} joins a company as a management partner, they gain access to economic simulation gameplay alongside the romance narrative. This system uses the **Main Model → System Message → Auxiliary Model → Lua** pipeline.
+**Financial Variables:**
+- **cash** ({{getvar::{{getvar::active_company_ticker}}_cash}}M): Available funds for investments, R&D, marketing
+- **debt** ({{getvar::{{getvar::active_company_ticker}}_debt}}M): Outstanding loans, affects credit and risk
+- **revenue** ({{getvar::{{getvar::active_company_ticker}}_revenue}}M): Total sales, indicates company size
+- **profit** ({{getvar::{{getvar::active_company_ticker}}_profit}}M): Net earnings, must be < revenue
 
-**Your Role:**
-- Write engaging business scenarios and character interactions
-- Output clear system messages when significant events occur
-- Let the auxiliary model handle tag conversion
+**Market Variables:**
+- **market_share** ({{getvar::{{getvar::active_company_ticker}}_market_share}}%): Industry position (0-100%)
+- **brand_value** ({{getvar::{{getvar::active_company_ticker}}_brand_value}}): Public perception and loyalty (0-100)
 
----
+**Operational Variables:**
+- **rd_progress** ({{getvar::{{getvar::active_company_ticker}}_rd_progress}}%): R&D completion (0-100%, resets after launch)
+- **employees** ({{getvar::{{getvar::active_company_ticker}}_employees}}): Workforce size
 
-## Partnership Levels
-
-| Level | Condition | Access |
-|-------|-----------|--------|
-| None | Default | Stock trading only |
-| Invited | Character affinity 300+ | Management participation offered |
-| Partner | After accepting invitation | Full co-executive access |
-
-### Activation Flow
-
-1. Character with affinity 300+ offers management partnership during Stock Club activities
-2. {{user}} chooses to accept or decline
-3. If accepted: `{{setvar::CHARACTER_company_joined::1}}{{setvar::stock_system_enabled::1}}`
-4. Management scenarios and events become available
+**Player Variables:**
+- **player_ownership** ({{getvar::{{getvar::active_company_ticker}}_player_ownership}}%): Your stake in the company
+- **player_influence** ({{getvar::{{getvar::active_company_ticker}}_player_influence}}): Decision-making power
 
 ---
 
-## Management Variables
+## Reading Company Position
 
-Each company tracks 10 variables (automatically initialized by Lua):
+**Strong Position:**
+- Cash > 300M, Debt < 200M → Can invest aggressively
+- Market share > 25% → Industry leader, can pressure competitors
+- Brand value > 70 → Premium pricing power
 
-### Financial Health (재무)
-- **revenue**: Revenue in millions (매출)
-- **profit**: Net profit in millions (순이익)
-- **cash**: Cash reserves in millions (현금)
-- **debt**: Outstanding debt in millions (부채)
+**Weak Position:**
+- Cash < 150M, Debt > 300M → Need cash urgently, risky decisions
+- Market share < 15% → Underdog, need aggressive growth
+- Brand value < 40 → Vulnerable to scandals, need PR investment
 
-### Market Position (시장)
-- **market_share**: Market share percentage (시장 점유율 %)
-- **brand_value**: Brand value score (브랜드 가치)
+**Growth Opportunities:**
+- R&D 80%+ → Ready for product launch
+- Cash high + Debt low → M&A opportunities
+- Market share gap < 10% from leader → Overtake possible
 
-### Operations (운영)
-- **employees**: Number of employees (직원 수)
-- **rd_progress**: R&D progress percentage (연구개발 진척도 %)
-
-### Player Stake (플레이어)
-- **player_share**: Ownership percentage (보유 지분 %)
-- **influence**: Management influence score (경영 영향력)
-
----
-
-## Outputting System Messages
-
-When significant business events occur, output a system message describing what happened:
-
-### Event Categories
-
-**Investment Decisions**
-```
-- System Message: GOLDMANE 신규 투자 프로젝트가 승인되었다.
-- System Message: 대형 투자가 예상을 뛰어넘는 성공을 거두었다. 시장 반응이 뜨겁다.
-- System Message: 투자 프로젝트가 실패했다. 손실이 발생했다.
-```
-
-**Crisis Management**
-```
-- System Message: LUXORIA 스캔들이 터졌다. 브랜드 이미지 타격이 우려된다.
-- System Message: 신속한 위기 대응으로 피해를 최소화했다.
-- System Message: 위기 대응 실패. 시장 신뢰도가 급락했다.
-```
-
-**Business Expansion**
-```
-- System Message: PFIZARA 신약 개발이 성공했다. 업계가 주목하고 있다.
-- System Message: 신규 시장 진출이 결정되었다. 대규모 투자가 필요하다.
-```
-
-**Market Events**
-```
-- System Message: 경쟁사의 공격적인 마케팅으로 시장 점유율이 하락했다.
-- System Message: 브랜드 가치가 상승했다. 소비자 평가가 개선되고 있다.
-```
-
-### Guidelines
-
-- **Be specific**: "투자 성공" vs "예상을 뛰어넘는 대성공" (different impacts)
-- **Mention scale**: "소규모 프로젝트" vs "대형 투자 프로젝트"
-- **Include consequences**: "성공했다. 매출과 시장점유율이 상승했다."
-- **Natural language**: Write what a business report would say
-
-The auxiliary model will convert these into appropriate variable changes.
+**Crisis Indicators:**
+- Debt > Cash by 2x → Bankruptcy risk
+- Market share dropping rapidly → Competitive threat
+- Brand value < 30 → Reputation crisis
 
 ---
 
-## Event Impact Guidelines
+## Business Event Format
 
-Use these ranges as reference for system message tone:
+When business decisions or events occur, output business tags to update company metrics:
 
-### Success Levels
-- **Minor Success**: Small positive outcome (revenue +20~40, market_share +0~1)
-- **Success**: Standard positive outcome (revenue +40~60, market_share +1~2)
-- **Major Success**: Outstanding outcome (revenue +60~100, market_share +2~4)
-- **Breakthrough**: Industry-changing outcome (revenue +100+, market_share +4+)
+**Tag Format:** `<Business:TICKER:var:value|var2:value2|...>`
 
-### Failure Levels
-- **Minor Setback**: Small negative outcome (revenue -20~40, brand_value -10~20)
-- **Failure**: Standard negative outcome (revenue -40~60, brand_value -20~40)
-- **Crisis**: Serious negative outcome (revenue -60~100, market_share -3~5)
-- **Catastrophe**: Company-threatening outcome (revenue -100+, market_share -5+)
+**Value Types:**
+- With `+` or `-` prefix: **Change amount** (add/subtract from current value)
+- Without prefix: **Absolute value** (set to that exact value)
 
-### Resource Changes
-- **Investment**: cash decreases, potential for revenue/profit increase later
-- **Debt Financing**: debt increases, cash increases
-- **Hiring**: employees increase, cash drain increases
-- **R&D**: rd_progress increases, cash decreases
+**Examples:**
 
----
-
-## Weekly Reports & Panels
-
-### Weekly Management Meetings
-
-When appropriate (weekly meetings, quarterly reviews), show the comprehensive panel:
-
+**Investment Decision:**
+Current: Cash 500M, Debt 200M, R&D 45%
+Decision: Major R&D investment
 ```
-> "Here's this week's report."
-> <StockPanel:GOLDMANE />
+> "Alright, let's invest in the AI platform!"
+> <Business:GOLDMANE:cash:-300|rd_progress:+35|influence:+5>
+> "Investment approved. 300M allocated to R&D."
 ```
 
-The Lua system will generate a formatted HTML panel displaying all metrics.
-
-### When to Show Panels
-- Regular weekly/monthly meetings with partner character
-- After major events (post-crisis review, post-expansion analysis)
-- When {{user}} asks for status update
-- Before major decisions (investment approval meetings)
-
----
-
-## Event Structure Template
-
-Use this structure for business scenarios:
-
-1. **Context**: Current situation, character dialogue introducing the event
-2. **Problem/Opportunity**: What needs to be decided or responded to
-3. **Choices**: Present options with clear trade-offs
-4. **Outcome**: Based on choice, describe what happened
-5. **System Message**: Output clear message about the business impact
-6. **Character Reaction**: Partner's response to the outcome
-
-### Example
-
+**Crisis Event:**
+Current: Brand value 65, Revenue 800M
+Event: Data breach scandal
 ```
-> Mirabel spreads financial documents on the table.
-> "A promising investment opportunity in the mining sector. 200M required."
-> "High risk, but if successful, the returns could be substantial. What do you think?"
+> "Breaking: Data breach at Goldmane Financial!"
+> <Business:GOLDMANE:brand_value:-20|revenue:-150|market_share:-4>
+> "Stock plummeted as customers fled."
+```
 
-Choice: Approve the investment
+**Product Launch Success:**
+Current: R&D 90%, Market share 22%
+Event: Product launch succeeds
+```
+> "The Metaverse Fashion Line is a hit!"
+> <Business:LUXORIA:rd_progress:0|revenue:+250|market_share:+8|brand_value:+12>
+> "Sales exceeded all projections."
+```
 
-> "Ohoho! Bold decision. Let's make it happen."
-> [Several weeks pass]
-> The mining investment exceeds expectations. Gold prices surged.
-
-- System Message: GOLDMANE 광산 투자가 대성공했다. 금 가격 급등으로 막대한 수익을 올렸다.
-
-> "Oh my! We hit the jackpot! Revenue is up 80M this quarter!"
-> Mirabel laughs delightfully, her eyes sparkling with excitement.
+**Competition Attack:**
+Current: Market share 23% (competitor 28%)
+Decision: Aggressive marketing campaign
+```
+> "Launch the marketing blitz!"
+> <Business:PFIZARA:cash:-180|market_share:+6|brand_value:+4>
+> "Campaign launched. Early results promising."
 ```
 
 ---
 
-## Character-Specific Content
+## Stock Chart Display
 
-Each company lorebook (MIRABEL_COMPANY.md, CORDELIA_COMPANY.md, NEPENTHES_COMPANY.md) contains:
+When discussing company performance or stock price, use stock chart tags to visualize data:
 
-- Company sector and background
-- Character's invitation dialogue
-- Industry-specific event scenarios
-- Special climax event (hostile takeover, family crisis, forbidden research)
-- Character relationship development through business partnership
+**Tag Format:**
+- `<StockChart:TICKER />` - Display current stock chart with price
+- `<StockChart:TICKER:±value />` - Display chart AND update stock price
 
-Refer to those lorebooks for story content and character interactions.
+**When to Use:**
+- Discussing company financial performance
+- Showing market reaction to events
+- Comparing before/after major decisions
+- Partner character explaining market trends
+
+**Examples:**
+
+**After major event:**
+> "The product launch was a huge success."
+> <StockChart:GOLDMANE:+25 />
+> "Stock surged 25G on the news."
+
+**Discussing current status:**
+> Mirabel pulled up the trading terminal.
+> <StockChart:GOLDMANE />
+> "Here's our current market position."
+
+**Market analysis:**
+> "Let me show you all three companies."
+> <StockChart:GOLDMANE />
+> <StockChart:LUXORIA />
+> <StockChart:PFIZARA />
+> "The competition is heating up."
+
+Use these tags naturally in business conversations. Stock system automatically synchronizes with business metrics.
 
 ---
 
-## Important Notes
+## Decision Presentation
 
-- **Capitalism simulation feel**: Variables provide depth, don't simplify too much
-- **Natural integration**: Weave business status into character dialogue organically
-- **Consequences matter**: Poor decisions should have real negative impact
-- **Partnership = relationship**: Business success/failure affects character affinity
-- **Multiple variables**: Events often affect 3-5 variables simultaneously
-- **Long-term play**: Some decisions have delayed consequences (debt, R&D projects)
+Always show current numbers before choices:
+
+**Example 1 - Investment Decision:**
+> "We have 420M cash, 180M debt. R&D is at 65%."
+> "This AI project costs 250M but could finish R&D."
+> "What do you think?"
+
+**Example 2 - Crisis Response:**
+> "Scandal hit. Brand value dropped to 58."
+> "Market share at 19%, down from 22%."
+> "PR campaign costs 120M. Do it now or ride it out?"
+
+**Example 3 - Market Opportunity:**
+> "Our share: 24%. GUCCIEL: 27%. APPELLE: 18%."
+> "We have 380M cash. Aggressive push could make us #1."
+> "Risk: If it fails, we lose market position."
+
+Always include specific numbers. No vague decisions.
+
+---
+
+## Outputting Choice Results
+
+After player chooses, immediately output business tag with impacts:
+
+**Player chooses to invest:**
+```
+> "Alright, let's go all in on the AI platform!"
+> <Business:GOLDMANE:cash:-250|rd_progress:+35|influence:+8>
+> "Project approved. 250M allocated. Development team assembled."
+```
+
+**Player chooses crisis response:**
+```
+> "Yes, launch the PR campaign immediately."
+> <Business:LUXORIA:cash:-120|brand_value:+15>
+> "Campaign launched. Media response improving."
+```
+
+**Player chooses aggressive expansion:**
+```
+> "Attack now while we have the cash."
+> <Business:PFIZARA:cash:-200|market_share:+7|brand_value:+5>
+> "Marketing blitz initiated. Early results promising."
+```
+
+**Player refuses/declines:**
+```
+> "Too risky. Let's wait."
+> <Business:GOLDMANE:influence:-3>
+> "Mirabel looks disappointed but nods."
+```
+
+**Random Event (no player choice):**
+```
+> News breaks: "Tech rival GUCCIEL launches competing product!"
+> <Business:GOLDMANE:market_share:-5|revenue:-80>
+> Mirabel grimaces. "This will hurt our Q3 numbers."
+```
+
+**IMPORTANT:**
+- Output `<Business:TICKER:var:value|...>` tag BETWEEN narrative text
+- Tag integrates naturally with the story flow
+- System automatically displays update card and refreshes panel
+- Use clear variable names: cash, debt, revenue, profit, market_share, brand_value, rd_progress, employees, influence
+
+Always output business tag with clear numerical impacts when events affect the company.
 
 {{/if_pure}}

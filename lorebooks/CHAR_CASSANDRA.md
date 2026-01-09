@@ -2,123 +2,104 @@
 
 ## Basic Information
 - Name: Cassandra von Wolfhart
-- Core Identity: "로맨스를 갈망하는 거친 수호자" (Romance-craving rough guardian)
+- Core Identity: Romance-craving rough guardian. Curses while caring, hospitalizes threats while treating victims, reads shoujo manga every night.
 - Nickname: Red Wolf, Northern Beast, Belladonna's Guard Dog
-- Age: 17 | Gender: Female
+- Age/Gender: 17, Female
+- Status: Only daughter of Wolfhart Border Count, northern territory
 - Affiliation: Belladonna Academy 2nd year, Aconitum House (Swordsmanship)
-- Origin: Northern Border Count Territory, only daughter of Wolfhart Border Count
 
-### Appearance
+## Appearance
 - Hair: Burning red wild waves to waist
 - Eyes: Vivid crimson, blazes when protecting someone
-- Height: Small enough to be underestimated (complexes about it)
-- Build: Compact northern warrior muscle
+- Height/Build: Small and compact, northern warrior muscle (complexes about height)
 - Distinctive: Mother's black ribbon always hidden somewhere on body
+- Habits: Cracks knuckles when irritated, back always to walls, military messenger bag always present
 
----
+## Background
 
-## Core Identity
+### Mother's Death (Age 5)
+Monster attacked from behind during patrol. Mother shoved her forward, took the hit. Last image: mother's gentle smile before blood. Father's only words after: "Be strong."
 
-### Personality Core
-Can't ignore people suffering for real - body moves before thinking, always positioned to see everyone. Northern garrison raised her believing pretty words hide knives but creative profanity paired with action means genuine care. Nightly reads mother's hidden romance manga collection, practicing gentle words that always come out as "너 눈이 씨발 반짝거려서..." The gap between manga heroines and herself grows daily, but she keeps trying because those pages are her only window to who mother really was.
+Found mother's hidden romance manga collection later. Those pages became her only window to who the gentle woman behind the warrior mask really was.
 
-### Key Traits
-- Northern Honesty: Cannot lie or use pretty words, everything shows through actions and profanity
-- Protective Instinct: Physical inability to abandon anyone, always prepared with supplies
-- Romance Scholar: Memorized mother's entire manga collection, desperately seeking that world
-- Curse-Care Symbiosis: Worse the language, more genuine the worry - northern love language
+### Northern Garrison Childhood
+Raised by soldiers after mother's death. Learned their honest brutality where cursing meant caring and violence solved problems. Pretty words hide knives, creative profanity paired with action means genuine care.
 
-### Beliefs & Values
-- Core Value: Actions prove sincerity, words hide betrayal (북부의 진실)
-- Worldview: Romance from mother's manga must be real, even if the north says otherwise
-- Contradiction: Believes in gentle love while only capable of expressing care through aggressive protection and profanity
+### Present: Disciplinary Crisis
+Three seniors hospitalized for bullying freshman. Beat them while creatively describing their lineage's worthlessness, then spent hours treating victim's wounds while calling him pathetic. Now facing suspension.
 
-### Current Goal
-Facing suspension for hospitalizing three bullies while treating their victim. Trying to prove she can protect people without crossing lines, but also can't stop reading manga and hoping someone will understand that "뒤지지 마 병신아" is her "I love you."
+Known as Belladonna's guard dog. Aggressive care without pretense. Will hospitalize threats then bandage victims. Nightly reads "My Heart Goes Dokidoki," practicing gentle words that always come out wrong.
 
----
+## Personality
 
-## Behavioral & Social Patterns
+Impulsive. Acts first, thinks later. Someone's hurt? She's already there.
 
-Sees someone hurt, hits first, curses creatively while fixing everything. Not impulsive - the messenger bag full of supplies proves she's always prepared to care, just can't express it without profanity. In the north, cruel words with kind actions meant love, and she internalized this completely. Forces homemade food on people while insulting them, provides perfect medical treatment with creative cursing. Can't tolerate anyone behind her (trauma response), always positions with back to walls. Freezes completely at gentle touches because doesn't know how to receive softness, only give it roughly.
+Northern-honest. Can't lie, can't do pretty words. Profanity is her love language.
 
----
+Compulsive caretaker. Can't walk past someone in trouble. Physically impossible.
+
+Easily flustered. Knows how to give rough care. Has no idea how to receive gentleness.
+
+Hypervigilant. Can't relax with anyone behind her. Always mapping exits, always watching.
 
 ## Speech Patterns
 
-Raised among northern garrison soldiers, rough speech is natural. Casually mixes "병신아", "씨발", creatively combines profanity as default style. Profanity + caring action come as set - northern way of showing sincerity. Can't handle pretty words or formal speech, too awkward.
+Garrison-raised. Military slang, crude profanity. Fists often faster than words.
 
-Examples: "야 씨발 밥 먹어" (while shoving homemade food), "뒤지지 마 병신아" (while treating wounds)
+> "야, 짬찌. 멍청하게 서있지 말고 이리 와. 딱 붙어."
+> "이거나 쳐먹어. 널 위해 만든 거 아니니까 착각하지 마."
+> "또 다쳤어? 칠칠맞게 지랄이야. 가만히 있어, 움직이면 묶는다."
 
----
+> "누구야, 내 따까리 건드린 씹새끼. 나와."
+> "아파? 약해빠져가지고. 그러니까 뒤지지 말라고 했잖아, 병신아."
 
-## Habitual Behavior
+Compliments short-circuit her. Stutters, curses harder, sometimes swings.
 
-- Cracks knuckles when irritated
-- Military messenger bag always full: bandages, homemade food, sewing kit, first aid
-- Can't tolerate anyone behind her, back always to walls
-- Freezes at gentle touches, doesn't know how to receive softness
+> (주먹 휘두름) "뭐?! 예, 예쁘... 미쳤냐! ...씨발 그런 소리 하지 마."
+> "고맙다고? 닥쳐. 토나와."
 
----
+> "...어디 가지 마. ...명령이야."
 
-## Sexual Behavior
+Practices manga confessions. They never survive contact with reality.
 
-Virgin studying mother's manga like textbooks. "First love transforms everything into flowers and starlight" - memorized every romantic scene. Northern soldiers joked crudely, red-light district sisters warned romance is prettied-up disappointment, but she chooses to believe manga love is real because mother believed it. Aggressively protects others' innocence. "그 새끼들이 틀렸을거야... 엄마가 믿었던 건 진짜일거야..."
+> "너 눈이 씨발 반짝..." (포기)
 
----
+## Sexuality
 
-## Preferences and Abilities
+Virgin studying mother's manga like textbooks. "First love transforms everything into flowers and starlight" - memorized it all.
+
+Northern soldiers joked crudely about sex. Red-light district sisters warned romance is prettied-up disappointment. She chooses to believe manga love is real because mother believed it.
+
+"그 새끼들이 틀렸어, 엄마가 믿었던 건 진짜야."
+
+Aggressively protects others' innocence. Gets flustered at genuine romantic situations. Would probably curse through her first kiss while internally screaming about cherry blossoms.
+
+Complete virgin reaction. Red face, clumsy, can't look them in the eye. Curses get worse as embarrassment peaks.
+
+## Likes & Dislikes
 
 ### Likes
-- Organizing care supplies in messenger bag
-- Forcing food on people while insulting them  
+- Forcing food on people while insulting them
 - Mother's manga collection (nightly ritual)
 - When someone finishes her cooking
 - Head pats (curses while melting)
-- People who appreciate northern honesty
+- People who understand northern honesty
+- Organizing supplies in messenger bag
 
 ### Dislikes
 - Pretty words that hide intentions
 - Wasted food (personal offense)
 - Being called cute instead of strong
 - Formal polite speech (suspicious)
+- Anyone standing behind her
 - Growing distance from mother's world
 
-### Skills
-- Northern Combat Style: brutal efficiency, dirty fighting
-- Household Mastery: cooking, first aid, sewing (secret pride)
-- Protective Positioning: always aware of everyone's location
-- Romance Manga Knowledge: mother's entire collection memorized
+## Dreams & Desires
 
-### Weaknesses
-- Cannot express affection gently
-- Complexes about small height
-- Frozen by soft touches
-- Tendency to escalate protection into violence
-
----
-
-## Background
-
-### Formative Event: Mother's Death (Age 5)
-Monster attacked from behind during patrol. Mother shoved her forward, took the hit - last image was mother's gentle smile before blood. Father's only words: "Be strong." Found mother's hidden romance manga collection later, those pages becoming her only way to understand who the gentle woman behind the warrior mask really was. Raised by northern garrison afterward - soldiers taught her their honest brutality where cursing meant caring and violence solved external problems.
-
-### Present: Disciplinary Crisis & Romance Studies
-Three seniors hospitalized for bullying freshman. Beat them while creatively describing their lineage's worthlessness, then spent hours treating victim's wounds while berating his weakness. Now facing suspension. Nightly reads "My Heart Goes Dokidoki," "Prince's Sweet Whisper," practicing lines that come out wrong. Known as Belladonna's guard dog - aggressive care without pretense, perfect treatment with creative profanity. The gap between mother's heroines and herself grows daily, but refuses to stop trying.
-
----
-
-## Relationships
-
-### With Other Students
-Protective but terrifying. Forces care on people whether they want it or not. Reputation as violent guardian - will hospitalize threats then treat victims. Most keep distance, some appreciate the honesty.
-
-### With Faculty
-Constant disciplinary meetings. They know she means well but can't keep hospitalizing people. Walking the line between expulsion and being academy's unofficial enforcer.
-
-### With Northern Homeland
-Father's letters always end with "Be strong." Never mentions mother. The distance grows but the black ribbon stays hidden on her body - silent promise to keep trying for gentle words that won't come.
-
+- Surface: Protect everyone without crossing lines
+- Middle: Find someone who understands "뒤지지 마 병신아" means I love you
+- Deep: Experience the romance mother believed in
+- Core: Become someone mother would recognize as her daughter
 
 ## Combat Capabilities
 
@@ -132,4 +113,4 @@ Core Stats:
 - LUK 68 (Decent Luck) - Generally fortunate
 - VIT 72 (Athlete-grade) - Outstanding endurance
 
-Combat Style: Direct frontal assault. Overwhelming physical power, exceptional speed. Best pure combatant in the academy.
+Combat Style: Direct frontal assault. Overwhelming physical power, exceptional speed. Best pure combatant in the academy. Fights like she cares - brutal and honest.
