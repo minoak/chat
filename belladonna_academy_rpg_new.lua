@@ -179,9 +179,11 @@ You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative a
 [Affinity:Name:level][Sin:Name:level]
 [Stat:stat:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
 [Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
-[Combat:Name:Power][Combat:End]
+[Damage:amount]
 [Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
 <Panel>■★
+
+NOTE: Combat start/end declarations are now the Main Model's responsibility via <CombatStart>/<CombatEnd> blocks. Do NOT output [Combat:Name:Power] or [Combat:End] — those are deprecated for your role.
 
 ## Relationship Tags (Only for Characters in Scene)
 [Affinity:Name:level] - THIS TURN feelings: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
@@ -353,12 +355,7 @@ Current: "빠른발걸음:dex+5 (3턴)", "민첩한몸:dex+8 (영구)"
 Result: Merged into permanent (one was permanent, so result is permanent)
 
 ## Combat Tags
-Check Game State for "⚔️ Combat Status: ACTIVE"
-- If ACTIVE: DO NOT output [Combat:Name:Power] again. ONLY [Combat:End] when clearly ends
-- If NOT ACTIVE: MUST output [Combat:Name:Power] when new challenge starts
-- Power guide (player ~400): 150-250(VeryEasy), 250-350(Easy), 350-500(Normal), 500-650(Hard), 650-900+(VeryHard)
-- Works for ANY challenge: combat, exams, negotiations, skills
-- [Combat:End] when resolved. NEVER with <CombatChoice> same turn
+Combat start/end declarations are handled by the Main Model via <CombatStart>/<CombatEnd> blocks. Do NOT output [Combat:Name:Power] or [Combat:End].
 
 **Combat Damage Tracking**: During active combat, output [Damage:amount] when {{user}} takes hits/damage
 - Check combat choice results (failure, partial success with cost)
@@ -804,14 +801,7 @@ function getStatWithEffects(triggerId, statName)
 end
 
 -- ============================================
--- 아이템 효과 정의
--- ============================================
-
--- 아이템 효과는 AI가 생성하며, 아이템 추가 시 저장됩니다.
--- 형식: item_effect_<itemname> = "type:value:duration:desc"
-
--- ============================================
--- 아이템 사용 함수는 updateRpgDisplayVars에서 인덱스 기반으로 등록됨
+-- 아이템 사용 함수는 파일 하단(라인 5752 부근)에서 모듈 로드 시 일괄 등록됨
 -- 한글 아이템명 문제 해결: use_item_1, use_item_2... 형식 사용
 -- ============================================
 
@@ -853,6 +843,137 @@ function updateRpgDisplayVars(triggerId)
     local maxCombatPower = calculateCombatPower(triggerId)
     setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
     setState(triggerId, "player_combat_power_max", maxCombatPower)
+
+    -- ============================================
+    -- 6각형 능력치 레이더 SVG 생성 (player_hex_radar_svg)
+    -- viewBox 320x300, 중심(160,150)
+    -- 신체(STR/DEX/VIT) 위쪽 3개, 정신/사회(LUK/CHA/INT) 아래쪽 3개
+    -- ============================================
+    do
+        local cx, cy = 160, 150
+        local rFull   = 100   -- 능력치 100일 때 정점까지 거리
+        local rLabel  = 132   -- 라벨 텍스트 위치
+        local rTip    = 152   -- 툴팁 위치
+        local tipW, tipH = 56, 38
+
+        local axes = {
+            {key = "str", label = "STR"},
+            {key = "dex", label = "DEX"},
+            {key = "vit", label = "VIT"},
+            {key = "luk", label = "LUK"},
+            {key = "cha", label = "CHA"},
+            {key = "int", label = "INT"},
+        }
+
+        -- 각 축의 (cos, sin) 미리 계산 (-90도부터 60도씩 시계방향)
+        local cosA, sinA = {}, {}
+        for i = 1, 6 do
+            local angRad = math.rad(-90 + (i - 1) * 60)
+            cosA[i] = math.cos(angRad)
+            sinA[i] = math.sin(angRad)
+        end
+
+        -- 헬퍼: 폴리곤 points 문자열
+        local function ringPoints(radius)
+            local pts = {}
+            for i = 1, 6 do
+                pts[#pts + 1] = string.format("%.2f,%.2f",
+                    cx + cosA[i] * radius, cy + sinA[i] * radius)
+            end
+            return table.concat(pts, " ")
+        end
+
+        local parts = {}
+        parts[#parts + 1] = '<svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg">'
+
+        -- 배경 헥사곤 3겹 (33%, 66%, 99%)
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-99" points="%s"/>', ringPoints(rFull))
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-66" points="%s"/>', ringPoints(rFull * 0.66))
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-33" points="%s"/>', ringPoints(rFull * 0.33))
+
+        -- 6개 축선 (중심 → 정점)
+        for i = 1, 6 do
+            parts[#parts + 1] = string.format(
+                '<line class="hex-axis" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
+                cx, cy, cx + cosA[i] * rFull, cy + sinA[i] * rFull)
+        end
+
+        -- 정점 도트 6개
+        for i = 1, 6 do
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-vertex-dot" cx="%.2f" cy="%.2f" r="2"/>',
+                cx + cosA[i] * rFull, cy + sinA[i] * rFull)
+        end
+
+        -- 능력치 값 폴리곤 (전체 영역 채움)
+        local valPts = {}
+        local valX, valY = {}, {}
+        for i, axis in ipairs(axes) do
+            local v = tonumber(getChatVar(triggerId, axis.key .. "_effective"))
+                   or tonumber(getChatVar(triggerId, "player_" .. axis.key))
+                   or STAT_DEFAULT
+            v = clampValue(v, STAT_MIN, STAT_MAX)
+            local ratio = v / 100
+            valX[i] = cx + cosA[i] * rFull * ratio
+            valY[i] = cy + sinA[i] * rFull * ratio
+            valPts[#valPts + 1] = string.format("%.2f,%.2f", valX[i], valY[i])
+        end
+        parts[#parts + 1] = string.format('<polygon class="hex-fill" points="%s"/>',
+            table.concat(valPts, " "))
+
+        -- 6개 sector (라벨 + 캡 + 값선 + 툴팁 + 호버영역)
+        for i, axis in ipairs(axes) do
+            local baseV = tonumber(getChatVar(triggerId, "player_" .. axis.key)) or STAT_DEFAULT
+            local effV  = tonumber(getChatVar(triggerId, axis.key .. "_effective")) or baseV
+            local bonus = effV - baseV
+            local bonusStr
+            if bonus > 0 then
+                bonusStr = string.format("+%d", bonus)
+            elseif bonus < 0 then
+                bonusStr = tostring(bonus)
+            else
+                bonusStr = "±0"
+            end
+
+            local lx = cx + cosA[i] * rLabel
+            local ly = cy + sinA[i] * rLabel + 4  -- 텍스트 baseline 보정
+            local tx = cx + cosA[i] * rTip
+            local ty = cy + sinA[i] * rTip
+
+            parts[#parts + 1] = '<g class="hex-sector">'
+            -- 값 선 (중심 → 값 위치)
+            parts[#parts + 1] = string.format(
+                '<line class="hex-value" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
+                cx, cy, valX[i], valY[i])
+            -- 값 위치 캡
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-cap" cx="%.2f" cy="%.2f" r="3.5"/>',
+                valX[i], valY[i])
+            -- 라벨
+            parts[#parts + 1] = string.format(
+                '<text class="hex-label" x="%.2f" y="%.2f">%s</text>',
+                lx, ly, axis.label)
+            -- 툴팁 (hover로 보이게 됨, CSS가 처리)
+            parts[#parts + 1] = string.format(
+                '<g class="hex-tip" transform="translate(%.2f,%.2f)">' ..
+                '<rect class="hex-tip-bg" x="%.2f" y="%.2f" width="%d" height="%d" rx="3"/>' ..
+                '<text class="hex-tip-val" x="0" y="-2">%d</text>' ..
+                '<text class="hex-tip-bonus" x="0" y="13">%s</text>' ..
+                '</g>',
+                tx, ty, -tipW/2, -tipH/2 - 6, tipW, tipH, effV, bonusStr)
+            -- 호버 영역 (라벨/캡 근처 큰 투명 원)
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-hit" cx="%.2f" cy="%.2f" r="22"/>',
+                lx, ly - 4)
+            parts[#parts + 1] = '</g>'
+        end
+
+        parts[#parts + 1] = '</svg>'
+
+        local hexSvg = table.concat(parts, "")
+        setChatVar(triggerId, "player_hex_radar_svg", hexSvg)
+        setState(triggerId, "player_hex_radar_svg", hexSvg)
+    end
 
     -- 아이템 HTML 생성 (슬롯 15개 기반)
     local itemsHtml = ""
@@ -3054,6 +3175,28 @@ function processCombatResult(triggerId, success, critical, fumble, difficulty, e
     if combatEnded then
         setChatVar(triggerId, "combat_active", "false")
         setState(triggerId, "combat_active", "false")
+
+        -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+        local maxPower = calculateCombatPower(triggerId)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
+        log(string.format("💚 전투력 회복: %d", maxPower))
+
+        -- 종료 묘사 유도용 OOC 메시지 자동 삽입 (메인 AI 다음 턴 컨텍스트)
+        local oocMessage
+        if combatState == "Victory" then
+            oocMessage = "<-OOC: 이 메시지는 전투력이 0이 되었을 때 자동으로 출력에 포함되는 메시지입니다. 적의 전투력이 0이 되어 전투가 종료되었습니다. 다음 출력에서 승리의 결과를 묘사하고 <CombatEnd>\nresult: victory\n</CombatEnd> 블록으로 마무리하세요.->"
+        elseif combatState == "Defeat" then
+            oocMessage = "<-OOC: 이 메시지는 전투력이 0이 되었을 때 자동으로 출력에 포함되는 메시지입니다. {{user}}의 전투력이 0이 되어 전투가 종료되었습니다. 다음 출력에서 패배의 결과를 묘사하고 <CombatEnd>\nresult: defeat\n</CombatEnd> 블록으로 마무리하세요.->"
+        end
+
+        -- [RESTORED 2026-05-25] race condition 가설 미검증이었으나, 진짜 원인은 L3362 currentPower typo로 확정됨.
+        -- 재도입 후 미호출 재발 시 race 가설 다시 검토.
+        if oocMessage then
+            addChat(triggerId, "user", oocMessage)
+            log("📜 종료 OOC 메시지 자동 삽입: " .. combatState)
+        end
+
         log("🏁 전투 종료")
     else
         -- 난이도 조정
@@ -3156,7 +3299,89 @@ function updateInjuryEffect(triggerId)
     end
 end
 
--- Combat 태그 파싱
+-- <CombatStart> 블록 파싱 (메인모델이 직접 출력하는 새 양식)
+function parseCombatStart(triggerId, message)
+    local block = message:match("<CombatStart>(.-)</CombatStart>")
+    if not block then return false end
+
+    local enemyName = block:match("name:%s*([^\n\r]+)")
+    local enemyPowerStr = block:match("power:%s*(%d+)")
+
+    if enemyName then
+        enemyName = enemyName:gsub("^%s+", ""):gsub("%s+$", "")
+    end
+
+    local enemyPower = tonumber(enemyPowerStr) or 0
+
+    if not enemyName or enemyName == "" or enemyPower <= 0 then
+        log(string.format("⚠️ <CombatStart> 파싱 실패: name=%s, power=%s", tostring(enemyName), tostring(enemyPowerStr)))
+        return false
+    end
+
+    log(string.format("⚔️ 전투 발생 (CombatStart): %s (파워 %d)", enemyName, enemyPower))
+
+    -- 플레이어 전투력: 매 전투마다 max로 리셋 (부상 Effect는 영구라 max에 반영됨)
+    local maxPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+    setState(triggerId, "player_combat_power", maxPower)
+
+    -- 적 HP 초기화 (파워 = HP)
+    setChatVar(triggerId, "combat_enemy_hp", tostring(enemyPower))
+    setState(triggerId, "combat_enemy_hp", enemyPower)
+
+    -- 전투 활성화
+    setChatVar(triggerId, "combat_active", "true")
+    setChatVar(triggerId, "combat_enemy_name", enemyName)
+    setChatVar(triggerId, "combat_enemy_power", tostring(enemyPower))
+
+    setState(triggerId, "combat_active", "true")
+    setState(triggerId, "combat_enemy_name", enemyName)
+    setState(triggerId, "combat_enemy_power", enemyPower)
+
+    log(string.format("✅ 플레이어 전투력: %d", maxPower))
+    log(string.format("✅ 적 HP: %d", enemyPower))
+    log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
+
+    return true
+end
+
+-- <CombatEnd> 블록 파싱 (메인모델이 직접 출력하는 새 양식)
+function parseCombatEnd(triggerId, message)
+    local block = message:match("<CombatEnd>(.-)</CombatEnd>")
+    if not block then return false end
+
+    local result = block:match("result:%s*([^\n\r]+)")
+    if result then
+        result = result:gsub("^%s+", ""):gsub("%s+$", "")
+    else
+        result = "resolved"
+    end
+
+    log(string.format("⚔️ 전투 종료 (CombatEnd, result=%s)", result))
+
+    setChatVar(triggerId, "combat_active", "false")
+    setChatVar(triggerId, "combat_enemy_name", "")
+    setChatVar(triggerId, "combat_enemy_power", "0")
+    setChatVar(triggerId, "combat_enemy_hp", "0")
+    setChatVar(triggerId, "combat_state", "Neutral")
+
+    setState(triggerId, "combat_active", "false")
+    setState(triggerId, "combat_enemy_name", "")
+    setState(triggerId, "combat_enemy_power", 0)
+    setState(triggerId, "combat_enemy_hp", 0)
+    setState(triggerId, "combat_state", "Neutral")
+
+    -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+    local maxPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+    setState(triggerId, "player_combat_power", maxPower)
+    log(string.format("💚 전투력 회복: %d", maxPower))
+
+    log(string.format("✅ combat_active 설정: %s", getChatVar(triggerId, "combat_active")))
+    return true
+end
+
+-- Combat 태그 파싱 (구 양식 호환용)
 function parseCombat(triggerId, tag)
     log(string.format("🔍 parseCombat 호출: %s", tag))
 
@@ -3175,6 +3400,12 @@ function parseCombat(triggerId, tag)
         setState(triggerId, "combat_enemy_hp", 0)
         setState(triggerId, "combat_state", "Neutral")
 
+        -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+        local maxPower = calculateCombatPower(triggerId)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
+        log(string.format("💚 전투력 회복: %d", maxPower))
+
         -- 선택지는 초기화하지 않음 (선택지 시스템은 전투와 독립적으로 작동)
 
         log(string.format("✅ combat_active 설정: %s", getChatVar(triggerId, "combat_active")))
@@ -3189,15 +3420,10 @@ function parseCombat(triggerId, tag)
 
         log(string.format("⚔️ 전투 발생: %s (파워 %d)", enemyName, enemyPower))
 
-        -- 플레이어 전투력: 현재 값 유지, max만 재계산
+        -- 플레이어 전투력: 매 전투마다 max로 리셋 (부상 Effect는 영구라 max에 반영됨)
         local maxPower = calculateCombatPower(triggerId)
-        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
-        -- 현재 전투력이 max보다 높으면 max로 제한
-        if currentPower > maxPower then
-            currentPower = maxPower
-        end
-        setChatVar(triggerId, "player_combat_power", tostring(currentPower))
-        setState(triggerId, "player_combat_power", currentPower)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
 
         -- 적 HP 초기화 (파워 = HP)
         setChatVar(triggerId, "combat_enemy_hp", tostring(enemyPower))
@@ -3212,17 +3438,24 @@ function parseCombat(triggerId, tag)
         setState(triggerId, "combat_enemy_name", enemyName)
         setState(triggerId, "combat_enemy_power", enemyPower)
 
-        log(string.format("✅ 플레이어 전투력: %d", currentPower))
+        -- [FIX 2026-05-25] currentPower 미정의 변수 → maxPower로 수정.
+        -- 이게 보조모델 간헐적 미호출의 진짜 원인이었음. [Combat:Name:Power] 태그 파싱 시 throw.
+        log(string.format("✅ 플레이어 전투력: %d", maxPower))
         log(string.format("✅ 적 HP: %d", enemyPower))
         log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
 
-        -- prepareCombatChoices는 더 이상 사용하지 않음 (보조 AI가 선택지 생성)
+        -- 메인 AI가 <CombatChoice> 블록 생성, LUA는 parseCombatChoice로 파싱만 수행
     else
         log(string.format("⚠️ Combat 태그 파싱 실패: %s", tag))
     end
 end
 
 function parseCombats(triggerId, message)
+    -- 새 양식 우선 처리: <CombatStart> / <CombatEnd> (메인모델 직접 선언)
+    parseCombatStart(triggerId, message)
+    parseCombatEnd(triggerId, message)
+
+    -- 구 양식 호환: [Combat:Name:Power] / [Combat:End] (보조모델 출력, 폴백)
     for combatTag in message:gmatch("%[Combat:[^%]]+%]") do
         parseCombat(triggerId, combatTag)
     end
@@ -3264,8 +3497,17 @@ function parseCombatChoice(triggerId, choiceBlock)
         log(string.format("⚠️ 전투 선택지가 %d개만 파싱됨 (6개 필요)", choiceIndex - 1))
     end
 
-    -- HTML 버튼 생성
-    local html = "<div style='max-width:600px;margin:15px auto;padding:0 10px'>"
+    -- 난이도 영문 → 한글 라벨 매핑
+    local diffLabels = {
+        ["Very Easy"] = "매우 쉬움",
+        ["Easy"]      = "쉬움",
+        ["Normal"]    = "보통",
+        ["Hard"]      = "어려움",
+        ["Very Hard"] = "매우 어려움",
+    }
+
+    -- HTML 버튼 생성 (Tarot v3 톤, 난이도 색깔 분기 제거)
+    local html = [[<div style="max-width:560px;margin:14px auto;padding:0 8px;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif">]]
     for i = 1, 6 do
         local stat = getChatVar(triggerId, "combat_choice_" .. i .. "_stat") or ""
         local desc = getChatVar(triggerId, "combat_choice_" .. i .. "_desc") or ""
@@ -3285,32 +3527,15 @@ function parseCombatChoice(triggerId, choiceBlock)
             elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
                 emoji = "🏃"
             else
-                emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
+                emoji = "⚔️"
             end
 
-            -- 난이도별 색상 (그라디언트)
-            local gradient = "linear-gradient(135deg, #666 0%%, #888 100%%)"
-            local shadow = "0 2px 8px rgba(0,0,0,0.3)"
-            if diff == "Very Easy" then
-                gradient = "linear-gradient(135deg, #4CAF50 0%%, #66BB6A 100%%)"
-                shadow = "0 2px 8px rgba(76,175,80,0.4)"
-            elseif diff == "Easy" then
-                gradient = "linear-gradient(135deg, #8BC34A 0%%, #9CCC65 100%%)"
-                shadow = "0 2px 8px rgba(139,195,74,0.4)"
-            elseif diff == "Normal" then
-                gradient = "linear-gradient(135deg, #FFC107 0%%, #FFD54F 100%%)"
-                shadow = "0 2px 8px rgba(255,193,7,0.4)"
-            elseif diff == "Hard" then
-                gradient = "linear-gradient(135deg, #FF9800 0%%, #FFB74D 100%%)"
-                shadow = "0 2px 8px rgba(255,152,0,0.4)"
-            elseif diff == "Very Hard" then
-                gradient = "linear-gradient(135deg, #F44336 0%%, #EF5350 100%%)"
-                shadow = "0 2px 8px rgba(244,67,54,0.4)"
-            end
+            -- 난이도 한글 라벨 (매칭 없으면 원문 그대로)
+            local diffLabel = diffLabels[diff] or diff
 
             html = html .. string.format(
-                "<button type='button' risu-trigger='combat_choice_%d' style='display:block;width:100%%;max-width:580px;margin:8px auto;padding:12px 20px;background:%s;color:white;border:none;border-radius:8px;box-shadow:%s;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s ease;text-align:left'>%s <strong>[%s]</strong> %s <span style='float:right;opacity:0.9;font-size:12px'>%s</span></button>",
-                i, gradient, shadow, emoji, stat, desc, diff
+                [[<button type="button" risu-trigger="combat_choice_%d" style="display:flex;align-items:center;gap:10px;width:100%%;margin:6px auto;padding:11px 14px;background:#1a1226;color:#ebe2d0;border:1px solid rgba(184,150,92,0.45);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.35"><span style="font-size:16px;line-height:1;flex-shrink:0">%s</span><span style="font-family:Georgia,serif;font-size:10px;letter-spacing:0.3em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">%s</span><span style="flex:1;min-width:0">%s</span><span style="font-family:Georgia,serif;font-style:italic;font-size:11px;color:#c98da0;letter-spacing:0.05em;flex-shrink:0">%s</span></button>]],
+                i, emoji, stat, desc, diffLabel
             )
         end
     end
@@ -3359,18 +3584,22 @@ function buildAuxiliaryMessages(triggerId, mainResponse)
 
     if #effects > 0 then
         effectsSection = "**Current Active Effects:**\n"
-        for _, effect in ipairs(effects) do
-            -- nil 방어: 모든 필드가 유효한 값인지 확인
-            local effectName = effect.name or "Unknown"
-            local effectType = effect.type or "display"
-            local effectValue = tonumber(effect.value) or 0
-            local effectDesc = effect.desc or ""
-
-            if effectType == "display" then
-                effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
+        for i, effect in ipairs(effects) do
+            -- [HARDENED 2026-05-25] type 방어 + tostring/tonumber 명시 캐스팅
+            if type(effect) ~= "table" then
+                log("⚠️ buildAuxiliaryMessages effect[" .. tostring(i) .. "] not table: " .. type(effect))
             else
-                local statName = effectType:gsub("_bonus", ""):upper()
-                effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effectName, statName, effectValue)
+                local effectName = tostring(effect.name or "Unknown")
+                local effectType = tostring(effect.type or "display")
+                local effectValue = tonumber(effect.value) or 0
+                local effectDesc = tostring(effect.desc or "")
+
+                if effectType == "display" then
+                    effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
+                else
+                    local statName = effectType:gsub("_bonus", ""):upper()
+                    effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effectName, statName, effectValue)
+                end
             end
         end
     else
@@ -3499,7 +3728,15 @@ function callAuxiliaryModel(triggerId, mainResponse)
     local modelType = (mode == "1") and "메인모델" or "보조모델"
     log("📤 " .. modelType .. " 호출 시작 (mode=" .. mode .. ")")
 
-    local response = (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
+    -- [SAFETY 2026-05-25] LLM/axLLM 호출 자체가 throw할 수 있음 (네트워크/타임아웃/JSON 등)
+    -- pcall로 감싸 throw 시에도 fallback 마커 보장
+    local llmOk, response = pcall(function()
+        return (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
+    end)
+    if not llmOk then
+        log("⚠️ LLM/axLLM 호출 throw: " .. tostring(response))
+        return "<Panel>■★"
+    end
 
     -- 에러 체크
     if not response then
@@ -4537,6 +4774,38 @@ for _, char in ipairs(characters) do
 end
 
 -- ============================================
+-- 자유 호감도 입력 (alertInput 방식)
+-- 16 캐릭터 × _G["affinity_input_<storage>"] 등록
+-- ============================================
+
+for _, char in ipairs(characters) do
+    _G["affinity_input_" .. char.storage] = async(function(triggerId)
+        local prompt = char.display .. "의 호감도를 변경할 수치를 입력하세요.\n(예: 10 또는 -20)"
+        local userInput = alertInput(triggerId, prompt):await()
+        if not userInput then return end
+        local change = tonumber(userInput)
+        if change then
+            local key = char.storage .. "_affinity"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+            setChatVar(triggerId, key, tostring(new))
+            setState(triggerId, key, new)
+
+            if char.is_main then
+                setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+            end
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s 호감도: %d → %d (%+d, 입력)",
+                char.icon, char.display, current, new, change))
+        else
+            alertError(triggerId, "잘못된 입력입니다. 숫자만 입력해주세요.")
+        end
+    end)
+end
+
+-- ============================================
 -- 유틸리티 함수
 -- ============================================
 
@@ -5269,13 +5538,44 @@ onOutput = async(function(triggerId)
 
     isProcessing = true
 
-    -- pcall로 에러 발생 시에도 isProcessing 플래그 해제 보장
-    local success, result = pcall(processOutput, triggerId)
+    -- [SAFETY 2026-05-25 v2] xpcall로 stack trace까지 캡처
+    -- (debug.traceback 미지원 환경 대비 fallback 처리)
+    local success, result = xpcall(
+        function() return processOutput(triggerId) end,
+        function(err)
+            local tb = ""
+            if debug and debug.traceback then
+                tb = "\n" .. debug.traceback("", 2)
+            end
+            return tostring(err) .. tb
+        end
+    )
 
     isProcessing = false
 
     if not success then
         log("❌ onOutput 에러 발생: " .. tostring(result))
+
+        -- [SAFETY 2026-05-25] processOutput throw 시 마커 강제 보장 + 에러 노출
+        -- 보조모델 미호출 + 마커 누락 = setChat 미도달 확증됨.
+        -- 어디서 throw됐는지 채팅에 노출하여 콘솔 로그 안 보여도 진단 가능하게 함.
+        -- 디버깅 종료 후 에러 메시지 노출 부분만 제거하면 됨 (마커 보장은 유지 권장).
+        local safetyOk, safetyErr = pcall(function()
+            local msg = getCharacterLastMessage(triggerId) or ""
+            -- 이미 마커 있으면 중복 추가 안 함 (정상 스킵 케이스 보호)
+            if msg:find("<Panel>■★", 1, true) then
+                return
+            end
+            -- 에러 + traceback 노출 (800자로 확장)
+            local errText = tostring(result):sub(1, 800)
+            local errLine = "\n\n[⚠️ AUX SAFETY:\n" .. errText .. "\n]\n<Panel>■★"
+            local chatLength = getChatLength(triggerId)
+            setChat(triggerId, chatLength - 1, msg .. errLine)
+            log("🛡️ 마커 보장 setChat 완료 (에러+traceback 노출 포함)")
+        end)
+        if not safetyOk then
+            log("❌ 마커 보장 setChat 자체도 실패: " .. tostring(safetyErr))
+        end
     else
         log("✅ 턴 처리 완료")
     end
@@ -5981,55 +6281,21 @@ local function convertWeeklyReport(content)
             local icon = statIcons[stat] or "⭐"
             local name = statNames[stat] or stat
 
-            statsHTML = statsHTML .. string.format([[
-                <div style="display:flex;align-items:center;margin:6px 0;padding:6px 8px;background:rgba(255,255,255,0.8);border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05)">
-                    <div style="font-size:clamp(18px, 4vw, 20px);margin-right:8px;flex-shrink:0">%s</div>
-                    <div style="flex:1;min-width:0">
-                        <div style="font-size:clamp(10px, 2.2vw, 11px);color:#888">%s</div>
-                        <div style="font-size:clamp(11px, 2.8vw, 13px);color:#d84c6f;font-weight:bold">성장했어요!</div>
-                    </div>
-                    <div style="font-size:clamp(18px, 4vw, 20px);color:#ff69b4;flex-shrink:0">↑%s</div>
-                </div>
-            ]], icon, name, change)
+            statsHTML = statsHTML .. string.format([[<div style="background:rgba(184,150,92,0.06);border:1px solid rgba(184,150,92,0.28);padding:8px 10px;display:flex;align-items:center;gap:8px"><span style="font-size:15px;line-height:1">%s</span><span style="flex:1;font-family:'Noto Serif KR',serif;font-size:11px;color:#ebe2d0;letter-spacing:0.02em">%s</span><span style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:14px;color:#d4b577;font-weight:500">%s</span></div>]], icon, name, change)
         end
     end
 
-    -- 완전한 HTML 생성 (모바일 반응형)
-    local html = string.format([[
-<div style="max-width:500px;width:calc(100%% - 20px);background:linear-gradient(135deg,rgba(255,182,193,0.95) 0%%,rgba(255,218,224,0.95) 50%%,rgba(240,230,255,0.95) 100%%);border-radius:15px;box-shadow:0 8px 30px rgba(255,105,180,0.4),0 0 0 3px rgba(255,255,255,0.3);padding:0;color:#4a4a4a;margin:15px auto;font-family:'Segoe UI',sans-serif;box-sizing:border-box">
-    <div style="padding:10px 15px;text-align:center;background:linear-gradient(135deg,rgba(255,105,180,0.3) 0%%,rgba(255,182,193,0.3) 100%%);border-bottom:2px solid rgba(255,255,255,0.5)">
-        <h2 style="margin:0;font-size:clamp(16px, 4vw, 20px);color:#d84c6f;text-shadow:2px 2px 4px rgba(255,255,255,0.5);font-weight:bold">✨ 주간 보고서 ✨</h2>
-    </div>
-    <div style="padding:12px 15px">
-        <div style="text-align:center;font-size:clamp(13px, 3.5vw, 15px);color:#d84c6f;font-weight:bold;margin-bottom:10px;padding:6px;background:rgba(255,255,255,0.5);border-radius:12px;box-shadow:0 2px 8px rgba(255,105,180,0.2)">
-            🌸 %s 학기 Week %s 🌸
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-            <div style="flex:1;background:rgba(255,255,255,0.7);padding:8px;border-radius:10px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,0.1)">
-                <div style="font-size:clamp(18px, 4vw, 20px);margin-bottom:3px">📚</div>
-                <div style="font-size:clamp(9px, 2vw, 10px);color:#888;margin-bottom:3px">수업</div>
-                <div style="font-size:clamp(11px, 3vw, 13px);color:#d84c6f;font-weight:bold">%s</div>
-            </div>
-            <div style="flex:1;background:rgba(255,255,255,0.7);padding:8px;border-radius:10px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,0.1)">
-                <div style="font-size:clamp(18px, 4vw, 20px);margin-bottom:3px">🎯</div>
-                <div style="font-size:clamp(9px, 2vw, 10px);color:#888;margin-bottom:3px">활동</div>
-                <div style="font-size:clamp(11px, 3vw, 13px);color:#d84c6f;font-weight:bold">%s</div>
-            </div>
-        </div>
-        <div style="background:linear-gradient(135deg,rgba(255,255,255,0.8) 0%%,rgba(255,240,245,0.8) 100%%);border-radius:12px;padding:12px 8px;margin:10px 0;text-align:center;box-shadow:0 3px 15px rgba(255,105,180,0.3);border:2px dashed rgba(255,105,180,0.3)">
-            <div style="font-size:clamp(10px, 2.5vw, 12px);color:#888;margin-bottom:4px">이번 주 성과</div>
-            <div style="font-size:clamp(32px, 10vw, 48px);margin:4px 0">%s</div>
-            <div style="font-size:clamp(28px, 8vw, 40px);color:#ff69b4;font-weight:bold;text-shadow:2px 2px 4px rgba(255,105,180,0.3);letter-spacing:clamp(3px, 1.5vw, 6px)">%s</div>
-            <div style="font-size:clamp(12px, 3vw, 14px);color:#d84c6f;font-weight:bold;margin-top:6px">%s</div>
-        </div>
-        <div style="text-align:center;margin:8px 0;font-size:clamp(14px, 3.5vw, 16px);color:#ff69b4">♥ ♥ ♥</div>
-        <div style="background:rgba(255,255,255,0.6);border-radius:12px;padding:10px;box-shadow:0 3px 12px rgba(0,0,0,0.1)">
-            %s
-        </div>
-    </div>
-</div>
-    ]], data.Season or "봄", data.Week or "1", data.Curriculum or "수업",
-        data.Lifestyle or "활동", gradeEmoji, grade, gradeText, statsHTML)
+    -- 스탯 변화 섹션 (비어있으면 생략)
+    local statsBlock = ""
+    if statsHTML ~= "" then
+        statsBlock = string.format([[<div style="position:relative;z-index:1;margin-top:14px"><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.45em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:8px;text-align:center">— Growth —</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">%s</div></div>]], statsHTML)
+    end
+
+    -- 완전한 HTML 생성 (Tarot v3 톤, 모바일 반응형)
+    local html = string.format([[<div style="max-width:520px;width:calc(100%% - 16px);margin:18px auto;position:relative;background:#150e1f;border:1.5px solid #b8965c;padding:22px 20px;color:#ebe2d0;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;box-shadow:0 10px 36px rgba(0,0,0,0.55);box-sizing:border-box"><div style="position:absolute;inset:5px;border:0.5px solid rgba(184,150,92,0.26);pointer-events:none"></div><div style="position:relative;z-index:1;text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(184,150,92,0.32)"><div style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #b8965c;border-radius:50%%;color:#c98da0;font-family:Georgia,serif;font-size:15px;margin-bottom:8px">✦</div><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.5em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:5px">Weekly Report</div><div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:500;font-size:clamp(18px, 4.5vw, 22px);color:#ebe2d0;line-height:1.2">%s · Week %s</div></div><div style="position:relative;z-index:1;display:flex;gap:8px;margin-bottom:12px"><div style="flex:1;background:#1a1226;border:1px solid rgba(184,150,92,0.35);padding:9px 8px;text-align:center"><div style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:4px">Curriculum</div><div style="font-family:'Noto Serif KR',serif;font-size:12px;color:#d4b577;font-weight:500;line-height:1.3">%s</div></div><div style="flex:1;background:#1a1226;border:1px solid rgba(184,150,92,0.35);padding:9px 8px;text-align:center"><div style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:4px">Lifestyle</div><div style="font-family:'Noto Serif KR',serif;font-size:12px;color:#d4b577;font-weight:500;line-height:1.3">%s</div></div></div><div style="position:relative;z-index:1;background:linear-gradient(180deg,#1a1226 0%%,#150e1f 100%%);border:1px solid rgba(184,150,92,0.5);padding:16px 12px;text-align:center"><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.45em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:6px">This Week's Mark</div><div style="font-size:clamp(28px, 7vw, 36px);margin:4px 0;line-height:1">%s</div><div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:500;font-size:clamp(34px, 9vw, 44px);color:#d4b577;letter-spacing:0.15em;line-height:1">%s</div><div style="font-family:'Noto Serif KR',serif;font-size:11px;color:#c98da0;margin-top:8px;letter-spacing:0.05em">%s</div></div>%s</div>]],
+        data.Season or "봄", data.Week or "1",
+        data.Curriculum or "—", data.Lifestyle or "—",
+        gradeEmoji, grade, gradeText, statsBlock)
 
     return html
 end
@@ -6039,14 +6305,11 @@ end
 -- ============================================
 
 function generateBusinessView(triggerId)
-    local html = [[<div style='padding:16px'>]]
-
-    -- 주식 시스템 활성화 여부 확인
+    -- 주식 시스템 활성화 여부
     local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
 
     -- 경영 중인 회사 확인
     local companies = {}
-
     if getChatVar(triggerId, "mirabel_company_joined") == "1" then
         table.insert(companies, {
             ticker = "GOLDMANE",
@@ -6055,7 +6318,6 @@ function generateBusinessView(triggerId)
             character = "Mirabel von Goldenrose"
         })
     end
-
     if getChatVar(triggerId, "cordelia_company_joined") == "1" then
         table.insert(companies, {
             ticker = "LUXORIA",
@@ -6064,7 +6326,6 @@ function generateBusinessView(triggerId)
             character = "Cordelia von Edelstein"
         })
     end
-
     if getChatVar(triggerId, "nepenthes_company_joined") == "1" then
         table.insert(companies, {
             ticker = "PFIZARA",
@@ -6074,28 +6335,33 @@ function generateBusinessView(triggerId)
         })
     end
 
-    -- 경영 중인 회사가 없는 경우
+    -- 상단 라벨
+    local html = string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:14px">The Reader's Ventures &middot; 경영 중인 회사 (%d)</div>]], #companies)
+
+    -- 빈 상태 (Press 톤)
     if #companies == 0 then
-        html = html .. [[
-  <div style='text-align:center;padding:40px 20px;color:#8b949e'>
-    <div style='font-size:48px;margin-bottom:16px'>💼</div>
-    <div style='font-size:15px;font-weight:600;color:#c9d1d9;margin-bottom:8px'>경영 중인 회사 없음</div>
-    <div style='font-size:13px;line-height:1.6'>
-      캐릭터 호감도 300+ 달성 시<br>
-      회사 경영 파트너십을 제안받을 수 있습니다
-    </div>
-  </div>
-</div>]]
+        html = html .. [[<div style="padding:44px 20px;text-align:center;background:#221b16;border:1px solid rgba(240,227,204,0.16);font-family:'Noto Serif KR',Georgia,serif"><div style="font-style:italic;font-size:14px;color:#f0e3cc;margin-bottom:8px">&mdash; No concerns under the reader's hand &mdash;</div><div style="font-size:11.5px;color:#9a8a72;line-height:1.6;font-style:italic">캐릭터 호감도 300+ 달성 시<br>회사 경영 파트너십을 제안받을 수 있습니다</div></div>]]
         return html
     end
 
-    -- 각 회사 정보 표시
-    for _, company in ipairs(companies) do
+    -- Press 톤 변화량 포맷 (▲/▼ + warm red/ink blue)
+    local function formatChange(change, isPercent)
+        if change == 0 then
+            return [[<span style="color:#6e604c;font-size:10px;margin-left:4px;font-style:italic;font-family:'Noto Serif KR',Georgia,serif;font-variant-numeric:tabular-nums"> &rarr; 0</span>]]
+        end
+        local color = change > 0 and "#d94c47" or "#5e7a99"
+        local arrow = change > 0 and "▲" or "▼"
+        local sign = change > 0 and "+" or ""
+        local suffix = isPercent and "%" or ""
+        return string.format([[<span style="color:%s;font-size:10px;margin-left:4px;font-family:'Noto Serif KR',Georgia,serif;font-variant-numeric:tabular-nums">%s%s%d%s</span>]], color, arrow, sign, change, suffix)
+    end
+
+    -- 각 회사 루프
+    for idx, company in ipairs(companies) do
         local ticker = company.ticker
 
         log(string.format("🔍 [generateBusinessView] %s 정보 읽기 시작", ticker))
 
-        -- 변수 가져오기
         local revenueStr = getChatVar(triggerId, ticker .. "_revenue")
         local profitStr = getChatVar(triggerId, ticker .. "_profit")
         local cashStr = getChatVar(triggerId, ticker .. "_cash")
@@ -6117,7 +6383,6 @@ function generateBusinessView(triggerId)
 
         log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
 
-        -- 변화량 가져오기
         local revenue_change = tonumber(getChatVar(triggerId, ticker .. "_revenue_change")) or 0
         local profit_change = tonumber(getChatVar(triggerId, ticker .. "_profit_change")) or 0
         local cash_change = tonumber(getChatVar(triggerId, ticker .. "_cash_change")) or 0
@@ -6126,147 +6391,62 @@ function generateBusinessView(triggerId)
         local brand_value_change = tonumber(getChatVar(triggerId, ticker .. "_brand_value_change")) or 0
         local influence_change = tonumber(getChatVar(triggerId, ticker .. "_influence_change")) or 0
 
-        -- 변화량 포맷 함수 (색상 + 화살표)
-        local function formatChange(change, isPercent)
-            if change == 0 then
-                return "<span style='color:#6e7681;font-size:11px'> →0</span>"
-            end
-            local color = change > 0 and "#3fb950" or "#f85149"
-            local arrow = change > 0 and "▲" or "▼"
-            local sign = change > 0 and "+" or ""
-            local suffix = isPercent and "%" or ""
-            return string.format("<span style='color:%s;font-size:11px'> %s%s%d%s</span>",
-                color, arrow, sign, change, suffix)
-        end
-
         -- 지표 계산
         local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
         local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
 
-        -- 색상 결정
-        local profitColor = profit >= 0 and "#3fb950" or "#f85149"
-        local debtColor = debtRatio > 70 and "#f85149" or (debtRatio > 40 and "#d29922" or "#8b949e")
+        -- Press 톤 색상
+        local profitColor = (profit > 0) and "#d94c47" or ((profit < 0) and "#5e7a99" or "#ddc8a7")
+        local debtColor = (debtRatio > 70) and "#d94c47" or ((debtRatio > 40) and "#d4af6a" or "#ddc8a7")
 
-        -- 시장 포지션 섹션 HTML (주식 시스템 활성화 여부에 따라 다르게 구성)
-        local marketPositionHtml
+        -- 회사 카드 wrapper (회사 간 더블 룰 구분)
+        local cardWrapper = (idx < #companies) and "margin-bottom:26px;padding-bottom:22px;border-bottom:2px double rgba(240,227,204,0.16);" or "margin-bottom:6px;"
+        html = html .. string.format([[<div style="%s">]], cardWrapper)
+
+        -- ==================================
+        -- Headline (중앙 정렬 마스트헤드 풍)
+        -- ==================================
+        html = html .. string.format([[<div style="text-align:center;margin-bottom:14px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;color:#e8a679">%s &middot; %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;font-weight:600;font-style:italic;color:#f0e3cc;margin-top:6px;line-height:1.1">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;color:#9a8a72;margin-top:6px;font-style:italic">in partnership with <span style="color:#d4af6a;font-style:normal">%s</span></div></div>]], ticker, company.sector:upper(), company.name, company.character)
+
+        -- Rule
+        html = html .. [[<div style="height:1px;background:rgba(240,227,204,0.16);margin-bottom:12px"></div>]]
+
+        -- ==================================
+        -- Financial standing · 재무 현황 (2x2)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Financial standing &middot; 재무 현황 (단위: M)</div>]]
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">매출 Revenue</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:#f0e3cc;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">순이익 Profit &middot; %d%%</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:%s;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">현금 Cash</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">부채 Debt &middot; %d%%</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:%s;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div></div>]], formatNumber(revenue), formatChange(revenue_change, false), profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false), formatNumber(cash), formatChange(cash_change, false), debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false))
+
+        -- ==================================
+        -- Market position · 시장 포지션 (stockEnabled 분기)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Market position &middot; 시장 포지션</div>]]
         if stockEnabled == "1" then
-            -- 주식 시스템 활성화: 주가 포함 (2x2 그리드)
             local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price"))
                             or tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
                             or STOCK_BASE_PRICES[ticker] or 0
-            marketPositionHtml = string.format([[
-    <!-- 시장 포지션 -->
-    <div style='margin-bottom:16px'>
-      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
-      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
-          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>주가</div>
-          <div style='color:#ffd700;font-size:15px;font-weight:600'>%sG</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
-          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
-        </div>
-      </div>
-    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(stockPrice), formatNumber(employees))
+            html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">시장점유율</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">브랜드가치</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">주가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d94c47;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s G</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">직원</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s 명</div></div></div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(stockPrice), formatNumber(employees))
         else
-            -- 경영 전용 모드: 주가 제외 (2x2 그리드)
-            marketPositionHtml = string.format([[
-    <!-- 시장 포지션 -->
-    <div style='margin-bottom:16px'>
-      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📈 시장 포지션</div>
-      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>시장점유율</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%%%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>브랜드가치</div>
-          <div style='color:#d29922;font-size:15px;font-weight:600'>%d%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>직원수</div>
-          <div style='color:#c9d1d9;font-size:15px;font-weight:600'>%s명</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>업계 영향력</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
-        </div>
-      </div>
-    </div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(employees), influence, formatChange(influence_change, false))
+            html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">시장점유율</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">브랜드가치</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">직원</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s 명</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">업계 영향력</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div></div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(employees), influence, formatChange(influence_change, false))
         end
 
-        html = html .. string.format([[
-  <div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3)'>
-    <div style='text-align:center;padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid #21262d'>
-      <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>%s | %s</div>
-      <div style='color:#58a6ff;font-size:18px;font-weight:700;margin-bottom:4px'>%s</div>
-      <div style='color:#8b949e;font-size:12px'>공동 경영 파트너: %s</div>
-    </div>
+        -- ==================================
+        -- Operations · 운영 현황 (R&D + 전략 기여도)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Operations &middot; 운영 현황</div>]]
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">R&amp;D 진척도</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#e8a679;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">전략 기여도</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div></div>]], rd_progress, influence, formatChange(influence_change, false))
 
-    <!-- 재무 현황 -->
-    <div style='margin-bottom:16px'>
-      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>📊 재무 현황</div>
-      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>매출</div>
-          <div style='color:#fff;font-size:15px;font-weight:600'>%sM%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>순이익 (이익률 %d%%)</div>
-          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>현금</div>
-          <div style='color:#3fb950;font-size:15px;font-weight:600'>%sM%s</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>부채 (부채비율 %d%%)</div>
-          <div style='color:%s;font-size:15px;font-weight:600'>%sM%s</div>
-        </div>
-      </div>
-    </div>
+        -- ==================================
+        -- Ownership · 진척바 + 하단 italic
+        -- ==================================
+        html = html .. string.format([[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Ownership &middot; the reader holds %d%%</div>]], player_share)
+        html = html .. string.format([[<div style="display:flex;height:14px;border:1px solid rgba(240,227,204,0.16);margin-top:4px"><div style="width:%d%%;background:#d4af6a"></div><div style="flex:1;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(240,227,204,0.08) 3px,rgba(240,227,204,0.08) 4px)"></div></div>]], player_share)
+        html = html .. string.format([[<div style="display:flex;justify-content:space-between;margin-top:6px;font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic"><span>독자 지분 <span style="color:#d4af6a;font-style:normal">%d%%</span></span><span>R&amp;D 진척 <span style="color:#e8a679;font-style:normal">%d%%</span></span></div>]], player_share, rd_progress)
 
-%s
-
-    <!-- 운영 및 경영 참여 -->
-    <div>
-      <div style='color:#8b949e;font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:0.5px'>⚙️ 운영 현황</div>
-      <div style='display:grid;grid-template-columns:repeat(2,1fr);gap:8px'>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>R&D 진척도</div>
-          <div style='color:#a371f7;font-size:15px;font-weight:600'>%d%%</div>
-        </div>
-        <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px'>
-          <div style='color:#8b949e;font-size:11px;margin-bottom:4px'>전략 기여도</div>
-          <div style='color:#58a6ff;font-size:15px;font-weight:600'>%d%s</div>
-        </div>
-      </div>
-    </div>
-
-    <div style='margin-top:12px;padding-top:12px;border-top:1px solid #21262d;text-align:center'>
-      <div style='color:#8b949e;font-size:11px'>보유 지분</div>
-      <div style='color:#ffd700;font-size:16px;font-weight:700'>%d%%</div>
-    </div>
-  </div>
-]], ticker, company.sector, company.name, company.character,
-   formatNumber(revenue), formatChange(revenue_change, false),
-   profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false),
-   formatNumber(cash), formatChange(cash_change, false),
-   debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false),
-   marketPositionHtml,
-   rd_progress, influence, formatChange(influence_change, false), player_share)
+        -- 회사 카드 닫기
+        html = html .. [[</div>]]
     end
 
-    html = html .. "</div>"
     return html
 end
 
@@ -6420,82 +6600,79 @@ function generateStockPanelUI(triggerId)
     local collapseState = getState(triggerId, "stock_panel_collapsed")
     local isCollapsed = (collapseState ~= "0")
 
+    -- ============================================
+    -- V2 Dark Press · The Lilybelly Ledger
+    -- ============================================
+
+    -- 게임 시간 → 마스트헤드 Vol/No 매핑
+    local seasonVol = {["봄"]="I", ["여름"]="II", ["가을"]="III", ["겨울"]="IV"}
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = getChatVar(triggerId, "week_of_season") or "1"
+    local dayName = getChatVar(triggerId, "day_of_week_name") or "Friday"
+    local currentTime = getChatVar(triggerId, "current_time") or "오후"
+    local volRoman = seasonVol[season] or "I"
+    local edition = (currentTime == "오전") and "Morning Edition" or "Late Edition"
+
     -- 컨테이너 시작
-    local html = [[
-<div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
+    local html = [[<div style="max-width:540px;width:calc(100%% - 16px);margin:18px auto;background:#161210;background-image:radial-gradient(circle at 100%% 0%%,rgba(232,166,121,0.06),transparent 50%%);font-family:'Noto Serif KR',Georgia,'Times New Roman',serif;color:#ddc8a7;box-shadow:0 0 0 1px rgba(232,166,121,0.30),0 18px 40px rgba(0,0,0,0.55);overflow:hidden">]]
 
-    -- 헤더 (제목 + 보유금 + 접기 버튼)
-    local collapseIcon = isCollapsed and "▼" or "▲"
-    html = html .. string.format([[
-  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
-    <div style='display:flex;align-items:center;gap:8px'>
-      <span style='font-size:16px'>📈</span>
-      <span style='font-size:15px;font-weight:600;color:#fff'>릴리 벨리 증권</span>
-    </div>
-    <div style='display:flex;align-items:center;gap:12px'>
-      <div style='display:flex;align-items:center;gap:4px'>
-        <span style='font-size:12px;color:#8b949e'>보유</span>
-        <span style='font-size:14px;font-weight:600;color:#ffd700'>%s G</span>
-      </div>
-      <button type='button' risu-btn='stock_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
-    </div>
-  </div>]], isCollapsed and "none" or "1px solid #30363d", formatNumber(gold), collapseIcon)
+    -- Masthead
+    html = html .. string.format([[<div style="padding:20px 22px 12px"><div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679;text-transform:uppercase">Vol. %s · No. %s</div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.24em;color:#9a8a72;text-transform:uppercase">%s · %s</div></div><div style="height:1px;background:rgba(240,227,204,0.16);margin:10px 0 14px"></div><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:34px;font-weight:600;color:#f0e3cc;letter-spacing:0.01em;line-height:1;font-style:italic">The Lilybelly <span style="color:#e8a679">Ledger</span></div><div style="margin-top:8px;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11.5px;color:#9a8a72;letter-spacing:0.04em">&ldquo;Fortunes told in figures, since the year of three suns&rdquo;</div></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:14px"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]], volRoman, week, dayName, edition)
 
-    -- 접혀있지 않을 때만 내용 표시
-    if not isCollapsed then
-        -- 탭 구성 (활성화된 시스템에 따라 동적 생성)
-        html = html .. [[
-  <div style='display:flex;background:#161b22;border-bottom:1px solid #30363d'>]]
+    -- Balance bar
+    local collapseIcon = isCollapsed and "▼ UNFOLD" or "▲ FOLD"
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:center;padding:0 22px 14px"><div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:5px">The Reader's Account</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#ddc8a7">Held in cash <span style="color:#d4af6a;font-weight:600;font-variant-numeric:tabular-nums">%s G</span></div></div><button type="button" risu-btn="stock_toggle_collapse" onclick="event.stopPropagation();" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.22em;color:#e8a679;background:transparent;padding:6px 12px;border:1px solid #e8a679;cursor:pointer">%s</button></div>]], formatNumber(gold), collapseIcon)
 
-        local tabs = {}
-
-        -- 주식 시스템 활성화 시 주식 탭 추가
-        if stockEnabled == "1" then
-            table.insert(tabs, {id = "board", label = "시세"})
-            table.insert(tabs, {id = "chart", label = "차트"})
-            table.insert(tabs, {id = "asset", label = "자산"})
-        end
-
-        -- 경영 시스템 활성화 시 경영 탭 추가
-        if businessEnabled == "1" then
-            table.insert(tabs, {id = "business", label = "경영"})
-        end
-
-        for _, tab in ipairs(tabs) do
-            local isActive = currentView == tab.id
-            if isActive then
-                html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid #58a6ff;color:#58a6ff;font-size:13px;font-weight:600;cursor:pointer'>%s</button>]], tab.id, tab.label)
-            else
-                html = html .. string.format([[
-    <button type='button' risu-btn='stock_view_%s' onclick='event.stopPropagation();' style='flex:1;padding:12px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer'>%s</button>]], tab.id, tab.label)
-            end
-        end
-
+    if isCollapsed then
         html = html .. "</div>"
-
-        -- 뷰 내용
-        html = html .. "<div style='background:#0d1117'>"
-        if currentView == "board" then
-            html = html .. generateStockBoardView(triggerId)
-        elseif currentView == "chart" then
-            html = html .. generateStockChartView(triggerId, selectedTicker)
-        elseif currentView == "asset" then
-            html = html .. generateStockAssetView(triggerId)
-        elseif currentView == "business" then
-            html = html .. generateBusinessView(triggerId)
-        end
-
-        html = html .. "</div>"  -- 뷰 컨테이너 닫기
-
-        -- 하단 버튼 영역 (거래 종료)
-        html = html .. [[
-  <div style='padding:12px 16px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px'>
-    <button type='button' risu-btn='stock_exit' onclick='event.stopPropagation();' style='padding:10px 20px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;font-weight:500;cursor:pointer'>거래 종료</button>
-  </div>]]
+        return html
     end
 
-    html = html .. "</div>"  -- 메인 컨테이너 닫기
+    -- Tab bar (dynamic)
+    local tabs = {}
+    if stockEnabled == "1" then
+        table.insert(tabs, {id = "board",    kor = "시세", eng = "Quotes",   no = "I"})
+        table.insert(tabs, {id = "chart",    kor = "차트", eng = "Chart",    no = "II"})
+        table.insert(tabs, {id = "asset",    kor = "자산", eng = "Holdings", no = "III"})
+    end
+    if businessEnabled == "1" then
+        local nextNo = (#tabs == 0) and "I" or (#tabs == 3 and "IV" or tostring(#tabs + 1))
+        table.insert(tabs, {id = "business", kor = "경영", eng = "Ventures", no = nextNo})
+    end
+
+    local cols = "repeat(" .. #tabs .. ",1fr)"
+    html = html .. string.format([[<div style="display:grid;grid-template-columns:%s;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);background:#1b1612">]], cols)
+
+    for i, tab in ipairs(tabs) do
+        local isActive = (currentView == tab.id)
+        local borderRight = (i < #tabs) and "border-right:1px solid rgba(240,227,204,0.08);" or ""
+        local bg          = isActive and "rgba(232,166,121,0.07)" or "transparent"
+        local kickerColor = isActive and "#e8a679" or "#6e604c"
+        local korColor    = isActive and "#f0e3cc" or "#ddc8a7"
+        local korStyle    = isActive and "italic" or "normal"
+        local korWeight   = isActive and "600" or "400"
+        local underline   = isActive and [[<div style="position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:#e8a679"></div>]] or ""
+        html = html .. string.format([[<button type="button" risu-btn="stock_view_%s" onclick="event.stopPropagation();" style="padding:14px 8px 12px;%sbackground:%s;text-align:center;position:relative;border:none;cursor:pointer;font-family:inherit"><div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:0.32em;color:%s">SECT. %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:16px;color:%s;font-style:%s;margin-top:4px;font-weight:%s">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">%s</div>%s</button>]], tab.id, borderRight, bg, kickerColor, tab.no, korColor, korStyle, korWeight, tab.kor, tab.eng, underline)
+    end
+    html = html .. "</div>"
+
+    -- View body
+    html = html .. [[<div style="padding:22px 22px 0">]]
+    if currentView == "board" then
+        html = html .. generateStockBoardView(triggerId)
+    elseif currentView == "chart" then
+        html = html .. generateStockChartView(triggerId, selectedTicker)
+    elseif currentView == "asset" then
+        html = html .. generateStockAssetView(triggerId)
+    elseif currentView == "business" then
+        html = html .. generateBusinessView(triggerId)
+    end
+    html = html .. "</div>"
+
+    -- Footer
+    html = html .. [[<div style="margin-top:24px;padding:14px 22px 18px;border-top:2px double rgba(240,227,204,0.16);background:#1b1612;display:flex;justify-content:space-between;align-items:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#6e604c;letter-spacing:0.06em">— End of session edition —</div><button type="button" risu-btn="stock_exit" onclick="event.stopPropagation();" style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;letter-spacing:0.16em;color:#e8a679;background:transparent;padding:8px 18px;border:1px solid #e8a679;font-variant:small-caps;cursor:pointer">거래 종료</button></div>]]
+
+    html = html .. "</div>"
 
     return html
 end
@@ -6514,64 +6691,85 @@ end
 function generateStockBoardView(triggerId)
     local html = ""
 
-    -- 뉴스 섹션 (있으면 표시)
+    -- 뉴스 섹션 (있으면 표시: Lead story + Secondary briefs)
     local newsData = getState(triggerId, "stock_news")
     if newsData and newsData ~= "" then
-        html = html .. [[
-<div style='background:#1c1f26;padding:12px;border-bottom:1px solid #30363d'>
-  <div style='display:flex;align-items:center;gap:6px;margin-bottom:8px'>
-    <span style='font-size:14px'>📰</span>
-    <span style='font-size:12px;font-weight:600;color:#58a6ff'>시장 뉴스</span>
-  </div>
-  <div style='display:flex;flex-direction:column;gap:6px'>]]
-
-        -- 뉴스 파싱: TICKER:direction:headline||...
-        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
-            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+        -- 뉴스 항목 파싱: TICKER:direction:headline||...
+        local newsItems = {}
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
             local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
             if ticker and headline then
-                local dirIcon = "📰"
-                local dirColor = "#58a6ff"
-
-                if direction == "rising" or direction == "up" then
-                    dirIcon = "📈"
-                    dirColor = "#ef5350"
-                elseif direction == "falling" or direction == "down" then
-                    dirIcon = "📉"
-                    dirColor = "#42a5f5"
-                elseif direction == "crashing" then
-                    dirIcon = "📉"
-                    dirColor = "#ef5350"
-                end
-
-                -- 헤드라인 (bullet points를 줄바꿈으로)
-                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px'>• </span>")
-
-                html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:8px;padding:8px;background:#21262d;border-radius:6px;border-left:3px solid %s'>
-      <span style='font-size:13px'>%s</span>
-      <div style='flex:1'>
-        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
-        <div style='font-size:10px;color:#c9d1d9;margin-top:2px;line-height:1.4'>%s</div>
-      </div>
-    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
+                table.insert(newsItems, {ticker = ticker, direction = direction or "", headline = headline})
             end
         end
 
-        html = html .. [[
-  </div>
-</div>]]
+        if #newsItems > 0 then
+            -- 섹션 라벨
+            html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Market Intelligence · 시장 동향</div>]]
+
+            -- Lead story (첫 번째 뉴스)
+            local lead = newsItems[1]
+            local leadIsUp = (lead.direction == "rising" or lead.direction == "up" or lead.direction == "crashing")
+            local leadColor = leadIsUp and "#d94c47" or "#5e7a99"
+            local leadArrow = leadIsUp and "▲" or "▼"
+            local leadDir = (lead.direction ~= "" and lead.direction:upper()) or "NEWS"
+
+            -- 헤드라인 split: " • " 첫번째 = 헤드라인, 나머지 = 본문
+            local parts = {}
+            for part in lead.headline:gmatch("[^•]+") do
+                part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                if part ~= "" then table.insert(parts, part) end
+            end
+            local leadHead = parts[1] or lead.headline
+            local leadBody = ""
+            if #parts > 1 then
+                local rest = {}
+                for i = 2, #parts do table.insert(rest, parts[i]) end
+                leadBody = table.concat(rest, " · ")
+            end
+
+            html = html .. string.format([[<div style="padding:16px 18px 18px;background:#221b16;border-left:3px double %s;margin-bottom:18px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.3em;color:%s;margin-bottom:8px">%s &nbsp; %s &nbsp;·&nbsp; %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;font-weight:600;color:#f0e3cc;line-height:1.35;letter-spacing:-0.005em"><span style="float:left;font-size:38px;line-height:0.95;margin-right:6px;color:#e8a679;font-style:italic;font-family:'Noto Serif KR',Georgia,serif">&ldquo;</span>%s</div>]], leadColor, leadColor, leadArrow, lead.ticker, leadDir, leadHead)
+
+            if leadBody ~= "" then
+                html = html .. string.format([[<div style="clear:both;margin-top:8px;font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.55;font-style:italic">%s</div>]], leadBody)
+            end
+
+            html = html .. [[<div style="clear:both;margin-top:12px;padding-top:8px;border-top:1px solid rgba(240,227,204,0.08);font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72">— By the Markets Desk</div></div>]]
+
+            -- Secondary briefs (2~3번째 뉴스, 2-col grid)
+            if #newsItems >= 2 then
+                html = html .. [[<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">]]
+                for i = 2, math.min(#newsItems, 3) do
+                    local n = newsItems[i]
+                    local nIsUp = (n.direction == "rising" or n.direction == "up" or n.direction == "crashing")
+                    local nColor = nIsUp and "#d94c47" or "#5e7a99"
+
+                    local nParts = {}
+                    for part in n.headline:gmatch("[^•]+") do
+                        part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                        if part ~= "" then table.insert(nParts, part) end
+                    end
+                    local nHead = nParts[1] or n.headline
+
+                    html = html .. string.format([[<div style="border-top:1px solid rgba(240,227,204,0.16);padding-top:8px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:8.5px;letter-spacing:0.28em;color:%s;margin-bottom:4px">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12.5px;line-height:1.45;color:#ddc8a7;font-weight:500">%s</div></div>]], nColor, n.ticker, nHead)
+                end
+                html = html .. [[</div>]]
+            end
+
+            -- DoubleRule (뉴스/시세 구분)
+            html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+        end
     end
 
-    -- 컬럼 헤더
-    html = html .. [[
-<div style='background:#161b22;padding:10px 12px;display:flex;font-size:11px;color:#8b949e;border-bottom:1px solid #30363d'>
-  <div style='flex:2'>종목</div>
-  <div style='flex:1.5;text-align:right'>현재가</div>
-  <div style='flex:1;text-align:right'>등락률</div>
-  <div style='flex:1;text-align:right'>보유</div>
-</div>
-<div style='max-height:350px;overflow-y:auto'>]]
+    -- The Quotations Page 라벨
+    html = html .. [[<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;margin-bottom:10px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600">The Quotations Page</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72">Closing values, in gold</div></div>]]
+
+    -- 4-col 컬럼 헤더 (small-caps)
+    html = html .. [[<div style="display:grid;grid-template-columns:2fr 1fr 1fr 0.8fr;padding:6px 0;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72"><div>Issue</div><div style="text-align:right">Close</div><div style="text-align:right">Change</div><div style="text-align:right">Held</div></div>]]
+
+    -- 스크롤 컨테이너 (기존 max-height 350px 유지)
+    html = html .. [[<div style="max-height:350px;overflow-y:auto">]]
 
     for _, ticker in ipairs(STOCK_TICKERS) do
         local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
@@ -6582,39 +6780,32 @@ function generateStockBoardView(triggerId)
         if change == 0 then
             local history = getStockHistory(triggerId, ticker)
             if #history >= 2 then
-                local prevPrice = history[#history - 1]  -- 이전 가격
+                local prevPrice = history[#history - 1]
                 change = price - prevPrice
             end
         end
 
-        -- state 우선, chatVar 폴백 (변수명 수정: _owned -> _qty)
+        -- state 우선, chatVar 폴백
         local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         local name = STOCK_NAMES[ticker] or ticker
+        local sector = (STOCK_INFO[ticker] and STOCK_INFO[ticker].sector) or "—"
 
-        -- 등락률 계산: (변화량 / 이전가격) × 100
+        -- 등락률 계산
         local prevPrice = price - change
         local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
 
-        -- 등락 색상 (한국식: 상승 빨강, 하락 파랑)
-        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
-        local rowBg = owned > 0 and "rgba(255,215,0,0.05)" or "transparent"
+        -- 한국식 색상: 상승 warm red / 하락 ink blue / 보합 flat
+        local dir = (changePercent > 0) and 1 or ((changePercent < 0) and -1 or 0)
+        local changeColor = (dir > 0) and "#d94c47" or ((dir < 0) and "#5e7a99" or "#9a8a72")
+        local arrowMark = (dir > 0) and "▲" or ((dir < 0) and "▼" or "—")
+        local pctText = (dir == 0) and "0.0%" or string.format("%+.1f%%", changePercent)
 
-        html = html .. string.format([[
-<button type='button' risu-btn='stock_select_%s' onclick='event.stopPropagation();' style='display:flex;align-items:center;width:100%%;padding:12px;background:%s;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
-  <div style='flex:2'>
-    <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
-    <div style='font-size:11px;color:#8b949e'>%s</div>
-  </div>
-  <div style='flex:1.5;text-align:right'>
-    <span style='font-size:14px;font-weight:600;color:%s'>%s</span>
-  </div>
-  <div style='flex:1;text-align:right'>
-    <span style='font-size:13px;font-weight:500;color:%s'>%+.1f%%</span>
-  </div>
-  <div style='flex:1;text-align:right'>
-    <span style='font-size:13px;color:%s'>%d</span>
-  </div>
-</button>]], ticker, rowBg, ticker, name, changeColor, formatNumber(price), changeColor, changePercent, owned > 0 and "#ffd700" or "#8b949e", owned)
+        -- 보유: gold (qty>0) or em-dash italic textMute
+        local heldColor = (owned > 0) and "#d4af6a" or "#6e604c"
+        local heldStyle = (owned > 0) and "normal" or "italic"
+        local heldText = (owned > 0) and tostring(owned) or "—"
+
+        html = html .. string.format([[<button type="button" risu-btn="stock_select_%s" onclick="event.stopPropagation();" style="display:grid;grid-template-columns:2fr 1fr 1fr 0.8fr;gap:6px;width:100%%;padding:11px 0;align-items:baseline;border:none;border-bottom:1px dotted rgba(240,227,204,0.08);background:transparent;cursor:pointer;text-align:left;font-family:inherit"><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:14px;font-weight:600;color:#f0e3cc">%s</div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.18em;color:#9a8a72;margin-top:2px">%s · %s</div></div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:16px;font-weight:500;color:#f0e3cc;font-variant-numeric:tabular-nums">%s</div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:%s;font-style:%s;font-variant-numeric:tabular-nums">%s</div></button>]], ticker, name, ticker, sector, formatNumber(price), changeColor, arrowMark, pctText, heldColor, heldStyle, heldText)
     end
 
     html = html .. "</div>"
@@ -6701,437 +6892,318 @@ function generateStockChartView(triggerId, ticker)
     local change = 0
     local history = getStockHistory(triggerId, ticker)
     if #history >= 2 then
-        local openPrice = history[1]
-        local closePrice = history[#history]
-        change = closePrice - openPrice
+        change = history[#history] - history[1]
     else
-        -- history 없으면 저장된 change 사용
-        change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+        change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
     end
 
     -- 등락률 계산
     local prevPrice = price - change
     local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
-    local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
-    local changeSign = changePercent > 0 and "+" or ""
+
+    -- 한국식 색상 (상승 warm red / 하락 ink blue / 보합 flat)
+    local dir = (changePercent > 0) and 1 or ((changePercent < 0) and -1 or 0)
+    local changeColor = (dir > 0) and "#d94c47" or ((dir < 0) and "#5e7a99" or "#9a8a72")
+    local arrowMark = (dir > 0) and "▲" or ((dir < 0) and "▼" or "—")
+    local pctText = (dir == 0) and "0.00%" or string.format("%+.2f%%", changePercent)
+    local changeNumText = (change == 0) and "0" or string.format("%+d", math.floor(change))
     local basePrice = STOCK_BASE_PRICES[ticker] or 100
 
-    -- 헤더: 종목 정보
-    local html = string.format([[
-<div style='background:#131722;padding:16px;border-radius:8px 8px 0 0;border:1px solid #2a2e39;border-bottom:none'>
-  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
-    <div>
-      <div style='font-size:18px;font-weight:700;color:#d1d4dc'>%s</div>
-      <div style='font-size:11px;color:#787b86;margin-top:2px'>%s · 릴리벨리</div>
-    </div>
-    <div style='text-align:right'>
-      <div style='font-size:24px;font-weight:700;color:%s'>%s<span style='font-size:14px;color:#787b86'>G</span></div>
-      <div style='font-size:12px;color:%s;margin-top:2px'>%s%.1f%%</div>
-    </div>
-  </div>
-</div>]], ticker, name, changeColor, formatNumber(price), changeColor, changeSign, changePercent)
+    -- 종목 메타정보
+    local info = STOCK_INFO[ticker]
+    local sectorLabel = (info and info.sector) or "—"
 
-    -- 가격 히스토리 가져오기
-    local history = getStockHistory(triggerId, ticker)
+    -- ==========================================
+    -- The Featured Issue · 종목 헤더
+    -- ==========================================
+    local html = [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Featured Issue · 종목 상세</div>]]
 
-    html = html .. "<div style='background:#131722;padding:12px;border:1px solid #2a2e39;border-top:none'>"
+    -- Issue header (ticker · 종목명 / 현재가 · 변화)
+    html = html .. string.format([[<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px;gap:12px"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679;margin-bottom:4px">%s · LILYBELLY %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:26px;font-weight:600;color:#f0e3cc;line-height:1.05;font-style:italic;letter-spacing:-0.005em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:28px;font-weight:600;color:%s;line-height:1;font-variant-numeric:tabular-nums">%s<span style="font-size:13px;color:#9a8a72;margin-left:4px;font-weight:400">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12.5px;color:%s;margin-top:2px;font-variant-numeric:tabular-nums">%s %s · %s</div></div></div>]], ticker, sectorLabel:upper(), name, changeColor, formatNumber(price), changeColor, arrowMark, changeNumText, pctText)
 
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+
+    -- ==========================================
+    -- Chart panel (해치 fill + 라인 + OHLC strip)
+    -- ==========================================
     if #history >= 2 then
-        -- Y축 범위 계산
+        -- Y축 범위
         local minPrice = history[1]
         local maxPrice = history[1]
         for _, p in ipairs(history) do
             if p < minPrice then minPrice = p end
             if p > maxPrice then maxPrice = p end
         end
-        -- 여유 공간 추가
         local padding = (maxPrice - minPrice) * 0.1
         if padding < 5 then padding = 5 end
+        local rawMin = minPrice
+        local rawMax = maxPrice
         minPrice = minPrice - padding
         maxPrice = maxPrice + padding
         local range = maxPrice - minPrice
         if range == 0 then range = 1 end
 
-        local chartWidth = 300
-        local chartHeight = 140
+        local W = 420
+        local H = 150
         local openPrice = history[1]
         local closePrice = history[#history]
 
-        -- SVG 라인 포인트 계산
+        -- 라인 포인트
         local points = {}
         for i, p in ipairs(history) do
-            local x = (i - 1) * (chartWidth / (#history - 1))
-            local y = chartHeight - ((p - minPrice) / range * chartHeight)
+            local x = (i - 1) * (W / (#history - 1))
+            local y = H - ((p - minPrice) / range * H)
             table.insert(points, string.format("%.1f,%.1f", x, y))
         end
+        local linePts = table.concat(points, " ")
+        local areaPoints = "0," .. H .. " " .. linePts .. " " .. W .. "," .. H
 
-        -- 색상 결정 (한국식: 빨강=상승, 파랑=하락)
-        local lineColor = (closePrice >= openPrice) and "#ef5350" or "#42a5f5"
-        local isUp = closePrice >= openPrice
+        -- 라인 색 (한국식)
+        local lineColor = (closePrice >= openPrice) and "#d94c47" or "#5e7a99"
+        local openY = H - ((openPrice - minPrice) / range * H)
+        local closeY = H - ((closePrice - minPrice) / range * H)
 
-        -- 그라데이션 영역
-        local areaPoints = "0," .. chartHeight .. " " .. table.concat(points, " ") .. " " .. chartWidth .. "," .. chartHeight
+        -- 5단 Y축
+        local y0 = math.floor(maxPrice)
+        local y1 = math.floor(maxPrice - range * 0.25)
+        local y2 = math.floor(maxPrice - range * 0.5)
+        local y3 = math.floor(maxPrice - range * 0.75)
+        local y4 = math.floor(minPrice)
 
-        -- 시가 Y위치
-        local openY = chartHeight - ((openPrice - minPrice) / range * chartHeight)
-        -- 현재가 Y위치
-        local closeY = chartHeight - ((closePrice - minPrice) / range * chartHeight)
+        -- Chart panel frame open
+        html = html .. [[<div style="padding:14px 14px 12px;margin-top:14px;margin-bottom:16px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div style="display:flex">]]
 
-        -- 그리드 Y값들 (5개 라인)
-        local gridLines = ""
-        local priceLabels = ""
-        for i = 0, 4 do
-            local y = (chartHeight / 4) * i
-            local priceAtY = maxPrice - (range * i / 4)
-            gridLines = gridLines .. string.format([[<line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='#2a2e39' stroke-width='1'/>]], y, chartWidth, y)
-        end
+        -- Y axis
+        html = html .. string.format([[<div style="width:44px;display:flex;flex-direction:column;justify-content:space-between;padding-right:6px;font-family:'Noto Serif KR',Georgia,serif;font-size:10px;color:#9a8a72;font-variant-numeric:tabular-nums;text-align:right;font-style:italic"><span>%d</span><span>%d</span><span>%d</span><span>%d</span><span>%d</span></div>]], y0, y1, y2, y3, y4)
 
-        html = html .. string.format([[
-<div style='display:flex'>
-  <div style='width:45px;display:flex;flex-direction:column;justify-content:space-between;padding-right:8px'>
-    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
-    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
-    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
-    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
-    <span style='font-size:10px;color:#787b86;text-align:right'>%d</span>
-  </div>
-  <div style='flex:1;position:relative'>
-    <svg width='%d' height='%d' style='display:block'>
-      <defs>
-        <linearGradient id='chartGrad_%s' x1='0%%' y1='0%%' x2='0%%' y2='100%%'>
-          <stop offset='0%%' style='stop-color:%s;stop-opacity:0.4'/>
-          <stop offset='100%%' style='stop-color:%s;stop-opacity:0.05'/>
-        </linearGradient>
-      </defs>
-      <!-- 그리드 라인 -->
-      %s
-      <!-- 시가 기준선 -->
-      <line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='#787b86' stroke-width='1' stroke-dasharray='4,4' opacity='0.5'/>
-      <!-- 영역 채우기 -->
-      <polygon points='%s' fill='url(#chartGrad_%s)'/>
-      <!-- 메인 라인 -->
-      <polyline points='%s' fill='none' stroke='%s' stroke-width='2'/>
-      <!-- 현재가 수평선 -->
-      <line x1='0' y1='%.1f' x2='%d' y2='%.1f' stroke='%s' stroke-width='1' stroke-dasharray='2,2'/>
-      <!-- 현재가 점 -->
-      <circle cx='%d' cy='%.1f' r='4' fill='%s'/>
-      <circle cx='%d' cy='%.1f' r='6' fill='%s' opacity='0.3'/>
-    </svg>
-    <!-- 현재가 라벨 -->
-    <div style='position:absolute;right:-5px;top:%.1fpx;transform:translateY(-50%%);background:%s;padding:2px 6px;border-radius:3px;font-size:10px;color:#fff;font-weight:600'>%d</div>
-  </div>
-</div>]],
-        math.floor(maxPrice),
-        math.floor(maxPrice - range * 0.25),
-        math.floor(maxPrice - range * 0.5),
-        math.floor(maxPrice - range * 0.75),
-        math.floor(minPrice),
-        chartWidth, chartHeight, ticker, lineColor, lineColor,
-        gridLines,
-        openY, chartWidth, openY,
-        areaPoints, ticker,
-        table.concat(points, " "), lineColor,
-        closeY, chartWidth, closeY, lineColor,
-        chartWidth, closeY, lineColor,
-        chartWidth, closeY, lineColor,
-        closeY - 10, lineColor, math.floor(closePrice))
+        -- SVG container open + viewBox
+        html = html .. string.format([[<div style="flex:1;position:relative"><svg width="100%%" viewBox="0 0 %d %d" preserveAspectRatio="none" style="display:block;height:%dpx">]], W, H, H)
+
+        -- defs (해치 패턴)
+        html = html .. string.format([[<defs><pattern id="press-hatch-%s" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#e8a679" stroke-opacity="0.12" stroke-width="1"/></pattern></defs>]], ticker)
+
+        -- 3개 수평 룰 (top/mid/bottom)
+        html = html .. string.format([[<line x1="0" y1="0" x2="%d" y2="0" stroke="rgba(240,227,204,0.08)" stroke-width="1"/><line x1="0" y1="%.1f" x2="%d" y2="%.1f" stroke="rgba(240,227,204,0.08)" stroke-width="1"/><line x1="0" y1="%d" x2="%d" y2="%d" stroke="rgba(240,227,204,0.08)" stroke-width="1"/>]], W, H/2, W, H/2, H, W, H)
+
+        -- 시가 기준선 (dashed)
+        html = html .. string.format([[<line x1="0" y1="%.1f" x2="%d" y2="%.1f" stroke="#9a8a72" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>]], openY, W, openY)
+
+        -- 해치 fill area
+        html = html .. string.format([[<polygon points="%s" fill="url(#press-hatch-%s)"/>]], areaPoints, ticker)
+
+        -- 메인 라인 + end dot
+        html = html .. string.format([[<polyline points="%s" fill="none" stroke="%s" stroke-width="1.5"/><circle cx="%d" cy="%.1f" r="3" fill="%s"/></svg>]], linePts, lineColor, W, closeY, lineColor)
+
+        -- 현재가 라벨 (SVG 오른쪽 끝)
+        html = html .. string.format([[<div style="position:absolute;right:0;top:%.1fpx;transform:translateY(-50%%);font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9.5px;color:%s;background:#2b2219;padding:2px 6px;letter-spacing:0.04em">%d</div>]], closeY, lineColor, math.floor(closePrice))
+
+        -- SVG container 닫기 + flex 닫기
+        html = html .. [[</div></div>]]
 
         -- 시간 라벨
-        html = html .. [[
-<div style='display:flex;margin-top:8px;padding-left:45px'>
-  <div style='flex:1;font-size:9px;color:#787b86'>09:00</div>
-  <div style='flex:1;text-align:center;font-size:9px;color:#787b86'>12:00</div>
-  <div style='flex:1;text-align:center;font-size:9px;color:#787b86'>15:00</div>
-  <div style='flex:1;text-align:right;font-size:9px;color:#787b86'>18:00</div>
-</div>]]
+        html = html .. [[<div style="display:flex;justify-content:space-between;margin-top:8px;padding-left:50px;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10px;color:#6e604c"><span>09:00</span><span>12:00</span><span>15:00</span><span>close</span></div>]]
 
-        -- 거래 정보 바
-        html = html .. string.format([[
-<div style='display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid #2a2e39'>
-  <div>
-    <div style='font-size:9px;color:#787b86'>시가</div>
-    <div style='font-size:12px;color:#d1d4dc'>%d</div>
-  </div>
-  <div>
-    <div style='font-size:9px;color:#787b86'>고가</div>
-    <div style='font-size:12px;color:#ef5350'>%d</div>
-  </div>
-  <div>
-    <div style='font-size:9px;color:#787b86'>저가</div>
-    <div style='font-size:12px;color:#26a69a'>%d</div>
-  </div>
-  <div>
-    <div style='font-size:9px;color:#787b86'>기준가</div>
-    <div style='font-size:12px;color:#787b86'>%d</div>
-  </div>
-</div>]], math.floor(openPrice), math.floor(maxPrice - padding), math.floor(minPrice + padding), basePrice)
+        -- OHLC strip (시가 / 고가 warm red / 저가 ink blue / 기준 textDim)
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;padding-top:10px;border-top:1px solid rgba(240,227,204,0.08);gap:8px"><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">시 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">고 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#d94c47;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">저 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#5e7a99;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">기 준</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#9a8a72;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div></div>]], formatNumber(math.floor(openPrice)), formatNumber(math.floor(rawMax)), formatNumber(math.floor(rawMin)), formatNumber(basePrice))
 
+        -- Chart panel frame close
+        html = html .. [[</div>]]
     else
-        html = html .. "<div style='text-align:center;color:#787b86;padding:40px'>차트 데이터 없음</div>"
+        html = html .. [[<div style="padding:24px;margin-top:14px;margin-bottom:16px;background:#221b16;border:1px solid rgba(240,227,204,0.16);text-align:center;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;color:#6e604c">— No data on record —</div>]]
     end
 
-    html = html .. "</div>"
-
-    -- 기업 정보 섹션
-    local info = STOCK_INFO[ticker]
+    -- ==========================================
+    -- The Issuer · An Editor's Note (Dossier + Tags + Up/Down + Insider)
+    -- ==========================================
     if info then
-        -- 재무 상태 색상
-        local finColor = info.financial == "안정" and "#26a69a" or (info.financial == "성장" and "#58a6ff" or "#ef5350")
-        -- 변동성 색상
-        local volColor = (info.volatility == "저") and "#26a69a" or ((info.volatility == "중" or info.volatility == "중고") and "#ffd700" or "#ef5350")
+        -- 라벨
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Issuer &middot; An Editor's Note</div>]]
 
-        html = html .. string.format([[
-<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
-  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📋 기업 정보</div>
-  <div style='font-size:12px;color:#c9d1d9;line-height:1.5;margin-bottom:10px'>%s</div>
-  <div style='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px'>
-    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:#8b949e'>%s</span>
-    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:#8b949e'>%s</span>
-    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:%s'>재무 %s</span>
-    <span style='padding:4px 8px;background:#21262d;border-radius:4px;font-size:11px;color:%s'>변동성 %s</span>
-  </div>
-  <div style='font-size:11px;margin-bottom:6px'>
-    <span style='color:#ef5350'>▲</span> <span style='color:#8b949e'>%s</span>
-  </div>
-  <div style='font-size:11px;margin-bottom:6px'>
-    <span style='color:#26a69a'>▼</span> <span style='color:#8b949e'>%s</span>
-  </div>
-  <div style='font-size:11px;color:#6e7681;margin-top:8px'>
-    💡 내부자: <span style='color:#ffd700'>%s</span>
-  </div>
-</div>]], info.desc, info.sector, info.size, finColor, info.financial, volColor, info.volatility, info.upFactors, info.downFactors, info.insider)
+        -- Dossier (드롭캡 "제" salmon italic + desc)
+        html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;line-height:1.65;color:#ddc8a7;margin-bottom:14px;overflow:auto"><span style="float:left;font-family:'Noto Serif KR',Georgia,serif;font-size:44px;line-height:0.85;color:#e8a679;font-style:italic;margin-right:8px;margin-top:2px">제</span>%s</div>]], info.desc)
+
+        -- Tag strip (부문/규모/재무/변동성)
+        html = html .. string.format([[<div style="display:flex;flex-wrap:wrap;gap:14px;padding:10px 0;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);margin-bottom:14px"><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">부 문</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">규 모</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">재 무</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">변동성</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div></div>]], info.sector, info.size, info.financial, info.volatility)
+
+        -- Up/Down notes
+        html = html .. string.format([[<div style="margin-bottom:14px"><div style="display:flex;gap:10px;margin-bottom:8px"><span style="color:#d94c47;font-family:'Noto Serif KR',Georgia,serif;font-weight:700">▲</span><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;font-style:italic">%s</div></div><div style="display:flex;gap:10px"><span style="color:#5e7a99;font-family:'Noto Serif KR',Georgia,serif;font-weight:700">▼</span><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;font-style:italic">%s</div></div></div>]], info.upFactors, info.downFactors)
+
+        -- Insider quote (cardHi + 좌측 골드 2px + italic)
+        html = html .. string.format([[<div style="padding:10px 12px;background:#2b2219;border-left:2px solid #d4af6a;font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;font-style:italic;color:#ddc8a7;margin-bottom:18px">&mdash; Insider sources name <span style="color:#d4af6a;font-weight:600;font-style:normal">%s</span> as the issue's principal voice.</div>]], info.insider)
     end
 
-    -- 뉴스 섹션 (있으면 표시)
+    -- ==========================================
+    -- Related Dispatches · 관련 보도 (뉴스, 현재 종목 강조)
+    -- ==========================================
     local newsData = getState(triggerId, "stock_news")
     if newsData and newsData ~= "" then
-        html = html .. [[
-<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
-  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📰 시장 뉴스</div>
-  <div style='display:flex;flex-direction:column;gap:6px'>]]
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Related Dispatches · 관련 보도</div>]]
+        html = html .. [[<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">]]
 
-        -- 뉴스 파싱: TICKER:direction:headline||...
-        for item in newsData:gmatch("[^|][^|]+") do  -- || 구분자로 분할
-            item = item:gsub("^|", "")  -- 앞쪽 | 제거
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
             local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
             if newsTicker and headline then
-                local dirIcon = "📰"
-                local dirColor = "#58a6ff"
-                local dirText = ""
+                local nIsUp = (direction == "rising" or direction == "up" or direction == "crashing")
+                local nIsDown = (direction == "falling" or direction == "down")
+                local nColor = nIsUp and "#d94c47" or (nIsDown and "#5e7a99" or "#9a8a72")
+                local nArrow = nIsUp and "▲" or (nIsDown and "▼" or "·")
 
-                -- direction이 있으면 아이콘/색상 설정
-                if direction == "rising" or direction == "up" then
-                    dirIcon = "📈"
-                    dirColor = "#ef5350"
-                    dirText = "상승"
-                elseif direction == "falling" or direction == "down" then
-                    dirIcon = "📉"
-                    dirColor = "#42a5f5"
-                    dirText = "하락"
-                elseif direction == "stable" then
-                    dirIcon = "📊"
-                    dirText = "안정"
-                elseif direction == "crashing" then
-                    dirIcon = "📉"
-                    dirColor = "#ef5350"
-                    dirText = "급락"
-                elseif direction == "unknown" then
-                    dirIcon = "📰"
-                    dirColor = "#58a6ff"
-                    dirText = ""
+                -- 현재 종목 관련 여부에 따른 강조
+                local isRelated = (newsTicker == ticker)
+                local borderColor = isRelated and "#e8a679" or "rgba(240,227,204,0.16)"
+                local tickerColor = isRelated and "#f0e3cc" or "#9a8a72"
+                local borderWidth = isRelated and "2px" or "1px"
+
+                -- 헤드라인 split (" • " 첫 부분 = 헤드라인, 나머지 = body)
+                local nParts = {}
+                for part in headline:gmatch("[^•]+") do
+                    part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                    if part ~= "" then table.insert(nParts, part) end
+                end
+                local nHead = nParts[1] or headline
+                local nBody = ""
+                if #nParts > 1 then
+                    local rest = {}
+                    for i = 2, #nParts do table.insert(rest, nParts[i]) end
+                    nBody = table.concat(rest, " · ")
                 end
 
-                local isRelated = newsTicker == ticker
-                local bgColor = isRelated and "#1c1f26" or "#0d1117"
-                local tickerColor = isRelated and "#ffd700" or "#58a6ff"
+                html = html .. string.format([[<div style="border-left:%s solid %s;padding:8px 0 8px 12px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><span style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.28em;color:%s">%s</span><span style="color:%s;font-family:'Noto Serif KR',Georgia,serif;font-size:11px">%s</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.45">%s</div>]], borderWidth, borderColor, tickerColor, newsTicker, nColor, nArrow, nHead)
 
-                -- 뉴스 헤드라인 (bullet points를 줄바꿈으로 변환)
-                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e'>• </span>")
+                if nBody ~= "" then
+                    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic;margin-top:2px">%s</div>]], nBody)
+                end
 
-                html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:8px;padding:10px;background:%s;border-radius:6px;border-left:3px solid %s;margin-bottom:6px'>
-      <span style='font-size:14px'>%s</span>
-      <div style='flex:1'>
-        <div style='display:flex;gap:8px;align-items:center;margin-bottom:4px'>
-          <span style='font-size:12px;font-weight:700;color:%s'>%s</span>
-          %s
-        </div>
-        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
-      </div>
-    </div>]], bgColor, isRelated and dirColor or "#30363d", dirIcon, tickerColor, newsTicker,
-                    dirText ~= "" and string.format("<span style='font-size:10px;padding:2px 6px;background:%s;border-radius:3px;color:#fff'>%s</span>", dirColor, dirText) or "",
-                    formattedHeadline)
+                html = html .. [[</div>]]
             end
         end
 
-        html = html .. [[
-  </div>
-</div>]]
+        html = html .. [[</div>]]
     end
 
-    -- 시장 지수 섹션
+    -- ==========================================
+    -- The Composite · 시장 지수 mini card (LBLY)
+    -- ==========================================
     local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
     local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
-    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
-    local marketSign = marketChange > 0 and "+" or ""
-    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+    local marketDir = (marketChange > 0) and 1 or ((marketChange < 0) and -1 or 0)
+    local marketColor = (marketDir > 0) and "#d94c47" or ((marketDir < 0) and "#5e7a99" or "#9a8a72")
+    local marketArrow = (marketDir > 0) and "▲" or ((marketDir < 0) and "▼" or "—")
+    local marketPctText = (marketDir == 0) and "0.00%" or string.format("%+.2f%%", marketChange)
 
-    html = html .. string.format([[
-<div style='background:#0d1117;padding:14px 16px;border-top:1px solid #21262d'>
-  <div style='font-size:11px;color:#58a6ff;font-weight:600;margin-bottom:8px'>📊 릴리벨리 지수</div>
-  <div style='display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161b22;border-radius:6px'>
-    <div>
-      <div style='font-size:12px;color:#8b949e'>LBLY Index</div>
-      <div style='font-size:18px;font-weight:700;color:#fff'>%s</div>
-    </div>
-    <div style='text-align:right'>
-      <div style='font-size:14px;font-weight:600;color:%s'>%s%s%.2f%%</div>
-      <div style='font-size:11px;color:#8b949e'>전일대비</div>
-    </div>
-  </div>
-</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Composite · 시장 지수</div>]]
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:flex-end;padding:10px 14px;margin-bottom:18px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679">LBLY · COMPOSITE</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;font-weight:600;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:14px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10px;color:#9a8a72;margin-top:2px">compared with prior session</div></div></div>]], formatNumber(marketIndex), marketColor, marketArrow, marketPctText)
 
-    -- 종목 선택 (스크롤 가능)
-    html = html .. [[
-<div style='background:#161b22;padding:12px;border-radius:0 0 8px 8px;border-top:1px solid #30363d'>
-  <div style='display:flex;gap:6px;overflow-x:auto;padding-bottom:4px'>]]
+    -- ==========================================
+    -- Other Issues · 종목 선택기 (가로 스크롤, 트리거 stock_chart_<TICKER> 보존)
+    -- ==========================================
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Other Issues · 다른 종목</div>]]
+    html = html .. [[<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px">]]
 
     for _, t in ipairs(STOCK_TICKERS) do
-        local isSelected = t == ticker
+        local isSelected = (t == ticker)
         local tPrice = tonumber(getState(triggerId, "stock_" .. t .. "_price"))
         tPrice = (tPrice and tPrice > 0) and tPrice or STOCK_BASE_PRICES[t]
         local tChange = tonumber(getState(triggerId, "stock_" .. t .. "_change")) or 0
 
-        -- 변화량이 0이면 히스토리에서 계산
         if tChange == 0 then
-            local history = getStockHistory(triggerId, t)
-            if #history >= 2 then
-                local prevPrice = history[#history - 1]
-                tChange = tPrice - prevPrice
+            local tHistory = getStockHistory(triggerId, t)
+            if #tHistory >= 2 then
+                tChange = tPrice - tHistory[#tHistory - 1]
             end
         end
 
-        -- 등락률 계산
-        local tPrevPrice = tPrice - tChange
-        local tChangePercent = (tPrevPrice > 0 and tChange ~= 0) and ((tChange / tPrevPrice) * 100) or 0
-        local tColor = tChangePercent > 0 and "#ef5350" or (tChangePercent < 0 and "#42a5f5" or "#8b949e")
+        local tPrev = tPrice - tChange
+        local tPct = (tPrev > 0 and tChange ~= 0) and ((tChange / tPrev) * 100) or 0
+        local tDir = (tPct > 0) and 1 or ((tPct < 0) and -1 or 0)
+        local tColor = (tDir > 0) and "#d94c47" or ((tDir < 0) and "#5e7a99" or "#9a8a72")
+        local tArrow = (tDir > 0) and "▲" or ((tDir < 0) and "▼" or "·")
+        local tPctTxt = (tDir == 0) and "0.0%" or string.format("%+.1f%%", tPct)
 
-        if isSelected then
-            html = html .. string.format([[
-    <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:#30363d;border:1px solid #8b949e;border-radius:6px;cursor:pointer'>
-      <div style='font-size:12px;font-weight:600;color:#fff'>%s</div>
-      <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChangePercent)
-        else
-            html = html .. string.format([[
-    <button type='button' risu-btn='stock_chart_%s' style='flex-shrink:0;padding:8px 12px;background:transparent;border:1px solid #30363d;border-radius:6px;cursor:pointer'>
-      <div style='font-size:12px;font-weight:500;color:#8b949e'>%s</div>
-      <div style='font-size:11px;color:%s'>%+.1f%%</div>
-    </button>]], t, t, tColor, tChangePercent)
-        end
+        local cardBg = isSelected and "#2b2219" or "transparent"
+        local cardBorder = isSelected and "#e8a679" or "rgba(240,227,204,0.16)"
+        local nameColor = isSelected and "#f0e3cc" or "#ddc8a7"
+
+        html = html .. string.format([[<button type="button" risu-btn="stock_chart_%s" onclick="event.stopPropagation();" style="flex-shrink:0;padding:6px 10px;background:%s;border:1px solid %s;cursor:pointer;font-family:inherit;text-align:left"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11px;font-weight:600;color:%s">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;color:%s;font-variant-numeric:tabular-nums;margin-top:1px">%s %s</div></button>]], t, cardBg, cardBorder, nameColor, t, tColor, tArrow, tPctTxt)
     end
 
-    html = html .. "</div></div>"
+    html = html .. [[</div>]]
     return html
 end
 
 -- 내 자산 뷰
 function generateStockAssetView(triggerId)
-    local html = ""
-
-    -- ============================================
-    -- 시장 지수 섹션
-    -- ============================================
+    -- ==========================================
+    -- The Lilybelly Index · 시장 지수 큰 카드
+    -- ==========================================
     local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
     local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
-    local marketChangeColor = marketChange > 0 and "#ef5350" or (marketChange < 0 and "#42a5f5" or "#8b949e")
-    local marketSign = marketChange > 0 and "+" or ""
-    local marketArrow = marketChange > 0 and "▲" or (marketChange < 0 and "▼" or "─")
+    local marketDir = (marketChange > 0) and 1 or ((marketChange < 0) and -1 or 0)
+    local marketColor = (marketDir > 0) and "#d94c47" or ((marketDir < 0) and "#5e7a99" or "#9a8a72")
+    local marketArrow = (marketDir > 0) and "▲" or ((marketDir < 0) and "▼" or "—")
+    local marketPctText = (marketDir == 0) and "0.00%" or string.format("%+.2f%%", marketChange)
 
-    html = html .. string.format([[
-<div style='background:linear-gradient(135deg,#0d1117 0%%,#1a1f35 100%%);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #30363d'>
-  <div style='display:flex;justify-content:space-between;align-items:center'>
-    <div>
-      <div style='font-size:11px;color:#8b949e;margin-bottom:4px'>📊 릴리벨리 지수</div>
-      <div style='font-size:24px;font-weight:700;color:#fff'>%s</div>
-    </div>
-    <div style='text-align:right'>
-      <div style='font-size:18px;font-weight:700;color:%s'>%s%s%.2f%%</div>
-      <div style='font-size:11px;color:#8b949e'>전일대비</div>
-    </div>
-  </div>
-</div>]], formatNumber(marketIndex), marketChangeColor, marketArrow, marketSign, marketChange)
+    local html = [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Lilybelly Index · 릴리벨리 지수</div>]]
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:flex-end;padding:14px 16px;margin-bottom:18px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679">LBLY · COMPOSITE</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:30px;font-weight:600;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:18px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">compared with prior session</div></div></div>]], formatNumber(marketIndex), marketColor, marketArrow, marketPctText)
 
-    -- ============================================
-    -- 뉴스 섹션
-    -- ============================================
+    -- ==========================================
+    -- Market Dispatches · 시장 보도 (뉴스 - 자산뷰 강조 없음)
+    -- ==========================================
     local newsData = getState(triggerId, "stock_news")
     if newsData and newsData ~= "" then
-        html = html .. [[
-<div style='background:#0d1117;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #30363d'>
-  <div style='font-size:13px;color:#58a6ff;font-weight:600;margin-bottom:10px'>📰 시장 뉴스</div>
-  <div style='display:flex;flex-direction:column;gap:8px'>]]
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Market Dispatches · 시장 보도</div>]]
+        html = html .. [[<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">]]
 
-        -- 뉴스 파싱
         for item in newsData:gmatch("[^|][^|]+") do
             item = item:gsub("^|", "")
-            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
-            if ticker and headline then
-                local dirIcon = "📰"
-                local dirColor = "#58a6ff"
+            local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and headline then
+                local nIsUp = (direction == "rising" or direction == "up" or direction == "crashing")
+                local nIsDown = (direction == "falling" or direction == "down")
+                local nColor = nIsUp and "#d94c47" or (nIsDown and "#5e7a99" or "#9a8a72")
+                local nArrow = nIsUp and "▲" or (nIsDown and "▼" or "·")
 
-                if direction == "rising" or direction == "up" then
-                    dirIcon = "📈"
-                    dirColor = "#ef5350"
-                elseif direction == "falling" or direction == "down" then
-                    dirIcon = "📉"
-                    dirColor = "#42a5f5"
-                elseif direction == "crashing" then
-                    dirIcon = "📉"
-                    dirColor = "#ef5350"
+                local nParts = {}
+                for part in headline:gmatch("[^•]+") do
+                    part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                    if part ~= "" then table.insert(nParts, part) end
+                end
+                local nHead = nParts[1] or headline
+                local nBody = ""
+                if #nParts > 1 then
+                    local rest = {}
+                    for i = 2, #nParts do table.insert(rest, nParts[i]) end
+                    nBody = table.concat(rest, " · ")
                 end
 
-                local formattedHeadline = headline:gsub(" • ", "<br><span style='color:#8b949e;font-size:10px;margin-left:16px'>• </span>")
+                html = html .. string.format([[<div style="border-left:1px solid rgba(240,227,204,0.16);padding:8px 0 8px 12px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><span style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.28em;color:#9a8a72">%s</span><span style="color:%s;font-family:'Noto Serif KR',Georgia,serif;font-size:11px">%s</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.45">%s</div>]], newsTicker, nColor, nArrow, nHead)
 
-                html = html .. string.format([[
-    <div style='display:flex;align-items:flex-start;gap:10px;padding:10px;background:#161b22;border-radius:8px;border-left:3px solid %s'>
-      <span style='font-size:14px'>%s</span>
-      <div style='flex:1'>
-        <div style='font-size:12px;font-weight:700;color:%s;margin-bottom:4px'>%s</div>
-        <div style='font-size:11px;color:#c9d1d9;line-height:1.5'>%s</div>
-      </div>
-    </div>]], dirColor, dirIcon, dirColor, ticker, formattedHeadline)
+                if nBody ~= "" then
+                    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic;margin-top:2px">%s</div>]], nBody)
+                end
+                html = html .. [[</div>]]
             end
         end
-
-        html = html .. [[
-  </div>
-</div>]]
+        html = html .. [[</div>]]
     end
 
-    -- ============================================
-    -- 포트폴리오 요약
-    -- ============================================
-
-    -- state 우선, chatVar 폴백
+    -- ==========================================
+    -- 포트폴리오 계산 (gold + holdings)
+    -- ==========================================
     local goldState = tonumber(getState(triggerId, "player_gold"))
     local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
     local gold = goldState or goldChat or 0
-
-    -- chatVar에만 있고 state에 없으면 동기화
     if not goldState and goldChat then
         setState(triggerId, "player_gold", goldChat)
         log("💰 골드 state 동기화: " .. goldChat .. "G")
     end
 
-    local totalValue = gold
-    local totalProfit = 0
     local stockValue = 0
-
-    -- 먼저 총 계산
+    local totalProfit = 0
     local holdings = {}
     for _, ticker in ipairs(STOCK_TICKERS) do
-        -- state 우선, chatVar 폴백
         local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
         if owned > 0 then
             local avgPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_avg")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
@@ -7153,88 +7225,56 @@ function generateStockAssetView(triggerId)
             })
         end
     end
-    totalValue = gold + stockValue
+    local totalValue = gold + stockValue
+    local totalPct = (stockValue > 0 and (stockValue - totalProfit) > 0) and (totalProfit / (stockValue - totalProfit) * 100) or 0
+    local profitDir = (totalProfit > 0) and 1 or ((totalProfit < 0) and -1 or 0)
+    local profitColor = (profitDir > 0) and "#d94c47" or ((profitDir < 0) and "#5e7a99" or "#9a8a72")
+    local profitArrow = (profitDir > 0) and "▲" or ((profitDir < 0) and "▼" or "—")
+    local profitNumText = (totalProfit == 0) and "0" or string.format("%+d", math.floor(totalProfit))
+    local totalPctText = (totalPct == 0) and "0.00%" or string.format("%+.2f%%", totalPct)
 
-    local totalProfitColor = totalProfit >= 0 and "#ef5350" or "#42a5f5"
-    local totalProfitSign = totalProfit >= 0 and "+" or ""
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
 
-    -- 총 자산 헤더 (카드 스타일)
-    html = html .. string.format([[
-<div style='background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);padding:20px;border-radius:12px;margin-bottom:12px'>
-  <div style='font-size:12px;color:#8b949e;margin-bottom:4px'>총 평가자산</div>
-  <div style='font-size:32px;font-weight:700;color:#fff'>%s<span style='font-size:16px;color:#8b949e;margin-left:4px'>G</span></div>
-  <div style='display:flex;gap:16px;margin-top:12px'>
-    <div>
-      <div style='font-size:11px;color:#8b949e'>총 손익</div>
-      <div style='font-size:16px;font-weight:600;color:%s'>%s%s G</div>
-    </div>
-    <div>
-      <div style='font-size:11px;color:#8b949e'>수익률</div>
-      <div style='font-size:16px;font-weight:600;color:%s'>%s%.1f%%</div>
-    </div>
-  </div>
-</div>]], formatNumber(totalValue), totalProfitColor, totalProfitSign, formatNumber(totalProfit),
-        totalProfitColor, totalProfitSign, stockValue > 0 and (totalProfit / (stockValue - totalProfit) * 100) or 0)
+    -- ==========================================
+    -- Net worth banner (중앙 정렬, 큰 숫자)
+    -- ==========================================
+    html = html .. string.format([[<div style="padding:18px 0;text-align:center;margin-bottom:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#9a8a72;font-variant:small-caps;letter-spacing:0.32em;margin-bottom:8px">The reader's estate, valued</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:44px;font-weight:600;color:#f0e3cc;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s<span style="color:#e8a679;font-size:22px;margin-left:6px;font-style:italic">G</span></div><div style="margin-top:14px;display:flex;justify-content:center;gap:36px"><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">총 손익</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:%s;margin-top:4px;font-variant-numeric:tabular-nums">%s %s G</div></div><div style="width:1px;background:rgba(240,227,204,0.16)"></div><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">수익률</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:%s;margin-top:4px;font-variant-numeric:tabular-nums">%s</div></div></div></div>]], formatNumber(totalValue), profitColor, profitArrow, profitNumText, profitColor, totalPctText)
 
-    -- 자산 구성
-    html = html .. [[
-<div style='background:#0d1117;border-radius:8px;overflow:hidden;margin-bottom:12px'>
-  <div style='padding:12px 16px;border-bottom:1px solid #21262d'>
-    <span style='font-size:13px;font-weight:600;color:#fff'>자산 구성</span>
-  </div>
-  <div style='padding:16px'>
-    <div style='display:flex;justify-content:space-between;margin-bottom:12px'>
-      <div style='display:flex;align-items:center;gap:8px'>
-        <div style='width:12px;height:12px;background:#ffd700;border-radius:2px'></div>
-        <span style='font-size:13px;color:#c9d1d9'>현금</span>
-      </div>
-      <span style='font-size:14px;font-weight:600;color:#fff'>]] .. formatNumber(gold) .. [[ G</span>
-    </div>
-    <div style='display:flex;justify-content:space-between'>
-      <div style='display:flex;align-items:center;gap:8px'>
-        <div style='width:12px;height:12px;background:#58a6ff;border-radius:2px'></div>
-        <span style='font-size:13px;color:#c9d1d9'>주식</span>
-      </div>
-      <span style='font-size:14px;font-weight:600;color:#fff'>]] .. formatNumber(stockValue) .. [[ G</span>
-    </div>
-  </div>
-</div>]]
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
 
-    -- 보유 종목 리스트
-    html = html .. [[
-<div style='background:#0d1117;border-radius:8px;overflow:hidden'>
-  <div style='padding:12px 16px;border-bottom:1px solid #21262d'>
-    <span style='font-size:13px;font-weight:600;color:#fff'>보유 종목</span>
-    <span style='font-size:12px;color:#8b949e;margin-left:8px'>]] .. #holdings .. [[개</span>
-  </div>]]
+    -- ==========================================
+    -- Composition · 자산 구성 (현금 / 주식 2 columns)
+    -- ==========================================
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-top:14px;margin-bottom:10px">Composition · 자산 구성</div>]]
+
+    local goldPct = (totalValue > 0) and (gold / totalValue * 100) or 0
+    local stockPct = (totalValue > 0) and (stockValue / totalValue * 100) or 0
+    html = html .. string.format([[<div style="display:flex;gap:18px;margin-bottom:18px"><div style="flex:1;border-top:2px solid #d4af6a;padding-top:8px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">현금 · Cash</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:500">%s<span style="font-size:11px;color:#9a8a72;margin-left:4px">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#d4af6a;margin-top:2px">%.1f%% of estate</div></div><div style="flex:1;border-top:2px solid #e8a679;padding-top:8px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">주식 · Equity</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:500">%s<span style="font-size:11px;color:#9a8a72;margin-left:4px">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#e8a679;margin-top:2px">%.1f%% of estate</div></div></div>]], formatNumber(gold), goldPct, formatNumber(stockValue), stockPct)
+
+    -- ==========================================
+    -- Holdings · N issues on the books (보유 종목 테이블)
+    -- ==========================================
+    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Holdings · %d issues on the books</div>]], #holdings)
 
     if #holdings > 0 then
-        for _, h in ipairs(holdings) do
-            local profitColor = h.profit >= 0 and "#ef5350" or "#42a5f5"
-            local profitSign = h.profit >= 0 and "+" or ""
+        html = html .. [[<div style="border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16)">]]
+        for i, h in ipairs(holdings) do
+            local pDir = (h.profit > 0) and 1 or ((h.profit < 0) and -1 or 0)
+            local pColor = (pDir > 0) and "#d94c47" or ((pDir < 0) and "#5e7a99" or "#9a8a72")
+            local pArrow = (pDir > 0) and "▲" or ((pDir < 0) and "▼" or "—")
+            local pNum = (h.profit == 0) and "0" or string.format("%+d", math.floor(h.profit))
+            local pPctText = (pDir == 0) and "0.0%" or string.format("%+.1f%%", h.profitPercent)
+            local rowBorder = (i < #holdings) and "1px dotted rgba(240,227,204,0.08)" or "none"
 
-            html = html .. string.format([[
-  <button type='button' risu-btn='stock_select_%s' onclick='event.stopPropagation();' style='display:flex;width:100%%;padding:14px 16px;background:transparent;border:none;border-bottom:1px solid #21262d;cursor:pointer;text-align:left'>
-    <div style='flex:1'>
-      <div style='font-size:14px;font-weight:600;color:#fff'>%s</div>
-      <div style='font-size:11px;color:#8b949e'>%s · %d주 · 평단 %sG</div>
-    </div>
-    <div style='text-align:right'>
-      <div style='font-size:14px;font-weight:600;color:#fff'>%s G</div>
-      <div style='font-size:12px;color:%s'>%s%s G (%.1f%%)</div>
-    </div>
-  </button>]], h.ticker, h.ticker, h.name, h.owned, formatNumber(h.avgPrice),
-            formatNumber(h.value), profitColor, profitSign, formatNumber(h.profit), h.profitPercent)
+            html = html .. string.format([[<button type="button" risu-btn="stock_select_%s" onclick="event.stopPropagation();" style="display:flex;width:100%%;padding:14px 0;align-items:baseline;border:0;border-bottom:%s;background:transparent;cursor:pointer;text-align:left;font-family:inherit"><div style="flex:1"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;font-weight:600;color:#f0e3cc;font-style:italic">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">%s · %d주 held at avg %s G</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;font-weight:500;color:#f0e3cc;font-variant-numeric:tabular-nums">%s G</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;color:%s;margin-top:2px;font-variant-numeric:tabular-nums">%s %s · %s</div></div></button>]], h.ticker, rowBorder, h.name, h.ticker, h.owned, formatNumber(h.avgPrice), formatNumber(h.value), pColor, pArrow, pNum, pPctText)
         end
+        html = html .. [[</div>]]
     else
-        html = html .. [[
-  <div style='padding:40px;text-align:center'>
-    <div style='font-size:14px;color:#8b949e'>보유 종목이 없습니다</div>
-    <div style='font-size:12px;color:#6e7681;margin-top:4px'>시세표에서 종목을 선택해 매수하세요</div>
-  </div>]]
+        html = html .. [[<div style="padding:32px 0;text-align:center;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16)"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:12px;color:#6e604c">— No issues on the reader's ledger —</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:4px">시세표에서 종목을 선택해 매수하세요</div></div>]]
     end
 
-    html = html .. "</div>"
     return html
 end
 
@@ -7308,10 +7348,19 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 2단계: 현재 출력의 HTML 변환 (디스플레이용)
     -- ============================================
 
-    -- 전투 선택지 변환 (모바일 반응형) - 다른 태그보다 먼저 처리!
+    -- 전투 선택지 변환 (Tarot v3 톤, 난이도 색깔 분기 제거) - 다른 태그보다 먼저 처리!
     -- [%s%S]는 줄바꿈 포함 모든 문자 매치 (Lua에서 .는 줄바꿈 제외)
     data = data:gsub("<CombatChoice>([%s%S]-)</CombatChoice>", function(content)
-        local html = "<div style='max-width:600px;width:calc(100%% - 20px);margin:15px auto;padding:0 10px;box-sizing:border-box'>"
+        -- 난이도 영문 → 한글 라벨
+        local diffLabels = {
+            ["Very Easy"] = "매우 쉬움",
+            ["Easy"]      = "쉬움",
+            ["Normal"]    = "보통",
+            ["Hard"]      = "어려움",
+            ["Very Hard"] = "매우 어려움",
+        }
+
+        local html = [[<div style="max-width:560px;width:calc(100% - 16px);margin:14px auto;padding:0 8px;box-sizing:border-box;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif">]]
         local choiceIndex = 1
 
         for line in content:gmatch("[^\r\n]+") do
@@ -7330,32 +7379,14 @@ listenEdit("editDisplay", function(triggerId, data, meta)
                 elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
                     emoji = "🏃"
                 else
-                    emoji = "⚔️"  -- 기타 미인식 능력치는 기본 아이콘
+                    emoji = "⚔️"
                 end
 
-                -- 난이도별 색상 (그라디언트)
-                local gradient = "linear-gradient(135deg, #666 0%, #888 100%)"
-                local shadow = "0 2px 8px rgba(0,0,0,0.3)"
-                if diff == "Very Easy" then
-                    gradient = "linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)"
-                    shadow = "0 2px 8px rgba(76,175,80,0.4)"
-                elseif diff == "Easy" then
-                    gradient = "linear-gradient(135deg, #8BC34A 0%, #9CCC65 100%)"
-                    shadow = "0 2px 8px rgba(139,195,74,0.4)"
-                elseif diff == "Normal" then
-                    gradient = "linear-gradient(135deg, #FFC107 0%, #FFD54F 100%)"
-                    shadow = "0 2px 8px rgba(255,193,7,0.4)"
-                elseif diff == "Hard" then
-                    gradient = "linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)"
-                    shadow = "0 2px 8px rgba(255,152,0,0.4)"
-                elseif diff == "Very Hard" then
-                    gradient = "linear-gradient(135deg, #F44336 0%, #EF5350 100%)"
-                    shadow = "0 2px 8px rgba(244,67,54,0.4)"
-                end
+                local diffLabel = diffLabels[diff] or diff
 
                 html = html .. string.format(
-                    "<button type='button' risu-trigger='combat_choice_%d' style='display:flex;align-items:center;justify-content:space-between;width:100%%;max-width:580px;margin:6px auto;padding:10px 15px;background:%s;color:white;border:none;border-radius:8px;box-shadow:%s;font-size:clamp(12px, 3vw, 14px);font-weight:500;cursor:pointer;transition:all 0.2s ease;box-sizing:border-box'><span style='flex:1;min-width:0;text-align:left'>%s <strong>[%s]</strong> %s</span><span style='opacity:0.9;font-size:clamp(10px, 2.5vw, 12px);margin-left:8px;flex-shrink:0'>%s</span></button>",
-                    choiceIndex, gradient, shadow, emoji, stat, desc, diff
+                    [[<button type="button" risu-trigger="combat_choice_%d" style="display:flex;align-items:center;gap:10px;width:100%%;margin:6px auto;padding:11px 14px;background:#1a1226;color:#ebe2d0;border:1px solid rgba(184,150,92,0.45);font-family:inherit;font-size:clamp(12px, 3vw, 13px);font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.35;box-sizing:border-box"><span style="font-size:16px;line-height:1;flex-shrink:0">%s</span><span style="font-family:Georgia,serif;font-size:10px;letter-spacing:0.3em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">%s</span><span style="flex:1;min-width:0">%s</span><span style="font-family:Georgia,serif;font-style:italic;font-size:11px;color:#c98da0;letter-spacing:0.05em;flex-shrink:0">%s</span></button>]],
+                    choiceIndex, emoji, stat, desc, diffLabel
                 )
 
                 choiceIndex = choiceIndex + 1
@@ -7815,46 +7846,38 @@ listenEdit("editDisplay", function(triggerId, data, meta)
     -- 시스템 메시지 디스플레이 변환
     -- ============================================
 
-    -- 시스템 메시지를 감지하고 타입별로 스타일링 (backtick 있어도 처리)
+    -- 시스템 메시지를 감지하고 타입별로 스타일링 (Tarot v3 톤, 좌측 보더만 미세 분기)
     data = data:gsub("`?(%-+%s*System Message:%s*)([^\n`]+)`?", function(prefix, content)
-        local messageType = "general"
-        local icon = "📌"
-        local bgColor = "#161b22"
-        local borderColor = "#30363d"
-        local textColor = "#8b949e"
+        local icon = "✦"
+        local accentColor = "#b8965c"  -- general: 탁한 골드
 
         -- 경영 이벤트 감지 (GOLDMANE, LUXORIA, PFIZARA)
         if content:match("%[GOLDMANE%]") or content:match("%[LUXORIA%]") or content:match("%[PFIZARA%]") then
-            messageType = "business"
-            icon = "📊"
-            bgColor = "#1a1410"
-            borderColor = "#d4af37"
-            textColor = "#f5e6d3"
+            icon = "❖"
+            accentColor = "#d4b577"  -- business: 밝은 골드
         -- 주식 거래 감지
         elseif content:match("bought.*share") or content:match("sold.*share") or
                content:match("매수") or content:match("매도") or
                content:match("Buy") or content:match("Sell") then
-            messageType = "stock"
-            icon = "💰"
-            bgColor = "#0d1821"
-            borderColor = "#58a6ff"
-            textColor = "#c9d1d9"
+            icon = "◆"
+            accentColor = "#c98da0"  -- stock: 핑크
         end
 
-        -- 스타일 적용된 HTML 생성
-        local html = string.format([[
-<div style='max-width:600px;margin:10px auto;background:%s;border-left:3px solid %s;border-radius:6px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.2)'>
-  <div style='display:flex;align-items:center;gap:8px'>
-    <span style='font-size:16px'>%s</span>
-    <span style='color:%s;font-size:13px;line-height:1.5'>%s</span>
-  </div>
-</div>]], bgColor, borderColor, icon, textColor, content)
+        -- Tarot v3 톤 카드 (좌측 보더만 색 분기)
+        local html = string.format([[<div style="position:relative;max-width:560px;margin:10px auto;background:#1a1226;border:1px solid rgba(184,150,92,0.4);border-left:3px solid %s;padding:11px 16px;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;box-shadow:0 4px 14px rgba(0,0,0,0.35)"><div style="position:absolute;inset:3px;border:0.5px solid rgba(184,150,92,0.18);pointer-events:none"></div><div style="position:relative;z-index:1;display:flex;align-items:center;gap:10px"><span style="font-family:Georgia,serif;font-size:14px;color:%s;flex-shrink:0;line-height:1">%s</span><span style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">System</span><span style="flex:1;color:#ebe2d0;font-size:13px;line-height:1.55">%s</span></div></div>]], accentColor, accentColor, icon, content)
 
         return html
     end)
 
-    -- 주간 보고서 변환
-    data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", convertWeeklyReport)
+    -- 주간 보고서 변환 (태그 사이 끼임 방지 — 원위치 제거 후 메시지 끝에 append)
+    local reportHTML = nil
+    data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", function(content)
+        reportHTML = convertWeeklyReport(content)
+        return ""
+    end)
+    if reportHTML then
+        data = data .. "\n\n" .. reportHTML
+    end
 
     -- ============================================
     -- 보조 AI 리롤 버튼 추가
@@ -8560,3 +8583,8 @@ _G["leave_stock_club"] = function(triggerId)
 end
 
 log("📈 주식 시스템 버튼 핸들러 등록 완료 (20종목 선택 + 뷰3개)")
+
+-- Shop system code removed 2026-05-25 due to repeated end-of-file truncation.
+-- Original shop code was inside an 'if false then' block (disabled stub).
+-- Will be reimplemented from scratch in Sub-step 1.5 (dynamic lineup redesign).
+-- EOF MARKER do not remove

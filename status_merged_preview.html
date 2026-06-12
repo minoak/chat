@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Merged Status — Calendar + RPG Bar Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0; padding: 0;
+  background: #0a070f;
+  color: #ebe2d0;
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 14% 6%, rgba(184,150,92,0.16), transparent 55%),
+    radial-gradient(ellipse at 90% 90%, rgba(201,141,160,0.14), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+
+.preview-mast {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.55em;
+  color: rgba(184,150,92,0.55);
+  text-transform: uppercase;
+  margin: 40px 0 8px;
+}
+.preview-title {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 24px;
+  color: #d4b577;
+  margin-bottom: 30px;
+}
+
+.chat {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+.msg {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.85;
+  color: rgba(235,226,208,0.78);
+  background: rgba(20,14,30,0.5);
+  border-left: 1px solid rgba(184,150,92,0.32);
+  padding: 14px 18px;
+  margin: 12px 0;
+}
+
+/* ============================================
+   MERGED STATUS CARD
+   wrapper holds the border + 4 corner dots.
+   inside: cal-strip → (optional detail) → divider → rpg-bar
+   ============================================ */
+.status-card {
+  position: relative;
+  max-width: 720px;
+  margin: 14px auto;
+  background: #150e1f;
+  border: 1px solid #b8965c;
+  color: #ebe2d0;
+  font-family: 'Cormorant Garamond', 'Noto Serif KR', serif;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,0.4),
+    0 10px 24px rgba(0,0,0,0.45);
+}
+.status-card::before {
+  content: "";
+  position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  pointer-events: none;
+}
+.status-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 1.5px at 11px 11px,                       #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) 11px,          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at 11px calc(100% - 11px),          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) calc(100% - 11px), #b8965c 95%, transparent 100%);
+  background-repeat: no-repeat;
+}
+
+/* ============================================
+   SLIM CALENDAR STRIP (top)
+   ============================================ */
+.cal-strip {
+  padding: 11px 18px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  color: rgba(235,226,208,0.78);
+}
+.cal-strip .cal-season {
+  font-style: italic;
+  color: #d4b577;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.cal-strip .cal-pill {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  border: 1px solid rgba(184,150,92,0.55);
+  padding: 2px 7px;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.cal-strip .sep {
+  color: rgba(184,150,92,0.4);
+  font-size: 12px;
+}
+.cal-strip .cal-day,
+.cal-strip .cal-time {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: rgba(235,226,208,0.7);
+  text-transform: uppercase;
+}
+.cal-strip .cal-loc {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: #ebe2d0;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.cal-strip .cal-detail-trigger {
+  margin-left: auto;
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cal-strip .cal-detail-trigger::-webkit-details-marker { display: none; }
+.cal-strip .cal-detail-trigger::before { content: "〈"; color: rgba(184,150,92,0.6); font-family: 'Cormorant Garamond', serif; font-style: italic; }
+.cal-strip .cal-detail-trigger::after  { content: "〉"; color: rgba(184,150,92,0.6); font-family: 'Cormorant Garamond', serif; font-style: italic; }
+.cal-strip .cal-detail-trigger:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+
+/* details open state */
+.cal-block[open] .cal-detail-trigger { color: #d4b577; border-color: #d4b577; }
+.cal-block[open] .cal-detail-trigger::before,
+.cal-block[open] .cal-detail-trigger::after { content: "✦"; color: #d4b577; }
+
+/* ============================================
+   CALENDAR DETAIL (collapsible)
+   ============================================ */
+.cal-detail-body {
+  padding: 12px 18px 14px;
+  border-top: 1px solid rgba(184,150,92,0.22);
+}
+.week-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.day {
+  padding: 9px 0 8px;
+  text-align: center;
+  background: rgba(20,14,30,0.5);
+  border: 1px solid rgba(184,150,92,0.4);
+  color: rgba(235,226,208,0.55);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.day.today {
+  background: #d4b577;
+  color: #150e1f;
+  border-color: #d4b577;
+  font-weight: 600;
+  box-shadow:
+    inset 0 0 0 1px rgba(20,14,30,0.4),
+    0 4px 14px rgba(212,181,119,0.25);
+}
+
+.info-rows { display: grid; gap: 4px; }
+.info-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 2px;
+  border-bottom: 1px dashed rgba(184,150,92,0.18);
+}
+.info-row:last-child { border-bottom: 0; }
+.info-row .k {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  text-transform: uppercase;
+}
+.info-row .v {
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  font-size: 13px;
+  color: #ebe2d0;
+  line-height: 1.5;
+}
+.info-row .v.italic {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: #d4b577;
+}
+.exam-flag {
+  display: inline-block;
+  border: 1px solid #c98da0;
+  color: #c98da0;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  padding: 1px 7px;
+  margin-right: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   DIVIDER between calendar and rpg-bar
+   ============================================ */
+.strip-divider {
+  height: 1px;
+  margin: 0 14px;
+  background: linear-gradient(90deg, transparent, rgba(184,150,92,0.45), transparent);
+}
+
+/* ============================================
+   RPG COMPACT BAR (bottom, no own border)
+   ============================================ */
+.rpg-bar-compact {
+  padding: 11px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.rpg-bar-compact .stats-line {
+  display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap;
+}
+.rpg-bar-compact .stat { display: inline-flex; align-items: baseline; gap: 8px; }
+.rpg-bar-compact .stat .k {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  text-transform: uppercase;
+}
+.rpg-bar-compact .stat .v {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: #d4b577;
+  line-height: 1;
+}
+.rpg-bar-compact .stat .v .max {
+  color: rgba(235,226,208,0.32);
+  font-size: 12px;
+  margin-left: 2px;
+}
+.rpg-bar-compact .triggers { display: flex; gap: 8px; flex-wrap: wrap; }
+.rpg-trigger {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rpg-trigger::before { content: "〈"; color: rgba(184,150,92,0.6); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 12px; }
+.rpg-trigger::after  { content: "〉"; color: rgba(184,150,92,0.6); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 12px; }
+.rpg-trigger:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+.rpg-trigger:hover::before, .rpg-trigger:hover::after { color: #d4b577; }
+
+/* legend */
+.legend {
+  max-width: 760px;
+  margin: 30px auto 60px;
+  padding: 24px 28px;
+  border: 1px solid rgba(184,150,92,0.32);
+  background: rgba(20,14,30,0.5);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(235,226,208,0.85);
+}
+.legend h3 {
+  font-family: 'Cinzel', serif; font-size: 11px;
+  letter-spacing: 0.45em; color: #d4b577;
+  text-transform: uppercase; margin: 0 0 12px;
+}
+.legend ul { margin: 0; padding-left: 1.2em; }
+.legend li { margin-bottom: 4px; }
+.legend em { color: #d4b577; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="preview-mast">Belladonna Academy · Status Card Merge</div>
+<div class="preview-title"><em>Calendar + RPG Bar 단일 카드</em></div>
+
+<div class="chat">
+
+  <div class="msg">
+    "오늘 시험 첫째 날, 준비 됐어?" Vivienne가 옆자리에 앉았다. 그녀의 손에는 정치학 교재가 들려 있었고, 정원 너머에서 종소리가 들려왔다.
+  </div>
+
+  <!-- ====== MERGED STATUS CARD ====== -->
+  <details class="status-card cal-block" open>
+    <summary class="cal-strip" style="list-style: none;">
+      <span class="cal-season">가을 학기</span>
+      <span class="cal-pill">W04 / 12</span>
+      <span class="sep">·</span>
+      <span class="cal-day">목요일</span>
+      <span class="sep">·</span>
+      <span class="cal-time">오전</span>
+      <span class="sep">·</span>
+      <span class="cal-loc">스칼렛 스트리트</span>
+      <span class="cal-detail-trigger">Detail</span>
+    </summary>
+
+    <div class="cal-detail-body">
+      <div class="week-cal">
+        <div class="day">월</div>
+        <div class="day">화</div>
+        <div class="day">수</div>
+        <div class="day today">목</div>
+        <div class="day">금</div>
+        <div class="day">토</div>
+        <div class="day">일</div>
+      </div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="k">This Week</span>
+          <span class="v italic"><span class="exam-flag">Exam</span>1차 시험 주간</span>
+        </div>
+        <div class="info-row">
+          <span class="k">Event</span>
+          <span class="v">하우스 필수 회의 · 정원 다과회</span>
+        </div>
+        <div class="info-row">
+          <span class="k">Weather</span>
+          <span class="v">맑음, 가벼운 안개</span>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- the rpg bar is rendered as a sibling sharing the same card visually.
+       For preview we re-open the card wrapping to show both in one card.
+       In the real implementation it'll be a single .status-card with both
+       sections inside; this preview splits to keep the details-toggle simple. -->
+  <div class="status-card" style="margin-top: -14px;">
+    <div class="strip-divider" style="margin-top: 0;"></div>
+    <div class="rpg-bar-compact">
+      <div class="stats-line">
+        <span class="stat"><span class="k">Lv</span><span class="v">12</span></span>
+        <span class="stat"><span class="k">CP</span><span class="v">67<span class="max">/100</span></span></span>
+        <span class="stat"><span class="k">EXP</span><span class="v">240<span class="max">/500</span></span></span>
+        <span class="stat"><span class="k">G</span><span class="v">1,450</span></span>
+      </div>
+      <div class="triggers">
+        <span class="rpg-trigger">Character Sheet</span>
+        <span class="rpg-trigger">Inventory</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- closed-state demo -->
+  <div class="preview-mast" style="margin-top: 50px;">Closed state</div>
+  <div class="preview-title" style="font-size: 16px;">— Detail 토글 닫힘 —</div>
+
+  <details class="status-card cal-block">
+    <summary class="cal-strip" style="list-style: none;">
+      <span class="cal-season">겨울 학기</span>
+      <span class="cal-pill">W12 / 12</span>
+      <span class="sep">·</span>
+      <span class="cal-day">금요일</span>
+      <span class="sep">·</span>
+      <span class="cal-time">저녁</span>
+      <span class="sep">·</span>
+      <span class="cal-loc">대강당</span>
+      <span class="cal-detail-trigger">Detail</span>
+    </summary>
+    <div class="cal-detail-body">
+      <div class="week-cal">
+        <div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day today">금</div><div class="day">토</div><div class="day">일</div>
+      </div>
+      <div class="info-rows">
+        <div class="info-row"><span class="k">This Week</span><span class="v italic"><span class="exam-flag">Exam</span>기말 시험 주간</span></div>
+        <div class="info-row"><span class="k">Event</span><span class="v">기말 무도회 전야</span></div>
+        <div class="info-row"><span class="k">Weather</span><span class="v">눈, 영하 5도</span></div>
+      </div>
+    </div>
+  </details>
+  <div class="status-card" style="margin-top: -14px;">
+    <div class="strip-divider" style="margin-top: 0;"></div>
+    <div class="rpg-bar-compact">
+      <div class="stats-line">
+        <span class="stat"><span class="k">Lv</span><span class="v">28</span></span>
+        <span class="stat"><span class="k">CP</span><span class="v">240<span class="max">/280</span></span></span>
+        <span class="stat"><span class="k">EXP</span><span class="v">1,820<span class="max">/2,400</span></span></span>
+        <span class="stat"><span class="k">G</span><span class="v">14,500</span></span>
+      </div>
+      <div class="triggers">
+        <span class="rpg-trigger">Character Sheet</span>
+        <span class="rpg-trigger">Inventory</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <h3>병합 구조</h3>
+  <ul>
+    <li><em>한 wrapper 카드</em>가 보더 + 4코너 닷을 가짐. 안쪽에 두 영역</li>
+    <li><em>위:</em> 슬림 캘린더 줄 — "가을 학기 [W04/12] · 목요일 · 오전 · 스칼렛 스트리트 · 〈 Detail 〉". 한 줄 압축</li>
+    <li><em>중간:</em> Detail 펼치면 요일 그리드 + This Week / Event / Weather 행</li>
+    <li><em>구분선:</em> 캘린더 영역과 RPG bar 사이에 페이드 골드 1px 라인</li>
+    <li><em>아래:</em> 기존 rpg-bar-compact (Lv / CP / EXP / G + Character Sheet · Inventory triggers)</li>
+    <li><em>매 턴 보임:</em> 슬림 캘린더 줄 + RPG bar. 요일 그리드/이번주/이벤트/날씨는 〈 Detail 〉 눌렀을 때만</li>
+    <li>※ 미리보기에서는 details 토글 한계로 wrapper를 두 번 그렸음. 실 구현은 단일 wrapper에 내부 영역만 분리</li>
+  </ul>
+</div>
+
+</body>
+</html>

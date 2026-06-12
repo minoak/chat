@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Affinity Panel — Tarot Tone Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0; padding: 0;
+  background: #0a070f;
+  color: #ebe2d0;
+  font-family: 'Noto Serif KR', serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 14% 6%, rgba(184,150,92,0.16), transparent 55%),
+    radial-gradient(ellipse at 90% 90%, rgba(201,141,160,0.14), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+
+.wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 40px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: start;
+}
+.col-head {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  color: rgba(184,150,92,0.65);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.col-sub {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: rgba(235,226,208,0.55);
+  margin-bottom: 22px;
+}
+
+/* ====================================================
+   BEFORE — 베이지/브라운 톤 (원본 그대로)
+   ==================================================== */
+.before-panel {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: #f5f1e8;
+  border: 3px solid #8b7355;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: Georgia, serif;
+}
+.before-panel .panel-header { text-align: center; margin-bottom: 12px; padding: 12px 0; border-bottom: 2px solid #8b7355; }
+.before-panel .panel-title { font-size: 24px; color: #5d4e37; font-weight: 600; letter-spacing: 1px; }
+.before-panel .tab-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+.before-panel .tab-btn { flex: 1; padding: 10px; background: #fff; border: 2px solid #8b7355; border-radius: 6px; color: #5d4e37; font-weight: 600; font-size: 13px; cursor: pointer; max-width: 110px; }
+.before-panel .tab-btn.active { background: #8b7355; color: #fff; }
+.before-panel .character-card { background: #fff; border: 1px solid #d4c4a8; border-radius: 4px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+.before-panel .character-img { width: 160px; height: 200px; background: linear-gradient(135deg, #e8d5c4, #c9b89a); border: 3px solid #8b7355; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; color: #8b7355; font-style: italic; font-size: 14px; }
+.before-panel .character-name { font-weight: 600; font-size: 18px; color: #5d4e37; margin-bottom: 10px; border-bottom: 1px solid #d4c4a8; padding-bottom: 6px; width: 100%; text-align: center; }
+.before-panel .heart-section { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.before-panel .heart-icon { color: #c85a54; font-size: 14px; }
+.before-panel .heart-bar { flex: 1; height: 6px; background: #f0ebe0; border: 1px solid #d4c4a8; border-radius: 3px; overflow: hidden; max-width: 120px; }
+.before-panel .heart-fill { height: 100%; background: linear-gradient(90deg, #c85a54, #d4a574); }
+.before-panel .heart-percent { font-size: 13px; color: #5d4e37; min-width: 35px; font-weight: 500; }
+.before-panel .stat-controls { display: flex; gap: 4px; padding: 6px; background: rgba(200,90,84,0.08); border: 1px solid rgba(200,90,84,0.15); border-radius: 4px; margin: 6px 0; align-items: center; justify-content: center; }
+.before-panel .stat-label { font-size: 11px; color: #8b7355; font-weight: 600; margin-right: 4px; }
+.before-panel .stat-btn { width: 36px; height: 22px; background: #fff; border: 1px solid #d4c4a8; border-radius: 3px; color: #5d4e37; font-size: 11px; font-weight: 700; cursor: pointer; }
+.before-panel .stat-btn.minus { color: #dc2626; }
+.before-panel .stat-btn.plus { color: #059669; }
+.before-panel .sin-row { display: flex; align-items: center; gap: 4px; padding: 8px; background: rgba(122,92,153,0.08); border: 1px solid rgba(122,92,153,0.2); border-radius: 6px; margin-top: 6px; }
+.before-panel .sin-left { flex: 1; height: 20px; background: #f0ebe0; border: 1px solid #d4c4a8; border-radius: 10px 0 0 10px; overflow: hidden; position: relative; }
+.before-panel .sin-left-fill { height: 100%; background: linear-gradient(90deg, #c85a54, #9b4a4a); float: right; }
+.before-panel .sin-icon { padding: 0 8px; font-size: 18px; }
+.before-panel .sin-right { flex: 1; height: 20px; background: #f0ebe0; border: 1px solid #d4c4a8; border-radius: 0 10px 10px 0; overflow: hidden; position: relative; }
+.before-panel .sin-right-fill { height: 100%; background: linear-gradient(90deg, #4a9bb8, #5ab88a); }
+.before-panel .sin-val { position: absolute; top: 2px; font-size: 10px; color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5); z-index: 1; }
+.before-panel .sin-val.l { right: 4px; }
+.before-panel .sin-val.r { left: 4px; }
+
+/* ====================================================
+   AFTER — Tarot v3 톤
+   ==================================================== */
+.after-panel {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: #150e1f;
+  border: 1px solid #b8965c;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  color: #ebe2d0;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4), 0 10px 24px rgba(0,0,0,0.45);
+}
+.after-panel::before {
+  content: ""; position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  pointer-events: none;
+}
+.after-panel::after {
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 1.5px at 11px 11px,                       #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) 11px,          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at 11px calc(100% - 11px),          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) calc(100% - 11px), #b8965c 95%, transparent 100%);
+  background-repeat: no-repeat;
+}
+.after-panel > * { position: relative; z-index: 1; }
+
+.after-panel .panel-header {
+  text-align: center;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+}
+.after-panel .roundel {
+  width: 38px; height: 38px;
+  border: 1.2px solid #b8965c;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px;
+  color: #c98da0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  position: relative;
+}
+.after-panel .roundel::before {
+  content: ""; position: absolute; inset: -5px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  border-radius: 50%;
+}
+.after-panel .panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 28px;
+  color: #ebe2d0;
+  line-height: 1;
+}
+.after-panel .panel-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.55em;
+  color: #b8965c;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.after-panel .tab-controls {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.after-panel .tab-btn {
+  flex: 1;
+  padding: 9px 6px;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  cursor: pointer;
+  max-width: 130px;
+  transition: all 0.2s;
+}
+.after-panel .tab-btn:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+.after-panel .tab-btn.active {
+  background: #d4b577;
+  color: #150e1f;
+  border-color: #d4b577;
+  font-weight: 500;
+}
+
+.after-panel .character-card {
+  background: #1a1226;
+  border: 1px solid rgba(184,150,92,0.4);
+  padding: 18px;
+  margin-bottom: 18px;
+  position: relative;
+}
+.after-panel .character-img {
+  width: 160px;
+  height: 200px;
+  background: linear-gradient(135deg, #2a1d3a, #1a1226);
+  border: 1px solid #b8965c;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(212,181,119,0.55);
+  font-style: italic;
+  font-size: 13px;
+  font-family: 'Cormorant Garamond', serif;
+}
+.after-panel .character-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  color: #d4b577;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+  margin-bottom: 12px;
+}
+
+/* heart (affinity) section */
+.after-panel .heart-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  justify-content: center;
+}
+.after-panel .heart-icon { color: #c98da0; font-size: 14px; }
+.after-panel .heart-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(20,14,30,0.6);
+  border: 1px solid rgba(184,150,92,0.32);
+  overflow: hidden;
+  max-width: 140px;
+}
+.after-panel .heart-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c98da0, #d4b577);
+  transition: width 0.3s ease;
+}
+.after-panel .heart-percent {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #d4b577;
+  min-width: 36px;
+}
+
+/* affinity controls */
+.after-panel .stat-controls {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(201,141,160,0.06);
+  border: 1px solid rgba(201,141,160,0.25);
+  margin: 8px 0;
+  align-items: center;
+  justify-content: center;
+}
+.after-panel .stat-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  color: #b8965c;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.after-panel .stat-btn {
+  width: 36px;
+  height: 22px;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.after-panel .stat-btn:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+.after-panel .stat-btn.minus { color: #c98da0; border-color: rgba(201,141,160,0.55); }
+.after-panel .stat-btn.minus:hover { background: rgba(201,141,160,0.1); color: #ffffff; border-color: #c98da0; }
+.after-panel .stat-btn.plus { color: #d4b577; }
+.after-panel .stat-btn.plus:hover { background: rgba(212,181,119,0.1); color: #ffffff; }
+
+/* Affinity input mode (free entry instead of ± buttons) */
+.after-panel .stat-controls.input-mode {
+  background: rgba(201,141,160,0.06);
+  border: 1px solid rgba(201,141,160,0.25);
+  padding: 8px 10px;
+  gap: 8px;
+}
+.after-panel .stat-input {
+  flex: 1;
+  background: rgba(20,14,30,0.7);
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #d4b577;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  padding: 6px 10px;
+  text-align: center;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  -moz-appearance: textfield;
+}
+.after-panel .stat-input::placeholder {
+  color: rgba(184,150,92,0.4);
+  font-style: italic;
+}
+.after-panel .stat-input::-webkit-outer-spin-button,
+.after-panel .stat-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.after-panel .stat-input:focus {
+  border-color: #d4b577;
+  background: rgba(20,14,30,0.85);
+  color: #ebe2d0;
+}
+.after-panel .stat-apply {
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.after-panel .stat-apply:hover {
+  color: #d4b577;
+  border-color: #d4b577;
+  background: rgba(184,150,92,0.08);
+}
+
+/* Affinity Edit button — opens lua alertInput dialog (risu-trigger) */
+.after-panel .stat-edit {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 180px;
+}
+.after-panel .stat-edit::before { content: "〈"; color: rgba(184,150,92,0.6); font-style: italic; font-family: Georgia, serif; }
+.after-panel .stat-edit::after  { content: "〉"; color: rgba(184,150,92,0.6); font-style: italic; font-family: Georgia, serif; }
+.after-panel .stat-edit:hover {
+  color: #d4b577;
+  border-color: #d4b577;
+  background: rgba(184,150,92,0.08);
+}
+.after-panel .stat-edit:hover::before,
+.after-panel .stat-edit:hover::after { color: #d4b577; }
+
+/* Sin thermometer */
+.after-panel .sin-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: rgba(122,42,61,0.08);
+  border: 1px solid rgba(122,42,61,0.35);
+  margin: 10px 0 4px;
+}
+.after-panel .sin-left, .after-panel .sin-right {
+  flex: 1;
+  height: 20px;
+  background: rgba(20,14,30,0.6);
+  border: 1px solid rgba(184,150,92,0.32);
+  overflow: hidden;
+  position: relative;
+}
+.after-panel .sin-left-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7a2a3d, #c98da0);
+  float: right;
+}
+.after-panel .sin-icon {
+  padding: 0 8px;
+  font-size: 18px;
+  color: #c98da0;
+}
+.after-panel .sin-right-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4b577, #b8965c);
+}
+.after-panel .sin-val {
+  position: absolute;
+  top: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: #ebe2d0;
+  font-weight: 600;
+  z-index: 1;
+}
+.after-panel .sin-val.l { right: 4px; }
+.after-panel .sin-val.r { left: 4px; }
+
+/* legend */
+.legend {
+  max-width: 1100px;
+  margin: 40px auto 60px;
+  padding: 22px 28px;
+  border: 1px solid rgba(184,150,92,0.32);
+  background: rgba(20,14,30,0.5);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(235,226,208,0.85);
+}
+.legend h3 {
+  font-family: 'Cinzel', serif; font-size: 11px;
+  letter-spacing: 0.45em; color: #d4b577;
+  text-transform: uppercase; margin: 0 0 12px;
+}
+.legend ul { margin: 0; padding-left: 1.2em; }
+.legend li { margin-bottom: 4px; }
+.legend em { color: #d4b577; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- BEFORE -->
+  <div>
+    <div class="col-head">BEFORE · 베이지/브라운</div>
+    <div class="col-sub">현재</div>
+
+    <div class="before-panel">
+      <div class="panel-header">
+        <div class="panel-title">📖 캐릭터</div>
+      </div>
+      <div class="tab-controls">
+        <button class="tab-btn active">메인</button>
+        <button class="tab-btn">서브</button>
+        <button class="tab-btn">설정</button>
+      </div>
+      <div class="character-card">
+        <div class="character-img">Vivienne</div>
+        <div class="character-name">Vivienne</div>
+        <div class="heart-section">
+          <span class="heart-icon">❤</span>
+          <div class="heart-bar"><div class="heart-fill" style="width: 68%;"></div></div>
+          <span class="heart-percent">68%</span>
+        </div>
+        <div class="stat-controls">
+          <span class="stat-label">호감도</span>
+          <button class="stat-btn minus">-5</button>
+          <button class="stat-btn minus">-1</button>
+          <button class="stat-btn plus">+1</button>
+          <button class="stat-btn plus">+5</button>
+        </div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width: 40%;"></div>
+            <span class="sin-val l">12</span>
+          </div>
+          <span class="sin-icon">⚖</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width: 65%;"></div>
+            <span class="sin-val r">19</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div>
+    <div class="col-head">AFTER · Tarot v3</div>
+    <div class="col-sub">통일안</div>
+
+    <div class="after-panel">
+      <div class="panel-header">
+        <div class="roundel">♡</div>
+        <div class="panel-title">Personae</div>
+        <div class="panel-subtitle">캐릭터</div>
+      </div>
+      <div class="tab-controls">
+        <button class="tab-btn active">Main</button>
+        <button class="tab-btn">Sub</button>
+        <button class="tab-btn">Settings</button>
+      </div>
+      <div class="character-card">
+        <div class="character-img"><em>Vivienne</em></div>
+        <div class="character-name">Vivienne</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar"><div class="heart-fill" style="width: 68%;"></div></div>
+          <span class="heart-percent">68</span>
+        </div>
+        <div class="stat-controls input-mode">
+          <span class="stat-label">Affinity</span>
+          <button class="stat-edit">Edit Value</button>
+        </div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width: 40%;"></div>
+            <span class="sin-val l">12</span>
+          </div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width: 65%;"></div>
+            <span class="sin-val r">19</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <h3>매핑 요점</h3>
+  <ul>
+    <li><em>팔레트:</em> 베이지(#f5f1e8) + 브라운(#8b7355/#5d4e37) → 자줏빛 #150e1f + 골드 #b8965c/#d4b577 + 장미 #c98da0 (rpg_status_panel과 통일)</li>
+    <li><em>형태:</em> 둥근 모서리 4px + 다층 그림자 → 직각 + 4코너 골드 닷 + 내부 0.5px 라인 (rpg-bar-compact 패턴)</li>
+    <li><em>헤더:</em> "📖 캐릭터" → ♡ roundel + <em>Personae</em> italic + 캐릭터 subtitle (Calendarium/Character Sheet와 동일 패턴)</li>
+    <li><em>탭 버튼:</em> 흰 배경 라운드 → 직각 + 골드 보더, active는 골드 채움 + 다크 텍스트 (Hebdomas active 패턴)</li>
+    <li><em>캐릭터 카드:</em> 흰 배경 라운드 → 약간 밝은 다크 자줏빛(#1a1226) + 직각 + 골드 보더</li>
+    <li><em>캐릭터 이름:</em> #5d4e37 → italic 골드(#d4b577) — Cormorant 강조 폰트</li>
+    <li><em>호감도(Affinity) 게이지:</em> ❤(#c85a54) → ♡(#c98da0 장미). 빨강→오렌지 그라데이션 → 장미→골드 그라데이션</li>
+    <li><em>Affinity 조작:</em> ± 버튼 4개 → <em>Edit Value</em> trigger 칩 한 개. 클릭 시 lua의 <code>alertInput(triggerId, prompt):await()</code>이 입력 다이얼로그 띄움. 사용자가 자유 입력 (예: +12, −7). 메리 시스터즈 <code>CheatElsie</code> 패턴 참조</li>
+    <li><em>Sin ± 조작:</em> 그대로 유지 — 압력/완화 각각 ± 버튼</li>
+    <li><em>Sin 온도계:</em> 압력(빨강 그라데이션) → 와인색(#7a2a3d) → 장미. 완화(파랑→녹색) → 골드 그라데이션. 가운데 ⚖ → ✦ 골드 글리프</li>
+    <li><em>폰트:</em> Georgia 유지 + Cormorant italic 강조 + Cinzel 라벨 (rpg_status_panel과 정렬)</li>
+  </ul>
+</div>
+
+</body>
+</html>
