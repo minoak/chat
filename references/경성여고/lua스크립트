@@ -1,0 +1,235 @@
+
+-- ============================================
+-- Hwawon(花苑) - 변수 관리 스크립트
+-- ============================================
+-- 역할:
+--   1. [날짜: ... | 시간: ... | 장소: ...] 메타라인 파싱
+--   2. current_date / current_time / current_location 변수 저장
+--   3. 메타라인 제거 (사용자에게 비표시)
+-- ============================================
+
+-- ============================================
+-- 시간 키워드 → 시각 매핑
+-- ============================================
+
+local timeMap = {
+    ["새벽"] = "AM 05:00",
+    ["아침"] = "AM 07:00",
+    ["오전"] = "AM 09:00",
+    ["점심"] = "PM 12:00",
+    ["오후"] = "PM 02:00",
+    ["저녁"] = "PM 07:00",
+    ["밤"]   = "PM 10:00"
+}
+
+-- ============================================
+-- 메타라인 추출
+-- ============================================
+-- 출력에서 [날짜: ... | 시간: ... | 장소: ...] 패턴을 찾아 반환
+
+function extractMetaLine(text)
+    if not text then return nil end
+    return text:match("%[날짜:.-|.-시간:.-|.-장소:.-%]")
+end
+
+-- ============================================
+-- 메타라인 파싱 → 변수 저장
+-- ============================================
+
+function parseMetaLine(triggerId, metaLine)
+    if not metaLine then return end
+
+    local date, time, location = metaLine:match(
+        "%[날짜:%s*(.-)%s*|%s*시간:%s*(.-)%s*|%s*장소:%s*(.-)%s*%]"
+    )
+
+    if date and date ~= "" then
+        -- YYYY.MM.DD 형식 확인
+        local dateStr = date:match("(%d+%.%d+%.%d+)")
+        if dateStr then
+            setChatVar(triggerId, "current_date", dateStr)
+        end
+    end
+
+    if time and time ~= "" then
+        local mapped = timeMap[time] or time
+        setChatVar(triggerId, "current_time", mapped)
+    end
+
+    if location and location ~= "" then
+        setChatVar(triggerId, "current_location", location)
+    end
+end
+
+-- ============================================
+-- 메타라인 제거
+-- ============================================
+
+function removeMetaLine(text)
+    if not text then return text end
+
+    -- [날짜: ... | 시간: ... | 장소: ...] 제거
+    local modified = text:gsub("%[날짜:.-|.-시간:.-|.-장소:.-%]", "")
+
+    -- 연속 빈 줄 정리
+    modified = modified:gsub("\n\n\n+", "\n\n")
+    modified = modified:gsub("%s+$", "")
+
+    return modified
+end
+
+-- ============================================
+-- 출력 처리
+-- ============================================
+
+function processOutput(triggerId)
+    local chatHistory = getFullChat(triggerId)
+    if not chatHistory or #chatHistory == 0 then
+        return
+    end
+
+    local lastIndex = #chatHistory - 1
+    local latestMessage = chatHistory[#chatHistory]
+    local mainOutput = latestMessage.data
+
+    if not mainOutput or mainOutput == "" then
+        return
+    end
+
+    -- 이미 처리된 메시지 스킵
+    if mainOutput:find("■HWAWON_PROCESSED■", 1, true) then
+        return
+    end
+
+    -- 메타라인 추출
+    local metaLine = extractMetaLine(mainOutput)
+    if not metaLine then
+        return
+    end
+
+    -- 메타라인 파싱 → 변수 저장
+    parseMetaLine(triggerId, metaLine)
+
+    -- 메타라인 제거
+    local modifiedOutput = removeMetaLine(mainOutput)
+
+    -- 처리 완료 표시
+    modifiedOutput = modifiedOutput .. "<!-- ■HWAWON_PROCESSED■ -->"
+
+    -- 메시지 업데이트
+    setChat(triggerId, lastIndex, modifiedOutput)
+end
+
+-- ============================================
+-- 이벤트 핸들러
+-- ============================================
+
+onStart = function(triggerId)
+    -- 초기값 설정 (최초 1회)
+    if not getState(triggerId, "hwawon_initialized") then
+        setChatVar(triggerId, "current_date", "2025.03.03")
+        setChatVar(triggerId, "current_time", "AM 09:00")
+        setChatVar(triggerId, "current_location", "화원 입구")
+        setState(triggerId, "hwawon_initialized", true)
+    end
+end
+
+onOutput = async(function(triggerId)
+    pcall(processOutput, triggerId)
+end)
+
+-- ============================================
+-- 퍼스트 메시지 트리거 (risu-trigger)
+-- ============================================
+
+-- ============================================
+-- 1단계: 학년 선택
+-- ============================================
+
+setGrade3 = function(triggerId)
+    setChatVar(triggerId, "hw_grade", "3")
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    setChatVar(triggerId, "user_role", "경성여자고등학교 3학년")
+    return true
+end
+
+setGrade2 = function(triggerId)
+    setChatVar(triggerId, "hw_grade", "2")
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    setChatVar(triggerId, "user_role", "경성여자고등학교 2학년")
+    return true
+end
+
+setGrade1 = function(triggerId)
+    setChatVar(triggerId, "hw_grade", "1")
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    setChatVar(triggerId, "user_role", "경성여자고등학교 1학년")
+    return true
+end
+
+-- ============================================
+-- 리셋 함수
+-- ============================================
+
+resetGrade = function(triggerId)
+    setChatVar(triggerId, "hw_grade", "")
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    setChatVar(triggerId, "user_role", "")
+    return true
+end
+
+resetCharacter = function(triggerId)
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    return true
+end
+
+-- ============================================
+-- 2단계: 캐릭터 선택
+-- ============================================
+
+local hw_characters = {
+    {name = "Seoyun", id = "seoyun", displayName = "강서윤"},
+    {name = "Jina", id = "jina", displayName = "유진아"},
+    {name = "Seoha", id = "seoha", displayName = "이서하"},
+    {name = "Soyul", id = "soyul", displayName = "한소율"},
+    {name = "Haeun", id = "haeun", displayName = "박하은"},
+    {name = "Sodam", id = "sodam", displayName = "임소담"},
+    {name = "Chaerin", id = "chaerin", displayName = "백채린"}
+}
+
+for _, char in ipairs(hw_characters) do
+    _G["setChar" .. char.name] = function(triggerId)
+        setChatVar(triggerId, "hw_character", char.id)
+        setChatVar(triggerId, "hw_character_name", char.displayName)
+        return true
+    end
+end
+
+-- ============================================
+-- 3단계: 시나리오 선택 (greeting)
+-- ============================================
+
+for i = 1, 14 do
+    _G["greeting" .. i] = function(triggerId)
+        setChatVar(triggerId, "greeting", tostring(i))
+        setState(triggerId, "greeting", i)
+        return true
+    end
+end
+
+-- ============================================
+-- 다시 선택 (선택 패널로 복귀)
+-- ============================================
+
+resetGreeting = function(triggerId)
+    setChatVar(triggerId, "greeting", "")
+    setChatVar(triggerId, "hw_character", "")
+    setChatVar(triggerId, "hw_character_name", "")
+    setState(triggerId, "greeting", 0)
+    return true
+end

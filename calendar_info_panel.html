@@ -1,38 +1,276 @@
 <style>
-.info-panel-details {margin-bottom: 10px; padding: 12px; background: rgba(255, 255, 255, 0.7); border-radius: 12px; border: 2px solid #d4c4a8;}
-.info-panel-details summary {font-weight: 700; color: #8b7355; margin-bottom: 8px; font-size: 0.95em; letter-spacing: 0.5px; cursor: pointer; user-select: none; list-style: none;}
-.info-panel-details summary::-webkit-details-marker {display: none;}
-.info-panel-details summary::before {content: '▸ '; display: inline-block; transition: transform 0.2s;}
-.info-panel-details[open] summary::before {content: '▾ ';}
-.info-panel-details-content {margin-top: 8px;}
-.week-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 10px 0; }
-.day { padding: 8px; text-align: center; background: rgba(212, 196, 168, 0.2); border: 1px solid #d4c4a8; border-radius: 8px; font-size: 12px; color: #999; transition: all 0.2s; }
-.day.today { background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05); }
+/* ============================================
+   Belladonna Academy · Calendar Info Panel
+   (Tarot tone — matches rpg_status_panel v3)
+   ============================================ */
+.info-panel {
+  position: relative;
+  max-width: 650px;
+  margin: 12px auto;
+  background: #150e1f;
+  border: 1px solid #b8965c;
+  color: #ebe2d0;
+  font-family: 'Noto Serif KR', '나눔명조', 'Nanum Myeongjo', '바탕', Batang, Georgia, serif;
+  padding: 20px 22px 18px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,0.4),
+    0 10px 24px rgba(0,0,0,0.45);
+}
+.info-panel::before {
+  content: ""; position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  pointer-events: none;
+}
+.info-panel::after {
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 1.5px at 11px 11px,                       #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) 11px,          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at 11px calc(100% - 11px),          #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) calc(100% - 11px), #b8965c 95%, transparent 100%);
+  background-repeat: no-repeat;
+}
+
+/* header */
+.info-head {
+  text-align: center;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+}
+.info-head .roundel {
+  width: 32px; height: 32px;
+  border: 1px solid #b8965c;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px;
+  color: #d4b577;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  position: relative;
+}
+.info-head .roundel::before {
+  content: ""; position: absolute; inset: -4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  border-radius: 50%;
+}
+.info-head .title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic; font-weight: 500;
+  font-size: 22px; color: #ebe2d0; line-height: 1;
+}
+.info-head .subtitle {
+  font-family: Georgia, serif;
+  font-size: 9px; letter-spacing: 0.5em;
+  color: #b8965c; text-transform: uppercase;
+  font-variant: small-caps;
+  margin-top: 5px;
+}
+
+/* season · week banner */
+.info-season {
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: #d4b577;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.info-season .week-pill {
+  display: inline-block;
+  font-family: Georgia, serif;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  border: 1px solid rgba(184,150,92,0.55);
+  padding: 2px 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  font-variant: small-caps;
+}
+.info-day {
+  text-align: center;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: rgba(235,226,208,0.6);
+  text-transform: uppercase;
+  font-variant: small-caps;
+  margin-bottom: 12px;
+}
+.info-day .sep { color: rgba(184,150,92,0.4); margin: 0 8px; }
+
+/* weekday grid */
+.week-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin: 0 0 12px;
+}
+.day {
+  padding: 10px 0 9px;
+  text-align: center;
+  background: rgba(20,14,30,0.5);
+  border: 1px solid rgba(184,150,92,0.4);
+  color: rgba(235,226,208,0.55);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.day.today {
+  background: #d4b577;
+  color: #150e1f;
+  border-color: #d4b577;
+  font-weight: 600;
+  box-shadow:
+    inset 0 0 0 1px rgba(20,14,30,0.4),
+    0 4px 14px rgba(212,181,119,0.25);
+}
+
+/* details — collapsible */
+.info-details {
+  border-top: 1px solid rgba(184,150,92,0.32);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.info-details summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.45em;
+  color: #b8965c;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  padding: 4px 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.info-details summary::-webkit-details-marker { display: none; }
+.info-details summary::before {
+  content: "〈";
+  color: rgba(184,150,92,0.6);
+  font-style: italic;
+  font-size: 12px;
+  font-family: Georgia, serif;
+}
+.info-details summary::after {
+  content: "〉";
+  color: rgba(184,150,92,0.6);
+  font-style: italic;
+  font-size: 12px;
+  font-family: Georgia, serif;
+}
+.info-details[open] summary { color: #d4b577; }
+.info-details[open] summary::before { content: "✦"; color: #d4b577; }
+.info-details[open] summary::after  { content: "✦"; color: #d4b577; }
+.info-details summary:hover { color: #d4b577; }
+
+.info-rows {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+.info-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 4px;
+  border-bottom: 1px dashed rgba(184,150,92,0.18);
+}
+.info-row:last-child { border-bottom: 0; }
+.info-row .k {
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  text-transform: uppercase;
+  font-variant: small-caps;
+}
+.info-row .v {
+  font-family: 'Noto Serif KR', '나눔명조', 'Nanum Myeongjo', '바탕', Batang, Georgia, serif;
+  font-size: 13px;
+  color: #ebe2d0;
+  line-height: 1.5;
+}
+.info-row .v.italic {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  color: #d4b577;
+}
+
+/* exam-week emphasis */
+.exam-flag {
+  display: inline-block;
+  border: 1px solid #c98da0;
+  color: #c98da0;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  padding: 1px 7px;
+  margin-right: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  font-variant: small-caps;
+}
 </style>
 
-<div style="max-width: 650px; margin: 10px auto; background: linear-gradient(135deg, #f9f6f0 0%, #f5f1e8 100%); border: 2px solid #a67c52; border-radius: 15px; padding: 12px; font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; box-shadow: 0 6px 24px rgba(139, 115, 85, 0.3);">
+<div class="info-panel">
 
-  <h2 style="color: #8b7355; text-align: center; margin: 0 0 12px 0; font-size: 1.1em; font-weight: 700; border-bottom: 2px solid #a67c52; padding-bottom: 8px;">📅 정보 패널</h2>
-
-  <!-- 시간 & 달력 (기본 표시) -->
-  <div style="background: rgba(255, 255, 255, 0.7); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 2px solid #d4c4a8;">
-    <p style="color: #8b7355; margin: 0 0 6px 0; font-size: 13px; text-align: center; font-weight: 700;">
-      {{getvar::current_season}} 학기 Week {{getvar::week_of_season}}/12
-    </p>
-    <p style="color: #666; margin: 0 0 10px 0; font-size: 12px; text-align: center;">
-      {{getvar::day_of_week_name}} {{getvar::current_time}}
-    </p>
-
-    <!-- 요일별 달력 (조건부 전체 렌더링 - 인라인 스타일) -->
-    {{#if_pure {{equal::{{getvar::day_of_week}}::1}}}}<div class="week-cal"><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::2}}}}<div class="week-cal"><div class="day">월</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::3}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::4}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::5}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::6}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">토</div><div class="day">일</div></div>{{/if_pure}}
-    {{#if_pure {{equal::{{getvar::day_of_week}}::7}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day" style="background: linear-gradient(135deg, #a67c52, #8b7355); color: white; font-weight: bold; border-color: #8b7355; box-shadow: 0 3px 12px rgba(139, 115, 85, 0.6); transform: scale(1.05);">일</div></div>{{/if_pure}}
+  <div class="info-head">
+    <div class="roundel">❖</div>
+    <div class="title">Calendarium</div>
+    <div class="subtitle">정보 패널</div>
   </div>
 
-  <!-- 상세 정보 (한 줄로 압축) -->
-  <details class="info-panel-details"><summary>📋 상세 정보</summary><div class="info-panel-details-content"><p style="color: #666; margin: 0 0 8px 0; font-size: 12px;"><strong style="color: #8b7355;">📍 위치:</strong> {{getvar::current_location}}</p><p style="color: #666; margin: 0 0 8px 0; font-size: 12px;"><strong style="color: #8b7355;">📅 이번 주:</strong> {{#if_pure {{equal::{{getvar::week_of_season}}::1}}}}신입생 오리엔테이션 및 하우스 배정{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::2}}}}정규 수업 시작 / 하우스 필수 회의{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::3}}}}정규 수업 진행중 / 동아리 활동{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::4}}}}📝 1차 시험 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::5}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::6}}}}특별 수업 및 실습 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::7}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::8}}}}📝 2차 시험 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::9}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::10}}}}실전 훈련 및 퀘스트 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::11}}}}정규 수업 진행중 / 기말 준비{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::12}}}}📝 기말 시험 주간{{/if_pure}}</p><p style="color: #666; margin: 0 0 8px 0; font-size: 12px;"><strong style="color: #8b7355;">🎭 이벤트:</strong> {{getvar::active_event}}</p><p style="color: #666; margin: 0; font-size: 12px;"><strong style="color: #8b7355;">☀️ 날씨:</strong> {{getvar::current_weather}}</p></div></details>
+  <div class="info-season">
+    {{getvar::current_season}} 학기
+    <span class="week-pill">Week {{getvar::week_of_season}} / 12</span>
+  </div>
+  <div class="info-day">
+    <span>{{getvar::day_of_week_name}}</span>
+    <span class="sep">·</span>
+    <span>{{getvar::current_time}}</span>
+  </div>
+
+  <!-- 요일 그리드 (요일별 today 강조) -->
+  {{#if_pure {{equal::{{getvar::day_of_week}}::1}}}}<div class="week-cal"><div class="day today">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::2}}}}<div class="week-cal"><div class="day">월</div><div class="day today">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::3}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day today">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::4}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day today">목</div><div class="day">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::5}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day today">금</div><div class="day">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::6}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day today">토</div><div class="day">일</div></div>{{/if_pure}}
+  {{#if_pure {{equal::{{getvar::day_of_week}}::7}}}}<div class="week-cal"><div class="day">월</div><div class="day">화</div><div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div><div class="day today">일</div></div>{{/if_pure}}
+
+  <details class="info-details">
+    <summary>Detail</summary>
+    <div class="info-rows">
+      <div class="info-row">
+        <span class="k">Location</span>
+        <span class="v">{{getvar::current_location}}</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Week</span>
+        <span class="v italic">{{#if_pure {{equal::{{getvar::week_of_season}}::1}}}}신입생 오리엔테이션 및 하우스 배정{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::2}}}}정규 수업 시작 / 하우스 필수 회의{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::3}}}}정규 수업 진행중 / 동아리 활동{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::4}}}}<span class="exam-flag">Exam</span>1차 시험 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::5}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::6}}}}특별 수업 및 실습 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::7}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::8}}}}<span class="exam-flag">Exam</span>2차 시험 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::9}}}}정규 수업 진행중{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::10}}}}실전 훈련 및 퀘스트 주간{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::11}}}}정규 수업 진행중 / 기말 준비{{/if_pure}}{{#if_pure {{equal::{{getvar::week_of_season}}::12}}}}<span class="exam-flag">Exam</span>기말 시험 주간{{/if_pure}}</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Event</span>
+        <span class="v">{{getvar::active_event}}</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Weather</span>
+        <span class="v">{{getvar::current_weather}}</span>
+      </div>
+    </div>
+  </details>
 </div>
