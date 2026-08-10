@@ -1,0 +1,211 @@
+<style>
+/* ============================================
+   Belladonna Academy · Future Vision (Tarot v3)
+   Sin event 미래시 패널 — 단일 톤, count 강도 3단계
+   ============================================ */
+.sin-event-container{
+position:relative;
+background:#150e1f;
+border:1.5px solid #b8965c;
+margin:18px auto;
+max-width:560px;
+padding:0;
+overflow:hidden;
+font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;
+color:#ebe2d0;
+box-shadow:0 10px 36px rgba(0,0,0,0.55);
+animation:bfvFadeIn 0.8s ease-out;
+}
+.sin-event-container::before{
+content:"";
+position:absolute;inset:5px;
+border:0.5px solid rgba(184,150,92,0.26);
+pointer-events:none;
+z-index:2;
+}
+.sin-event-glow{
+position:absolute;
+top:-50%;left:-50%;
+width:200%;height:200%;
+background:radial-gradient(circle,rgba(201,141,160,0.12) 0%,transparent 70%);
+animation:bfvRotate 24s linear infinite;
+pointer-events:none;
+z-index:0;
+}
+.sin-event-details{
+position:relative;
+z-index:1;
+}
+.sin-event-details summary{
+list-style:none;
+cursor:pointer;
+user-select:none;
+}
+.sin-event-details summary::-webkit-details-marker{display:none}
+.sin-event-header{
+background:linear-gradient(180deg,rgba(122,42,61,0.22) 0%,rgba(26,18,38,0.6) 100%);
+padding:14px 18px;
+display:flex;
+align-items:center;
+gap:10px;
+border-bottom:1px solid rgba(184,150,92,0.32);
+transition:background 0.25s ease;
+}
+.sin-event-header:hover{
+background:linear-gradient(180deg,rgba(122,42,61,0.32) 0%,rgba(26,18,38,0.7) 100%);
+}
+.sin-event-toggle{
+font-family:Georgia,serif;
+font-size:12px;
+transition:transform 0.3s ease;
+flex-shrink:0;
+color:#c98da0;
+}
+.sin-event-details[open] .sin-event-toggle{
+transform:rotate(90deg);
+}
+.sin-event-icon{
+font-size:18px;
+line-height:1;
+flex-shrink:0;
+animation:bfvPulse 2.4s ease-in-out infinite;
+}
+.sin-event-title{
+font-family:Georgia,'Times New Roman',serif;
+font-style:italic;
+font-weight:500;
+color:#ebe2d0;
+font-size:15px;
+letter-spacing:0.05em;
+flex:1;
+line-height:1.2;
+}
+.sin-event-character{
+display:block;
+font-family:Georgia,serif;
+font-style:normal;
+font-size:9px;
+letter-spacing:0.4em;
+color:#b8965c;
+text-transform:uppercase;
+font-variant:small-caps;
+margin-top:3px;
+}
+.sin-event-count{
+background:rgba(122,42,61,0.4);
+color:#ebe2d0;
+padding:4px 10px;
+font-family:Georgia,serif;
+font-style:italic;
+font-size:12px;
+border:1px solid rgba(201,141,160,0.4);
+flex-shrink:0;
+}
+.sin-event-content{
+position:relative;
+padding:20px 22px;
+color:#ebe2d0;
+line-height:1.8;
+font-size:14px;
+background:rgba(20,14,30,0.6);
+z-index:1;
+}
+.sin-event-content p{
+margin:10px 0;
+}
+.sin-event-footer{
+position:relative;
+padding:10px 18px;
+text-align:center;
+border-top:1px solid rgba(184,150,92,0.24);
+background:rgba(20,14,30,0.4);
+z-index:1;
+}
+.sin-event-tag{
+font-family:Georgia,serif;
+font-size:10px;
+letter-spacing:0.45em;
+color:#b8965c;
+text-transform:uppercase;
+font-variant:small-caps;
+font-style:italic;
+}
+/* ===== Count 강도 (3단계) ===== */
+/* mid: 4~6회 — 자주가 짙어짐 */
+.sin-event-container[data-count="4"],
+.sin-event-container[data-count="5"],
+.sin-event-container[data-count="6"]{
+background:#0f0817;
+border-color:#a37640;
+box-shadow:0 10px 36px rgba(122,42,61,0.4);
+}
+.sin-event-container[data-count="4"] .sin-event-header,
+.sin-event-container[data-count="5"] .sin-event-header,
+.sin-event-container[data-count="6"] .sin-event-header{
+background:linear-gradient(180deg,rgba(122,42,61,0.4) 0%,rgba(15,8,23,0.7) 100%);
+}
+/* high: 7~9회 — 검은 배경 + 와인 글로우 */
+.sin-event-container[data-count="7"],
+.sin-event-container[data-count="8"],
+.sin-event-container[data-count="9"]{
+background:#000000;
+border-color:#7a2a3d;
+box-shadow:0 0 36px rgba(122,42,61,0.65),0 10px 36px rgba(0,0,0,0.85);
+}
+.sin-event-container[data-count="7"] .sin-event-header,
+.sin-event-container[data-count="8"] .sin-event-header,
+.sin-event-container[data-count="9"] .sin-event-header{
+background:linear-gradient(180deg,rgba(122,42,61,0.6) 0%,rgba(0,0,0,0.85) 100%);
+}
+.sin-event-container[data-count="7"] .sin-event-title,
+.sin-event-container[data-count="8"] .sin-event-title,
+.sin-event-container[data-count="9"] .sin-event-title{
+color:#c98da0;
+text-shadow:0 0 12px rgba(201,141,160,0.5);
+}
+.sin-event-container[data-count="7"] .sin-event-glow,
+.sin-event-container[data-count="8"] .sin-event-glow,
+.sin-event-container[data-count="9"] .sin-event-glow{
+background:radial-gradient(circle,rgba(122,42,61,0.25) 0%,transparent 70%);
+}
+/* ===== Animations ===== */
+@keyframes bfvFadeIn{
+0%{opacity:0;transform:scale(0.96)}
+60%{opacity:1;transform:scale(1.01)}
+100%{opacity:1;transform:scale(1)}
+}
+@keyframes bfvPulse{
+0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(201,141,160,0.6))}
+50%{transform:scale(1.08);filter:drop-shadow(0 0 12px rgba(201,141,160,0.9))}
+}
+@keyframes bfvRotate{
+0%{transform:rotate(0deg)}
+100%{transform:rotate(360deg)}
+}
+/* ===== Responsive ===== */
+@media (max-width:560px){
+.sin-event-container{margin:14px 8px}
+.sin-event-content{padding:16px 16px;font-size:13px}
+.sin-event-title{font-size:13px}
+.sin-event-character{font-size:8px;letter-spacing:0.3em}
+}
+</style>
+<div class="sin-event-container" data-character="$1" data-count="$2">
+<div class="sin-event-glow"></div>
+<details class="sin-event-details">
+<summary>
+<div class="sin-event-header">
+<span class="sin-event-toggle">▶</span>
+<span class="sin-event-icon">✦</span>
+<span class="sin-event-title">Future Vision<span class="sin-event-character">$1 · ×$2</span></span>
+<span class="sin-event-count">×$2</span>
+</div>
+</summary>
+<div class="sin-event-content">
+$3
+</div>
+<div class="sin-event-footer">
+<span class="sin-event-tag">— Scene End · Return to Present —</span>
+</div>
+</details>
+</div>

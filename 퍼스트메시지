@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>벨라도나 아카데미 — 관계 설정</title>
+<style>
+
+.bfm{all:initial;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;display:block;width:100%;max-width:640px;box-sizing:border-box;margin:0 auto;color:#ebe2d0}
+.bfm *{margin:0;padding:0;box-sizing:border-box}
+
+.bfm-wrap{
+  position:relative;
+  background:#150e1f;
+  border:1px solid #b8965c;
+  padding:20px 18px 22px;
+  box-shadow:0 6px 24px rgba(0,0,0,0.45);
+}
+.bfm-wrap::before{
+  content:"";position:absolute;inset:4px;
+  border:0.5px solid rgba(184,150,92,0.24);
+  pointer-events:none;
+}
+.bfm-wrap > *{position:relative;z-index:1}
+
+/* Header — compact */
+.bfm-header{
+  text-align:center;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(184,150,92,0.28);
+}
+.bfm-title{
+  font-family:Georgia,'Times New Roman',serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:20px;
+  color:#ebe2d0;
+  line-height:1;margin:0;
+}
+.bfm-title .star{color:#c98da0;margin-right:6px;font-size:14px}
+.bfm-subtitle{
+  font-family:Georgia,serif;
+  font-size:9px;
+  letter-spacing:0.4em;
+  color:#b8965c;
+  text-transform:uppercase;
+  font-variant:small-caps;
+  margin-top:5px;
+}
+
+/* Category tabs */
+.bfm-cat-radio{position:absolute;opacity:0;pointer-events:none}
+.bfm-cat-tabs{
+  display:flex;gap:6px;
+  justify-content:center;
+  margin-bottom:10px;
+}
+.bfm-cat-btn{
+  flex:1;max-width:160px;
+  padding:7px 12px;
+  background:transparent;
+  border:1px solid rgba(184,150,92,0.5);
+  color:#b8965c;
+  font-family:Georgia,serif;
+  font-size:10px;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  font-variant:small-caps;
+  cursor:pointer;
+  text-align:center;
+  transition:all 0.15s;
+}
+.bfm-cat-btn:hover{color:#d4b577;border-color:#d4b577;background:rgba(184,150,92,0.07)}
+#bfm-cat-main:checked + label,#bfm-cat-sub:checked + label{
+  background:#d4b577;color:#150e1f;border-color:#d4b577;font-weight:600;
+}
+
+.bfm-main,.bfm-sub{display:none}
+#bfm-cat-main:checked ~ .bfm-main{display:block}
+#bfm-cat-sub:checked ~ .bfm-sub{display:block}
+
+/* Character pills (horizontal tabs, compact) */
+.bfm-tab-radio{position:absolute;opacity:0;pointer-events:none}
+.bfm-tabs{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:6px;
+  background:rgba(20,14,30,0.55);
+  border:1px solid rgba(184,150,92,0.22);
+  margin-bottom:10px;
+  justify-content:center;
+}
+.bfm-tab{
+  padding:5px 9px;
+  background:transparent;
+  border:1px solid rgba(184,150,92,0.35);
+  color:#b8965c;
+  font-family:'Noto Serif KR',serif;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:0;
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+  line-height:1.2;
+}
+.bfm-tab:hover{color:#d4b577;border-color:#d4b577;background:rgba(184,150,92,0.07)}
+#bfm-tab-mirabel:checked ~ .bfm-tabs label[for="bfm-tab-mirabel"],
+#bfm-tab-celestia:checked ~ .bfm-tabs label[for="bfm-tab-celestia"],
+#bfm-tab-cassandra:checked ~ .bfm-tabs label[for="bfm-tab-cassandra"],
+#bfm-tab-evangeline:checked ~ .bfm-tabs label[for="bfm-tab-evangeline"],
+#bfm-tab-amelia:checked ~ .bfm-tabs label[for="bfm-tab-amelia"],
+#bfm-tab-nepenthes:checked ~ .bfm-tabs label[for="bfm-tab-nepenthes"],
+#bfm-tab-lilith:checked ~ .bfm-tabs label[for="bfm-tab-lilith"],
+#bfm-tab-aurelia:checked ~ .bfm-tabs label[for="bfm-tab-aurelia"],
+#bfm-tab-cordelia:checked ~ .bfm-tabs label[for="bfm-tab-cordelia"],
+#bfm-tab-suah:checked ~ .bfm-tabs label[for="bfm-tab-suah"],
+#bfm-tab-adelheid:checked ~ .bfm-tabs label[for="bfm-tab-adelheid"],
+#bfm-tab-rosalie:checked ~ .bfm-tabs label[for="bfm-tab-rosalie"],
+#bfm-tab-mika:checked ~ .bfm-tabs label[for="bfm-tab-mika"],
+#bfm-tab-clover:checked ~ .bfm-tabs label[for="bfm-tab-clover"],
+#bfm-tab-noctis:checked ~ .bfm-tabs label[for="bfm-tab-noctis"],
+#bfm-tab-pennywise:checked ~ .bfm-tabs label[for="bfm-tab-pennywise"],
+#bfm-tab-vivienne:checked ~ .bfm-tabs label[for="bfm-tab-vivienne"],
+#bfm-tab-scar:checked ~ .bfm-tabs label[for="bfm-tab-scar"],
+#bfm-tab-robert:checked ~ .bfm-tabs label[for="bfm-tab-robert"],
+#bfm-tab-margot:checked ~ .bfm-tabs label[for="bfm-tab-margot"],
+#bfm-tab-lydia:checked ~ .bfm-tabs label[for="bfm-tab-lydia"],
+#bfm-tab-hemlock:checked ~ .bfm-tabs label[for="bfm-tab-hemlock"],
+#bfm-tab-margaret:checked ~ .bfm-tabs label[for="bfm-tab-margaret"]{background:#d4b577;color:#150e1f;border-color:#d4b577;font-weight:600}
+
+.bfm-pane{display:none}
+#bfm-tab-mirabel:checked ~ .bfm-wrap-pane .bfm-pane-mirabel,
+#bfm-tab-celestia:checked ~ .bfm-wrap-pane .bfm-pane-celestia,
+#bfm-tab-cassandra:checked ~ .bfm-wrap-pane .bfm-pane-cassandra,
+#bfm-tab-evangeline:checked ~ .bfm-wrap-pane .bfm-pane-evangeline,
+#bfm-tab-amelia:checked ~ .bfm-wrap-pane .bfm-pane-amelia,
+#bfm-tab-nepenthes:checked ~ .bfm-wrap-pane .bfm-pane-nepenthes,
+#bfm-tab-lilith:checked ~ .bfm-wrap-pane .bfm-pane-lilith,
+#bfm-tab-aurelia:checked ~ .bfm-wrap-pane .bfm-pane-aurelia,
+#bfm-tab-cordelia:checked ~ .bfm-wrap-pane .bfm-pane-cordelia,
+#bfm-tab-suah:checked ~ .bfm-wrap-pane .bfm-pane-suah,
+#bfm-tab-adelheid:checked ~ .bfm-wrap-pane .bfm-pane-adelheid,
+#bfm-tab-rosalie:checked ~ .bfm-wrap-pane .bfm-pane-rosalie,
+#bfm-tab-mika:checked ~ .bfm-wrap-pane .bfm-pane-mika,
+#bfm-tab-clover:checked ~ .bfm-wrap-pane .bfm-pane-clover,
+#bfm-tab-noctis:checked ~ .bfm-wrap-pane .bfm-pane-noctis,
+#bfm-tab-pennywise:checked ~ .bfm-wrap-pane .bfm-pane-pennywise,
+#bfm-tab-vivienne:checked ~ .bfm-wrap-pane .bfm-pane-vivienne,
+#bfm-tab-scar:checked ~ .bfm-wrap-pane .bfm-pane-scar,
+#bfm-tab-robert:checked ~ .bfm-wrap-pane .bfm-pane-robert,
+#bfm-tab-margot:checked ~ .bfm-wrap-pane .bfm-pane-margot,
+#bfm-tab-lydia:checked ~ .bfm-wrap-pane .bfm-pane-lydia,
+#bfm-tab-hemlock:checked ~ .bfm-wrap-pane .bfm-pane-hemlock,
+#bfm-tab-margaret:checked ~ .bfm-wrap-pane .bfm-pane-margaret{display:block}
+
+.bfm-wrap-pane{position:relative;min-height:200px}
+
+/* Character header inside pane (compact) */
+.bfm-ch-head{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;
+  background:linear-gradient(135deg,#241634 0%,#1a1226 100%);
+  border:1px solid rgba(184,150,92,0.4);
+  margin-bottom:8px;
+}
+.bfm-ch-head-emo{font-size:18px;line-height:1}
+.bfm-ch-head-name{
+  font-family:Georgia,'Times New Roman',serif;
+  font-style:italic;font-weight:500;
+  font-size:14px;color:#d4b577;
+}
+
+/* Stat card — compact */
+.bfm-card{
+  position:relative;
+  background:#1a1226;
+  border:1px solid rgba(184,150,92,0.35);
+  padding:10px 12px 10px;
+  margin-bottom:8px;
+}
+.bfm-card::before{
+  content:"";position:absolute;inset:3px;
+  border:0.5px solid rgba(184,150,92,0.18);
+  pointer-events:none;
+}
+.bfm-card > *{position:relative;z-index:1}
+
+.bfm-stat-affinity{max-width:380px;margin:0 auto 10px}
+.bfm-stat-sin{max-width:380px;margin:0 auto;padding-top:8px;border-top:1px solid rgba(184,150,92,0.18)}
+.bfm-sin-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.bfm-sin{
+  background:transparent;
+  border:1px solid rgba(184,150,92,0.4);
+  color:#b8965c;
+  font-family:Georgia,serif;
+  font-size:10px;
+  letter-spacing:0.1em;
+  font-variant:small-caps;
+  padding:6px 2px;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  line-height:1;
+}
+.bfm-sin .lbl{font-size:8px;letter-spacing:0.2em;color:rgba(184,150,92,0.75);text-transform:uppercase}
+.bfm-sin .val{font-size:12px;font-weight:600}
+.bfm-sin:hover{color:#d4b577;border-color:#d4b577;background:rgba(184,150,92,0.07)}
+.bfm-sin.p{border-color:rgba(122,42,61,0.5);color:#c98da0}
+.bfm-sin.p .lbl{color:rgba(201,141,160,0.75)}
+.bfm-sin.p:hover{border-color:#c98da0;background:rgba(122,42,61,0.16);color:#ebe2d0}
+.bfm-sin.p:hover .lbl{color:#ebe2d0}
+
+.bfm-col-lbl{
+  display:block;
+  font-family:Georgia,serif;
+  font-size:9px;
+  letter-spacing:0.35em;
+  color:#b8965c;
+  text-transform:uppercase;
+  font-variant:small-caps;
+  margin-bottom:5px;
+  text-align:center;
+}
+
+.bfm-edit{
+  width:100%;
+  background:transparent;
+  border:1px solid rgba(184,150,92,0.5);
+  color:#b8965c;
+  font-family:Georgia,serif;
+  font-size:10px;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  font-variant:small-caps;
+  padding:7px 8px;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.bfm-edit::before{content:"〈";color:rgba(184,150,92,0.55);font-style:italic}
+.bfm-edit::after{content:"〉";color:rgba(184,150,92,0.55);font-style:italic}
+.bfm-edit:hover{color:#d4b577;border-color:#d4b577;background:rgba(184,150,92,0.07)}
+.bfm-edit:hover::before,.bfm-edit:hover::after{color:#d4b577}
+
+
+/* Scenario — compact */
+.bfm-sc{
+  position:relative;
+  background:linear-gradient(180deg,#1a1226 0%,#150e1f 100%);
+  border:1px solid rgba(184,150,92,0.45);
+  padding:10px 12px 12px;
+}
+.bfm-sc::before{
+  content:"";position:absolute;inset:3px;
+  border:0.5px solid rgba(184,150,92,0.22);
+  pointer-events:none;
+}
+.bfm-sc > *{position:relative;z-index:1}
+.bfm-sc-lbl{
+  display:block;
+  font-family:Georgia,serif;
+  font-size:9px;
+  letter-spacing:0.4em;
+  color:#d4b577;
+  text-transform:uppercase;
+  font-variant:small-caps;
+  margin-bottom:8px;
+  text-align:center;
+}
+.bfm-sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bfm-sc-btn{
+  background:rgba(20,14,30,0.5);
+  border:1px solid rgba(184,150,92,0.45);
+  color:#ebe2d0;
+  font-family:'Noto Serif KR',serif;
+  font-size:11px;
+  font-weight:500;
+  padding:9px 8px;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  text-align:left;
+  line-height:1.2;
+}
+.bfm-sc-btn:hover{
+  border-color:#d4b577;background:rgba(184,150,92,0.1);color:#d4b577;
+  transform:translateY(-1px);
+}
+.bfm-sc-btn .ic{font-size:14px;line-height:1;flex-shrink:0}
+
+/* Common (bottom) */
+.bfm-common{
+  position:relative;
+  background:#1a1226;
+  border:1px solid rgba(184,150,92,0.4);
+  padding:10px 12px 12px;
+  margin-top:12px;
+}
+.bfm-common::before{
+  content:"";position:absolute;inset:3px;
+  border:0.5px solid rgba(184,150,92,0.2);
+  pointer-events:none;
+}
+.bfm-common > *{position:relative;z-index:1}
+.bfm-common-lbl{
+  display:block;
+  font-family:Georgia,'Times New Roman',serif;
+  font-style:italic;font-weight:500;
+  font-size:13px;color:#d4b577;
+  text-align:center;
+  margin-bottom:8px;
+  padding-bottom:6px;
+  border-bottom:1px solid rgba(184,150,92,0.2);
+}
+.bfm-common-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+
+/* Responsive */
+@media (max-width:520px){
+  .bfm-wrap{padding:14px 12px 16px}
+  .bfm-sc-grid,.bfm-common-grid{grid-template-columns:1fr}
+  .bfm-row{grid-template-columns:1fr}
+  .bfm-tab{font-size:9px;padding:4px 7px}
+  .bfm-title{font-size:17px}
+}
+
+</style>
+</head>
+<body>
+<div class="bfm">
+<div class="bfm-wrap">
+
+<div class="bfm-header">
+<h1 class="bfm-title"><span class="star">✦</span>Belladonna Academy</h1>
+<div class="bfm-subtitle">Choose Your Bond</div>
+</div>
+
+<input type="radio" name="bfm-cat" id="bfm-cat-main" class="bfm-cat-radio" checked>
+<input type="radio" name="bfm-cat" id="bfm-cat-sub" class="bfm-cat-radio">
+<div class="bfm-cat-tabs">
+<label for="bfm-cat-main" class="bfm-cat-btn">⭐ Main</label>
+<label for="bfm-cat-sub" class="bfm-cat-btn">🌙 Sub</label>
+</div>
+
+<div class="bfm-main">
+<input type="radio" name="bfm-m" id="bfm-tab-mirabel" class="bfm-tab-radio" checked>
+<input type="radio" name="bfm-m" id="bfm-tab-celestia" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-cassandra" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-evangeline" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-amelia" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-nepenthes" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-lilith" class="bfm-tab-radio">
+<input type="radio" name="bfm-m" id="bfm-tab-aurelia" class="bfm-tab-radio">
+<div class="bfm-tabs">
+<label for="bfm-tab-mirabel" class="bfm-tab">💰 미라벨</label>
+<label for="bfm-tab-celestia" class="bfm-tab">👑 셀레스티아</label>
+<label for="bfm-tab-cassandra" class="bfm-tab">⚔️ 카산드라</label>
+<label for="bfm-tab-evangeline" class="bfm-tab">💋 에반젤린</label>
+<label for="bfm-tab-amelia" class="bfm-tab">🎨 아멜리아</label>
+<label for="bfm-tab-nepenthes" class="bfm-tab">🧪 네펜테스</label>
+<label for="bfm-tab-lilith" class="bfm-tab">📱 릴리스</label>
+<label for="bfm-tab-aurelia" class="bfm-tab">☀️ 아우렐리아</label>
+</div>
+<div class="bfm-wrap-pane">
+<div class="bfm-pane bfm-pane-mirabel">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">💰</span><span class="bfm-ch-head-name">미라벨 폰 골든로제</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_mirabel">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 탐욕</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_mirabel_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_mirabel_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_mirabel_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_mirabel_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting1"><span class="ic">💸</span><span>채무 수금</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting2"><span class="ic">🛍️</span><span>함께 쇼핑</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-celestia">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">👑</span><span class="bfm-ch-head-name">셀레스티아 폰 실버크라운</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_celestia">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 오만</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_celestia_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_celestia_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_celestia_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_celestia_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting3"><span class="ic">☕</span><span>티타임</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting4"><span class="ic">🌃</span><span>변장 만남</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-cassandra">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">⚔️</span><span class="bfm-ch-head-name">카산드라 폰 울프하트</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_cassandra">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 분노</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_cassandra_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_cassandra_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_cassandra_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_cassandra_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting5"><span class="ic">💪</span><span>함께 운동</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting6"><span class="ic">📚</span><span>만화 구매</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-evangeline">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">💋</span><span class="bfm-ch-head-name">에반젤린 폰 포이즌로즈</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_evangeline">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 색욕</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_evangeline_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_evangeline_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_evangeline_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_evangeline_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting7"><span class="ic">🍾</span><span>클럽 만남</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting8"><span class="ic">👑</span><span>호스트 클럽</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-amelia">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🎨</span><span class="bfm-ch-head-name">아멜리아 폰 샤덴프로이데</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_amelia">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 질투</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_amelia_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_amelia_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_amelia_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_amelia_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting9"><span class="ic">👀</span><span>몰래 관찰</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting10"><span class="ic">🏠</span><span>방콕 모드</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-nepenthes">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🧪</span><span class="bfm-ch-head-name">네펜테스 폰 도르미엔</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_nepenthes">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 폭식</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_nepenthes_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_nepenthes_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_nepenthes_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_nepenthes_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting11"><span class="ic">🧪</span><span>연금술 과외</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting12"><span class="ic">🌿</span><span>비밀 정원</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-lilith">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">📱</span><span class="bfm-ch-head-name">릴리스 폰 트라움샤텐</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_lilith">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 나태</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_lilith_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_lilith_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_lilith_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_lilith_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting13"><span class="ic">🏪</span><span>편의점 조우</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting14"><span class="ic">🎮</span><span>학교에서</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-aurelia">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">☀️</span><span class="bfm-ch-head-name">아우렐리아 폰 골든크라운</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_aurelia">Edit Value</button>
+</div>
+<div class="bfm-stat-sin">
+<span class="bfm-col-lbl">😈 타락</span>
+<div class="bfm-sin-row">
+<button type="button" class="bfm-sin p" risu-trigger="adjust_aurelia_sin_pos_plus_5"><span class="lbl">압력</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin p" risu-trigger="adjust_aurelia_sin_pos_plus_15"><span class="lbl">압력</span><span class="val">+15</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_aurelia_sin_neg_plus_5"><span class="lbl">해소</span><span class="val">+5</span></button>
+<button type="button" class="bfm-sin" risu-trigger="adjust_aurelia_sin_neg_plus_15"><span class="lbl">해소</span><span class="val">+15</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting15"><span class="ic">👑</span><span>황실 접견</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting16"><span class="ic">🌙</span><span>The Pit 목격</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="bfm-sub">
+<input type="radio" name="bfm-s" id="bfm-tab-cordelia" class="bfm-tab-radio" checked>
+<input type="radio" name="bfm-s" id="bfm-tab-suah" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-adelheid" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-rosalie" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-mika" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-clover" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-noctis" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-pennywise" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-vivienne" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-scar" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-robert" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-margot" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-lydia" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-hemlock" class="bfm-tab-radio">
+<input type="radio" name="bfm-s" id="bfm-tab-margaret" class="bfm-tab-radio">
+<div class="bfm-tabs">
+<label for="bfm-tab-cordelia" class="bfm-tab">💎 코델리아</label>
+<label for="bfm-tab-suah" class="bfm-tab">🎀 수아</label>
+<label for="bfm-tab-adelheid" class="bfm-tab">🗡️ 아델하이드</label>
+<label for="bfm-tab-rosalie" class="bfm-tab">🌹 로잘리</label>
+<label for="bfm-tab-mika" class="bfm-tab">🐱 미카</label>
+<label for="bfm-tab-clover" class="bfm-tab">🍀 클로버</label>
+<label for="bfm-tab-noctis" class="bfm-tab">👹 녹티스</label>
+<label for="bfm-tab-pennywise" class="bfm-tab">📈 페니와이즈</label>
+<label for="bfm-tab-vivienne" class="bfm-tab">💅 비비안</label>
+<label for="bfm-tab-scar" class="bfm-tab">🔥 스카</label>
+<label for="bfm-tab-robert" class="bfm-tab">📚 로버트</label>
+<label for="bfm-tab-margot" class="bfm-tab">🦇 마고트</label>
+<label for="bfm-tab-lydia" class="bfm-tab">📖 리디아</label>
+<label for="bfm-tab-hemlock" class="bfm-tab">🌿 헴록</label>
+<label for="bfm-tab-margaret" class="bfm-tab">🎭 마가렛</label>
+</div>
+<div class="bfm-wrap-pane">
+<div class="bfm-pane bfm-pane-cordelia">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">💎</span><span class="bfm-ch-head-name">코델리아 폰 에델슈타인</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_cordelia">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting17"><span class="ic">💎</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting18"><span class="ic">💎</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-suah">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🎀</span><span class="bfm-ch-head-name">수아</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_suah">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting19"><span class="ic">🎀</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting20"><span class="ic">🎀</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-adelheid">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🗡️</span><span class="bfm-ch-head-name">아델하이드 폰 아이젠슈타인</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_adelheid">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting21"><span class="ic">🗡️</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting22"><span class="ic">🗡️</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-rosalie">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🌹</span><span class="bfm-ch-head-name">로잘리 폰 더블베리</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_rosalie">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting23"><span class="ic">🌹</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting24"><span class="ic">🌹</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-mika">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🐱</span><span class="bfm-ch-head-name">미카 폰 쉬바르츠펠</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_mika">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting25"><span class="ic">🐱</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting26"><span class="ic">🐱</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-clover">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🍀</span><span class="bfm-ch-head-name">클로버 폰 리버클로버</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_clover">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting27"><span class="ic">🍀</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting28"><span class="ic">🍀</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-noctis">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">👹</span><span class="bfm-ch-head-name">녹티스</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_noctis">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting29"><span class="ic">👹</span><span>봉인된 마왕</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting30"><span class="ic">🎮</span><span>심심한 마왕</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-pennywise">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">📈</span><span class="bfm-ch-head-name">페니와이즈</span></div>
+<div class="bfm-card">
+<div class="bfm-stat-affinity">
+<span class="bfm-col-lbl">♡ Affinity</span>
+<button type="button" class="bfm-edit" risu-trigger="affinity_input_pennywise">Edit Value</button>
+</div>
+</div>
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting31"><span class="ic">📈</span><span>주식 토론</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting32"><span class="ic">💸</span><span>급발진 중</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-vivienne">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">💅</span><span class="bfm-ch-head-name">비비안</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting33"><span class="ic">💅</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting34"><span class="ic">💅</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-scar">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🔥</span><span class="bfm-ch-head-name">스카</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting35"><span class="ic">🔥</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting36"><span class="ic">🔥</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-robert">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">📚</span><span class="bfm-ch-head-name">로버트</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting37"><span class="ic">📚</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting38"><span class="ic">📚</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-margot">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🦇</span><span class="bfm-ch-head-name">마고트</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting39"><span class="ic">🦇</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting40"><span class="ic">🦇</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-lydia">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">📖</span><span class="bfm-ch-head-name">리디아</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting41"><span class="ic">📖</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting42"><span class="ic">📖</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-hemlock">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🌿</span><span class="bfm-ch-head-name">헴록</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting43"><span class="ic">🌿</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting44"><span class="ic">🌿</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+<div class="bfm-pane bfm-pane-margaret">
+<div class="bfm-ch-head"><span class="bfm-ch-head-emo">🎭</span><span class="bfm-ch-head-name">마가렛</span></div>
+
+<div class="bfm-sc">
+<span class="bfm-sc-lbl">Scenario</span>
+<div class="bfm-sc-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting45"><span class="ic">🎭</span><span>시나리오 1</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="greeting46"><span class="ic">🎭</span><span>시나리오 2</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="bfm-common">
+<div class="bfm-common-lbl">Common Origins</div>
+<div class="bfm-common-grid">
+<button type="button" class="bfm-sc-btn" risu-trigger="entrance_ceremony"><span class="ic">🎓</span><span>입학식</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="year2_semester"><span class="ic">📅</span><span>2학년의 새학기</span></button>
+<button type="button" class="bfm-sc-btn" risu-trigger="free_start"><span class="ic">✨</span><span>자유 시작</span></button>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

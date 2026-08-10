@@ -1,0 +1,1455 @@
+-- ============================================
+-- DMZ GOP Simulation - Auxiliary Processor
+-- 비무장지대 GOP 시뮬레이션 보조모델 처리기
+-- ============================================
+-- 역할:
+--   1. ◇...◇ 이미지 힌트 → <img="..."> 태그 변환
+--   2. ◇ ... 메타 라인 → 시간/장소/호감도 파싱 및 저장
+-- ============================================
+
+-- ============================================
+-- 설정
+-- ============================================
+
+local USE_REAL_MODEL = true
+
+local characters = {
+    "seyoung", "chaewon", "seojin", "yunhee",
+    "sodam", "sua", "yoona", "hana", "daeun"
+}
+
+-- 한글 이름 → 영문 변환 맵
+local nameMap = {
+    ["세영"] = "seyoung", ["오세영"] = "seyoung",
+    ["채원"] = "chaewon", ["마채원"] = "chaewon",
+    ["서진"] = "seojin", ["한서진"] = "seojin",
+    ["윤희"] = "yunhee", ["차윤희"] = "yunhee",
+    ["소담"] = "sodam", ["정소담"] = "sodam",
+    ["수아"] = "sua", ["이수아"] = "sua",
+    ["윤아"] = "yoona", ["서윤아"] = "yoona",
+    ["하나"] = "hana", ["유하나"] = "hana",
+    ["다은"] = "daeun", ["강다은"] = "daeun"
+}
+
+-- 호감도 범위
+local MAX_AFFECTION = 500
+local MIN_AFFECTION = -500
+
+-- ============================================
+-- 날짜 계산 함수
+-- ============================================
+
+-- YYYY.MM.DD 형식의 날짜를 파싱하여 일수로 변환
+function parseDate(dateStr)
+    if not dateStr or dateStr == "" then
+        return nil
+    end
+
+    local year, month, day = dateStr:match("(%d+)%.(%d+)%.(%d+)")
+    if not year then
+        return nil
+    end
+
+    year = tonumber(year)
+    month = tonumber(month)
+    day = tonumber(day)
+
+    -- 간단한 일수 계산 (2000년 1월 1일 기준)
+    local days = (year - 2000) * 365
+
+    -- 월별 일수 (윤년 무시)
+    local monthDays = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+    for i = 1, month - 1 do
+        days = days + monthDays[i]
+    end
+
+    days = days + day
+
+    return days
+end
+
+-- 두 날짜 간의 일수 차이 계산
+function calculateDaysDiff(fromDate, toDate)
+    local from = parseDate(fromDate)
+    local to = parseDate(toDate)
+
+    if not from or not to then
+        return nil
+    end
+
+    return to - from
+end
+
+-- D-day 문자열 생성
+function formatDday(days)
+    if not days then
+        return "D-???"
+    end
+
+    if days > 0 then
+        return "D-" .. days
+    elseif days == 0 then
+        return "D-Day"
+    else
+        return "D+" .. math.abs(days)
+    end
+end
+
+-- ============================================
+-- 환경별 캐릭터 데이터
+-- ============================================
+
+local characterData = {
+    gop = {
+        seyoung = {
+            position = "Squad Leader (분대장)",
+            mil_skills = "Solid leadership, situational awareness. Runs squad through Seojin/Yunhee rather than direct intervention. Efficient delegation."
+        },
+        chaewon = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Excellent across the board. Pretends she's not trying—\"에이 귀찮아~\"—but her focus when it matters is razor-sharp. Could've been squad leader easily if not blacklisted."
+        },
+        seojin = {
+            position = "Squad Sub-Leader (부분대장), K3 Machine Gun Assistant Gunner (K3 기관총 부사수)",
+            mil_skills = "Excellent. Former K3 gunner, now assistant gunner as sub-leader. Commands respect through competence."
+        },
+        yunhee = {
+            position = "K3 Machine Gunner (K3 기관총 사수)",
+            mil_skills = "Solid. Handles K3 with ease despite her size. Has a habit of sitting on it."
+        },
+        sodam = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Adequate. Does what's needed, nothing more. Often last in physical tasks but never quits."
+        },
+        sua = {
+            position = "Grenadier (유탄사수, K201)",
+            mil_skills = "Adequate. Does what's needed."
+        },
+        yoona = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Excellent. Memorizes regulations, drills, guard protocols perfectly. Seniors never have to repeat instructions. Volunteers for tasks without being asked."
+        },
+        hana = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Below average. Still learning basics."
+        },
+        daeun = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Above average. Physical tasks are natural, follows orders without complaint. 체대 trained her well for hierarchy."
+        }
+    },
+
+    infantry = {
+        seyoung = {
+            position = "Squad Leader (분대장)",
+            mil_skills = "Solid leadership, situational awareness. Runs squad through Seojin/Yunhee rather than direct intervention. Efficient delegation."
+        },
+        chaewon = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Excellent across the board. Pretends she's not trying—\"에이 귀찮아~\"—but her focus when it matters is razor-sharp. Could've been squad leader easily if not blacklisted."
+        },
+        seojin = {
+            position = "Squad Sub-Leader (부분대장), K3 Machine Gun Assistant Gunner (K3 기관총 부사수)",
+            mil_skills = "Excellent. Former K3 gunner, now assistant gunner as sub-leader. Commands respect through competence."
+        },
+        yunhee = {
+            position = "K3 Machine Gunner (K3 기관총 사수)",
+            mil_skills = "Solid. Handles K3 with ease despite her size. Has a habit of sitting on it."
+        },
+        sodam = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Adequate. Does what's needed, nothing more. Often last in physical tasks but never quits."
+        },
+        sua = {
+            position = "Grenadier (유탄사수, K201)",
+            mil_skills = "Adequate. Does what's needed."
+        },
+        yoona = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Excellent. Memorizes regulations, drills, guard protocols perfectly. Seniors never have to repeat instructions. Volunteers for tasks without being asked."
+        },
+        hana = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Below average. Still learning basics."
+        },
+        daeun = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Above average. Physical tasks are natural, follows orders without complaint. 체대 trained her well for hierarchy."
+        }
+    },
+
+    recon = {
+        seyoung = {
+            position = "Team Leader (조장)",
+            mil_skills = "Exceptional leadership under pressure. DMZ operations specialist. Expert in tactical movement, hand signals, camouflage. Trained in special martial arts (특공무술)."
+        },
+        chaewon = {
+            position = "Scout Rifleman (수색조원, 소총수)",
+            mil_skills = "Elite-level performance. Effortless endurance in long operations. Sharp observation skills. Acts casual but executes flawlessly when it counts."
+        },
+        seojin = {
+            position = "Assistant Team Leader (부조장), K3 Machine Gunner (K3 기관총 사수)",
+            mil_skills = "Excellent. Handles K3 in recon operations with precision. Commands respect through skill and discipline. Veteran of DMZ ambush operations."
+        },
+        yunhee = {
+            position = "K3 Assistant Gunner (K3 기관총 부사수)",
+            mil_skills = "Solid. Supports K3 operations in challenging terrain. Small frame, high endurance. Reliable in sustained operations."
+        },
+        sodam = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Adequate. Keeps up despite physical challenges. Never quits during grueling recon marches. Improving steadily through repetition."
+        },
+        sua = {
+            position = "Grenadier (유탄사수, K201)",
+            mil_skills = "Adequate. Handles K201 in recon context. Learning tactical patience required for ambush operations."
+        },
+        yoona = {
+            position = "Point Rifleman (선두 소총수)",
+            mil_skills = "Excellent. Perfect memorization of routes, patrol protocols, hand signals. Volunteers for point position. Trustworthy in high-stakes navigation."
+        },
+        hana = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Below average. Still adapting to elite unit standards. Physical training is challenging but showing gradual improvement."
+        },
+        daeun = {
+            position = "Rifleman (소총수)",
+            mil_skills = "Above average. Natural athleticism translates well to recon demands. Follows orders without complaint. 체대 background helps with intense PT culture."
+        }
+    },
+
+    engineer = {
+        seyoung = {
+            position = "Squad Leader (분대장)",
+            mil_skills = "Solid leadership in construction and demolition tasks. Coordinates bridge assembly (장간조립) operations. Safety-focused delegation through Seojin/Yunhee."
+        },
+        chaewon = {
+            position = "Demolition Specialist (폭파수)",
+            mil_skills = "Excellent precision with explosives and fuses. Acts nonchalant—\"에이 귀찮아~\"—but her focus with detonators is razor-sharp. Natural talent for technical work."
+        },
+        seojin = {
+            position = "Squad Sub-Leader (부분대장), Bridge Assembly Lead (장간조립 선임)",
+            mil_skills = "Excellent. Commands bridge assembly operations with authority. Experienced in heavy lifting coordination. Enforces safety protocols strictly."
+        },
+        yunhee = {
+            position = "Equipment Operator (장비운용수)",
+            mil_skills = "Solid. Operates power tools and drills competently despite size. Handles assembly bridge pins (핀조) with precision."
+        },
+        sodam = {
+            position = "Construction Support (시설작업수)",
+            mil_skills = "Adequate. Handles shovels, pickaxes, manual labor. Often last in heavy lifting but never quits. Steady if slow."
+        },
+        sua = {
+            position = "Mine Clearance Trainee (지뢰탐지수)",
+            mil_skills = "Adequate. Learning mine detector operation. Cautious and methodical—good traits for this role."
+        },
+        yoona = {
+            position = "Technical Specialist (기술병)",
+            mil_skills = "Excellent. Memorizes bridge assembly procedures, wire layouts, safety protocols perfectly. Volunteers for complex tasks. Reliable in high-precision work."
+        },
+        hana = {
+            position = "Construction Support (시설작업수)",
+            mil_skills = "Below average. Struggles with heavy loads during bridge assembly. Still learning proper lifting technique and timing."
+        },
+        daeun = {
+            position = "Heavy Lifting Specialist (중량작업수)",
+            mil_skills = "Above average. Natural strength from 체대 background. Excels at physical demands of bridge assembly. Follows team rhythm well."
+        }
+    },
+
+    marine = {
+        seyoung = {
+            position = "악! 분대장 해병님! 악!",
+            mil_skills = "악! 리더십 6974점! 긴빠이의 달인! 역돌격 전술 마스터! 참새만 보면 도망가는 용맹함! 악!"
+        },
+        chaewon = {
+            position = "악! 해병 소총수! 악!",
+            mil_skills = "악! 전투력 무한대! 귀찮다고 하지만 실제로는 해병짜장 10그릇 먹는 괴물! 긴빠이 스킬 만렙! 악!"
+        },
+        seojin = {
+            position = "악! 부분대장 해병님! K3 해병총 사수! 악!",
+            mil_skills = "악! 차가운 카리스마! 전우애 집행자! K3로 참새를 격추... 하려다 도망감! 마라톤 회의 74시간 참여 기록 보유! 악!"
+        },
+        yunhee = {
+            position = "악! K3 해병총 부사수! 악!",
+            mil_skills = "악! 작은 체구에 무한 긴빠이력! K3 위에 앉아서 명상하는 경지! 해병수육 애호가! 악!"
+        },
+        sodam = {
+            position = "악! 해병 소총수! 악!",
+            mil_skills = "악! 느리지만 포기 안 함! 역돌격 시 가장 빠름! 해병짜장 먹으면서 눈물 흘리는 감성파! 악!"
+        },
+        sua = {
+            position = "악! 유탄 해병! 악!",
+            mil_skills = "악! 유탄으로 참새 조준... 실패! 그래도 자원입대 환영받음! 기수열외 경험 無! 악!"
+        },
+        yoona = {
+            position = "악! 모범 해병! 악!",
+            mil_skills = "악! 규정 암기 100%! 화장실 가기 위한 20단 존댓말 완벽 구사! 황근출 해병님 어록 전부 외움! 자원입대의 표본! 악!"
+        },
+        hana = {
+            position = "악! 아쎄이! 악!",
+            mil_skills = "악! 기본기 학습 중! 오도봉고에서 렌치 맞고 깨어난 지 얼마 안 됨! 전우애 교육 받는 중! 악!"
+        },
+        daeun = {
+            position = "악! 체력 해병! 악!",
+            mil_skills = "악! 체대 출신! 상의탈의 PT 선두주자! 탱크 반으로 접는 훈련 중! 따흐흑! 악!"
+        }
+    },
+
+    airforce_admin = {
+        seyoung = {
+            position = "Senior Admin Clerk (선임 행정병)",
+            mil_skills = "Excellent office work. Handles personnel files, leave processing, and document control efficiently. Veteran experience makes him the go-to for complex paperwork. Studies for certifications during downtime."
+        },
+        chaewon = {
+            position = "Admin Specialist (행정 전문)",
+            mil_skills = "Excellent at document processing despite appearing lazy. Pretends paperwork is annoying—\"에이 귀찮아~\"—but her filing system is flawless. Controls information flow."
+        },
+        seojin = {
+            position = "Personnel Records (인사 담당)",
+            mil_skills = "Excellent. Strict attention to detail in personnel files. Perfect classification of documents. Former admin clerk, now handles sensitive records. Never makes errors in personnel orders."
+        },
+        yunhee = {
+            position = "Document Control (문서관리)",
+            mil_skills = "Solid. Handles incoming/outgoing document processing efficiently despite small desk space. Excellent filing organization. Adapts well to deadline rushes."
+        },
+        sodam = {
+            position = "Admin Assistant (행정 보조)",
+            mil_skills = "Adequate. Handles basic paperwork and filing steadily. Struggles with complex forms but completes tasks. Reliable for routine document sorting and archiving."
+        },
+        sua = {
+            position = "Classified Documents (보안문서 담당)",
+            mil_skills = "Adequate at handling classified materials. Learning security protocols carefully. Cautious approach to document handling—good for sensitive data."
+        },
+        yoona = {
+            position = "Chief Admin Clerk (행정 주임)",
+            mil_skills = "Excellent. Memorizes all regulations and procedures perfectly. Never misses deadlines. Volunteers for extra filing duty. The most organized desk in the office. Lives for paperwork."
+        },
+        hana = {
+            position = "Junior Admin (말단 행정)",
+            mil_skills = "Below average at formal office tasks. Still learning document protocols and filing systems. Struggles with attention to detail. Sociable nature helps with phone duty. Improving gradually."
+        },
+        daeun = {
+            position = "Supply Admin (보급 행정)",
+            mil_skills = "Above average. Physical strength helps with moving supply boxes and files. 체대 background aids in physical aspects of admin work. Good at inventory management."
+        }
+    },
+
+    airforce_maintenance = {
+        seyoung = {
+            position = "Senior Line Mechanic (선임 정비사)",
+            mil_skills = "Excellent maintenance skills. Veteran of runway work and hangar repairs. Handles Red X critical faults efficiently. Mentors junior mechanics. Experienced with all aircraft systems."
+        },
+        chaewon = {
+            position = "Avionics Specialist (전자 정비)",
+            mil_skills = "Excellent technical skills despite appearing lazy. Pretends maintenance is annoying—\"에이 귀찮아~\"—but her diagnostic work is flawless. Quick at troubleshooting electrical systems."
+        },
+        seojin = {
+            position = "Quality Assurance (품질관리)",
+            mil_skills = "Excellent. Strict adherence to maintenance procedures. Former mechanic, now inspects all repairs. Demands perfect documentation. Never signs off incomplete work."
+        },
+        yunhee = {
+            position = "Tool Room / Parts (공구실/부품)",
+            mil_skills = "Solid. Manages tool inventory and parts requisition efficiently despite small frame. Expert organization. Always knows where everything is. Adapts well to urgent part requests."
+        },
+        sodam = {
+            position = "Assistant Mechanic (정비 보조)",
+            mil_skills = "Adequate. Handles tool organization and basic maintenance tasks steadily. Struggles with heavy lifting but completes assignments. Reliable for FOD walks and pre-flight checks."
+        },
+        sua = {
+            position = "Documentation Specialist (정비 기록)",
+            mil_skills = "Adequate at maintenance logging. Learning Form 781 documentation carefully. Cautious with recording discrepancies—good for maintaining accurate records."
+        },
+        yoona = {
+            position = "Inspection Specialist (점검 전문)",
+            mil_skills = "Excellent. Memorizes all technical orders and inspection checklists perfectly. Never misses a single inspection item. Volunteers for extra pre-flight duties. Most thorough mechanic."
+        },
+        hana = {
+            position = "Junior Mechanic (신참 정비)",
+            mil_skills = "Below average. Still learning aircraft systems and tool usage. Struggles with technical procedures. Flight line heat and noise are overwhelming. Improving slowly through repetition."
+        },
+        daeun = {
+            position = "Heavy Maintenance (중정비)",
+            mil_skills = "Above average. Physical strength aids in heavy tool handling, parts movement, and engine work. 체대 background helps with demanding runway work. Handles heat and noise well."
+        }
+    },
+
+    airforce_mp = {
+        seyoung = {
+            position = "Senior MP / Shift Leader (선임 헌병 / 근무조장)",
+            mil_skills = "Excellent leadership in gate operations and patrol coordination. Veteran of shift work. Handles VIP protocols and security incidents efficiently. Commands respect from junior MPs."
+        },
+        chaewon = {
+            position = "Gate Security (정문 근무)",
+            mil_skills = "Excellent at ID verification and vehicle searches despite appearing lazy. Pretends gate duty is annoying—\"에이 귀찮아~\"—but never misses suspicious activity. Sharp eye."
+        },
+        seojin = {
+            position = "Chief Gate Guard (정문 주임)",
+            mil_skills = "Excellent. Strict ID verification protocols. Commands respect through professional demeanor. Former patrol, now leads gate operations. Handles shift work with stoic efficiency."
+        },
+        yunhee = {
+            position = "Patrol Officer (순찰 담당)",
+            mil_skills = "Solid patrol work despite small frame. Handles night shifts well. Sharp observer of unusual activity. Adapts to rotating shift schedules better than expected."
+        },
+        sodam = {
+            position = "Guardhouse Operator (위병소 근무)",
+            mil_skills = "Adequate. Handles radio communications and log book steadily. Struggles with staying alert during quiet night shifts. Reliable for monitoring duty."
+        },
+        sua = {
+            position = "Access Control (출입 통제)",
+            mil_skills = "Adequate at access pass verification. Learning security protocols carefully. Cautious approach to checking credentials—good for preventing unauthorized entry."
+        },
+        yoona = {
+            position = "Security Protocol (보안 규정)",
+            mil_skills = "Excellent. Memorizes all security regulations and procedures perfectly. Never deviates from protocol. Volunteers for extra shifts. The most by-the-book MP."
+        },
+        hana = {
+            position = "Junior Gate Guard (신참 정문)",
+            mil_skills = "Below average at formal protocols. Struggles with strict ID verification procedures but sociable nature helps defuse tense situations. Learning shift work discipline. Gate rushes are chaotic for her."
+        },
+        daeun = {
+            position = "Patrol / Physical Security (순찰 / 물리보안)",
+            mil_skills = "Above average. Physical strength aids in long patrol routes and physical confrontations if needed. 체대 background helps with foot patrol endurance. Handles all-weather duty well."
+        }
+    },
+
+    airforce_airdefense = {
+        seyoung = {
+            position = "Senior Radar Operator (선임 레이더 요원)",
+            mil_skills = "Excellent radar operation and threat assessment. Veteran of isolated site duty. Handles detection and tracking efficiently. Mentors junior operators. Cool under simulated attack drills."
+        },
+        chaewon = {
+            position = "Fire Control (사격통제)",
+            mil_skills = "Excellent technical skills despite appearing lazy. Pretends monitoring is annoying—\"에이 귀찮아~\"—but her target acquisition is flawless. Quick engagement decision-making."
+        },
+        seojin = {
+            position = "Battery Commander (포대장)",
+            mil_skills = "Excellent. Strict discipline in readiness protocols. Former operator, now commands battery operations. Demands perfect equipment status. Enforces combat readiness standards."
+        },
+        yunhee = {
+            position = "IFF Operator (피아식별 담당)",
+            mil_skills = "Solid identification work despite small monitor setup. Handles shift monitoring well. Sharp at distinguishing friend from foe. Adapts to rotating alert statuses efficiently."
+        },
+        sodam = {
+            position = "Radar Assistant (레이더 보조)",
+            mil_skills = "Adequate. Handles equipment monitoring and logging steadily. Struggles with staying alert during long quiet shifts. Reliable for routine equipment checks."
+        },
+        sua = {
+            position = "Communications (통신 담당)",
+            mil_skills = "Adequate at radio operations. Learning alert protocols carefully. Cautious approach to reporting contacts—good for preventing false alarms."
+        },
+        yoona = {
+            position = "Procedures Specialist (절차 전문)",
+            mil_skills = "Excellent. Memorizes all engagement rules and procedures perfectly. Never deviates from ROE. Volunteers for extra drill monitoring. Most precise operator."
+        },
+        hana = {
+            position = "Junior Operator (신참 요원)",
+            mil_skills = "Below average. Still learning radar systems and identification procedures. Isolated site duty is mentally exhausting. Struggles with long monitoring shifts. Improving gradually."
+        },
+        daeun = {
+            position = "Missile Maintenance (유도탄 정비)",
+            mil_skills = "Above average. Physical strength aids in missile handling and battery equipment maintenance. 체대 background helps with physical site work. Handles outdoor work in all weather."
+        }
+    },
+
+    tank = {
+        seyoung = {
+            position = "Tank Commander #1 (1호차 전차장)",
+            mil_skills = "Solid crew leadership. Coordinates maintenance and gunnery operations. Commands through experienced crew members. Efficient delegation in motor pool."
+        },
+        chaewon = {
+            position = "Gunner #1 (1호차 포수)",
+            mil_skills = "Excellent gunnery skills. Precise targeting, quick target acquisition. Pretends maintenance is annoying—\"에이 귀찮아~\"—but her calibration work is flawless."
+        },
+        seojin = {
+            position = "Tank Commander #2 (2호차 전차장)",
+            mil_skills = "Excellent. Strict discipline in maintenance protocols. Former gunner, now commander. Demands perfect track tension and fluid levels. Respected for technical competence."
+        },
+        yunhee = {
+            position = "Driver #2 (2호차 조종수)",
+            mil_skills = "Solid. Handles 50-ton beast smoothly despite small frame. Expert at track maintenance. Often found sitting on the warm engine deck."
+        },
+        sodam = {
+            position = "Loader #1 (1호차 탄약수)",
+            mil_skills = "Adequate. Handles ammunition loading steadily. Struggles with heaviest maintenance but completes tasks. Reliable if slow during track work."
+        },
+        sua = {
+            position = "Loader #2 (2호차 탄약수)",
+            mil_skills = "Adequate. Learning ammunition handling procedures. Steady hands, cautious approach—good for managing ordnance."
+        },
+        yoona = {
+            position = "Driver #1 (1호차 조종수)",
+            mil_skills = "Excellent. Memorizes all maintenance checklists, driving procedures perfectly. Never misses pre-operation inspections. Volunteers for extra maintenance duty."
+        },
+        hana = {
+            position = "Maintenance Support (정비지원)",
+            mil_skills = "Below average. Still learning track maintenance and tool usage. Heavy lifting during track work is challenging. Improving gradually through repetition."
+        },
+        daeun = {
+            position = "Gunner #2 (2호차 포수)",
+            mil_skills = "Above average. Physical strength aids in gun maintenance. Quick reflexes from 체대 background help with target tracking. Follows gunnery drills without complaint."
+        }
+    },
+
+    mortar = {
+        seyoung = {
+            position = "Squad Leader / FDC (분대장 / 사격지휘)",
+            mil_skills = "Solid leadership in fire missions. Coordinates gun line and FDC operations. Delegates calculations and gun setup through Seojin/Yunhee."
+        },
+        chaewon = {
+            position = "FDC Calculator (사격지휘반, 계산수)",
+            mil_skills = "Excellent mathematical precision. Quick azimuth and deflection calculations. Acts casual—\"에이 귀찮아~\"—but her fire mission math is flawless under pressure."
+        },
+        seojin = {
+            position = "Gun Squad Leader (포반장)",
+            mil_skills = "Excellent. Commands gun line with strict discipline. Expert at \"차려 포!\" drill execution. Former gunner, now leads setup and fire missions. Enforces speed and precision."
+        },
+        yunhee = {
+            position = "Gunner #1 (1번 포수)",
+            mil_skills = "Solid. Handles sight alignment and bubble leveling expertly despite small frame. Quick setup times. Reliable during sustained fire missions."
+        },
+        sodam = {
+            position = "Assistant Gunner (부포수)",
+            mil_skills = "Adequate. Handles bipod (포다리) during marches—12kg load. Struggles during long marches but never quits. Setup assistance is steady if slow."
+        },
+        sua = {
+            position = "Ammo Bearer (탄약수)",
+            mil_skills = "Adequate. Carries mortar rounds and charges (장약). Learning the unique counting system (하나, 둘, 삼, 넷, 오...). Methodical and careful."
+        },
+        yoona = {
+            position = "Gunner #2 (2번 포수)",
+            mil_skills = "Excellent. Perfect memorization of aiming procedures, bubble centering (수포), deflection settings. Volunteers for drill repetitions. Fastest setup time in squad."
+        },
+        hana = {
+            position = "Ammo Bearer (탄약수)",
+            mil_skills = "Below average. Struggles with base plate (포판) carrying—11-15kg awkward load. Still learning counting system and charge handling. Improving through repetition."
+        },
+        daeun = {
+            position = "Assistant Gunner (부포수)",
+            mil_skills = "Above average. Physical strength from 체대 helps with heavy bipod carries and digging gun pits. Follows drill rhythm well. Handles manual labor without complaint."
+        }
+    }
+}
+
+-- ============================================
+-- 마커 추출 함수
+-- ============================================
+
+-- ◇...◇ 이미지 힌트 추출
+function extractImageHints(text)
+    local hints = {}
+    for hint in text:gmatch("◇([^◇]+)◇") do
+        table.insert(hints, hint:match("^%s*(.-)%s*$"))  -- trim
+    end
+    return hints
+end
+
+-- ◇ ... 메타 라인 추출 (끝에 있는 단독 ◇)
+function extractMetaLine(text)
+    -- END 마커 먼저 제거
+    local cleaned = text:gsub("<!%-%- ■END■ %-%->", "")
+    -- 끝 공백/줄바꿈 제거 후 매칭
+    local trimmed = cleaned:gsub("%s+$", "")
+    local metaLine = trimmed:match("\n◇%s*([^\n]+)$") or trimmed:match("◇%s*([^\n]+)$")
+    if metaLine and not metaLine:match("◇$") then
+        return metaLine
+    end
+    return nil
+end
+
+-- 메타라인 직접 파싱 (보조모델 없이)
+-- 형식: "2025.03.15, 17소초 1분대 생활관, 오후 | seyoung+10 seojin+5 ..."
+function parseMetaLineDirect(triggerId, metaLine)
+    if not metaLine then return end
+
+    -- | 기준으로 분리
+    local infoPart, affPart = metaLine:match("(.-)%s*|%s*(.*)")
+    if not infoPart then
+        infoPart = metaLine
+        affPart = nil
+    end
+
+    -- 날짜, 장소, 시간 파싱 (쉼표로 구분)
+    -- 형식: "2025.03.15, 17소초 1분대 생활관, 오후"
+    local parts = {}
+    for part in infoPart:gmatch("([^,]+)") do
+        table.insert(parts, part:match("^%s*(.-)%s*$"))
+    end
+
+    if #parts >= 1 then
+        -- 첫 번째가 날짜인지 확인 (YYYY.MM.DD 형식)
+        local dateStr = parts[1]:match("(%d+%.%d+%.%d+)")
+        if dateStr then
+            setChatVar(triggerId, "current_date", dateStr)
+        end
+    end
+
+    if #parts >= 2 then
+        -- 두 번째는 장소
+        setChatVar(triggerId, "current_location", parts[2])
+    end
+
+    if #parts >= 3 then
+        -- 세 번째는 시간대 (오전, 오후, 저녁, 심야 등)
+        local timeKeyword = parts[3]
+        local timeMap = {
+            ["새벽"] = "AM 05:00",
+            ["아침"] = "AM 07:00",
+            ["오전"] = "AM 09:00",
+            ["주간"] = "AM 10:00",
+            ["점심"] = "PM 12:00",
+            ["오후"] = "PM 02:00",
+            ["저녁"] = "PM 07:00",
+            ["밤"] = "PM 10:00",
+            ["전반야"] = "PM 11:00",
+            ["후반야"] = "AM 02:00",
+            ["심야"] = "AM 04:00"
+        }
+        local mappedTime = timeMap[timeKeyword] or timeKeyword
+        setChatVar(triggerId, "current_time", mappedTime)
+    end
+
+    -- 호감도 파싱 (공백으로 구분된 "name+value" 또는 "name-value")
+    if affPart then
+        for entry in affPart:gmatch("(%S+)") do
+            local name, sign, value = entry:match("(%a+)([%+%-])(%d+)")
+            if name and sign and value then
+                local changeNum = tonumber(sign .. value)
+                local lowerName = name:lower()
+
+                local isValid = false
+                for _, char in ipairs(characters) do
+                    if char == lowerName then
+                        isValid = true
+                        break
+                    end
+                end
+
+                if isValid then
+                    local currentScore = getState(triggerId, lowerName .. "_affection") or 0
+                    local newScore = currentScore + changeNum
+                    newScore = math.max(MIN_AFFECTION, math.min(MAX_AFFECTION, newScore))
+
+                    setState(triggerId, lowerName .. "_affection", newScore)
+                    setChatVar(triggerId, lowerName .. "_affection", tostring(newScore))
+                end
+            end
+        end
+    end
+end
+
+-- ============================================
+-- 보조모델 프롬프트 생성
+-- ============================================
+
+function generateAuxiliaryPrompt(mainOutput, context)
+    local imageHints = extractImageHints(mainOutput)
+    local metaLine = extractMetaLine(mainOutput)
+    
+    local prompt = [[
+---
+# AUXILIARY PROCESSOR
+
+You are a Data Extraction & Conversion Bot.
+Process ONLY the provided markers. Do NOT interpret story content.
+
+## CONTEXT
+- Current Time: ]] .. (context.time or "Unknown") .. [[
+
+- Current Location: ]] .. (context.location or "Unknown") .. [[
+
+- Current Date: ]] .. (context.date or "Unknown") .. [[
+
+
+## TASK 1: IMAGE TAG CONVERSION
+
+Convert each image hint from the main model to a proper image tag.
+
+**Process:**
+1. Read the hint (e.g., ◇서진, 차가운 미소◇)
+2. Find the closest matching tag from the Available Tags list
+3. Output in format: [IMG_FIX:◇원본힌트◇→<img="character_tag">]
+
+**Available Emotion Tags:**
+neutral, happy, satisfied, smug, proud, grateful, relieved, hopeful, curious, interested, determined, nostalgic, lovestruck, embarrassed, confused, surprised, anxious, fearful, lonely, sad, guilty, frustrated, shameful, bored, salty, angry, disgusted, contemptuous, suspicious, jealous
+
+**Available Sexual Tags:**
+masturbation, fingering, handjob, fellatio, missionary, cowgirl, reverse_cowgirl, doggystyle, spooning, standing_position, orgasm, creampie, anal_creampie, cum_in_condom, cum_on_body, cum_in_mouth, facial_cumshot
+
+**Character Names:**
+seyoung, chaewon, seojin, yunhee, sodam, sua, yoona, hana, daeun
+
+**Image Hints to Process:**
+]]
+
+    if #imageHints > 0 then
+        prompt = prompt .. "**Total: " .. #imageHints .. " hints. You MUST convert ALL " .. #imageHints .. " hints.**\n\n"
+        for i, hint in ipairs(imageHints) do
+            prompt = prompt .. i .. ". ◇" .. hint .. "◇\n"
+        end
+        prompt = prompt .. [[
+
+**Rules:**
+- Convert ALL hints. NEVER skip any hint.
+- Use ONLY tags from the Available Tags lists above.
+- Even if no exact match exists, ALWAYS pick the closest similar emotion, mood, or action.
+- When uncertain, consider: Is it positive? (happy, satisfied, smug) / Negative? (sad, angry, frustrated) / Neutral? (neutral, bored)
+- If still unsure, default to "neutral" rather than skipping.
+- Output format: [IMG_FIX:◇원본힌트◇→<img="character_tag">]
+
+**IMPORTANT: You MUST output exactly ]] .. #imageHints .. [[ [IMG_FIX:...] lines. No exceptions.**
+]]
+    else
+        prompt = prompt .. "(없음)\n"
+    end
+
+    prompt = prompt .. [[
+
+## TASK 2: META LINE PARSING
+
+Parse the meta line into structured format.
+
+**Meta Line:**
+]]
+
+    if metaLine then
+        prompt = prompt .. metaLine .. "\n"
+        prompt = prompt .. [[
+
+**Current Date Reference:**
+]] .. (context.date or "2024.05.22") .. [[
+
+
+**Output Format:**
+[META:YYYY.MM.DD|AM/PM HH:MM|장소|상황]
+[AFF:캐릭터=+/-숫자,캐릭터=+/-숫자]
+
+**Rules:**
+- META:
+  - Date: Extract from meta line if present (format: YYYY.MM.DD), otherwise use current date above
+  - Time: Convert time keyword to 24h format (주간=AM 09:00, 오후=PM 02:00, 저녁=PM 07:00, 전반야=PM 11:00, 후반야=AM 02:00, 심야=AM 04:00)
+  - Location: Extract location name
+  - Situation: Infer current activity/context (e.g., 일과 후, 근무 중, 휴식 시간)
+- AFF: Only include characters with affection changes (이름+숫자 or 이름-숫자)
+- If no affection changes, omit [AFF:] line
+- Character names: seyoung, chaewon, seojin, yunhee, sodam, sua, yoona, hana, daeun
+
+**Examples:**
+Input: 2024.05.25, 내무반, 저녁 | seojin+5 hana-3
+Output:
+[META:2024.05.25|PM 07:00|내무반|일과 후]
+[AFF:seojin=+5,hana=-3]
+
+Input: 흡연장, 오후 | chaewon+2
+Output:
+[META:2024.05.22|PM 02:00|흡연장|휴식 시간]
+[AFF:chaewon=+2]
+]]
+    else
+        prompt = prompt .. "(없음)\n"
+    end
+
+    prompt = prompt .. [[
+
+---
+**Now output the conversion tags:**
+]]
+
+    return prompt
+end
+
+-- ============================================
+-- 응답 파싱 및 적용
+-- ============================================
+
+function applyImageFixes(text, auxResponse)
+    local modified = text
+    
+    for original, replacement in auxResponse:gmatch("%[IMG_FIX:◇(.-)◇→(<img=[^%]]+>)%]") do
+        local pattern = "◇" .. original:gsub("([%.%+%-%*%?%[%]%(%)%%])", "%%%1") .. "◇"
+        modified = modified:gsub(pattern, replacement .. "\n\n", 1)
+    end
+    
+    return modified
+end
+
+function parseMetaLine(triggerId, auxResponse)
+    -- [META:...] 파싱 (시간/장소만 - 호감도는 parseMetaLineDirect에서 처리)
+    local meta = auxResponse:match("%[META:([^%]]+)%]")
+    if meta then
+        local date, time, location, situation = meta:match("([^|]+)|([^|]+)|([^|]+)|([^|]+)")
+        if date then
+            setChatVar(triggerId, "current_date", date:match("^%s*(.-)%s*$"))
+            setChatVar(triggerId, "current_time", time:match("^%s*(.-)%s*$"))
+            setChatVar(triggerId, "current_location", location:match("^%s*(.-)%s*$"))
+            setChatVar(triggerId, "current_situation", situation:match("^%s*(.-)%s*$"))
+        end
+    end
+end
+
+function removeMarkers(text)
+    local modified = text
+    
+    -- ◇...◇ 이미지 힌트 제거
+    modified = modified:gsub("◇[^◇]+◇", "")
+    
+    -- ◇ ... 메타 라인 제거 (| 포함한 라인)
+    modified = modified:gsub("\n◇[^\n]*|[^\n]+", "")
+    modified = modified:gsub("^◇[^\n]*|[^\n]+", "")
+    
+    -- 연속 빈 줄 정리
+    modified = modified:gsub("\n\n\n+", "\n\n")
+    modified = modified:gsub("%s+$", "")
+    
+    return modified
+end
+
+-- ============================================
+-- 컨텍스트 추출
+-- ============================================
+
+function getContext(triggerId)
+    return {
+        time = getChatVar(triggerId, "current_time") or "Unknown",
+        location = getChatVar(triggerId, "current_location") or "Unknown",
+        date = getChatVar(triggerId, "current_date") or "2025.03.03"
+    }
+end
+
+-- ============================================
+-- 보조모델 호출
+-- ============================================
+
+function callAuxiliaryModel(triggerId, prompt)
+    if not USE_REAL_MODEL then
+        return nil, "disabled"
+    end
+    
+    if type(axLLM) ~= "function" then
+        return nil, "axLLM not found"
+    end
+    
+    local messages = {
+        {
+            role = "system",
+            content = "You are an auxiliary processor. Follow instructions precisely. Output ONLY the requested tags, nothing else."
+        },
+        {
+            role = "user",
+            content = prompt
+        }
+    }
+    
+    local success, response = pcall(function()
+        return axLLM(triggerId, messages)
+    end)
+    
+    if success and response and response.success and response.result then
+        return response.result, nil
+    else
+        local err = response and tostring(response.result) or "unknown error"
+        return nil, err
+    end
+end
+
+-- ============================================
+-- 메인 처리 함수
+-- ============================================
+
+function processOutput(triggerId)
+    local chatHistory = getFullChat(triggerId)
+    if not chatHistory or #chatHistory == 0 then
+        return
+    end
+    
+    local lastIndex = #chatHistory - 1
+    local latestMessage = chatHistory[#chatHistory]
+    local mainOutput = latestMessage.data
+    
+    if not mainOutput or mainOutput == "" then
+        return
+    end
+    
+    -- 이미 처리된 메시지 스킵
+    if mainOutput:find("■★PROCESSED★■", 1, true) then
+        return
+    end
+    
+    -- ◇ 마커 또는 END 마커 확인
+    local hasImageHint = mainOutput:find("◇[^◇]+◇") ~= nil
+    local metaLine = extractMetaLine(mainOutput)
+    local hasMetaLine = metaLine ~= nil
+    local hasEndMarker = mainOutput:find("■END■", 1, true) ~= nil
+
+    if not hasImageHint and not hasMetaLine and not hasEndMarker then
+        return
+    end
+
+    -- 메타라인 직접 파싱 (보조모델 호출 전에 먼저 처리)
+    if metaLine then
+        parseMetaLineDirect(triggerId, metaLine)
+    end
+
+    -- 컨텍스트 (메타라인 파싱 후 갱신된 값 사용)
+    local context = getContext(triggerId)
+
+    -- 보조모델 프롬프트 생성
+    local prompt = generateAuxiliaryPrompt(mainOutput, context)
+
+    -- 보조모델 호출
+    local auxResponse, err = callAuxiliaryModel(triggerId, prompt)
+    
+    local modifiedOutput = mainOutput
+    
+    if auxResponse then
+        -- 이미지 태그 변환 적용
+        modifiedOutput = applyImageFixes(modifiedOutput, auxResponse)
+        
+        -- 메타/호감도 파싱 및 저장
+        parseMetaLine(triggerId, auxResponse)
+    end
+    
+    -- 마커 제거
+    modifiedOutput = removeMarkers(modifiedOutput)
+
+    -- 처리 완료 표시
+    modifiedOutput = modifiedOutput .. "<!-- ■★PROCESSED★■ -->"
+    modifiedOutput = modifiedOutput .. "<!-- ■END■ -->"
+
+    -- 메시지 업데이트
+    setChat(triggerId, lastIndex, modifiedOutput)
+end
+
+-- ============================================
+-- 호감도 초기화
+-- ============================================
+
+function initializeAffection(triggerId)
+    if getState(triggerId, "affection_initialized") then
+        return
+    end
+
+    for _, name in ipairs(characters) do
+        if getState(triggerId, name .. "_affection") == nil then
+            setState(triggerId, name .. "_affection", 0)
+            setChatVar(triggerId, name .. "_affection", "0")
+        end
+    end
+
+    setState(triggerId, "affection_initialized", true)
+end
+
+-- ============================================
+-- 환경 초기화
+-- ============================================
+
+function initializeEnvironment(triggerId, unitType)
+    -- 유효한 환경 타입인지 확인
+    local envData = characterData[unitType]
+    if not envData then
+        return false, "Invalid unit type: " .. tostring(unitType)
+    end
+
+    -- 환경 타입 저장
+    setState(triggerId, "unit_type", unitType)
+    setChatVar(triggerId, "unit_type", unitType)
+
+    -- 각 캐릭터의 환경별 데이터를 변수로 설정
+    for _, name in ipairs(characters) do
+        local charData = envData[name]
+        if charData then
+            -- Position 설정
+            if charData.position then
+                setChatVar(triggerId, name .. "_position", charData.position)
+            end
+
+            -- Military Skills 설정
+            if charData.mil_skills then
+                setChatVar(triggerId, name .. "_mil_skills", charData.mil_skills)
+            end
+        end
+    end
+
+    -- 각 캐릭터의 전역 D-day 초기화
+    setChatVar(triggerId, "seyoung_days_left", 60)    -- 병장 말년 (2개월)
+    setChatVar(triggerId, "chaewon_days_left", 90)    -- 병장 (3개월)
+    setChatVar(triggerId, "seojin_days_left", 150)    -- 상병 (5개월)
+    setChatVar(triggerId, "yunhee_days_left", 150)    -- 상병 (5개월, 서진 동기)
+    setChatVar(triggerId, "sodam_days_left", 300)     -- 일병 (10개월)
+    setChatVar(triggerId, "sua_days_left", 330)       -- 일병 (11개월)
+    setChatVar(triggerId, "yoona_days_left", 360)     -- 일병 (12개월)
+    setChatVar(triggerId, "hana_days_left", 450)      -- 이병 (15개월)
+    setChatVar(triggerId, "daeun_days_left", 450)     -- 이병 (15개월, 하나 동기)
+
+    -- previous_date 초기화 (D-day 계산용)
+    if not getChatVar(triggerId, "previous_date") then
+        setChatVar(triggerId, "previous_date", "2024.05.22")
+    end
+
+    -- 초기화 완료 플래그
+    setState(triggerId, "unit_initialized", true)
+
+    return true, "Environment initialized: " .. unitType
+end
+
+-- 환경 타입 가져오기
+function getUnitType(triggerId)
+    return getState(triggerId, "unit_type") or getChatVar(triggerId, "unit_type")
+end
+
+-- ============================================
+-- 이벤트 핸들러
+-- ============================================
+
+onStart = function(triggerId)
+    initializeAffection(triggerId)
+
+    -- 시간/위치/상황 초기화 (State 변수로 초기화 여부 추적)
+    if not getState(triggerId, "time_initialized") then
+        setChatVar(triggerId, "current_date", "2024.05.22")
+        setChatVar(triggerId, "current_time", "AM 06:00")
+        setChatVar(triggerId, "current_location", "생활관")
+        setChatVar(triggerId, "current_situation", "기상")
+        setState(triggerId, "time_initialized", true)
+    end
+
+    -- 환경 선택 대기 상태로 설정
+    if not getState(triggerId, "unit_initialized") then
+        setState(triggerId, "awaiting_env_selection", true)
+    end
+end
+
+-- 사용자 입력에서 환경 선택 감지
+onInput = async(function(triggerId)
+    -- 날짜 변경 감지 및 D-day 카운팅
+    local prevDate = getChatVar(triggerId, "previous_date")
+    local currentDate = getChatVar(triggerId, "current_date")
+
+    if prevDate and currentDate and prevDate ~= currentDate then
+        local daysPassed = calculateDaysDiff(prevDate, currentDate)
+
+        if daysPassed and daysPassed > 0 then
+            -- 모든 캐릭터의 days_left 감소
+            for _, name in ipairs(characters) do
+                local daysLeft = tonumber(getChatVar(triggerId, name .. "_days_left"))
+                if daysLeft then
+                    setChatVar(triggerId, name .. "_days_left", daysLeft - daysPassed)
+                end
+            end
+
+            -- previous_date 업데이트
+            setChatVar(triggerId, "previous_date", currentDate)
+        end
+    end
+
+    -- 이미 환경이 초기화되었으면 스킵
+    if getState(triggerId, "unit_initialized") then
+        return nil
+    end
+
+    -- 환경 선택 대기 중이 아니면 스킵
+    if not getState(triggerId, "awaiting_env_selection") then
+        return nil
+    end
+
+    -- 사용자 입력 가져오기
+    local chat = getFullChat(triggerId)
+    if not chat or #chat == 0 then
+        return nil
+    end
+
+    local lastMessage = chat[#chat]
+    if not lastMessage or lastMessage.role ~= "user" then
+        return nil
+    end
+
+    local userInput = lastMessage.data or ""
+
+    -- 입력에서 숫자 추출
+    local envNum = userInput:match("%d+")
+
+    -- 숫자가 없으면 키워드로 환경 찾기
+    if not envNum then
+        local input_lower = userInput:lower()
+        if input_lower:find("gop") or input_lower:find("철책") or input_lower:find("17소초") then
+            envNum = "1"
+        elseif input_lower:find("보병") or input_lower:find("infantry") then
+            envNum = "2"
+        elseif input_lower:find("전차") or input_lower:find("tank") or input_lower:find("기갑") then
+            envNum = "3"
+        elseif input_lower:find("박격포") or input_lower:find("mortar") or input_lower:find("화기") then
+            envNum = "4"
+        elseif input_lower:find("공병") or input_lower:find("engineer") then
+            envNum = "5"
+        elseif input_lower:find("수색") or input_lower:find("recon") then
+            envNum = "6"
+        elseif input_lower:find("해병") or input_lower:find("marine") or input_lower:find("악") then
+            envNum = "7"
+        end
+    end
+
+    if not envNum then
+        return nil
+    end
+
+    local envMap = {
+        ["1"] = "gop",
+        ["2"] = "infantry",
+        ["3"] = "tank",
+        ["4"] = "mortar",
+        ["5"] = "engineer",
+        ["6"] = "recon",
+        ["7"] = "marine"
+    }
+
+    local unitType = envMap[envNum]
+
+    if unitType then
+        -- $greeting 변수를 숫자로 설정 (퍼스트 메시지 내용의 조건문과 매칭)
+        setChatVar(triggerId, "$greeting", tonumber(envNum))
+
+        -- 환경 초기화
+        local success, msg = initializeEnvironment(triggerId, unitType)
+
+        if success then
+            -- 환경 선택 완료
+            setState(triggerId, "awaiting_env_selection", false)
+        end
+    end
+
+    return nil
+end)
+
+onOutput = async(function(triggerId)
+    pcall(processOutput, triggerId)
+end)
+
+-- ============================================
+-- 유틸리티: 보조모델 리롤
+-- ============================================
+
+_G["reroll_auxiliary"] = function(triggerId)
+    local chatHistory = getFullChat(triggerId)
+    if not chatHistory or #chatHistory < 2 then
+        return false
+    end
+
+    -- 마지막에서 두 번째 메시지 (임시 메시지 앞)
+    local chatIndex = #chatHistory - 2
+    local lastMessage = chatHistory[chatIndex + 1]
+
+    -- AI 메시지인지 확인
+    if lastMessage.role ~= "char" then
+        return false
+    end
+
+    local mainOutput = lastMessage.data
+
+    -- PROCESSED 마커와 END 마커 제거
+    local cleanMessage = mainOutput:gsub("<!%-%- ■★PROCESSED★■ %-%->", "")
+    cleanMessage = cleanMessage:gsub("<!%-%- ■END■ %-%->", "")
+
+    -- 컨텍스트
+    local context = getContext(triggerId)
+
+    -- 보조모델 프롬프트 생성
+    local prompt = generateAuxiliaryPrompt(cleanMessage, context)
+
+    -- 보조모델 재호출
+    local auxResponse, err = callAuxiliaryModel(triggerId, prompt)
+
+    local modifiedOutput = cleanMessage
+
+    if auxResponse then
+        -- 이미지 태그 변환 적용
+        modifiedOutput = applyImageFixes(modifiedOutput, auxResponse)
+
+        -- 메타/호감도 파싱 및 저장
+        parseMetaLine(triggerId, auxResponse)
+    end
+
+    -- 마커 제거
+    modifiedOutput = removeMarkers(modifiedOutput)
+
+    -- 처리 완료 표시
+    modifiedOutput = modifiedOutput .. "<!-- ■★PROCESSED★■ -->"
+    modifiedOutput = modifiedOutput .. "<!-- ■END■ -->"
+
+    -- 메시지 업데이트 (-2 = 임시 메시지 앞)
+    setChat(triggerId, -2, modifiedOutput)
+
+    return true
+end
+
+-- ============================================
+-- 유틸리티: 호감도 수동 설정
+-- ============================================
+
+function setAffection(triggerId, characterName, value)
+    local name = nameMap[characterName] or characterName:lower()
+
+    local isValid = false
+    for _, char in ipairs(characters) do
+        if char == name then
+            isValid = true
+            break
+        end
+    end
+
+    if isValid then
+        local newScore = math.max(MIN_AFFECTION, math.min(MAX_AFFECTION, value))
+        setState(triggerId, name .. "_affection", newScore)
+        setChatVar(triggerId, name .. "_affection", tostring(newScore))
+        return true, name .. " = " .. newScore
+    else
+        return false, "Unknown character: " .. characterName
+    end
+end
+
+function getAffection(triggerId, characterName)
+    local name = nameMap[characterName] or characterName:lower()
+    return getState(triggerId, name .. "_affection") or 0
+end
+
+
+-- ============================================
+-- 퍼스트 메시지 트리거 (risu-trigger)
+-- ============================================
+
+-- ============================================
+-- 1단계: 환경 선택 함수들
+-- ============================================
+
+local env_configs = {
+    {name = "GOP", type = "gop"},
+    {name = "Infantry", type = "infantry"},
+    {name = "Tank", type = "tank"},
+    {name = "Mortar", type = "mortar"},
+    {name = "Engineer", type = "engineer"},
+    {name = "Recon", type = "recon"},
+    {name = "Marine", type = "marine"}
+}
+
+for _, config in ipairs(env_configs) do
+    _G["setEnv" .. config.name] = function(triggerId)
+        -- 환경 타입 설정 (로어북 활성화용)
+        setChatVar(triggerId, "unit_type", config.type)
+        setState(triggerId, "unit_type", config.type)
+        -- 환경 초기화
+        initializeEnvironment(triggerId, config.type)
+        log("Environment selected: " .. config.type)
+        return true
+    end
+end
+
+-- 공군 메인 선택 함수 (특기 선택 전 단계)
+setEnvAirForce = function(triggerId)
+    setChatVar(triggerId, "unit_type", "airforce")
+    setState(triggerId, "unit_type", "airforce")
+    -- airforce_specialty는 아직 설정하지 않음 (특기 선택 대기)
+    setChatVar(triggerId, "airforce_specialty", "")
+    log("Air Force branch selected - awaiting specialty selection")
+    reloadDisplay(triggerId)
+    return true
+end
+
+-- 공군 특기별 선택 함수들
+setEnvAirForceAdmin = function(triggerId)
+    setChatVar(triggerId, "unit_type", "airforce")
+    setState(triggerId, "unit_type", "airforce")
+    setChatVar(triggerId, "airforce_specialty", "admin")
+    setState(triggerId, "airforce_specialty", "admin")
+    initializeEnvironment(triggerId, "airforce_admin")  -- characterData 참조용
+    log("Air Force Admin specialty selected")
+    return true
+end
+
+setEnvAirForceMaintenance = function(triggerId)
+    setChatVar(triggerId, "unit_type", "airforce")
+    setState(triggerId, "unit_type", "airforce")
+    setChatVar(triggerId, "airforce_specialty", "maintenance")
+    setState(triggerId, "airforce_specialty", "maintenance")
+    initializeEnvironment(triggerId, "airforce_maintenance")  -- characterData 참조용
+    log("Air Force Maintenance specialty selected")
+    return true
+end
+
+setEnvAirForceMP = function(triggerId)
+    setChatVar(triggerId, "unit_type", "airforce")
+    setState(triggerId, "unit_type", "airforce")
+    setChatVar(triggerId, "airforce_specialty", "mp")
+    setState(triggerId, "airforce_specialty", "mp")
+    initializeEnvironment(triggerId, "airforce_mp")  -- characterData 참조용
+    log("Air Force MP specialty selected")
+    return true
+end
+
+setEnvAirForceAirDefense = function(triggerId)
+    setChatVar(triggerId, "unit_type", "airforce")
+    setState(triggerId, "unit_type", "airforce")
+    setChatVar(triggerId, "airforce_specialty", "airdefense")
+    setState(triggerId, "airforce_specialty", "airdefense")
+    initializeEnvironment(triggerId, "airforce_airdefense")  -- characterData 참조용
+    log("Air Force Air Defense specialty selected")
+    return true
+end
+
+-- ============================================
+-- 2단계: 시나리오 선택 함수들 (greeting)
+-- ============================================
+
+-- greeting 함수들은 greeting 변수만 설정 (환경 초기화 X)
+for i = 1, 50 do
+    _G["greeting" .. i] = function(triggerId)
+        setChatVar(triggerId, "greeting", tostring(i))
+        setState(triggerId, "greeting", i)
+        log("Scenario " .. i .. " selected")
+        return true
+    end
+end
+
+-- 공군 특기별 시나리오 함수들
+greeting8_admin = function(triggerId)
+    setChatVar(triggerId, "greeting", "8_admin")
+    setState(triggerId, "greeting", "8_admin")
+    log("Air Force Admin scenario selected")
+    return true
+end
+
+greeting8_maintenance = function(triggerId)
+    setChatVar(triggerId, "greeting", "8_maintenance")
+    setState(triggerId, "greeting", "8_maintenance")
+    log("Air Force Maintenance scenario selected")
+    return true
+end
+
+greeting8_mp = function(triggerId)
+    setChatVar(triggerId, "greeting", "8_mp")
+    setState(triggerId, "greeting", "8_mp")
+    log("Air Force MP scenario selected")
+    return true
+end
+
+greeting8_airdefense = function(triggerId)
+    setChatVar(triggerId, "greeting", "8_airdefense")
+    setState(triggerId, "greeting", "8_airdefense")
+    log("Air Force Air Defense scenario selected")
+    return true
+end
+
+-- ============================================
+-- 보조모델 리롤 버튼 (editDisplay)
+-- ============================================
+
+listenEdit("editDisplay", function(triggerId, data, meta)
+    -- 이미지 태그 변환: <img="..."> → background-image div
+    data = data:gsub('<img="(.-)">', function(imageName)
+        return '<div class="image-container" style="background-image: url(\'{{raw::' .. imageName .. '}}\');"></div>'
+    end)
+
+    -- meta 정보가 있고 마지막 메시지인지 확인
+    if meta and meta.index then
+        local chatLength = getChatLength(triggerId)
+        local position = meta.index - chatLength
+
+        -- 마지막 메시지(-1)에만 버튼 추가
+        if position == -1 then
+            -- END 마커 확인 (메인 모델이 출력 완료)
+            local hasEndMarker = data:find("■END■", 1, true)
+
+            -- 이미 리롤 버튼이 있는지 확인
+            local hasRerollButton = data:find('risu%-btn="reroll_auxiliary"', 1, true)
+
+            -- END 마커 있고 리롤 버튼 없으면 추가
+            if hasEndMarker and not hasRerollButton then
+                local rerollButton = [[
+
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);text-align:right;">
+<button type="button" risu-btn="reroll_auxiliary" style="all:unset;display:inline-block;background:rgba(100,100,120,0.3);border:1px solid rgba(150,150,170,0.4);border-radius:6px;padding:6px 12px;font-size:12px;color:#a0a0b0;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(120,120,140,0.4)';this.style.borderColor='rgba(170,170,190,0.5)'" onmouseout="this.style.background='rgba(100,100,120,0.3)';this.style.borderColor='rgba(150,150,170,0.4)'">🔄 보조모델 리롤</button>
+</div>]]
+                data = data .. rerollButton
+            end
+        end
+    end
+
+    return data
+end)
+
+-- ============================================
+-- 보조모델 리롤 버튼 핸들러 (onButtonClick)
+-- ============================================
+
+onButtonClick = async(function(triggerId, code)
+    if code == "reroll_auxiliary" then
+        -- 재생성 중 표시
+        addChat(triggerId, 'char', '<div style="padding:20px;text-align:center;color:#00d4ff;font-weight:600;">🔄 보조모델 재생성 중...</div>')
+
+        -- reroll_auxiliary 함수 호출
+        local success = pcall(_G["reroll_auxiliary"], triggerId)
+
+        -- 임시 메시지 제거
+        removeChat(triggerId, -1)
+
+        if not success then
+            log("❌ 리롤 실패")
+        else
+            log("✅ 보조모델 리롤 완료")
+        end
+    end
+
+    -- 호감도 설정 핸들러
+    local affCharMatch = code:match("^aff_(%w+)_set$")
+    if affCharMatch then
+        local charName = affCharMatch
+        local currentAff = getState(triggerId, charName .. "_affection") or 0
+
+        local input = prompt("호감도를 입력하세요 (-500 ~ 500)\n현재: " .. currentAff)
+        if input then
+            local newValue = tonumber(input)
+            if newValue and newValue >= MIN_AFFECTION and newValue <= MAX_AFFECTION then
+                setState(triggerId, charName .. "_affection", newValue)
+                setChatVar(triggerId, charName .. "_affection", tostring(newValue))
+                log("✅ " .. charName .. " 호감도: " .. currentAff .. " → " .. newValue)
+            else
+                log("❌ 잘못된 값: " .. tostring(input))
+            end
+        end
+    end
+end)
+
+-- ================== DMZ Side Panel Affection Controls ==================
+
+-- Affection prompt function for DMZ characters
+setAffectionPromptDMZ = async(function(triggerId, charName, displayName)
+    local current_score = getState(triggerId, charName .. "_affection") or 0
+    local prompt_text = displayName .. "의 새 호감도를 입력하세요.\n(현재: " .. current_score .. ")\n범위: -500 ~ +500"
+    local userInput = alertInput(triggerId, prompt_text):await()
+
+    if userInput then
+        local new_score = tonumber(userInput)
+        if new_score then
+            -- Round and clamp to range
+            new_score = math.floor(new_score + 0.5)
+            new_score = math.max(-500, math.min(500, new_score))
+
+            -- Update affection value
+            setState(triggerId, charName .. "_affection", new_score)
+            setChatVar(triggerId, charName .. "_affection", tostring(new_score))
+
+            -- Reload display to show updated value
+            reloadDisplay(triggerId)
+        else
+            alertError(triggerId, "올바른 숫자를 입력해주세요.")
+        end
+    end
+end)
+
+-- DMZ character affection trigger functions
+aff_seyoung_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "seyoung", "오세영"):await() end)
+aff_chaewon_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "chaewon", "마채원"):await() end)
+aff_seojin_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "seojin", "한서진"):await() end)
+aff_yunhee_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "yunhee", "차윤희"):await() end)
+aff_sodam_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "sodam", "정소담"):await() end)
+aff_sua_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "sua", "이수아"):await() end)
+aff_yoona_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "yoona", "서윤아"):await() end)
+aff_hana_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "hana", "유하나"):await() end)
+aff_daeun_set = async(function(triggerId) setAffectionPromptDMZ(triggerId, "daeun", "강다은"):await() end)

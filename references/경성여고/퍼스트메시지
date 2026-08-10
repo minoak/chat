@@ -1,0 +1,122 @@
+<div class="hw-widget"><div class="hw-wrapper">
+<h1 class="hw-title">花苑</h1>
+<div class="hw-subtitle">경성여자고등학교에 오신 것을 환영합니다</div>
+
+<!-- ===== 1단계: 학년 선택 (학년 미선택 시) ===== -->
+{{#if {{equal::{{getvar::hw_grade}}::}}}}
+<div class="hw-section-label">학년을 선택하세요</div>
+<div class="hw-section-desc">선택한 학년이 채팅에서 유저의 역할로 반영됩니다.</div>
+<div class="hw-grid">
+<button type="button" class="hw-btn" risu-trigger="setGrade3">3학년</button>
+<button type="button" class="hw-btn" risu-trigger="setGrade2">2학년</button>
+<button type="button" class="hw-btn" risu-trigger="setGrade1">1학년</button>
+</div>
+{{/if}}
+
+<!-- ===== 2단계: 캐릭터 선택 (학년 선택됨, 캐릭터 미선택) ===== -->
+{{#if {{and::{{not_equal::{{getvar::hw_grade}}::}}::{{equal::{{getvar::hw_character}}::}}}}}}
+<div class="hw-selected-info">
+<span class="hw-selected-tag">{{getvar::hw_grade}}학년</span>
+<button type="button" class="hw-btn-change" risu-trigger="resetGrade">변경</button>
+</div>
+<div class="hw-divider"></div>
+<div class="hw-section-label">캐릭터를 선택하세요</div>
+<div class="hw-section-desc">학년에 관계없이 모든 캐릭터와 만날 수 있습니다.</div>
+
+<div class="hw-grade-label">3학년</div>
+<div class="hw-grid">
+<button type="button" class="hw-btn" risu-trigger="setCharSeoyun">강서윤 · 장미관의 장미</button>
+<button type="button" class="hw-btn" risu-trigger="setCharJina">유진아 · 백합관의 백합</button>
+<button type="button" class="hw-btn" risu-trigger="setCharSeoha">이서하 · 능소화관의 능소화</button>
+</div>
+
+<div class="hw-grade-label">2학년</div>
+<div class="hw-grid">
+<button type="button" class="hw-btn" risu-trigger="setCharSoyul">한소율 · 수선화</button>
+<button type="button" class="hw-btn" risu-trigger="setCharHaeun">박하은 · 일반학생</button>
+</div>
+
+<div class="hw-grade-label">1학년</div>
+<div class="hw-grid">
+<button type="button" class="hw-btn" risu-trigger="setCharSodam">임소담 · 장학생</button>
+<button type="button" class="hw-btn" risu-trigger="setCharChaerin">백채린 · 일반학생</button>
+</div>
+{{/if}}
+
+<!-- ===== 3단계: 시나리오 선택 (캐릭터 선택됨) ===== -->
+{{#if {{not_equal::{{getvar::hw_character}}::}}}}
+<div class="hw-selected-info">
+<span class="hw-selected-tag">{{getvar::hw_grade}}학년</span>
+<button type="button" class="hw-btn-change" risu-trigger="resetGrade">변경</button>
+<span class="hw-selected-sep">·</span>
+<span class="hw-selected-tag">{{getvar::hw_character_name}}</span>
+<button type="button" class="hw-btn-change" risu-trigger="resetCharacter">변경</button>
+</div>
+<div class="hw-divider"></div>
+<div class="hw-section-label">시나리오를 선택하세요</div>
+<div class="hw-section-desc">선택한 시나리오로 이야기가 시작됩니다.</div>
+<div class="hw-grid">
+
+{{#if {{equal::{{getvar::hw_character}}::seoyun}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting1">강서윤 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting2">강서윤 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::jina}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting3">유진아 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting4">유진아 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::seoha}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting5">이서하 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting6">이서하 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::soyul}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting7">한소율 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting8">한소율 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::haeun}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting9">박하은 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting10">박하은 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::sodam}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting11">임소담 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting12">임소담 · 시나리오 2</button>
+{{/if}}
+
+{{#if {{equal::{{getvar::hw_character}}::chaerin}}}}
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting13">백채린 · 시나리오 1</button>
+<button type="button" class="hw-btn hw-btn-scenario" risu-trigger="greeting14">백채린 · 시나리오 2</button>
+{{/if}}
+
+</div>
+{{/if}}
+
+</div></div>
+
+<style>
+.hw-widget{all:initial;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:block;width:100%;max-width:600px;box-sizing:border-box;margin:0 auto}
+.hw-widget *{margin:0;padding:0;box-sizing:border-box}
+.hw-wrapper{background:linear-gradient(135deg,#1e1a1a 0%,#2a2024 50%,#2e2428 100%);min-height:200px;display:flex;flex-direction:column;padding:28px;position:relative;border-radius:16px;color:#e0d8d0;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.hw-title{text-align:center;font-size:32px;font-weight:700;margin-bottom:6px;background:linear-gradient(90deg,#c4a882,#d4b892);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hw-subtitle{font-size:14px;color:#a89888;margin-bottom:20px;text-align:center;opacity:0.9}
+.hw-section-label{font-size:13px;color:#c4a882;font-weight:600;margin-bottom:4px;text-align:center;letter-spacing:0.5px}
+.hw-section-desc{font-size:12px;color:#a89888;text-align:center;margin-bottom:14px;opacity:0.85}
+.hw-divider{height:1px;background:rgba(196,168,130,0.15);margin:20px 0}
+.hw-grade-label{display:flex;align-items:center;gap:12px;margin:18px 0 10px;font-size:12px;color:#a89888;font-weight:600;letter-spacing:0.3px}
+.hw-grade-label::before,.hw-grade-label::after{content:'';flex:1;height:1px;background:rgba(196,168,130,0.15)}
+.hw-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.hw-btn{all:unset;padding:14px 18px;background:rgba(255,255,255,0.04);color:#e0d8d0;border:1px solid rgba(196,168,130,0.3);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);text-align:center;display:block;width:100%;box-sizing:border-box;backdrop-filter:blur(10px)}
+.hw-btn:hover{background:rgba(196,168,130,0.15);border-color:#c4a882;transform:translateY(-2px);box-shadow:0 4px 16px rgba(196,168,130,0.2)}
+.hw-btn-scenario{border-color:rgba(196,168,130,0.5);background:rgba(196,168,130,0.08)}
+.hw-btn-scenario:hover{background:rgba(196,168,130,0.2);border-color:#c4a882}
+.hw-selected-info{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.hw-selected-tag{display:inline-block;padding:7px 16px;background:rgba(196,168,130,0.15);border:1px solid rgba(196,168,130,0.4);border-radius:20px;color:#c4a882;font-size:14px;font-weight:600}
+.hw-selected-sep{color:rgba(196,168,130,0.4);font-size:14px}
+.hw-btn-change{all:unset;padding:4px 12px;color:#a89888;font-size:12px;cursor:pointer;border:1px solid rgba(168,152,136,0.3);border-radius:14px;transition:all 0.2s}
+.hw-btn-change:hover{color:#c4a882;border-color:#c4a882;background:rgba(196,168,130,0.1)}
+@media(max-width:600px){.hw-wrapper{padding:20px}.hw-btn{padding:14px;font-size:14px}}
+</style>

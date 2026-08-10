@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Calendar Info Panel — Tarot Tone Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0; padding: 0;
+  background: #0a070f;
+  color: #ebe2d0;
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 14% 6%, rgba(184,150,92,0.16), transparent 55%),
+    radial-gradient(ellipse at 90% 90%, rgba(201,141,160,0.14), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+
+.preview-mast {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.55em;
+  color: rgba(184,150,92,0.55);
+  text-transform: uppercase;
+  margin: 40px 0 8px;
+}
+.preview-title {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 24px;
+  color: #d4b577;
+  margin-bottom: 30px;
+}
+
+/* fake chat container */
+.chat {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+.msg {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.85;
+  color: rgba(235,226,208,0.78);
+  background: rgba(20,14,30,0.5);
+  border-left: 1px solid rgba(184,150,92,0.32);
+  padding: 14px 18px;
+  margin: 12px 0;
+}
+
+/* ============================================
+   Info Panel · Tarot tone
+   ============================================ */
+.info-panel {
+  position: relative;
+  max-width: 650px;
+  margin: 16px auto;
+  background: #150e1f;
+  border: 1px solid #b8965c;
+  color: #ebe2d0;
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  padding: 22px 24px 20px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,0.4),
+    0 10px 24px rgba(0,0,0,0.45);
+}
+.info-panel::before {
+  content: ""; position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  pointer-events: none;
+}
+.info-panel::after {
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 1.5px at 11px 11px, #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) 11px, #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at 11px calc(100% - 11px), #b8965c 95%, transparent 100%),
+    radial-gradient(circle 1.5px at calc(100% - 11px) calc(100% - 11px), #b8965c 95%, transparent 100%);
+  background-repeat: no-repeat;
+}
+
+/* header */
+.info-head {
+  text-align: center;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+}
+.info-head .roundel {
+  width: 32px; height: 32px;
+  border: 1px solid #b8965c;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 6px;
+  color: #d4b577;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  position: relative;
+}
+.info-head .roundel::before {
+  content: ""; position: absolute; inset: -4px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  border-radius: 50%;
+}
+.info-head .title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-weight: 500;
+  font-size: 22px; color: #ebe2d0; line-height: 1;
+}
+.info-head .subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: 0.5em;
+  color: #b8965c; text-transform: uppercase;
+  margin-top: 5px;
+}
+
+/* season · week banner */
+.info-season {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: #d4b577;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.info-season .week-pill {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  border: 1px solid rgba(184,150,92,0.55);
+  padding: 2px 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+.info-day {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: rgba(235,226,208,0.55);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.info-day .sep { color: rgba(184,150,92,0.4); margin: 0 8px; }
+
+/* weekday grid */
+.week-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin: 0 0 14px;
+}
+.day {
+  padding: 10px 0 9px;
+  text-align: center;
+  background: rgba(20,14,30,0.5);
+  border: 1px solid rgba(184,150,92,0.4);
+  color: rgba(235,226,208,0.55);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.day.today {
+  background: #d4b577;
+  color: #150e1f;
+  border-color: #d4b577;
+  font-weight: 600;
+  box-shadow:
+    inset 0 0 0 1px rgba(20,14,30,0.4),
+    0 4px 14px rgba(212,181,119,0.25);
+}
+
+/* details — collapsible */
+.info-details {
+  border-top: 1px solid rgba(184,150,92,0.32);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+.info-details summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.45em;
+  color: #b8965c;
+  text-transform: uppercase;
+  padding: 4px 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+.info-details summary::-webkit-details-marker { display: none; }
+.info-details summary::before { content: "〈"; color: rgba(184,150,92,0.6); font-style: italic; font-size: 12px; font-family: 'Cormorant Garamond', serif; transition: transform 0.2s; }
+.info-details summary::after  { content: "〉"; color: rgba(184,150,92,0.6); font-style: italic; font-size: 12px; font-family: 'Cormorant Garamond', serif; transition: transform 0.2s; }
+.info-details[open] summary::before { content: "✦"; color: #d4b577; }
+.info-details[open] summary::after  { content: "✦"; color: #d4b577; }
+.info-details summary:hover { color: #d4b577; }
+
+.info-rows {
+  margin-top: 12px;
+  display: grid;
+  gap: 7px;
+}
+.info-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 4px;
+  border-bottom: 1px dashed rgba(184,150,92,0.18);
+}
+.info-row:last-child { border-bottom: 0; }
+.info-row .k {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  color: #b8965c;
+  text-transform: uppercase;
+}
+.info-row .v {
+  font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
+  font-size: 13px;
+  color: #ebe2d0;
+  line-height: 1.5;
+}
+.info-row .v.italic {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: #d4b577;
+}
+
+/* exam-week emphasis */
+.exam-flag {
+  display: inline-block;
+  border: 1px solid #c98da0;
+  color: #c98da0;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  padding: 1px 7px;
+  margin-right: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* legend */
+.legend {
+  max-width: 760px;
+  margin: 30px auto 60px;
+  padding: 24px 28px;
+  border: 1px solid rgba(184,150,92,0.32);
+  background: rgba(20,14,30,0.5);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(235,226,208,0.85);
+}
+.legend h3 {
+  font-family: 'Cinzel', serif; font-size: 11px;
+  letter-spacing: 0.45em; color: #d4b577;
+  text-transform: uppercase; margin: 0 0 12px;
+}
+.legend ul { margin: 0; padding-left: 1.2em; }
+.legend li { margin-bottom: 4px; }
+.legend em { color: #d4b577; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="preview-mast">Belladonna Academy · Calendar Panel Refresh</div>
+<div class="preview-title"><em>v2 — Tarot tone</em></div>
+
+<div class="chat">
+
+  <div class="msg">
+    아침 종소리가 첨탑에서 울려퍼진다. 학생들이 정원을 가로질러 강의동으로 향하고 있었다.
+  </div>
+
+  <!-- ===== INFO PANEL ===== -->
+  <div class="info-panel">
+
+    <div class="info-head">
+      <div class="roundel">❖</div>
+      <div class="title">Calendarium</div>
+      <div class="subtitle">정보 패널</div>
+    </div>
+
+    <div class="info-season">
+      가을 학기
+      <span class="week-pill">Week 04 / 12</span>
+    </div>
+    <div class="info-day">
+      <span>목요일</span>
+      <span class="sep">·</span>
+      <span>오전</span>
+    </div>
+
+    <div class="week-cal">
+      <div class="day">월</div>
+      <div class="day">화</div>
+      <div class="day">수</div>
+      <div class="day today">목</div>
+      <div class="day">금</div>
+      <div class="day">토</div>
+      <div class="day">일</div>
+    </div>
+
+    <details class="info-details" open>
+      <summary>Detail</summary>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="k">Location</span>
+          <span class="v">스칼렛 스트리트 · 본관 2층 강의실</span>
+        </div>
+        <div class="info-row">
+          <span class="k">Week</span>
+          <span class="v italic"><span class="exam-flag">Exam</span>1차 시험 주간</span>
+        </div>
+        <div class="info-row">
+          <span class="k">Event</span>
+          <span class="v">하우스 필수 회의 · 정원 다과회</span>
+        </div>
+        <div class="info-row">
+          <span class="k">Weather</span>
+          <span class="v">맑음, 가벼운 안개</span>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="msg">
+    Vivienne가 옆자리에 앉았다. "오늘 시험 첫째 날, 준비 됐어?"
+  </div>
+
+</div>
+
+<div class="legend">
+  <h3>변경 요점</h3>
+  <ul>
+    <li><em>팔레트:</em> 베이지 + 브라운 + 산세리프 → 자줏빛 #150e1f + 골드 #b8965c/#d4b577 + Cormorant italic. Tarot v3 패널과 완전 통일</li>
+    <li><em>형태:</em> 둥근 border-radius 15 → 직각 0 + 4코너 골드 닷 + 내부 0.5px 라인 (rpg-bar-compact와 동일 패턴)</li>
+    <li><em>헤더:</em> "📅 정보 패널" → ❖ roundel + <em>Calendarium</em> italic + <em>정보 패널</em> subtitle (Hebdomas/Character Sheet와 동일 헤더 패턴)</li>
+    <li><em>시즌 배너:</em> "{season} 학기 Week 1/12" → "가을 학기 [Week 04 / 12]" — 학기명은 italic으로, 주차는 골드 보더 pill로 분리</li>
+    <li><em>요일 그리드:</em> 베이지 둥근 셀 → 직각 다크 셀. today는 골드 채움 + 다크 텍스트 (Hebdomas v4 active 버튼과 동일 처리)</li>
+    <li><em>Detail 토글:</em> ▸/▾ → 닫혀있을 때 〈 Detail 〉, 열려있을 때 ✦ Detail ✦. trigger 칩과 같은 결</li>
+    <li><em>상세 정보:</em> 이모지 라벨 → 2단 그리드 (Cinzel 라벨 / 값). 위치는 plain, 이번 주는 italic 골드, 이벤트·날씨는 plain. 시험 주는 <em>EXAM</em> rose 칩으로 강조</li>
+    <li><em>컴팩트:</em> max-width 650px 유지. 전체 padding 12 → 22/24 (약간 여유), 패널 단일 카드 구조 유지</li>
+  </ul>
+</div>
+
+</body>
+</html>

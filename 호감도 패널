@@ -1,910 +1,953 @@
 <style>
-/* ===================================
-   기본 레이아웃
-   =================================== */
-body{display:flex;min-height:100vh;background-color:#2a1915;position:relative;overflow-x:hidden;font-family:'Georgia','Times New Roman',serif}
+/* ============================================
+   Belladonna Academy · Affinity Panel (Tarot v3)
+   캐릭터 호감도 + 죄악도(메인) + 세팅
+   rpg_status_panel과 톤 통일
+   ============================================ */
 
-/* ===================================
-   버튼 컨테이너
-   =================================== */
-.buttons-container{position:fixed;right:20px;top:60px;display:flex;flex-direction:column;gap:15px;z-index:1000}
-.btn{width:55px;height:55px;border-radius:50%;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;border:2px solid #8b7355;overflow:hidden}
-.btn-characters{background:#f5f1e8}
-.btn-characters::after{content:'📖';color:#5d4e37;font-size:26px}
+body { font-family: 'Noto Serif KR', '나눔명조', '바탕', Batang, Georgia, serif; }
 
-#character-toggle{display:none}
+/* Toggle inputs (hidden) */
+#character-toggle, #tab-none, #main-section, #sub-section, #settings-section { display: none; }
 
-/* ===================================
-   통합 패널
-   =================================== */
-.characters-panel{
-    position:fixed;right:0;top:0;width:35%;height:100vh;
-    background:#f5f1e8;border-left:3px solid #8b7355;
-    box-shadow:-5px 0 15px rgba(0,0,0,0.3);z-index:990;
-    overflow-y:auto;padding-top:20px;box-sizing:border-box;
-    transform:translateX(100%);
-    transition:transform 0.3s ease;
+/* ============================================
+   Side panel — slide from right
+   ============================================ */
+.characters-panel {
+  position: fixed; right: 0; top: 0;
+  width: 40%;
+  max-width: 540px;
+  height: 100vh;
+  background: #150e1f;
+  border-left: 1.5px solid #b8965c;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.7);
+  z-index: 990;
+  overflow-y: auto;
+  box-sizing: border-box;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(.2,.6,.2,1);
+  color: #ebe2d0;
+  padding: 30px 28px 60px;
 }
-#character-toggle:checked ~ .characters-panel{transform:translateX(0);}
+#character-toggle:checked ~ .characters-panel { transform: translateX(0); }
 
-/* 패널 헤더 */
-.panel-header{text-align:center;margin-bottom:15px;padding:15px;border-bottom:2px solid #8b7355}
-.panel-title{font-size:28px;color:#5d4e37!important;margin-bottom:12px;font-weight:600;letter-spacing:1px}
+.characters-panel::-webkit-scrollbar { width: 6px; }
+.characters-panel::-webkit-scrollbar-thumb { background: #6e5634; }
+.characters-panel::-webkit-scrollbar-track { background: #0a070f; }
 
-/* ===================================
-   탭 시스템
-   =================================== */
-.tab-controls{display:flex;gap:10px;justify-content:center;margin-top:15px;padding:0 20px}
-.tab-btn-label{
-  flex:1;padding:12px 20px;background:#fff;border:2px solid #8b7355;
-  border-radius:6px;cursor:pointer;text-align:center;font-weight:600;
-  font-size:14px;color:#5d4e37;max-width:150px;
-  box-shadow:0 2px 4px rgba(0,0,0,0.1);
-  transition:background 0.2s ease;
-}
-.tab-btn-label:hover{background:#f5f1e8;}
-
-#tab-none,#main-section,#sub-section,#settings-section{display:none}
-
-/* 탭 활성화 스타일 */
-#main-section:checked ~ .buttons-container ~ .characters-panel .tab-btn-label[for="main-section"],
-#sub-section:checked ~ .buttons-container ~ .characters-panel .tab-btn-label[for="sub-section"],
-#settings-section:checked ~ .buttons-container ~ .characters-panel .tab-btn-label[for="settings-section"]{
-    background:#8b7355;color:#fff;box-shadow:0 4px 8px rgba(139,115,85,0.4);
+@media (max-width: 768px) {
+  .characters-panel { width: 100%; max-width: none; }
 }
 
-/* 빈 상태 안내 */
-.empty-state{
-  display:none;
-  text-align:center;
-  padding:60px 20px;
-  color:#8b7355;
+/* Toggle button (right side) */
+.buttons-container {
+  position: fixed; right: 22px; top: 60px;
+  display: flex; flex-direction: column; gap: 14px;
+  z-index: 1000;
 }
-.empty-state h3{
-  font-size:24px;
-  margin-bottom:15px;
-  color:#5d4e37;
+.btn-personae {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 1.2px solid #b8965c;
+  background: #150e1f;
+  color: #c98da0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  position: relative;
+  transition: all 0.25s;
 }
-.empty-state p{
-  font-size:16px;
-  line-height:1.6;
-  color:#8b7355;
+.btn-personae::before {
+  content: "";
+  position: absolute; inset: -5px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  border-radius: 50%;
 }
-#tab-none:checked ~ .buttons-container ~ .characters-panel .empty-state{
-  display:block;
+.btn-personae::after { content: "♡"; }
+.btn-personae:hover { background: #1a1226; }
+
+/* ============================================
+   Panel header
+   ============================================ */
+.panel-header {
+  text-align: center;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+}
+.panel-header .roundel {
+  width: 38px; height: 38px;
+  border: 1.2px solid #b8965c;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px;
+  color: #c98da0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  position: relative;
+}
+.panel-header .roundel::before {
+  content: ""; position: absolute; inset: -5px;
+  border: 0.5px solid rgba(184,150,92,0.32);
+  border-radius: 50%;
+}
+.panel-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 30px;
+  color: #ebe2d0;
+  line-height: 1;
+  margin: 0;
+}
+.panel-subtitle {
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.55em;
+  color: #b8965c;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  margin-top: 8px;
 }
 
-/* 섹션 전환 */
-.main-content,
-.sub-content,
-.settings-content{display:none}
-#main-section:checked ~ .buttons-container ~ .characters-panel .main-content{display:block}
-#sub-section:checked ~ .buttons-container ~ .characters-panel .sub-content{display:block}
-#settings-section:checked ~ .buttons-container ~ .characters-panel .settings-content{display:block}
-
-/* ===================================
-   캐릭터 카드
-   =================================== */
-.character-grid{display:grid;grid-template-columns:1fr;gap:30px;padding:20px 15px}
-
-.character-card{
-  background-color:#fff;border-radius:4px;display:flex;
-  flex-direction:column;align-items:center;padding:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);border:1px solid #d4c4a8;
-  position:relative;cursor:default;
+/* ============================================
+   Tab controls
+   ============================================ */
+.tab-controls {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 16px;
 }
-.character-card:hover{box-shadow:0 6px 12px rgba(93,78,55,0.15);}
-
-.character-img-container{
-  width:180px;height:220px;border-radius:4px;overflow:hidden;
-  border:3px solid #8b7355;margin-bottom:15px;background:#f9f6f0;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);padding:0;
+.tab-btn {
+  flex: 1;
+  max-width: 130px;
+  padding: 9px 6px;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
 }
-.character-img{
-  width:150%;height:150%;object-fit:contain;object-position:center;
-  filter:sepia(0.05) brightness(1.02);
-}
+.tab-btn:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
 
-.character-info{width:100%;text-align:center}
-.character-name{
-  font-weight:600;font-size:19px;color:#5d4e37;margin-bottom:12px;
-  border-bottom:1px solid #d4c4a8;padding-bottom:8px;
+#main-section:checked ~ .characters-panel .tab-btn[for="main-section"],
+#sub-section:checked ~ .characters-panel .tab-btn[for="sub-section"],
+#settings-section:checked ~ .characters-panel .tab-btn[for="settings-section"] {
+  background: #d4b577;
+  color: #150e1f;
+  border-color: #d4b577;
+  font-weight: 500;
 }
 
-.sub-content .character-img-container{width:160px;height:200px}
-.sub-content .character-name{font-size:16px}
+/* ============================================
+   Content visibility
+   ============================================ */
+.empty-state, .main-content, .sub-content, .settings-content { display: none; }
+#tab-none:checked ~ .characters-panel .empty-state { display: block; }
+#main-section:checked ~ .characters-panel .main-content { display: block; }
+#sub-section:checked ~ .characters-panel .sub-content { display: block; }
+#settings-section:checked ~ .characters-panel .settings-content { display: block; }
 
-/* ===================================
-   호감도 게이지
-   =================================== */
-.heart-section{display:flex;align-items:center;justify-content:center;margin-bottom:8px}
-.heart-icon{color:#c85a54!important;font-size:14px;margin-right:6px}
-.heart-gauge-container{
-  flex:1;height:6px;background-color:#f0ebe0;border-radius:3px;
-  overflow:hidden;max-width:120px;border:1px solid #d4c4a8;
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
 }
-.heart-gauge{
-  height:100%;background:linear-gradient(90deg,#c85a54,#d4a574);
-  border-radius:3px;width:0%;transition:width 0.3s ease;
+.empty-state h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: #d4b577;
+  margin: 0 0 14px;
 }
-.heart-percent{
-  font-size:13px;color:#5d4e37!important;margin-left:8px;
-  min-width:35px;font-weight:500;
-}
-
-/* 호감도 조작 버튼 */
-.stat-controls{
-  display:flex;align-items:center;justify-content:center;gap:4px;
-  margin:6px 0;padding:6px 8px;background:rgba(200,90,84,0.08);
-  border-radius:4px;border:1px solid rgba(200,90,84,0.15);
-}
-.stat-label-mini{
-  font-size:11px;color:#8b7355;font-weight:600;
-  margin-right:4px;letter-spacing:0.3px;
-}
-.stat-btn-mini{
-  width:38px;height:22px;background:#fff;border:1px solid #d4c4a8;
-  border-radius:3px;color:#5d4e37;font-size:11px;font-weight:700;
-  cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.08);
-  transition:background 0.1s ease;
-}
-.stat-btn-mini:hover{background:#f5f5f5}
-.stat-btn-mini.minus{color:#dc2626;border-color:#fecaca}
-.stat-btn-mini.minus:hover{background:#fee2e2}
-.stat-btn-mini.plus{color:#059669;border-color:#bbf7d0}
-.stat-btn-mini.plus:hover{background:#d1fae5}
-
-/* ===================================
-   Sin 온도계 게이지
-   =================================== */
-.sin-thermometer{
-  display:flex;align-items:center;gap:4px;margin:10px 0;
-  padding:10px 8px;background:rgba(122,92,153,0.08);
-  border-radius:6px;border:1px solid rgba(122,92,153,0.2);
-}
-.sin-icon-center{font-size:18px;padding:0 8px;flex-shrink:0}
-
-.sin-gauge-container-left,
-.sin-gauge-container-right{
-  flex:1;height:22px;background:#f0ebe0;
-  border:1px solid #d4c4a8;position:relative;overflow:hidden;
-}
-.sin-gauge-container-left{
-  border-radius:11px 0 0 11px;border-right:none;direction:rtl;
-}
-.sin-gauge-container-right{
-  border-radius:0 11px 11px 0;border-left:none;
+.empty-state p {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  color: rgba(235,226,208,0.7);
+  line-height: 1.7;
+  margin: 0;
 }
 
-.sin-gauge-pressure,
-.sin-gauge-relief{
-  height:100%;transition:width 0.3s ease;
-  box-shadow:inset 0 1px 3px rgba(0,0,0,0.2);
+/* ============================================
+   Character cards
+   ============================================ */
+.character-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 20px 0;
 }
-.sin-gauge-pressure{
-  background:linear-gradient(90deg,#c85a54,#9b4a4a);
-  border-radius:11px 0 0 11px;
+.character-card {
+  position: relative;
+  background: #1a1226;
+  border: 1px solid rgba(184,150,92,0.4);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.sin-gauge-relief{
-  background:linear-gradient(90deg,#4a9bb8,#5ab88a);
-  border-radius:0 11px 11px 0;
+.character-card::before {
+  content: "";
+  position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.22);
+  pointer-events: none;
+}
+.character-card > * { position: relative; z-index: 1; }
+
+.char-img-container {
+  width: 180px; height: 220px;
+  border: 1.5px solid #b8965c;
+  margin-bottom: 14px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2a1d3a, #1a1226);
+}
+.sub-content .char-img-container { width: 160px; height: 200px; }
+.char-img {
+  width: 150%; height: 150%;
+  object-fit: contain;
+  object-position: center;
 }
 
-.sin-value-left,
-.sin-value-right{
-  position:absolute;top:50%;transform:translateY(-50%);
-  font-size:10px;font-weight:700;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,0.5);
-  pointer-events:none;z-index:1;
+.char-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 19px;
+  color: #d4b577;
+  text-align: center;
+  width: 100%;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+  margin-bottom: 12px;
 }
-.sin-value-left{right:4px;direction:ltr}
-.sin-value-right{left:4px}
+.char-name .char-icon { font-style: normal; margin-right: 6px; }
+.sub-content .char-name { font-size: 17px; }
 
-/* Sin 조작 버튼 */
-.sin-controls-row{display:flex;gap:8px;margin:4px 0}
-.sin-control-group{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:3px;
-  padding:5px 6px;background:rgba(139,115,85,0.05);
-  border-radius:4px;border:1px solid rgba(139,115,85,0.15);
+/* Affinity (heart) — gauge + value */
+.heart-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 6px 0 4px;
 }
-.sin-control-group .stat-label-mini{font-size:10px;margin-right:2px}
-.sin-control-group .stat-btn-mini{width:32px;height:20px;font-size:10px}
+.heart-icon { color: #c98da0; font-size: 15px; }
+.heart-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(20,14,30,0.6);
+  border: 1px solid rgba(184,150,92,0.4);
+  overflow: hidden;
+  max-width: 160px;
+}
+.heart-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c98da0, #d4b577);
+  transition: width 0.3s ease;
+}
+.heart-percent {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #d4b577;
+  min-width: 38px;
+  text-align: right;
+}
 
-/* ===================================
-   툴팁
-   =================================== */
-.char-tooltip{
-  background-color:#f9f6f0;color:#5d4e37!important;
-  font-size:11px;line-height:1.5;padding:0px 12px;width:100%;
-  box-sizing:border-box;border-top:1px solid #d4c4a8;
-  margin-top:0px;max-height:0;opacity:0;overflow:hidden;
-  transition:max-height 0.2s ease,opacity 0.2s ease;
-  text-align:center;
+/* Affinity Edit button (alertInput trigger) */
+.affinity-control {
+  display: flex;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(201,141,160,0.06);
+  border: 1px solid rgba(201,141,160,0.25);
+  margin: 8px 0;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
 }
-.character-card:hover .char-tooltip{
-  max-height:120px;opacity:1;margin-top:12px;padding:10px 12px;
+.affinity-label {
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  color: #b8965c;
+  text-transform: uppercase;
+  font-variant: small-caps;
 }
-.char-tooltip h4{
-  color:#8b7355!important;font-size:13px;margin:0 0 6px 0;
-  font-weight:600;font-style:italic;
+.affinity-edit {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 200px;
 }
-.char-tooltip p{
-  color:#5d4e37!important;font-size:11.5px;margin:0;line-height:1.4;
+.affinity-edit::before { content: "〈"; color: rgba(184,150,92,0.6); font-style: italic; font-family: Georgia, serif; }
+.affinity-edit::after  { content: "〉"; color: rgba(184,150,92,0.6); font-style: italic; font-family: Georgia, serif; }
+.affinity-edit:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+.affinity-edit:hover::before, .affinity-edit:hover::after { color: #d4b577; }
+
+/* Sin thermometer (main only) */
+.sin-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: rgba(122,42,61,0.08);
+  border: 1px solid rgba(122,42,61,0.35);
+  margin: 10px 0 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sin-left, .sin-right {
+  flex: 1; height: 22px;
+  background: rgba(20,14,30,0.6);
+  border: 1px solid rgba(184,150,92,0.32);
+  overflow: hidden;
+  position: relative;
+}
+.sin-left { direction: rtl; }
+.sin-left-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7a2a3d, #c98da0);
+  direction: ltr;
+}
+.sin-right-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b8965c, #d4b577);
+}
+.sin-icon {
+  padding: 0 8px;
+  font-size: 18px;
+  color: #c98da0;
+  flex-shrink: 0;
+}
+.sin-val {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: Georgia, serif;
+  font-size: 10px;
+  color: #ebe2d0;
+  font-weight: 600;
+  z-index: 1;
+}
+.sin-val.l { right: 4px; direction: ltr; }
+.sin-val.r { left: 4px; }
+
+.sin-controls {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 0;
+  width: 100%;
+}
+.sin-control-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 6px;
+  background: rgba(184,150,92,0.04);
+  border: 1px solid rgba(184,150,92,0.2);
+}
+.sin-label-mini {
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: #b8965c;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  margin-right: 2px;
+}
+.sin-btn {
+  width: 36px; height: 22px;
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sin-btn:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+
+/* Tooltip (hover) */
+.char-tooltip {
+  width: 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(184,150,92,0.22);
+  margin-top: 0;
+  padding: 0 6px;
+  transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.2s ease, margin-top 0.2s ease;
+  text-align: center;
+  box-sizing: border-box;
+}
+.character-card:hover .char-tooltip {
+  max-height: 140px;
+  opacity: 1;
+  margin-top: 12px;
+  padding: 10px 6px 4px;
+}
+.char-tooltip h4 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #d4b577;
+  margin: 0 0 6px;
+}
+.char-tooltip p {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px;
+  color: rgba(235,226,208,0.78);
+  line-height: 1.55;
+  margin: 0;
 }
 
-/* ===================================
-   스크롤바
-   =================================== */
-.characters-panel::-webkit-scrollbar{width:8px}
-.characters-panel::-webkit-scrollbar-thumb{background:#8b7355;border-radius:4px}
-.characters-panel::-webkit-scrollbar-track{background:#f0ebe0}
-
-/* ===================================
-   반응형
-   =================================== */
-@media (max-width:768px){
-    .characters-panel{width:100%}
-    .character-img-container{width:140px;height:180px}
+/* ============================================
+   Settings
+   ============================================ */
+.settings-content { padding: 20px 0; }
+.settings-card {
+  position: relative;
+  background: #1a1226;
+  border: 1px solid rgba(184,150,92,0.4);
+  padding: 22px 20px;
 }
+.settings-card::before {
+  content: "";
+  position: absolute; inset: 4px;
+  border: 0.5px solid rgba(184,150,92,0.22);
+  pointer-events: none;
+}
+.settings-card > * { position: relative; z-index: 1; }
+.settings-card h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: #ebe2d0;
+  text-align: center;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(184,150,92,0.32);
+}
+.settings-section {
+  margin-bottom: 24px;
+}
+.settings-section h3 {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.45em;
+  color: #d4b577;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  margin: 0 0 8px;
+  text-align: center;
+}
+.settings-section p {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px;
+  color: rgba(235,226,208,0.7);
+  line-height: 1.6;
+  margin: 0 0 12px;
+  text-align: center;
+}
+.settings-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.settings-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.settings-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.settings-btn {
+  background: transparent;
+  border: 1px solid rgba(184,150,92,0.55);
+  color: #b8965c;
+  font-family: Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.settings-btn:hover { color: #d4b577; border-color: #d4b577; background: rgba(184,150,92,0.08); }
+.settings-btn.danger {
+  color: #c98da0;
+  border-color: rgba(201,141,160,0.55);
+}
+.settings-btn.danger:hover { color: #ffffff; border-color: #c98da0; background: rgba(201,141,160,0.1); }
+.settings-status {
+  padding: 10px;
+  background: rgba(20,14,30,0.6);
+  border: 1px solid rgba(184,150,92,0.32);
+  text-align: center;
+  font-family: Georgia, serif;
+  font-size: 12px;
+}
+.settings-status .lbl { color: #b8965c; font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; font-variant: small-caps; margin-right: 6px; }
+.settings-status .val { color: #d4b577; font-style: italic; }
+.settings-tip {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(184,150,92,0.06);
+  border-left: 2px solid #b8965c;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px;
+  color: rgba(235,226,208,0.75);
+  line-height: 1.6;
+}
+.settings-tip em { color: #d4b577; font-style: italic; }
 </style>
 
-<!-- 탭 라디오 버튼 (패널 외부) -->
 <input type="radio" name="character-tab" id="tab-none" checked>
 <input type="radio" name="character-tab" id="main-section">
 <input type="radio" name="character-tab" id="sub-section">
 <input type="radio" name="character-tab" id="settings-section">
-
-<!-- 패널 토글 체크박스 -->
 <input type="checkbox" id="character-toggle">
-
-<!-- 버튼 컨테이너 -->
 <div class="buttons-container">
-<label for="character-toggle" class="btn btn-characters"></label>
-</div>
-
-<!-- 통합 캐릭터 패널 -->
+  <label for="character-toggle" class="btn-personae" aria-label="personae"></label></div>
 <div class="characters-panel">
-<div class="panel-header">
-<h1 class="panel-title">🥀 Belladonna Academy 🥀</h1>
-
-<!-- 탭 버튼 -->
-<div class="tab-controls">
-<label for="main-section" class="tab-btn-label">📖 메인</label>
-<label for="sub-section" class="tab-btn-label">📔 조연</label>
-<label for="settings-section" class="tab-btn-label">⚙️ 설정</label>
-</div>
-</div>
-
-<!-- 빈 상태 안내 -->
-<div class="empty-state">
-<h3>🎭 Character Panel</h3>
-<p>상단의 <strong>메인</strong> 또는 <strong>조연</strong> 탭을 선택하여<br>캐릭터 정보를 확인하세요</p>
-</div>
-
-<!-- ========== 메인 캐릭터 섹션 ========== -->
-<div class="main-content">
-<div class="character-grid">
-
-<!-- 1. 미라벨 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::mirabel_icon}}" alt="미라벨" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">💰 Mirabel von Goldenrose</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::mirabel_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::mirabel_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_mirabel_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_mirabel_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::mirabel_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::mirabel_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::mirabel_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::mirabel_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mirabel_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>자신만만하고 도도한 오죠사마</h4>
-<p>Golden Lily 상회 운영자. 원하는 것은 무조건 손에 넣는다—단지 시간문제일 뿐. 우아한 웃음과 절대적 자신감이 트레이드마크.</p>
-</div>
-</div>
-
-<!-- 2. 셀레스티아 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::celestia_icon}}" alt="셀레스티아" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">👑 Celestia von Silvercrown</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::celestia_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::celestia_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_celestia_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_celestia_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::celestia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::celestia_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::celestia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::celestia_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_celestia_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>메스가키 황녀</h4>
-<p>제2황녀. "허~접♡"으로 모두를 도발하면서도 완벽한 격식체 구사. 은발 우월주의자에 키가 작은 게 콤플렉스.</p>
-</div>
-</div>
-
-<!-- 3. 카산드라 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::cassandra_icon}}" alt="카산드라" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">👊 Cassandra von Wolfhart</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::cassandra_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::cassandra_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_cassandra_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_cassandra_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::cassandra_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::cassandra_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::cassandra_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::cassandra_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cassandra_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>욕쟁이 츤데레 소녀전사</h4>
-<p>북방의 야수. 창의적 욕설과 폭발적 성질. 거칠게 돌보는 게 애정표현—북방 스타일.</p>
-</div>
-</div>
-
-<!-- 4. 에반젤린 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::evangeline_icon}}" alt="에반젤린" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">💋 Evangeline von Poisonrose</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::evangeline_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::evangeline_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_evangeline_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_evangeline_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::evangeline_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::evangeline_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::evangeline_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::evangeline_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_evangeline_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>시모네타가 특기인 비치갸루</h4>
-<p>50만 팔로워 클럽 퀸. 모든 말이 우아한 "우후후~♡"와 함께 야한 농담으로 변한다. 자연스러운 매력 덩어리.</p>
-</div>
-</div>
-
-<!-- 5. 아멜리아 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::amelia_icon}}" alt="아멜리아" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🎨 Amelia von Schadenfreude</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::amelia_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::amelia_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_amelia_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_amelia_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::amelia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::amelia_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::amelia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::amelia_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_amelia_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>찐따 음침거유 짤쟁이</h4>
-<p>검은 머리와 후드 뒤에 숨는 Ivy House 유령. 중얼중얼 반쯤 끝나는 말투. 가끔 사람 울리는 진실폭격 날린다.</p>
-</div>
-</div>
-
-<!-- 6. 네펜테스 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::nepenthes_icon}}" alt="네펜테스" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🌺 Nepenthes von Dormien</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::nepenthes_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::nepenthes_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_nepenthes_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_nepenthes_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::nepenthes_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::nepenthes_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::nepenthes_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::nepenthes_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_nepenthes_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>다정한 아라아라계 누나</h4>
-<p>Rafflesia의 인기 선배. 나른한 따스함과 반달 눈. 항상 "필요한 거 있으면 말해~"하며 돌봐준다.</p>
-</div>
-</div>
-
-<!-- 7. 릴리스 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::lilith_icon}}" alt="릴리스" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">📱 Lilith von Traumschatten</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::lilith_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::lilith_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_lilith_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_lilith_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::lilith_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::lilith_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::lilith_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::lilith_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_lilith_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>말 안하는 천재 마법소녀</h4>
-<p>스크린과 마나로만 소통하는 Poppy House 미스터리. 수업 안 나와도 만점. 항상 담배 연기와 화면 속에 산다.</p>
-</div>
-</div>
-
-<!-- 8. 아우렐리아 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::aurelia_icon}}" alt="아우렐리아" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">☀️ Aurelia von Goldencrown</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::aurelia_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::aurelia_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_aurelia_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_aurelia_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_plus_100">+100</button>
-</div>
-<div class="sin-thermometer">
-<div class="sin-gauge-container-left">
-<div class="sin-gauge-pressure" style="width:{{getvar::aurelia_sin_pos_percent}}%;"></div>
-<div class="sin-value-left">{{getvar::aurelia_sin_pos}}</div>
-</div>
-<div class="sin-icon-center">😈</div>
-<div class="sin-gauge-container-right">
-<div class="sin-gauge-relief" style="width:{{getvar::aurelia_sin_neg_percent}}%;"></div>
-<div class="sin-value-right">{{getvar::aurelia_sin_neg}}</div>
-</div>
-</div>
-<div class="sin-controls-row">
-<div class="sin-control-group">
-<span class="stat-label-mini">압력</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_pos_plus_15">+15</button>
-</div>
-<div class="sin-control-group">
-<span class="stat-label-mini">해소</span>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_5">+5</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_aurelia_sin_neg_plus_15">+15</button>
-</div>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>완벽한 황태녀</h4>
-<p>제국의 황금빛 태양. 모두에게 친절하고 모든 걸 잘하는 천부적 리더. 국민들이 사랑하는 완벽한 황녀.</p>
-</div>
-</div>
-
-</div>
-</div>
-
-<!-- ========== 조연 캐릭터 섹션 ========== -->
-<div class="sub-content">
-<div class="character-grid">
-
-<!-- 1. 코델리아 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::cordelia_icon}}" alt="코델리아" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">💎 Cordelia von Edelstein</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::cordelia_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::cordelia_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_cordelia_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_cordelia_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cordelia_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_cordelia_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>도도한 츤데레 보석상</h4>
-<p>300년 보석 가문 영주. "~거든" 말투로 모든 게 사업이라고 주장. 미라벨의 라이벌.</p>
-</div>
-</div>
-
-<!-- 2. 수아 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::suah_icon}}" alt="수아" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🌙 Suah (수아)</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::suah_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::suah_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_suah_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_suah_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_suah_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_suah_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>나른한 업소 큰언니</h4>
-<p>전직 고급 호스티스. 홍등가 커뮤니티의 큰언니.</p>
-</div>
-</div>
-
-<!-- 3. 아델하이드 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::adelheid_icon}}" alt="아델하이드" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">❄️ Adelheid von Frostheim</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::adelheid_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::adelheid_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_adelheid_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_adelheid_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_adelheid_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_adelheid_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>추위 싫어하는 검술 천재</h4>
-<p>애니 좋아하는 천부적 검술가. 노력 없이 이기고, 추우면 수업 빠진다. 카산드라 스타일에 관심 있음.</p>
-</div>
-</div>
-
-<!-- 4. 로잘리 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::rosalie_icon}}" alt="로잘리" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🌸 Rosalie von Lichtberg</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::rosalie_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::rosalie_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_rosalie_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_rosalie_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_rosalie_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_rosalie_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>기 센 변경 영애</h4>
-<p>예의 바르지만 절대 안 물러서는 남부 귀족. "~사와요" 말투. 약혼자를 에반젤린한테 빼앗겼다.</p>
-</div>
-</div>
-
-<!-- 5. 미카 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::mika_icon}}" alt="미카" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🎀 Hanazono Mika</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::mika_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::mika_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_mika_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_mika_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mika_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_mika_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>밝은 갸루 일러스트레이터</h4>
-<p>인기 상업 작가. 아웃사이더한테 본능적으로 다정함. 매주 네일 바뀜.</p>
-</div>
-</div>
-
-<!-- 6. 클로버 -->
-<div class="character-card">
-<div class="character-img-container">
-<img src="{{raw::clover_icon}}" alt="클로버" class="character-img">
-</div>
-<div class="character-info">
-<div class="character-name">🍀 Clover von Herzfeld</div>
-<div class="heart-section">
-<div class="heart-icon">❤</div>
-<div class="heart-gauge-container">
-<div class="heart-gauge" style="width:{{getvar::clover_affinity_percent}}%;"></div>
-</div>
-<div class="heart-percent">{{getvar::clover_affinity}}</div>
-</div>
-<div class="stat-controls">
-<span class="stat-label-mini">호감</span>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_clover_minus_100">-100</button>
-<button type="button" class="stat-btn-mini minus" risu-trigger="adjust_clover_minus_50">-50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_clover_plus_50">+50</button>
-<button type="button" class="stat-btn-mini plus" risu-trigger="adjust_clover_plus_100">+100</button>
-</div>
-</div>
-<div class="char-tooltip">
-<h4>대충대충 연금술 소녀</h4>
-<p>편의점 재료로 물약 만드는 안전 위반. 신기하게 작동함. "됐으면 됐죠~!"</p>
-</div>
-</div>
-
-</div>
-</div>
-
-<!-- ========== 설정 섹션 ========== -->
-<div class="settings-content">
-<div style="padding:30px 20px;">
-<div style="background:#fff;border-radius:8px;padding:25px;box-shadow:0 2px 8px rgba(0,0,0,0.1);border:1px solid #d4c4a8;">
-<h2 style="font-size:22px;color:#5d4e37;margin-bottom:20px;text-align:center;border-bottom:2px solid #8b7355;padding-bottom:12px;">⚙️ 게임 설정</h2>
-
-<div style="margin-bottom:25px;">
-<h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">🤖 보조 AI 모델 선택</h3>
-<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">상태 파싱에 사용할 AI 모델을 선택하세요. Off를 선택하면 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-<button type="button" risu-trigger="set_aux_mode_auxiliary" style="padding:14px 20px;background:linear-gradient(135deg,#9370DB,#6A5ACD);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(147,112,219,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(147,112,219,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(147,112,219,0.3)'">보조 모델</button>
-<button type="button" risu-trigger="set_aux_mode_main" style="padding:14px 20px;background:linear-gradient(135deg,#8b7355,#5d4e37);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(139,115,85,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(139,115,85,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(139,115,85,0.3)'">메인 모델</button>
-<button type="button" risu-trigger="set_aux_mode_off" style="padding:14px 20px;background:linear-gradient(135deg,#95a5a6,#7f8c8d);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(149,165,166,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(149,165,166,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(149,165,166,0.3)'">Off</button>
-</div>
-<div style="padding:10px;background:#f5f1e8;border-radius:6px;text-align:center;border:1px solid #d4c4a8;">
-<span style="font-size:13px;color:#666;">현재 설정: </span>
-<span style="font-weight:700;color:#5d4e37;font-size:14px;">{{getvar::auxiliary_mode_text}}</span>
-</div>
-</div>
-
-<div style="margin-bottom:25px;">
-<h3 style="font-size:16px;color:#5d4e37;margin-bottom:12px;font-weight:600;">📊 스탯 초기화</h3>
-<p style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6;">모든 스탯을 50으로, 레벨을 1로 초기화합니다. (EXP 0, 전투력 자동 재계산)</p>
-<button type="button" risu-trigger="reset_all_stats_to_50" style="width:100%;padding:14px 20px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;border:2px solid rgba(255,255,255,0.6);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(231,76,60,0.3);" onmouseover="this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 6px 16px rgba(231,76,60,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(231,76,60,0.3)'">🔄 스탯 초기화 (50)</button>
-</div>
-
-<div style="margin-top:20px;padding:15px;background:#fff9e6;border-left:4px solid #8b7355;border-radius:4px;">
-<p style="font-size:12px;color:#5d4e37;margin:0;line-height:1.5;">
-💡 <strong>팁:</strong> 보조 모델을 사용하면 메인 모델의 부담을 줄일 수 있습니다. Off 모드는 보조 모델 호출 없이 메인 모델만 사용합니다.
-</p>
-</div>
-</div>
-</div>
-</div>
-
-</div>
+  <div class="panel-header">
+    <div class="roundel">♡</div>
+    <h1 class="panel-title">Personae</h1>
+    <div class="panel-subtitle">캐릭터 패널</div>
+    <div class="tab-controls">
+      <label for="main-section" class="tab-btn">Main</label>
+      <label for="sub-section" class="tab-btn">Sub</label>
+      <label for="settings-section" class="tab-btn">Settings</label></div></div>
+  <div class="empty-state">
+    <h3>Belladonna Academy</h3>
+    <p>상단의<em>Main</em>또는<em>Sub</em>탭을 눌러<br>캐릭터를 확인하세요.</p></div>
+  <div class="main-content">
+    <div class="character-grid">
+      <!-- 1. Mirabel -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::mirabel_icon}}" alt="Mirabel" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">💰</span>Mirabel von Goldenrose</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::mirabel_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::mirabel_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_mirabel" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::mirabel_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::mirabel_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::mirabel_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::mirabel_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_mirabel_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_mirabel_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_mirabel_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_mirabel_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>자신만만하고 도도한 오죠사마</h4>
+          <p>Golden Lily 상회 운영자. 원하는 것은 무조건 손에 넣는다—단지 시간문제일 뿐. 우아한 웃음과 절대적 자신감이 트레이드마크.</p></div></div>
+      <!-- 2. Celestia -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::celestia_icon}}" alt="Celestia" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">👑</span>Celestia von Silvercrown</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::celestia_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::celestia_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_celestia" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::celestia_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::celestia_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::celestia_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::celestia_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_celestia_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_celestia_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_celestia_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_celestia_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>메스가키 황녀</h4>
+          <p>제2황녀. "허~접♡"으로 모두를 도발하면서도 완벽한 격식체 구사. 은발 우월주의자에 키가 작은 게 콤플렉스.</p></div></div>
+      <!-- 3. Cassandra -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::cassandra_icon}}" alt="Cassandra" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">👊</span>Cassandra von Wolfhart</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::cassandra_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::cassandra_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_cassandra" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::cassandra_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::cassandra_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::cassandra_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::cassandra_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_cassandra_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_cassandra_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_cassandra_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_cassandra_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>욕쟁이 츤데레 소녀전사</h4>
+          <p>북방의 야수. 창의적 욕설과 폭발적 성질. 거칠게 돌보는 게 애정표현—북방 스타일.</p></div></div>
+      <!-- 4. Evangeline -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::evangeline_icon}}" alt="Evangeline" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">💋</span>Evangeline von Poisonrose</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::evangeline_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::evangeline_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_evangeline" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::evangeline_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::evangeline_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::evangeline_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::evangeline_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_evangeline_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_evangeline_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_evangeline_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_evangeline_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>시모네타가 특기인 비치갸루</h4>
+          <p>50만 팔로워 클럽 퀸. 모든 말이 우아한 "우후후~♡"와 함께 야한 농담으로 변한다. 자연스러운 매력 덩어리.</p></div></div>
+      <!-- 5. Amelia -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::amelia_icon}}" alt="Amelia" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🎨</span>Amelia von Schadenfreude</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::amelia_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::amelia_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_amelia" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::amelia_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::amelia_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::amelia_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::amelia_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_amelia_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_amelia_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_amelia_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_amelia_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>찐따 음침거유 짤쟁이</h4>
+          <p>검은 머리와 후드 뒤에 숨는 Ivy House 유령. 중얼중얼 반쯤 끝나는 말투. 가끔 사람 울리는 진실폭격 날린다.</p></div></div>
+      <!-- 6. Nepenthes -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::nepenthes_icon}}" alt="Nepenthes" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🌺</span>Nepenthes von Dormien</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::nepenthes_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::nepenthes_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_nepenthes" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::nepenthes_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::nepenthes_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::nepenthes_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::nepenthes_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_nepenthes_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_nepenthes_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_nepenthes_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_nepenthes_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>다정한 아라아라계 누나</h4>
+          <p>Rafflesia의 인기 선배. 나른한 따스함과 반달 눈. 항상 "필요한 거 있으면 말해~"하며 돌봐준다.</p></div></div>
+      <!-- 7. Lilith -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::lilith_icon}}" alt="Lilith" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">📱</span>Lilith von Traumschatten</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::lilith_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::lilith_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_lilith" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::lilith_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::lilith_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::lilith_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::lilith_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_lilith_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_lilith_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_lilith_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_lilith_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>말 안하는 천재 마법소녀</h4>
+          <p>스크린과 마나로만 소통하는 Poppy House 미스터리. 수업 안 나와도 만점. 항상 담배 연기와 화면 속에 산다.</p></div></div>
+      <!-- 8. Aurelia -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::aurelia_icon}}" alt="Aurelia" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">☀️</span>Aurelia von Goldencrown</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::aurelia_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::aurelia_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_aurelia" class="affinity-edit">Edit Value</button></div>
+        <div class="sin-row">
+          <div class="sin-left">
+            <div class="sin-left-fill" style="width:{{getvar::aurelia_sin_neg_percent}}%;"></div>
+            <span class="sin-val l">{{getvar::aurelia_sin_neg}}</span></div>
+          <span class="sin-icon">✦</span>
+          <div class="sin-right">
+            <div class="sin-right-fill" style="width:{{getvar::aurelia_sin_pos_percent}}%;"></div>
+            <span class="sin-val r">{{getvar::aurelia_sin_pos}}</span></div></div>
+        <div class="sin-controls">
+          <div class="sin-control-group">
+            <span class="sin-label-mini">압력</span>
+            <button type="button" risu-trigger="adjust_aurelia_sin_neg_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_aurelia_sin_neg_plus_15" class="sin-btn">+15</button></div>
+          <div class="sin-control-group">
+            <span class="sin-label-mini">해소</span>
+            <button type="button" risu-trigger="adjust_aurelia_sin_pos_plus_5" class="sin-btn">+5</button>
+            <button type="button" risu-trigger="adjust_aurelia_sin_pos_plus_15" class="sin-btn">+15</button></div></div>
+        <div class="char-tooltip">
+          <h4>완벽한 황태녀</h4>
+          <p>제국의 황금빛 태양. 모두에게 친절하고 모든 걸 잘하는 천부적 리더. 국민들이 사랑하는 완벽한 황녀.</p></div></div></div></div>
+  <div class="sub-content">
+    <div class="character-grid">
+      <!-- 9. Cordelia -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::cordelia_icon}}" alt="Cordelia" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">💎</span>Cordelia von Edelstein</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::cordelia_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::cordelia_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_cordelia" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>도도한 츤데레 보석상</h4>
+          <p>300년 보석 가문 영주. "~거든" 말투로 모든 게 사업이라고 주장. 미라벨의 라이벌.</p></div></div>
+      <!-- 10. Suah -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::suah_icon}}" alt="Suah" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🌙</span>Suah (수아)</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::suah_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::suah_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_suah" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>나른한 업소 큰언니</h4>
+          <p>전직 고급 호스티스. 홍등가 커뮤니티의 큰언니.</p></div></div>
+      <!-- 11. Adelheid -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::adelheid_icon}}" alt="Adelheid" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">❄️</span>Adelheid von Frostheim</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::adelheid_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::adelheid_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_adelheid" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>추위 싫어하는 검술 천재</h4>
+          <p>애니 좋아하는 천부적 검술가. 노력 없이 이기고, 추우면 수업 빠진다. 카산드라 스타일에 관심 있음.</p></div></div>
+      <!-- 12. Rosalie -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::rosalie_icon}}" alt="Rosalie" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🌸</span>Rosalie von Lichtberg</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::rosalie_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::rosalie_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_rosalie" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>기 센 변경 영애</h4>
+          <p>예의 바르지만 절대 안 물러서는 남부 귀족. "~사와요" 말투. 약혼자를 에반젤린한테 빼앗겼다.</p></div></div>
+      <!-- 13. Mika -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::mika_icon}}" alt="Mika" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🎀</span>Hanazono Mika</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::mika_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::mika_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_mika" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>밝은 갸루 일러스트레이터</h4>
+          <p>인기 상업 작가. 아웃사이더한테 본능적으로 다정함. 매주 네일 바뀜.</p></div></div>
+      <!-- 14. Clover -->
+      <div class="character-card">
+        <div class="char-img-container">
+          <img src="{{raw::clover_icon}}" alt="Clover" class="char-img"></div>
+        <div class="char-name">
+          <span class="char-icon">🍀</span>Clover von Herzfeld</div>
+        <div class="heart-section">
+          <span class="heart-icon">♡</span>
+          <div class="heart-bar">
+            <div class="heart-fill" style="width:{{getvar::clover_affinity_percent}}%;"></div></div>
+          <span class="heart-percent">{{getvar::clover_affinity}}</span></div>
+        <div class="affinity-control">
+          <span class="affinity-label">Affinity</span>
+          <button type="button" risu-trigger="affinity_input_clover" class="affinity-edit">Edit Value</button></div>
+        <div class="char-tooltip">
+          <h4>대충대충 연금술 소녀</h4>
+          <p>편의점 재료로 물약 만드는 안전 위반. 신기하게 작동함. "됐으면 됐죠~!"</p></div></div></div></div>
+  <div class="settings-content">
+    <div class="settings-card">
+      <h2>Game Settings</h2>
+      <div class="settings-section">
+        <h3>Auxiliary AI Model</h3>
+        <p>상태 파싱에 사용할 AI 모델을 선택하세요. Off 선택 시 메인 모델이 로어북 지시에 따라 태그를 출력합니다.</p>
+        <div class="settings-grid cols-3">
+          <button type="button" risu-trigger="set_aux_mode_auxiliary" class="settings-btn">보조 모델</button>
+          <button type="button" risu-trigger="set_aux_mode_main" class="settings-btn">메인 모델</button>
+          <button type="button" risu-trigger="set_aux_mode_off" class="settings-btn">Off</button></div>
+        <div class="settings-status">
+          <span class="lbl">Current</span>
+          <span class="val">{{getvar::auxiliary_mode_text}}</span></div></div>
+      <div class="settings-section">
+        <h3>Affinity System</h3>
+        <p>호감도 시스템을 활성화/비활성화합니다. OFF 시 호감도 태그가 파싱되지 않습니다.</p>
+        <div class="settings-grid cols-2">
+          <button type="button" risu-trigger="set_affinity_on" class="settings-btn">On</button>
+          <button type="button" risu-trigger="set_affinity_off" class="settings-btn">Off</button></div>
+        <div class="settings-status">
+          <span class="lbl">Current</span>
+          <span class="val">{{getvar::affinity_system_text}}</span></div></div>
+      <div class="settings-section">
+        <h3>Reset Stats</h3>
+        <p>모든 스탯을 50으로, 레벨을 1로 초기화합니다. (EXP 0, 전투력 자동 재계산)</p>
+        <button type="button" risu-trigger="reset_all_stats_to_50" class="settings-btn danger" style="width:100%;">Reset to 50</button></div>
+      <div class="settings-tip">
+        <em>Tip.</em>보조 모델을 사용하면 메인 모델의 부담을 줄일 수 있습니다. Off 모드는 보조 모델 호출 없이 메인 모델만 사용합니다.</div></div></div></div>

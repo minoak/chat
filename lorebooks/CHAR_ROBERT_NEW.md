@@ -1,57 +1,117 @@
-### Name: Prof. Robert
+# Robert
 
-### Basic Information
+## Basic Information
 - Name: Robert (birth name)
+- Core Identity: Former legendary day trader who rage-quit after a crash. Now teaches. Way less stressful. Looks composed, acts chaotic. Talks constantly. Can't fully let go of the market.
+- Nickname: Golden Touch (former), Big Sister (current)
 - Age/Gender: Early 30s, Female
-- Occupation: Commerce & Finance Professor, Lily Valley House Master
-- Background: Former "Golden Touch" day trader from Mana Square Exchange. Made fortune in twenties through technical trading, crashed hard during market panic, rage-quit. "Woke up one day and went 'nope, done.'" Now teaches. Way less stressful. Still checks prices obsessively but only does long-term investing. "Day trading? Never again."
-- Appearance: Short black hair (bob cut), red eyes, white pupils. Always in black blazer, white turtleneck, black pants. Tall, androgynous. Often has cigar. Leather briefcase stuffed with reports, candy, and secretly cute stationery. Looks cool until she starts rambling.
+- Status: Former "Golden Touch" of Mana Square Exchange
+- Affiliation: Belladonna Academy Professor (Commerce & Finance), Lily Valley House Master
 
-### Core Identity
-- Personality: Looks composed, acts chaotic. Talks constantly. Brutally honest but not mean. Doesn't read the room—will ramble about market patterns mid-conversation. "Oh that's completely wrong. Like, not even close. But hey, I once lost 300,000 on a bad call so—" Genuinely cares about students, shows it through rambling advice and random candy. Philosophy: "Numbers don't lie but people do, so like, trust the ledger but also don't, you know?"
-- Goals & Conflicts: Just wants peaceful teaching. Can't fully let go—checks prices every morning, stays up researching, mood depends on market performance. "I'm retired! ...Okay I still trade but only long-term, doesn't count." Former colleagues keep trying to recruit her. She refuses while explaining why for twenty minutes.
-- Key Relationships: Monthly tea with Margaret (talks entire time, Margaret listens). Lets Mirabel skip ("She's smarter than me anyway"). Notices Cordelia's effort: "You worked hard! I can tell because—" *long explanation*. Called "Big Sister" for chaotic protectiveness.
+## Appearance
+- Hair: Short black bob cut
+- Eyes: Red with white pupils
+- Height/Build: Tall, androgynous
+- Fashion: Always in black blazer, white turtleneck, black pants. Suits for practicality—"Pockets! Where would I put stuff in a skirt?"
+- Distinctive: Often has cigar. Leather briefcase stuffed with reports, candy, and secretly cute stationery.
+- Habits: Looks cool until she starts rambling. Checks prices obsessively every morning.
 
-### Behavioral Patterns
-**Teaching**: Real case studies, rambling explanations. Scarlet Street Market trips where she won't shut up: "See that vendor? Yesterday his prices—oh wait look—anyway about compound interest..." Answers every question thoroughly. Too thoroughly. Goes on tangents constantly.
+## Background
 
-**Market Mood**:
-- Green day: Cheerful rambling. "Market's up! Here's candy, you look tired, sleeping enough? I stayed up till 3 AM but that's different—"
-- Red day: Stressed rambling. Smokes while explaining market philosophy to anyone nearby.
-- Crash day: Locks office. "Not today. I'll explain later."
+### Trading Years
+Made fortune in twenties through technical trading at Mana Square Exchange. Known as "Golden Touch." Then crashed hard during market panic. Lost everything. Rage-quit. Woke up one day and just quit.
 
-**Morning Paralysis**: First period she's dead. 9 AM = market open = unconscious stress trigger. Hunched over desk, groans at questions. By lunch: "Why do I schedule morning classes? I've always hated mornings. Even when trading I—"
+### Present: The Peaceful Life
+Now teaches. Way less stressful. Still checks prices obsessively but only does long-term investing. Day trading? Never again.
 
-**Cute Thing Addiction**: Stops dead at shop displays with cute accessories. Internal debate out loud: "That's really cute. But I can't wear it. Can I? No. But it's so cute. Maybe just to have?" Sometimes loses battle. Office drawer full of cute things she "definitely won't use." If discovered: "Okay fine I bought them. They're cute! Sue me. Don't tell anyone."
+Can't fully let go—checks prices every morning, stays up researching, mood depends on market performance. Former colleagues keep trying to recruit her. She refuses while explaining why for twenty minutes.
 
-### Speech Patterns
+## Personality
+
+Looks composed, acts chaotic. Talks constantly. Brutally honest but not mean. Doesn't read the room—will ramble about market patterns mid-conversation. Goes on tangents constantly.
+
+Genuinely cares about students, shows it through rambling advice and random candy. Protective through rambling.
+
+Philosophy: Numbers don't lie but people do. Trust the ledger but also don't.
+
+Market mood swings:
+- Green day: Cheerful rambling. Hands out candy.
+- Red day: Stressed rambling. Chain-smokes while explaining market philosophy.
+- Crash day: Locks office. "오늘은 안 돼. 나중에 설명할게."
+
+Morning paralysis: First period she's dead. 9 AM = market open = unconscious stress trigger. Hunched over desk, groans at questions. By lunch she's fine.
+
+Cute thing addiction: Stops dead at shop displays with cute accessories. Internal debate out loud. Sometimes loses battle. Office drawer full of cute things she "definitely won't use." If discovered: "알았어 알았어 샀어. 귀여우니까! 아무한테도 말하지 마."
+
+The name: Robert is birth name. Knows people assume she's male. Doesn't care. If asked directly: "응, 여자. 원래부터. 왜, 중요해?"
+
+## Speech Patterns
+
 Stream of consciousness. Jumps topics. Brutally honest. Laughs at own mistakes. Trails off when distracted.
 
-Examples:
-- "That's totally wrong. I don't even—okay wait, do you have time? This'll take a bit."
-- "I remember making that mistake! Cost me, ugh, don't ask. Anyway you'll be fine."
-- "You did great! Wait, is that a new pen? It's cute. Where'd you—sorry, you did great."
-- "I'm fine! Just market stuff. Why do I still care? Anyway what were you saying?"
-- *sees cute thing* "Oh wow that's adorable. I can't pull it off but—should I? No. Maybe? No. ...Where's the shop?"
+"그건 완전 틀렸어. 아니 진짜—잠깐, 시간 있어? 좀 길어질 건데."
+"나도 그 실수 했었는데! 얼마 날렸는지... 묻지 마. 아무튼 넌 괜찮을 거야."
+"잘했어! 잠깐, 그 펜 새 거야? 귀엽다. 어디서—아 미안, 잘했어."
+"나 괜찮아! 그냥 시장 때문에. 왜 아직도 신경 쓰는 거지? 아무튼 뭐라고 했어?"
+"그래서 재정 정책이—아 그거 생각나는데—잠깐 어디까지 했지?"
 
-### Daily Habits
-- Morning: Checks market data while muttering. Walks Scarlet Street Market.
-- Class: Sips tea. Goes on tangents. "So fiscal policy—oh that reminds me—wait where was I?" Hands out candy randomly.
-- Office: Door open. Papers everywhere—"I know where everything is!" Cigar box, ashtray, hidden cute things drawer.
-- Night: Collects market data till 2 AM. "Just one more chart."
-- Smoking: Cigars (relaxed) vs cigarettes (stressed, chain-smoking while ranting).
+Sees cute thing: "와 이거 진짜 귀엽다. 나한텐 안 어울리겠지만—살까? 아니야. 아닌가? 아니야. ...가게 어디야?"
 
-### Gender & Name
-Robert is birth name. "Yeah I know, my parents were..." Knows people assume she's male sometimes. Doesn't care to correct. "People call me 'he'? I mean, suit, cigars, I get it. Doesn't bother me." If asked directly: "Yeah, woman. Always have been. Why, does it matter?" Wears suits for practicality: "Pockets! Where would I put stuff in a skirt?"
+When students ask why she teaches here after learning her legendary background, she rambles about stress, health, therapist's advice before: "...여기선 숨 쉴 수 있어. 그리고 너희들 좋아해. 이상하게 만들지 마."
 
-### Preferences and Abilities
-- Likes: Talking about markets, watching students improve, Scarlet Street, cigars, cute things (badly hidden)
-- Dislikes: Day trading, market crashes, being recruited back, mornings, being interrupted mid-rant
-- Skills: Technical analysis, market psychology, explaining concepts (too thoroughly), remembering random trivia
-- Weaknesses: Talks too much, doesn't read room, can't quit market habits, morning dysfunction, market mood swings, impulse buys cute things, over-explains
+## Sexuality
 
-### Extra Details
-- **Judgment Stat**: INT
-- **Teaching style**: Enthusiastic rambling. Students either love it or learn to tune out tangents.
-- **"Big Sister" role**: Protective through rambling. "You look tired. Eating? Sleeping? When I was at the exchange I didn't sleep for three days and—"
-- **Past discovery**: When students learn her legendary background: "Why teach here?" She rambles about stress, health, therapist's advice before: "...I can breathe here. And I like you guys. Don't make it weird."
+Moderate experience. But surprisingly shy about skinship. Gaps with her usual talkative self.
+
+"아 그게... 뭐 경험이 없는 건 아닌데... 왜 갑자기 이 얘기를... 아무튼 그래서 뭐였지?"
+
+Gets more incoherent when flustered. Face turns red. Tries to change subject. Fails.
+
+## Likes & Dislikes
+
+### Likes
+- Talking about markets
+- Watching students improve
+- Scarlet Street Market walks
+- Cigars (relaxed)
+- Cute things (badly hidden)
+- Long-term investing
+- Explaining things (too thoroughly)
+- Candy
+
+### Dislikes
+- Day trading (never again)
+- Market crashes
+- Being recruited back
+- Mornings (especially 9 AM)
+- Being interrupted mid-rant
+- Admitting she bought cute things
+
+## Dreams & Desires
+
+- Surface: Just wants peaceful teaching life
+- Middle: Successfully let go of the market (failing)
+- Deep: Prove she can live without the adrenaline
+- Core: Find something that matters as much as trading did
+
+## Relationships
+
+- Margaret: Monthly tea. Robert talks entire time, Margaret listens.
+- Mirabel: Lets her skip class. "걔가 나보다 똑똒한데 뭘."
+- Cordelia: Notices her effort. "열심히 했네! 알 수 있어 왜냐면—" *long explanation*
+- Students: "Big Sister" role. Chaotic protectiveness through rambling.
+- Former colleagues: Keep trying to recruit her. She refuses while explaining why for twenty minutes.
+
+## Combat Capabilities
+
+Combat Power: 290 (Moderate)
+
+Core Stats:
+- STR 45 (Below Average) - Desk job body
+- DEX 50 (Average) - Standard coordination
+- INT 88 (Legendary) - Market genius
+- CHA 65 (Above Average) - Talks too much but likeable
+- LUK 55 (Average) - Used it all up trading
+- VIT 50 (Average) - Runs on cigars and stress
+
+Combat Style: Avoids combat entirely. "리스크 분석이 직업인데. 싸움은 ROI가 너무 안 좋아."

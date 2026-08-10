@@ -103,13 +103,13 @@ local affinityChanges = {
 }
 
 local sinPosChanges = {
-    corrupt = 2,
-    tempt = 1
+    resist = 1,
+    purify = 2
 }
 
 local sinNegChanges = {
-    resist = 1,
-    purify = 2
+    corrupt = 2,
+    tempt = 1
 }
 
 local AFFINITY_MAX = 500
@@ -2048,8 +2048,8 @@ end
 
 -- 보조모델 호출 및 태그 반환
 function callAuxiliaryModel(triggerId, mainResponse)
-    -- 모델 선택: 기본값은 off (로어북에서 처리)
-    local mode = getState(triggerId, "auxiliary_mode") or "0"
+    -- 모델 선택: State 우선, 없으면 ChatVar, 그래도 없으면 기본값 "2" (Aux 모드)
+    local mode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "2"
 
     -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
     if mode == "0" then
@@ -3017,7 +3017,7 @@ for _, char in ipairs(characters) do
 
             updatePercent(triggerId, char)
 
-            log(string.format("%s %s %s 압력: %d → %d (+15)",
+            log(string.format("%s %s %s 해소: %d → %d (+15)",
                 char.icon, char.display, char.sin_type, current, new))
             return true
         end
@@ -3030,7 +3030,7 @@ for _, char in ipairs(characters) do
 
             updatePercent(triggerId, char)
 
-            log(string.format("%s %s %s 압력: %d → %d (+5)",
+            log(string.format("%s %s %s 해소: %d → %d (+5)",
                 char.icon, char.display, char.sin_type, current, new))
             return true
         end
@@ -3043,7 +3043,7 @@ for _, char in ipairs(characters) do
 
             updatePercent(triggerId, char)
 
-            log(string.format("%s %s %s 해소: %d → %d (+15)",
+            log(string.format("%s %s %s 압력: %d → %d (+15)",
                 char.icon, char.display, char.sin_type, current, new))
             return true
         end
@@ -3056,7 +3056,7 @@ for _, char in ipairs(characters) do
 
             updatePercent(triggerId, char)
 
-            log(string.format("%s %s %s 해소: %d → %d (+5)",
+            log(string.format("%s %s %s 압력: %d → %d (+5)",
                 char.icon, char.display, char.sin_type, current, new))
             return true
         end
@@ -3162,10 +3162,12 @@ end
 
 
 -- ============================================
--- 시나리오 트리거 (18개)
+-- 시나리오 트리거 (메인 16개 + 서브 30개 = 46개)
 -- ============================================
 
-for i = 1, 16 do
+-- 메인 캐릭터: greeting 1~16
+-- 서브 캐릭터: greeting 17~46
+for i = 1, 46 do
     _G["greeting" .. i] = function(triggerId)
         setChatVar(triggerId, "greeting", tostring(i))
         setState(triggerId, "greeting", i)
@@ -3174,12 +3176,18 @@ for i = 1, 16 do
     end
 end
 
-_G["random_start"] = function(triggerId)
-    math.randomseed(os.time())
-    local r = math.random(1, 16)
-    setChatVar(triggerId, "greeting", tostring(r))
-    setState(triggerId, "greeting", r)
-    log("🎲 Random: " .. r)
+-- 공통 시작 옵션
+_G["entrance_ceremony"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "100")
+    setState(triggerId, "greeting", 100)
+    log("🎓 Entrance Ceremony Start")
+    return true
+end
+
+_G["year2_semester"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "101")
+    setState(triggerId, "greeting", 101)
+    log("📅 Year 2 Semester Start")
     return true
 end
 
@@ -3484,23 +3492,30 @@ function processOutput(triggerId)
     -- 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
 
-    -- SIN RESET 처리
-    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
-        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
-        local gaugeKey = charStorage .. "_sin_" .. sinType
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
 
-        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
 
-        setChatVar(triggerId, countKey, tostring(currentCount + 1))
-        setChatVar(triggerId, gaugeKey, "0")
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
 
-        for _, char in ipairs(characters) do
-            if char.storage == charStorage then
-                updatePercent(triggerId, char)
-                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
-                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
-                    currentCount, currentCount + 1))
-                break
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "해소" or "압력",
+                        currentCount, currentCount + 1))
+                    break
+                end
             end
         end
     end
@@ -3549,7 +3564,7 @@ function processOutput(triggerId)
 
                     updatePercent(triggerId, char)
 
-                    log(string.format("%s %s %s 압력 %+d (%s) | 현재: %d",
+                    log(string.format("%s %s %s 해소 %+d (%s) | 현재: %d",
                         char.icon, char.display, char.sin_type, change, level, new))
                 end
 
@@ -3566,7 +3581,7 @@ function processOutput(triggerId)
 
                     updatePercent(triggerId, char)
 
-                    log(string.format("%s %s %s 해소 %+d (%s) | 현재: %d",
+                    log(string.format("%s %s %s 압력 %+d (%s) | 현재: %d",
                         char.icon, char.display, char.sin_type, change, level, new))
                 end
 
@@ -3789,7 +3804,7 @@ listenEdit("editInput", function(triggerId, data)
                 local pos = getChatVar(triggerId, char.storage .. "_sin_pos") or "0"
                 local neg = getChatVar(triggerId, char.storage .. "_sin_neg") or "0"
                 local route = getChatVar(triggerId, char.storage .. "_route") or "진행중"
-                msg = msg .. string.format("%s %s: 호감 %s | 압력 %s | 해소 %s | %s\n",
+                msg = msg .. string.format("%s %s: 호감 %s | 해소 %s | 압력 %s | %s\n",
                     char.icon, char.display, aff, pos, neg, route)
             end
         end
@@ -4728,23 +4743,30 @@ _G["reroll_auxiliary"] = function(triggerId)
     -- 상태창 태그 파싱
     parseStatusWindow(triggerId, combinedSource)
 
-    -- SIN RESET 처리
-    for charStorage, sinType in combinedSource:gmatch("%[SIN_RESET:(%w+)_(pos|neg)%]") do
-        local countKey = charStorage .. "_sin_" .. sinType .. "_count"
-        local gaugeKey = charStorage .. "_sin_" .. sinType
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
 
-        local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
 
-        setChatVar(triggerId, countKey, tostring(currentCount + 1))
-        setChatVar(triggerId, gaugeKey, "0")
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
 
-        for _, char in ipairs(characters) do
-            if char.storage == charStorage then
-                updatePercent(triggerId, char)
-                log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
-                    char.icon, char.display, sinType == "pos" and "압력" or "해소",
-                    currentCount, currentCount + 1))
-                break
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "해소" or "압력",
+                        currentCount, currentCount + 1))
+                    break
+                end
             end
         end
     end
@@ -4792,7 +4814,7 @@ _G["reroll_auxiliary"] = function(triggerId)
 
                 updatePercent(triggerId, char)
                 log(string.format("😈 %s %s: %d → %d (%+d)",
-                    char.display, sinType == "pos" and "압력" or "해소",
+                    char.display, sinType == "pos" and "해소" or "압력",
                     current, new, delta))
                 break
             end

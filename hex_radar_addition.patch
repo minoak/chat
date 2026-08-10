@@ -1,0 +1,142 @@
+diff --git a/belladonna_academy_rpg_new.lua b/belladonna_academy_rpg_new.lua
+index aa678a7..7ee07fc 100644
+--- a/belladonna_academy_rpg_new.lua
++++ b/belladonna_academy_rpg_new.lua
+@@ -854,6 +854,137 @@ function updateRpgDisplayVars(triggerId)
+     setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
+     setState(triggerId, "player_combat_power_max", maxCombatPower)
+ 
++    -- ============================================
++    -- 6각형 능력치 레이더 SVG 생성 (player_hex_radar_svg)
++    -- viewBox 320x300, 중심(160,150)
++    -- 신체(STR/DEX/VIT) 위쪽 3개, 정신/사회(LUK/CHA/INT) 아래쪽 3개
++    -- ============================================
++    do
++        local cx, cy = 160, 150
++        local rFull   = 100   -- 능력치 100일 때 정점까지 거리
++        local rLabel  = 132   -- 라벨 텍스트 위치
++        local rTip    = 152   -- 툴팁 위치
++        local tipW, tipH = 56, 38
++
++        local axes = {
++            {key = "str", label = "STR"},
++            {key = "dex", label = "DEX"},
++            {key = "vit", label = "VIT"},
++            {key = "luk", label = "LUK"},
++            {key = "cha", label = "CHA"},
++            {key = "int", label = "INT"},
++        }
++
++        -- 각 축의 (cos, sin) 미리 계산 (-90도부터 60도씩 시계방향)
++        local cosA, sinA = {}, {}
++        for i = 1, 6 do
++            local angRad = math.rad(-90 + (i - 1) * 60)
++            cosA[i] = math.cos(angRad)
++            sinA[i] = math.sin(angRad)
++        end
++
++        -- 헬퍼: 폴리곤 points 문자열
++        local function ringPoints(radius)
++            local pts = {}
++            for i = 1, 6 do
++                pts[#pts + 1] = string.format("%.2f,%.2f",
++                    cx + cosA[i] * radius, cy + sinA[i] * radius)
++            end
++            return table.concat(pts, " ")
++        end
++
++        local parts = {}
++        parts[#parts + 1] = '<svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg">'
++
++        -- 배경 헥사곤 3겹 (33%, 66%, 99%)
++        parts[#parts + 1] = string.format('<polygon class="hex-bg-99" points="%s"/>', ringPoints(rFull))
++        parts[#parts + 1] = string.format('<polygon class="hex-bg-66" points="%s"/>', ringPoints(rFull * 0.66))
++        parts[#parts + 1] = string.format('<polygon class="hex-bg-33" points="%s"/>', ringPoints(rFull * 0.33))
++
++        -- 6개 축선 (중심 → 정점)
++        for i = 1, 6 do
++            parts[#parts + 1] = string.format(
++                '<line class="hex-axis" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
++                cx, cy, cx + cosA[i] * rFull, cy + sinA[i] * rFull)
++        end
++
++        -- 정점 도트 6개
++        for i = 1, 6 do
++            parts[#parts + 1] = string.format(
++                '<circle class="hex-vertex-dot" cx="%.2f" cy="%.2f" r="2"/>',
++                cx + cosA[i] * rFull, cy + sinA[i] * rFull)
++        end
++
++        -- 능력치 값 폴리곤 (전체 영역 채움)
++        local valPts = {}
++        local valX, valY = {}, {}
++        for i, axis in ipairs(axes) do
++            local v = tonumber(getChatVar(triggerId, axis.key .. "_effective"))
++                   or tonumber(getChatVar(triggerId, "player_" .. axis.key))
++                   or STAT_DEFAULT
++            v = clampValue(v, STAT_MIN, STAT_MAX)
++            local ratio = v / 100
++            valX[i] = cx + cosA[i] * rFull * ratio
++            valY[i] = cy + sinA[i] * rFull * ratio
++            valPts[#valPts + 1] = string.format("%.2f,%.2f", valX[i], valY[i])
++        end
++        parts[#parts + 1] = string.format('<polygon class="hex-fill" points="%s"/>',
++            table.concat(valPts, " "))
++
++        -- 6개 sector (라벨 + 캡 + 값선 + 툴팁 + 호버영역)
++        for i, axis in ipairs(axes) do
++            local baseV = tonumber(getChatVar(triggerId, "player_" .. axis.key)) or STAT_DEFAULT
++            local effV  = tonumber(getChatVar(triggerId, axis.key .. "_effective")) or baseV
++            local bonus = effV - baseV
++            local bonusStr
++            if bonus > 0 then
++                bonusStr = string.format("+%d", bonus)
++            elseif bonus < 0 then
++                bonusStr = tostring(bonus)
++            else
++                bonusStr = "±0"
++            end
++
++            local lx = cx + cosA[i] * rLabel
++            local ly = cy + sinA[i] * rLabel + 4  -- 텍스트 baseline 보정
++            local tx = cx + cosA[i] * rTip
++            local ty = cy + sinA[i] * rTip
++
++            parts[#parts + 1] = '<g class="hex-sector">'
++            -- 값 선 (중심 → 값 위치)
++            parts[#parts + 1] = string.format(
++                '<line class="hex-value" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
++                cx, cy, valX[i], valY[i])
++            -- 값 위치 캡
++            parts[#parts + 1] = string.format(
++                '<circle class="hex-cap" cx="%.2f" cy="%.2f" r="3.5"/>',
++                valX[i], valY[i])
++            -- 라벨
++            parts[#parts + 1] = string.format(
++                '<text class="hex-label" x="%.2f" y="%.2f">%s</text>',
++                lx, ly, axis.label)
++            -- 툴팁 (hover로 보이게 됨, CSS가 처리)
++            parts[#parts + 1] = string.format(
++                '<g class="hex-tip" transform="translate(%.2f,%.2f)">' ..
++                '<rect class="hex-tip-bg" x="%.2f" y="%.2f" width="%d" height="%d" rx="3"/>' ..
++                '<text class="hex-tip-val" x="0" y="-2">%d</text>' ..
++                '<text class="hex-tip-bonus" x="0" y="13">%s</text>' ..
++                '</g>',
++                tx, ty, -tipW/2, -tipH/2 - 6, tipW, tipH, effV, bonusStr)
++            -- 호버 영역 (라벨/캡 근처 큰 투명 원)
++            parts[#parts + 1] = string.format(
++                '<circle class="hex-hit" cx="%.2f" cy="%.2f" r="22"/>',
++                lx, ly - 4)
++            parts[#parts + 1] = '</g>'
++        end
++
++        parts[#parts + 1] = '</svg>'
++
++        local hexSvg = table.concat(parts, "")
++        setChatVar(triggerId, "player_hex_radar_svg", hexSvg)
++        setState(triggerId, "player_hex_radar_svg", hexSvg)
++    end
++
+     -- 아이템 HTML 생성 (슬롯 15개 기반)
+     local itemsHtml = ""
+     local hasItems = false

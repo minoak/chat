@@ -1,0 +1,8590 @@
+-- Belladonna Academy System v7.3 - RPG Edition
+-- 로어북 기준 장소명 정리 + 한영 병기 출력 + RPG 시스템 통합
+
+--[[
+==============================================
+보조모델 (Auxiliary Model) 사용 안내
+==============================================
+
+본 스크립트는 이중 모델 아키텍처를 사용합니다:
+
+1. 메인 모델 (Main Model) - 스토리텔링 전담
+   - 순수하게 이야기만 작성
+   - 시스템 태그 출력 없음
+   - 자연스러운 롤플레이에 집중
+
+2. 보조 모델 (Auxiliary Model) - 시스템 심판
+   - 메인 모델의 출력 분석
+   - 시스템 태그 생성 및 출력
+   - 프롬프트: STATUS_OUTPUT_INSTRUCTIONS_v2.0.md 참조
+
+3. Lua 스크립트 (본 파일) - 시스템 관리자
+   - 태그 파싱 및 변수 저장
+   - 계산 처리 (레벨업, 스탯 제한 등)
+   - 스냅샷/복원 (리롤 지원)
+
+태그 형식:
+  [Affinity:Name:level][Sin:Name:level]
+  [Stat:stat_id:±value][Gold:±value][EXP:±value]
+  [Item:Add:Name:Qty:Type:Value:Duration:Desc]  -- AI가 효과 정의
+  [Item:Remove:Name:Qty]
+  [Trait:Name:Category:Effect:Value:Condition]
+  [Effect:Add:Name:Type:Value:Duration:Desc]
+  [Effect:Remove:Name]
+  [Season:계절][Week:주차][Time:시간][Location:장소]
+  [StatsEvaluated]  -- 능력평가 완료
+  <Panel>■★
+
+아이템 생성 시 AI가 효과를 정의합니다:
+  예: [Item:Add:힘의물약:1:str_bonus:10:3:근육이 불끈]
+
+비소모품(학생증, 열쇠 등)은 사용 후 재획득:
+  사용자: /use 학생증
+  AI: 학생증을 보여준다... [Item:Add:학생증:1]
+==============================================
+]]
+
+-- ============================================
+-- 설정 섹션
+-- ============================================
+
+local characters = {
+    -- Main 8 (대죄 보유자)
+    {display = "Mirabel", storage = "mirabel", sin_type = "탐욕", icon = "💰", is_main = true,
+     stats = {str = 55, dex = 60, int = 82, luk = 75}},  -- 귀족 마법사, 경호원 고용 (전투력: 334)
+
+    {display = "Celestia", storage = "celestia", sin_type = "오만", icon = "👑", is_main = true,
+     stats = {str = 58, dex = 65, int = 88, luk = 70}},  -- 황족, 높은 마법적성 (전투력: 374)
+
+    {display = "Cassandra", storage = "cassandra", sin_type = "분노", icon = "👊", is_main = true,
+     stats = {str = 88, dex = 85, int = 65, luk = 68}},  -- 전사, 체력/민첩/힘 특화 (전투력: 411)
+
+    {display = "Evangeline", storage = "evangeline", sin_type = "색욕", icon = "💋", is_main = true,
+     stats = {str = 52, dex = 58, int = 68, luk = 78}},  -- 귀족, 마력 있지만 전투원 아님 (전투력: 298)
+
+    {display = "Amelia", storage = "amelia", sin_type = "질투", icon = "🎨", is_main = true,
+     stats = {str = 42, dex = 45, int = 70, luk = 55}},  -- 찐따, 신체능력 낮음 (전투력: 244)
+
+    {display = "Nepenthes", storage = "nepenthes", sin_type = "폭식", icon = "🌺", is_main = true,
+     stats = {str = 56, dex = 62, int = 80, luk = 65}},  -- 연금술/마력, 도구 사용 (전투력: 321)
+
+    {display = "Lilith", storage = "lilith", sin_type = "나태", icon = "📱", is_main = true,
+     stats = {str = 48, dex = 60, int = 92, luk = 78}},  -- 마법천재, 신체 약함 (전투력: 310)
+
+    {display = "Aurelia", storage = "aurelia", sin_type = "타락", icon = "☀️", is_main = true,
+     stats = {str = 82, dex = 85, int = 82, luk = 75}},  -- 육각형 천재, 완벽한 황녀 (전투력: 409)
+
+    -- Sub 6 (일반 캐릭터)
+    {display = "Cordelia", storage = "cordelia", icon = "💎", is_main = false,
+     stats = {str = 54, dex = 58, int = 72, luk = 66}},  -- 보석상 영애 (전투력: 296)
+
+    {display = "Suah", storage = "suah", icon = "🌙", is_main = false,
+     stats = {str = 58, dex = 62, int = 68, luk = 60}},  -- 업소 출신, 생존력 (전투력: 308)
+
+    {display = "Adelheid", storage = "adelheid", icon = "❄️", is_main = false,
+     stats = {str = 78, dex = 90, int = 70, luk = 68}},  -- 천재검사 (전투력: 406)
+
+    {display = "Rosalie", storage = "rosalie", icon = "🌸", is_main = false,
+     stats = {str = 62, dex = 65, int = 72, luk = 65}},  -- 남부 귀족, 의지력 (전투력: 326)
+
+    {display = "Mika", storage = "mika", icon = "🎵", is_main = false,
+     stats = {str = 55, dex = 60, int = 75, luk = 70}},  -- 일러스트레이터 (전투력: 305)
+
+    {display = "Clover", storage = "clover", icon = "🍀", is_main = false,
+     stats = {str = 52, dex = 58, int = 78, luk = 72}},  -- 연금술사, 운빨 (전투력: 298)
+
+    {display = "Noctis", storage = "noctis", icon = "👹", is_main = false,
+     stats = {str = 45, dex = 55, int = 95, luk = 65}},  -- 봉인된 마왕, 메타인식 (전투력: 600)
+
+    {display = "Pennywise", storage = "pennywise", icon = "📈", is_main = false,
+     stats = {str = 65, dex = 70, int = 80, luk = 30}}  -- 주식중독자, LUK 저주 (전투력: 620)
+}
+
+local affinityChanges = {
+    love = 20,
+    like = 15,
+    neutral = 0,
+    dislike = -15,
+    hate = -20
+}
+
+local sinPosChanges = {
+    resist = 1,
+    purify = 2
+}
+
+local sinNegChanges = {
+    corrupt = 2,
+    tempt = 1
+}
+
+local AFFINITY_MAX = 500
+local AFFINITY_MIN = -500
+local SIN_MAX = 30
+
+-- ============================================
+-- RPG 시스템 설정
+-- ============================================
+
+local STAT_MIN = 0
+local STAT_MAX = 100
+local STAT_DEFAULT = 40  -- Average person baseline (41-50 = Average)
+
+local playerStats = {"str", "int", "dex", "cha", "luk", "vit"}
+
+-- 효과 시스템 설정
+local EFFECT_MAX_STACK = 10  -- 최대 동시 적용 효과 수
+
+local statDisplayNames = {
+    str = "근력 (STR)",
+    int = "지능 (INT)",
+    dex = "민첩 (DEX)",
+    cha = "매력 (CHA)",
+    luk = "행운 (LUK)",
+    vit = "생명 (VIT/HP)"
+}
+
+-- 레벨별 필요 경험치 (누적)
+local expTable = {
+    [1] = 0,
+    [2] = 100,
+    [3] = 250,
+    [4] = 450,
+    [5] = 700,
+    [6] = 1000,
+    [7] = 1350,
+    [8] = 1750,
+    [9] = 2200,
+    [10] = 2700,
+    [11] = 3300,
+    [12] = 4000,
+    [13] = 4800,
+    [14] = 5700,
+    [15] = 6700,
+    [16] = 7800,
+    [17] = 9000,
+    [18] = 10300,
+    [19] = 11700,
+    [20] = 13200
+}
+
+-- ============================================
+-- 보조모델 프롬프트
+-- ============================================
+
+local AUXILIARY_BASE_PROMPT = [[
+You are the System Judge for Belladonna Academy RPG. Analyze Main AI narrative and output tags.
+
+## Output Format
+[Affinity:Name:level][Sin:Name:level]
+[Stat:stat:±value][Gold:±value][Item:Action:Name:Qty:Effect][EXP:±value]
+[Heal:amount][Effect:Action:Name:StatBonus][Trait:Action:Name:Description]
+[Damage:amount]
+[Season:계절][Week:주차][Day:요일][Time:시간][Location:장소][Weather:날씨]
+<Panel>■★
+
+NOTE: Combat start/end declarations are now the Main Model's responsibility via <CombatStart>/<CombatEnd> blocks. Do NOT output [Combat:Name:Power] or [Combat:End] — those are deprecated for your role.
+
+## Relationship Tags (Only for Characters in Scene)
+[Affinity:Name:level] - THIS TURN feelings: love(+20), like(+15), neutral(0), dislike(-15), hate(-20)
+[Sin:Name:level] - THIS TURN sin: corrupt(+2), tempt(+1), neutral(0), resist(+1), purify(+2)
+Names: [Affinity:Mirabel:like] NOT [Affinity:Mirabel von Goldenrose:like]
+
+**CRITICAL: Output tags ONLY for characters who appear in the narrative. Skip characters not mentioned.**
+**Do NOT output neutral tags unless there's a clear emotional shift to neutral state.**
+
+## Environment Tags
+Game State Panel shows current. Output ONLY when Main AI describes changes.
+[Day:요일][Time:시간][Location:장소] - Final arrival only (여러 곳→마지막만)
+[Week:숫자] - Monday new week start only
+[Season:계절] - New semester only
+
+## RPG Tags
+[Stat:stat:±value] - str/int/dex/cha/luk/vit (±1~5 typical, ±10+ major)
+- Use ± for stat changes from training, items, events, etc.
+- If Main AI outputs stats with absolute values (no ±), preserve that format
+
+[Gold:±value] - ONLY when {{user}} ACTUALLY spends or receives money
+- ✓ Bought item: [Gold:-50]
+- ✓ Received reward: [Gold:+100]
+- ✗ NPC mentions price: NO TAG
+- ✗ {{user}} asks "How much?": NO TAG
+- CRITICAL: Mentioned prices ≠ actual transactions
+
+**IMPORTANT - Check Current Gold in Game State:**
+Before outputting [Gold:-X], CHECK "Player Status" section in Current Game State.
+- If Current Gold < X, DO NOT output the tag (insufficient funds)
+- Only output if transaction is affordable
+- Example: Current Gold: 50 → [Gold:-100] is INVALID, skip the tag
+
+[Damage:amount] - Combat power loss from damage/injury
+- Output when {{user}} takes damage in combat
+- Output when {{user}} gets injured from events/accidents
+- Amount: Estimated CP loss (20~100 typical, 150~300 severe, 400+ critical)
+- Works with existing [Heal:amount] for recovery
+
+[Item:Add:Name:Qty:Effect] / [Item:Remove:Name:Qty] - Non-consumables(학생증,열쇠) return after use
+[EXP:±value] - +10~100
+[Heal:amount] - CP recovery 20~100
+
+## Effect/Trait Tags - {{user}} ONLY
+
+**Effect Format** (temporary boosts with duration):
+```
+[Effect:Add:Name:StatType:Value:Duration:Desc]
+```
+- StatType: str_bonus, int_bonus, dex_bonus, cha_bonus, luk_bonus, vit_bonus, all_bonus
+- Value: numeric bonus (2-5 typical, 6-8 strong, 9-10 exceptional) **MAX 10**
+- Duration: Turn count (1-10 typical, 0 = permanent)
+- Desc: Short description
+
+**Value Guidelines (CRITICAL - MAX 10):**
+With new stat system (41-50 = Average), bonuses must be conservative:
+- **Weak effects**: +2~3 (minor potions, small buffs)
+- **Medium effects**: +4~5 (good potions, meal buffs)
+- **Strong effects**: +6~8 (powerful magic, major blessings)
+- **Exceptional effects**: +9~10 (rare artifacts, divine blessings) **MAXIMUM**
+- **NEVER exceed +10** - Even mythical permanent effects cap at +10
+
+**Duration Guidelines (CRITICAL):**
+- **Temporary effects (1-10 turns)**: Potions, buffs, meal bonuses, temporary blessings
+  - Potion: 3-5 turns
+  - Food buff: 2-3 turns
+  - Magic buff: 5-10 turns
+  - Quick boost: 1-2 turns
+- **Permanent effects (0 turns)**: Major achievements, permanent transformations, equipment bonuses
+  - Must be narratively justified as permanent
+  - Examples: Divine blessing, body transformation, soul contract
+- **Default to temporary**: When unsure, use 3-5 turns
+
+**Examples**:
+✓ [Effect:Add:힘의 물약:str_bonus:4:3:근육이 불끈] - Potion lasts 3 turns
+✓ [Effect:Add:식사 효과:all_bonus:2:2:배불러서 기분 좋음] - Meal buff 2 turns
+✓ [Effect:Add:성녀의 축복:str_bonus:10:0:영구적 신성한 힘] - Permanent max blessing
+✗ [Effect:Add:물약:str+15] - EXCEEDS MAX! Use 10 or less
+
+**Trait Format** (always permanent):
+```
+[Trait:Add:Name:Desc]
+```
+Traits are inherently permanent character changes.
+
+**CRITICAL: Effect/Trait tags are for {{user}} only.**
+**NPC changes → Narrative description ONLY. NO tags.**
+
+**Remove Tags**:
+```
+[Effect:Remove:Name]
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+[Trait:Remove:Name]
+[Trait:Merge:Old1+Old2→New:Desc]
+```
+
+## Growth System - Effect/Trait Synthesis
+
+**PURPOSE**: Merge similar Effects/Traits to prevent bloat and show progression.
+
+**DECISION PROCESS:**
+1. Check {{PLAYER_TRAITS_SECTION}} and {{PLAYER_EFFECTS_SECTION}} above
+2. 2+ similar exist (including new)? → MERGE | Only 1? → ADD
+3. Bonus calculation:
+   - 2 items: Sum values (str+3 + str+5 = str+8)
+   - 3+ items: Sum + small bonus (str+3 x3 = str+9 + str+2 bonus = str+11)
+4. ONE stat per tag (multi-stat = separate tags)
+
+**MERGE TRIGGERS:**
+- Same name 2+: "작은 축복" x3 → "성녀의 축복"
+- Same stat stacking: "빠른 발걸음:dex+3" + "민첩한 몸:dex+5" → "신속함:dex+8"
+- Related concepts: "빠른 학습" + "높은 집중력" → "천재적 재능"
+- Narrative upgrade: "The blessing intensifies!" + "작은 축복:str+3" → "중간 축복:str+7"
+
+**DON'T MERGE:**
+✗ Different themes/stats: "축복:str+5" + "지능:int+5" → Keep separate
+✗ Only 1 instance → Just ADD
+✗ Traits vs Effects → Different types
+
+**PROGRESSION TIERS (MAX +10):**
+T1: 작은/약한 (Minor/Weak) +2~3 → T2: 중간 (Medium) +4~5 → T3: 강한 (Strong) +6~8 → T4: 성녀의/신성한 (Saint's/Divine) +9~10 **MAX**
+
+**FORMAT & BEHAVIOR (CRITICAL):**
+```
+[Effect:Merge:Old1+Old2→New:StatType:Value:Duration:Desc]
+```
+- Use full format with duration
+- Duration: Highest of merged effects, or 0 if any is permanent
+- **CRITICAL: Result value MUST NOT exceed +10**
+- Examples:
+  ✓ [Effect:Merge:작은축복 x3→성녀의축복:str_bonus:8:0:영구적 힘] - 3 identical (+2 each = 6, +2 bonus = 8)
+  ✓ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:7:5:빠른 움직임] - Two effects (+3+4=7)
+  ✗ [Effect:Merge:A+B→C:str+15] - EXCEEDS MAX! Cap at +10
+  ✗ [Effect:Merge:A+B→C:str+10, int+10] - NEVER multiple stats (use separate tags)
+
+**IMPORTANT - Merge AUTO-REMOVES old effects:**
+When you output [Effect:Merge:A+B→C:...], the system automatically:
+1. Removes "A" from the list
+2. Removes "B" from the list
+3. Adds "C" to the list
+
+You do NOT need to manually output [Effect:Remove:A] or [Effect:Remove:B].
+ONLY output the Merge tag - Lua handles the rest.
+
+**CURRENT PLAYER STATUS:**
+{{PLAYER_TRAITS_SECTION}}
+{{PLAYER_EFFECTS_SECTION}}
+
+**EXAMPLES:**
+
+Ex1: Temporary effects merge (3 potions → stronger temporary effect)
+Current: "힘의물약:str+5 (3턴)", "힘의물약:str+5 (2턴)" | New: "힘의물약:str+5 (4턴)"
+→ [Effect:Merge:힘의물약 x3→상급힘의물약:str_bonus:20:4:강력한 근육 증강]
+Result: All 3 potions removed, 1 stronger 4-turn effect added
+
+Ex2: Permanent blessing merge (Merge auto-removes both old effects)
+Current: "작은 축복:str+5 (영구)" | New: "중간 축복:str+8 (영구)"
+→ [Effect:Merge:작은축복+중간축복→성녀의축복:str_bonus:20:0:영원한 신성한 힘]
+Result: Both removed, one permanent powerful effect remains
+
+Ex3: Different themes - NO merge (Just add with proper duration)
+Current: "축복:str+10 (영구)" | New from narrative: "Food buff"
+→ [Effect:Add:든든한식사:all_bonus:5:2:배불러서 힘이 난다]
+Result: Both remain, blessing permanent, food buff expires in 2 turns
+
+Ex4: Mixed duration (temporary + permanent → keep longer duration)
+Current: "빠른발걸음:dex+5 (3턴)", "민첩한몸:dex+8 (영구)"
+→ [Effect:Merge:빠른발걸음+민첩한몸→신속함:dex_bonus:13:0:영구적 민첩성]
+Result: Merged into permanent (one was permanent, so result is permanent)
+
+## Combat Tags
+Combat start/end declarations are handled by the Main Model via <CombatStart>/<CombatEnd> blocks. Do NOT output [Combat:Name:Power] or [Combat:End].
+
+**Combat Damage Tracking**: During active combat, output [Damage:amount] when {{user}} takes hits/damage
+- Check combat choice results (failure, partial success with cost)
+- Estimate damage based on enemy power and outcome severity
+- Example: Failed STR check vs 500 power enemy → [Damage:80]
+- Example: Successful but risky action → [Damage:30]
+- CRITICAL: Combat damage must be tracked, combat power should NOT stay at max during fights
+
+## Weekly System
+Friday: [Stat:...weekly]<WeeklyReport>Week:X|Season:Y|Curriculum:Name|Lifestyle:Activity|Score:N|INT:+N|STR:+N|...</WeeklyReport>[Day:금요일][Time:저녁]
+- Stats as individual fields: INT:+3|STR:+2|CHA:+1 (only stats that changed)
+Monday: [Week:X+1][Day:월요일][Time:오전]
+Exams (Week 6,12): [Exam:midterm:87:23]
+
+## Tags NOT to Output (Main AI handles these)
+Do NOT output these tags - Main AI already outputs them:
+- [Club:Join:...], [Club:Leave:...] - Club membership
+- [Stock:...] - Stock prices (only when stock_system_enabled = 1)
+- [StockBuy:...], [StockSell:...] - Stock trades (only when stock_system_enabled = 1)
+- Company management tags (revenue, profit, etc.) - Only when business_system_enabled = 1
+
+## System Activation
+
+**Stock System** - For stock trading:
+Activated by Main AI via lorebook (not by you)
+
+**Business System** - For company management:
+Activated when user accepts company partnership (set by lorebook, not by you)
+
+The two systems are independent:
+- Stock trading: Requires stock_system_enabled = 1
+- Company management: Requires business_system_enabled = 1
+
+## Characters
+Mirabel, Celestia, Cassandra, Evangeline, Amelia, Nepenthes, Lilith, Aurelia, Cordelia, Suah, Adelheid, Rosalie, Mika, Clover
+
+Always end with <Panel>■★
+]]
+
+-- Stock Management 프롬프트 (조건부 로딩)
+local AUXILIARY_STOCK_MANAGEMENT_PROMPT = [[
+
+## Stock Trading System (Stock System Enabled)
+
+**CRITICAL - Your Role: System Message → System Tag Converter**
+
+You convert Main AI's story-focused system messages into precise system tags for Lua processing.
+
+### Stock Trade Conversion
+
+**When Main AI outputs trade system messages:**
+
+**Format to look for:**
+- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.
+- System Message: 플레이어가 GOLDMANE 10주를 280G에 매수했다. 총 비용 2,800G.
+- System Message: Player sold 5 shares of LUXORIA at 230G each.
+- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다.
+
+**Step 1: Identify trade messages**
+Look for keywords:
+- Buy: "bought", "purchased", "매수"
+- Sell: "sold", "매도"
+
+**Step 2: Extract information**
+- Ticker: GOLDMANE, LUXORIA, PFIZARA, TESLAM, etc.
+- Quantity: Number before "shares" or "주"
+- Price: Number before "G" or "골드"
+- Action: Buy or Sell
+
+**Step 3: Output system tags**
+Format:
+- Buy: `[StockBuy:TICKER:PRICE:QTY]`
+- Sell: `[StockSell:TICKER:PRICE:QTY]`
+
+**Examples:**
+
+Main AI:
+`- System Message: Player bought 10 shares of GOLDMANE at 280G each. Total cost: 2,800G.`
+
+You output:
+```
+[StockBuy:GOLDMANE:280:10]
+```
+
+Main AI:
+`- System Message: 플레이어가 LUXORIA 5주를 230G에 매도했다. 총 수익 1,150G.`
+
+You output:
+```
+[StockSell:LUXORIA:230:5]
+```
+
+### Market Information (No Action Required)
+
+**When Main AI outputs market information system messages:**
+
+**Format:**
+- System Message: GOLDMANE 주가가 280G로 상승했다. 분기 실적 호조.
+- System Message: 릴리벨리 지수가 1,050으로 상승.
+
+**Your action:**
+- DO NOT output any system tags
+- This is informational only, no player action involved
+
+**CRITICAL - Stock vs Item Distinction:**
+- Stock transactions are NOT items - DO NOT output [Item:...] tags
+- Stock transactions are NOT gold changes - DO NOT output [Gold:...] tags
+- The Lua system handles gold/inventory automatically via [StockBuy/Sell:...] tags
+
+---
+
+## Business Management System (Business System Enabled)
+
+**Your Role: Convert Main AI's narrative to system tags**
+
+### Business System Note
+
+**Business management is now handled directly by Main AI:**
+- Main AI outputs `<Business:TICKER:var:value|...>` tags in the story
+- You do NOT need to convert business events to tags
+- Focus only on character relationship tags ([Affinity:], [Sin:])
+
+**CRITICAL - Output Format:**
+
+Output all relevant system tags and end with `<Panel>■★`
+
+**Example output:**
+```
+[Affinity:Mirabel:+15][Sin:Mirabel:-5]
+[Stock:GOLDMANE:revenue:+200|profit:+50]
+<Panel>■★
+```
+
+**Note:** Stock panel will be automatically displayed by the system.
+
+---
+
+Always end with <Panel>■★
+
+]]
+
+-- ============================================
+-- 유틸리티 함수
+-- ============================================
+
+function clampValue(value, min, max)
+    if value > max then return max
+    elseif value < min then return min
+    else return value end
+end
+
+function checkEnding(affinity)
+    if affinity >= 200 then return "pure_love"
+    elseif affinity <= -200 then return "redemption"
+    end
+    return "ongoing"
+end
+
+function getRouteText(ending)
+    if ending == "pure_love" then return "순애"
+    elseif ending == "redemption" then return "구원"
+    else return "진행중" end
+end
+
+-- 메인 응답에 이미 있는 태그를 보조 응답에서 제거 (중복 방지)
+function removeDuplicateTags(mainResponse, auxiliaryResponse)
+    local filtered = auxiliaryResponse
+    local removedCount = 0
+
+    log("🔍 [중복제거] 시작")
+    log("📝 메인 응답 길이: " .. #mainResponse)
+    log("📝 보조 응답 길이: " .. #auxiliaryResponse)
+
+    -- 메인 응답에 있는 모든 태그를 찾아서 보조 응답에서 제거
+    for tag in mainResponse:gmatch("%[%w+:[^%]]+%]") do
+        log("🔍 메인 태그 발견: " .. tag)
+
+        -- 보조 응답에 이 태그가 있는지 확인 (plain text search)
+        if filtered:find(tag, 1, true) then
+            log("⚠️ 보조에서 중복 발견! 제거: " .. tag)
+
+            -- plain text 치환으로 정확히 일치하는 문자열만 제거
+            local startPos = 1
+            while true do
+                local foundStart, foundEnd = filtered:find(tag, startPos, true)
+                if not foundStart then break end
+                filtered = filtered:sub(1, foundStart - 1) .. filtered:sub(foundEnd + 1)
+                removedCount = removedCount + 1
+                startPos = foundStart
+            end
+        end
+    end
+
+    log("✅ [중복제거] 완료: " .. removedCount .. "개 제거됨")
+
+    -- 2단계: 보조 응답 내에서 자체 중복 제거 (리롤 시 같은 태그 반복 방지)
+    local seenTags = {}
+    local selfDedupedCount = 0
+
+    -- [태그] 형식 중복 제거
+    filtered = filtered:gsub("(%[%w+:[^%]]+%])", function(tag)
+        if seenTags[tag] then
+            -- 이미 본 태그면 제거
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
+            -- 처음 보는 태그면 유지하고 기록
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    -- <태그> 형식 중복 제거 (StockPanel, StockChart 등)
+    filtered = filtered:gsub("(<[^>]+>)", function(tag)
+        if seenTags[tag] then
+            log("🔁 자체 중복 제거: " .. tag)
+            selfDedupedCount = selfDedupedCount + 1
+            return ""
+        else
+            seenTags[tag] = true
+            return tag
+        end
+    end)
+
+    if selfDedupedCount > 0 then
+        log("✅ [자체중복제거] 완료: " .. selfDedupedCount .. "개 제거됨")
+    end
+    log("📝 최종 보조 응답 길이: " .. #filtered)
+
+    return filtered
+end
+
+-- ============================================
+-- 활성 효과 관리 시스템
+-- ============================================
+
+-- 활성 효과 가져오기 (간단한 구분자 파싱)
+function getActiveEffects(triggerId)
+    local effectsStr = getChatVar(triggerId, "active_effects") or ""
+    local effects = {}
+
+    if effectsStr == "" then
+        return effects
+    end
+
+    -- 형식: "name1:type1:value1:duration1:desc1|name2:type2:value2:duration2:desc2|..."
+    for effectData in effectsStr:gmatch("[^|]+") do
+        local parts = {}
+        for part in effectData:gmatch("[^:]+") do
+            table.insert(parts, part)
+        end
+
+        if #parts >= 4 then
+            table.insert(effects, {
+                name = parts[1],
+                type = parts[2],
+                value = tonumber(parts[3]) or 0,
+                duration = tonumber(parts[4]) or 0,
+                desc = parts[5] or ""
+            })
+        end
+    end
+
+    return effects
+end
+
+-- 활성 효과 저장 (간단한 구분자 직렬화)
+function saveActiveEffects(triggerId, effects)
+    if #effects == 0 then
+        setChatVar(triggerId, "active_effects", "")
+        setState(triggerId, "active_effects", "")
+        setChatVar(triggerId, "active_effects_display", "")
+        setState(triggerId, "active_effects_display", "")
+        return
+    end
+
+    -- 직렬화: name:type:value:duration:desc|name:type:value:duration:desc|...
+    local parts = {}
+    for _, effect in ipairs(effects) do
+        -- nil 방어: 모든 필드가 유효한 값인지 확인
+        local effectStr = string.format("%s:%s:%d:%d:%s",
+            effect.name or "Unknown",
+            effect.type or "display",
+            tonumber(effect.value) or 0,
+            tonumber(effect.duration) or 0,
+            effect.desc or "")
+        table.insert(parts, effectStr)
+    end
+
+    local serialized = table.concat(parts, "|")
+    setChatVar(triggerId, "active_effects", serialized)
+    setState(triggerId, "active_effects", serialized)
+
+    -- 표시용 텍스트 생성
+    updateEffectsDisplay(triggerId, effects)
+end
+
+-- 효과 표시 텍스트 업데이트
+function updateEffectsDisplay(triggerId, effects)
+    if #effects == 0 then
+        setChatVar(triggerId, "active_effects_display", "")
+        setState(triggerId, "active_effects_display", "")
+        return
+    end
+
+    local lines = {}
+    for _, effect in ipairs(effects) do
+        -- nil 방어: value와 duration을 숫자로 보장
+        local effectValue = tonumber(effect.value) or 0
+        local effectDuration = tonumber(effect.duration) or 0
+        local effectName = effect.name or "Unknown"
+        local effectDesc = effect.desc or ""
+
+        local sign = effectValue >= 0 and "+" or ""
+        local durationText = effectDuration > 0 and (effectDuration .. "턴") or "영구"
+
+        -- 효과 설명이 있으면: "이름: 설명 (효과, 기간)"
+        -- 효과 설명이 없으면: "이름: 효과 (기간)"
+        local line
+        if effectDesc ~= "" and effectDesc ~= effectName then
+            line = string.format("%s: %s (%s%d, %s)",
+                effectName, effectDesc, sign, effectValue, durationText)
+        else
+            line = string.format("%s: %s%d (%s)",
+                effectName, sign, effectValue, durationText)
+        end
+
+        table.insert(lines, line)
+    end
+
+    local display = table.concat(lines, "\n")
+    setChatVar(triggerId, "active_effects_display", display)
+    setState(triggerId, "active_effects_display", display)
+end
+
+-- 효과 추가 (같은 이름 있으면 덮어쓰기)
+function addEffect(triggerId, name, effectType, value, duration, desc)
+    local effects = getActiveEffects(triggerId)
+
+    -- 같은 이름의 효과 제거
+    for i = #effects, 1, -1 do
+        if effects[i].name == name then
+            table.remove(effects, i)
+        end
+    end
+
+    -- 최대 개수 체크
+    if #effects >= EFFECT_MAX_STACK then
+        log("⚠️ 효과 상한 도달 - " .. name .. " 추가 실패")
+        return false
+    end
+
+    -- 새 효과 추가
+    table.insert(effects, {
+        name = name,
+        type = effectType,
+        value = value,
+        duration = duration,
+        desc = desc or ""
+    })
+
+    saveActiveEffects(triggerId, effects)
+    log("✨ 효과 추가: " .. name .. " (" .. effectType .. " " .. value .. ", " .. duration .. "턴)")
+    return true
+end
+
+-- 효과 제거
+function removeEffect(triggerId, name)
+    local effects = getActiveEffects(triggerId)
+    local removed = false
+
+    for i = #effects, 1, -1 do
+        if effects[i].name == name then
+            table.remove(effects, i)
+            removed = true
+        end
+    end
+
+    if removed then
+        saveActiveEffects(triggerId, effects)
+        log("💨 효과 제거: " .. name)
+    end
+
+    return removed
+end
+
+-- 턴마다 duration 감소 및 만료 효과 제거
+function updateEffectDurations(triggerId)
+    local effects = getActiveEffects(triggerId)
+    local expired = {}
+    local needsSave = false
+
+    for i = #effects, 1, -1 do
+        local effect = effects[i]
+        if effect.duration > 0 then
+            effect.duration = effect.duration - 1
+            needsSave = true  -- duration이 감소했으면 저장 필요
+
+            if effect.duration == 0 then
+                table.insert(expired, effect.name)
+                table.remove(effects, i)
+            end
+        end
+    end
+
+    if needsSave then
+        saveActiveEffects(triggerId, effects)
+
+        if #expired > 0 then
+            for _, name in ipairs(expired) do
+                log("⏰ 효과 만료: " .. name)
+            end
+        end
+    end
+end
+
+-- 특정 스탯에 적용되는 효과 합계 계산
+function calculateEffectBonus(triggerId, statName)
+    local effects = getActiveEffects(triggerId)
+    local total = 0
+
+    for _, effect in ipairs(effects) do
+        -- 개별 스탯 효과
+        if effect.type == statName .. "_bonus" or effect.type == statName .. "_penalty" then
+            total = total + effect.value
+        -- 전체 스탯 효과
+        elseif effect.type == "all_bonus" or effect.type == "all_penalty" then
+            total = total + effect.value
+        end
+    end
+
+    return total
+end
+
+-- 효과 적용된 스탯 값 가져오기
+function getStatWithEffects(triggerId, statName)
+    local baseStat = tonumber(getChatVar(triggerId, "player_" .. statName)) or STAT_DEFAULT
+    local effectBonus = calculateEffectBonus(triggerId, statName)
+    local finalStat = baseStat + effectBonus
+
+    return clampValue(finalStat, STAT_MIN, STAT_MAX)
+end
+
+-- ============================================
+-- 아이템 사용 함수는 파일 하단(라인 5752 부근)에서 모듈 로드 시 일괄 등록됨
+-- 한글 아이템명 문제 해결: use_item_1, use_item_2... 형식 사용
+-- ============================================
+
+-- ============================================
+-- RPG 디스플레이 변수 업데이트
+-- ============================================
+
+function updateRpgDisplayVars(triggerId)
+    -- 경험치 퍼센트 계산
+    local exp = tonumber(getChatVar(triggerId, "player_exp")) or 0
+    local expToNext = getChatVar(triggerId, "player_exp_to_next") or "100"
+    local expPercent = 0
+
+    if expToNext ~= "MAX" then
+        local expToNextNum = tonumber(expToNext) or 100
+        if expToNextNum > 0 then
+            expPercent = (exp / (exp + expToNextNum)) * 100
+            expPercent = clampValue(expPercent, 0, 100)
+        end
+    else
+        expPercent = 100
+    end
+
+    setChatVar(triggerId, "player_exp_percent", tostring(math.floor(expPercent)))
+
+    -- 스탯 보너스 및 실제 적용값 계산 (효과 포함)
+    for _, stat in ipairs({"str", "dex", "int", "cha", "luk", "vit"}) do
+        local bonus = calculateEffectBonus(triggerId, stat)
+        local effectiveStat = getStatWithEffects(triggerId, stat)
+
+        setChatVar(triggerId, stat .. "_bonus", tostring(bonus))
+        setState(triggerId, stat .. "_bonus", bonus)
+
+        setChatVar(triggerId, stat .. "_effective", tostring(effectiveStat))
+        setState(triggerId, stat .. "_effective", effectiveStat)
+    end
+
+    -- 최대 전투력 계산 (현재 스탯 기반, 효과 포함)
+    local maxCombatPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
+    setState(triggerId, "player_combat_power_max", maxCombatPower)
+
+    -- ============================================
+    -- 6각형 능력치 레이더 SVG 생성 (player_hex_radar_svg)
+    -- viewBox 320x300, 중심(160,150)
+    -- 신체(STR/DEX/VIT) 위쪽 3개, 정신/사회(LUK/CHA/INT) 아래쪽 3개
+    -- ============================================
+    do
+        local cx, cy = 160, 150
+        local rFull   = 100   -- 능력치 100일 때 정점까지 거리
+        local rLabel  = 132   -- 라벨 텍스트 위치
+        local rTip    = 152   -- 툴팁 위치
+        local tipW, tipH = 56, 38
+
+        local axes = {
+            {key = "str", label = "STR"},
+            {key = "dex", label = "DEX"},
+            {key = "vit", label = "VIT"},
+            {key = "luk", label = "LUK"},
+            {key = "cha", label = "CHA"},
+            {key = "int", label = "INT"},
+        }
+
+        -- 각 축의 (cos, sin) 미리 계산 (-90도부터 60도씩 시계방향)
+        local cosA, sinA = {}, {}
+        for i = 1, 6 do
+            local angRad = math.rad(-90 + (i - 1) * 60)
+            cosA[i] = math.cos(angRad)
+            sinA[i] = math.sin(angRad)
+        end
+
+        -- 헬퍼: 폴리곤 points 문자열
+        local function ringPoints(radius)
+            local pts = {}
+            for i = 1, 6 do
+                pts[#pts + 1] = string.format("%.2f,%.2f",
+                    cx + cosA[i] * radius, cy + sinA[i] * radius)
+            end
+            return table.concat(pts, " ")
+        end
+
+        local parts = {}
+        parts[#parts + 1] = '<svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg">'
+
+        -- 배경 헥사곤 3겹 (33%, 66%, 99%)
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-99" points="%s"/>', ringPoints(rFull))
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-66" points="%s"/>', ringPoints(rFull * 0.66))
+        parts[#parts + 1] = string.format('<polygon class="hex-bg-33" points="%s"/>', ringPoints(rFull * 0.33))
+
+        -- 6개 축선 (중심 → 정점)
+        for i = 1, 6 do
+            parts[#parts + 1] = string.format(
+                '<line class="hex-axis" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
+                cx, cy, cx + cosA[i] * rFull, cy + sinA[i] * rFull)
+        end
+
+        -- 정점 도트 6개
+        for i = 1, 6 do
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-vertex-dot" cx="%.2f" cy="%.2f" r="2"/>',
+                cx + cosA[i] * rFull, cy + sinA[i] * rFull)
+        end
+
+        -- 능력치 값 폴리곤 (전체 영역 채움)
+        local valPts = {}
+        local valX, valY = {}, {}
+        for i, axis in ipairs(axes) do
+            local v = tonumber(getChatVar(triggerId, axis.key .. "_effective"))
+                   or tonumber(getChatVar(triggerId, "player_" .. axis.key))
+                   or STAT_DEFAULT
+            v = clampValue(v, STAT_MIN, STAT_MAX)
+            local ratio = v / 100
+            valX[i] = cx + cosA[i] * rFull * ratio
+            valY[i] = cy + sinA[i] * rFull * ratio
+            valPts[#valPts + 1] = string.format("%.2f,%.2f", valX[i], valY[i])
+        end
+        parts[#parts + 1] = string.format('<polygon class="hex-fill" points="%s"/>',
+            table.concat(valPts, " "))
+
+        -- 6개 sector (라벨 + 캡 + 값선 + 툴팁 + 호버영역)
+        for i, axis in ipairs(axes) do
+            local baseV = tonumber(getChatVar(triggerId, "player_" .. axis.key)) or STAT_DEFAULT
+            local effV  = tonumber(getChatVar(triggerId, axis.key .. "_effective")) or baseV
+            local bonus = effV - baseV
+            local bonusStr
+            if bonus > 0 then
+                bonusStr = string.format("+%d", bonus)
+            elseif bonus < 0 then
+                bonusStr = tostring(bonus)
+            else
+                bonusStr = "±0"
+            end
+
+            local lx = cx + cosA[i] * rLabel
+            local ly = cy + sinA[i] * rLabel + 4  -- 텍스트 baseline 보정
+            local tx = cx + cosA[i] * rTip
+            local ty = cy + sinA[i] * rTip
+
+            parts[#parts + 1] = '<g class="hex-sector">'
+            -- 값 선 (중심 → 값 위치)
+            parts[#parts + 1] = string.format(
+                '<line class="hex-value" x1="%d" y1="%d" x2="%.2f" y2="%.2f"/>',
+                cx, cy, valX[i], valY[i])
+            -- 값 위치 캡
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-cap" cx="%.2f" cy="%.2f" r="3.5"/>',
+                valX[i], valY[i])
+            -- 라벨
+            parts[#parts + 1] = string.format(
+                '<text class="hex-label" x="%.2f" y="%.2f">%s</text>',
+                lx, ly, axis.label)
+            -- 툴팁 (hover로 보이게 됨, CSS가 처리)
+            parts[#parts + 1] = string.format(
+                '<g class="hex-tip" transform="translate(%.2f,%.2f)">' ..
+                '<rect class="hex-tip-bg" x="%.2f" y="%.2f" width="%d" height="%d" rx="3"/>' ..
+                '<text class="hex-tip-val" x="0" y="-2">%d</text>' ..
+                '<text class="hex-tip-bonus" x="0" y="13">%s</text>' ..
+                '</g>',
+                tx, ty, -tipW/2, -tipH/2 - 6, tipW, tipH, effV, bonusStr)
+            -- 호버 영역 (라벨/캡 근처 큰 투명 원)
+            parts[#parts + 1] = string.format(
+                '<circle class="hex-hit" cx="%.2f" cy="%.2f" r="22"/>',
+                lx, ly - 4)
+            parts[#parts + 1] = '</g>'
+        end
+
+        parts[#parts + 1] = '</svg>'
+
+        local hexSvg = table.concat(parts, "")
+        setChatVar(triggerId, "player_hex_radar_svg", hexSvg)
+        setState(triggerId, "player_hex_radar_svg", hexSvg)
+    end
+
+    -- 아이템 HTML 생성 (슬롯 15개 기반)
+    local itemsHtml = ""
+    local hasItems = false
+
+    for i = 1, 15 do
+        local itemName = getChatVar(triggerId, "player_item_slot_" .. i .. "_name") or ""
+        local itemCount = getChatVar(triggerId, "player_item_slot_" .. i .. "_count") or "0"
+
+        if itemName ~= "" and itemCount ~= "0" then
+            hasItems = true
+            itemsHtml = itemsHtml .. string.format(
+                "<button type='button' risu-trigger='use_item_%d' class='rpg-item-button'>%s (%s)</button>",
+                i, itemName, itemCount
+            )
+        end
+    end
+
+    if not hasItems then
+        itemsHtml = "<span style='color: #666; font-style: italic;'>아이템 없음</span>"
+    end
+
+    setChatVar(triggerId, "player_items_html", itemsHtml)
+    setState(triggerId, "player_items_html", itemsHtml)
+end
+
+-- ============================================
+-- 퍼센트 계산
+-- ============================================
+
+function updatePercent(triggerId, char)
+    local affinity = tonumber(getChatVar(triggerId, char.storage .. "_affinity")) or 0
+    local affPercent = ((affinity + 500) / 1000) * 100
+    affPercent = clampValue(affPercent, 0, 100)
+    setChatVar(triggerId, char.storage .. "_affinity_percent", tostring(math.floor(affPercent)))
+
+    if char.is_main then
+        local pos = tonumber(getChatVar(triggerId, char.storage .. "_sin_pos")) or 0
+        local neg = tonumber(getChatVar(triggerId, char.storage .. "_sin_neg")) or 0
+
+        local posPercent = (pos / 30) * 100
+        local negPercent = (neg / 30) * 100
+
+        posPercent = clampValue(posPercent, 0, 100)
+        negPercent = clampValue(negPercent, 0, 100)
+
+        setChatVar(triggerId, char.storage .. "_sin_pos_percent", tostring(math.floor(posPercent)))
+        setChatVar(triggerId, char.storage .. "_sin_neg_percent", tostring(math.floor(negPercent)))
+    end
+end
+
+-- ============================================
+-- RPG 시스템 함수
+-- ============================================
+
+-- 플레이어 스탯 파싱
+function parseStatChanges(triggerId, message)
+    local combatStatsChanged = false
+    local oldMaxPower = calculateCombatPower(triggerId)
+    local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or oldMaxPower
+    local powerRatio = (oldMaxPower > 0) and (currentPower / oldMaxPower) or 1.0
+
+    for statId, changeStr in message:gmatch("%[Stat:(%w+):([%+%-]?%d+)%]") do
+        local key = "player_" .. statId:lower()
+        local current = tonumber(getChatVar(triggerId, key)) or STAT_DEFAULT
+        local change, new
+
+        -- ±가 있으면 변화값, 없으면 절대값
+        if changeStr:match("^[%+%-]") then
+            change = tonumber(changeStr) or 0
+            new = clampValue(current + change, STAT_MIN, STAT_MAX)
+        else
+            new = clampValue(tonumber(changeStr) or STAT_DEFAULT, STAT_MIN, STAT_MAX)
+            change = new - current
+        end
+
+        setChatVar(triggerId, key, tostring(new))
+
+        -- 변경량 추적
+        local changeKey = key .. "_change"
+        local prevChange = tonumber(getChatVar(triggerId, changeKey)) or 0
+        setChatVar(triggerId, changeKey, tostring(prevChange + change))
+
+        local displayName = statDisplayNames[statId:lower()] or statId
+        log(string.format("📊 %s %+d | 현재: %d", displayName, change, new))
+
+        -- 전투력 관련 스탯 체크 (STR, DEX, INT, LUK)
+        local statLower = statId:lower()
+        if statLower == "str" or statLower == "dex" or statLower == "int" or statLower == "luk" then
+            combatStatsChanged = true
+        end
+    end
+
+    -- 전투력 관련 스탯이 변경되었으면 현재 전투력도 비례 조정
+    if combatStatsChanged then
+        local newMaxPower = calculateCombatPower(triggerId)
+        local newCurrentPower = math.floor(newMaxPower * powerRatio)
+
+        -- 최소 1, 최대 newMaxPower로 제한
+        newCurrentPower = clampValue(newCurrentPower, 1, newMaxPower)
+
+        setChatVar(triggerId, "player_combat_power", tostring(newCurrentPower))
+        setState(triggerId, "player_combat_power", newCurrentPower)
+
+        log(string.format("⚔️ 전투력 조정: %d → %d (최대: %d → %d)", currentPower, newCurrentPower, oldMaxPower, newMaxPower))
+    end
+end
+
+-- 골드 파싱
+function parseGoldChanges(triggerId, message)
+    for changeStr in message:gmatch("%[Gold:([%+%-]%d+)%]") do
+        local change = tonumber(changeStr) or 0
+        local current = tonumber(getChatVar(triggerId, "player_gold")) or 0
+        local new = math.max(0, current + change)
+
+        setChatVar(triggerId, "player_gold", tostring(new))
+        setState(triggerId, "player_gold", new)  -- state에도 동기화
+
+        -- 변경량 추적
+        local prevChange = tonumber(getChatVar(triggerId, "player_gold_change")) or 0
+        setChatVar(triggerId, "player_gold_change", tostring(prevChange + change))
+
+        log(string.format("💰 골드 %+d | 현재: %d", change, new))
+    end
+end
+
+-- 경험치 파싱 및 레벨업 체크
+function parseExpChanges(triggerId, message)
+    -- [EXP:+100] 형식 파싱
+    for changeStr in message:gmatch("%[EXP:([%+%-]%d+)%]") do
+        local change = tonumber(changeStr) or 0
+        local current = tonumber(getChatVar(triggerId, "player_exp")) or 0
+        local new = math.max(0, current + change)
+
+        setChatVar(triggerId, "player_exp", tostring(new))
+
+        -- 변경량 추적
+        local prevChange = tonumber(getChatVar(triggerId, "player_exp_change")) or 0
+        setChatVar(triggerId, "player_exp_change", tostring(prevChange + change))
+
+        log(string.format("⭐ 경험치 %+d | 현재: %d", change, new))
+
+        if change > 0 then
+            checkLevelUp(triggerId)
+        end
+    end
+
+    -- [Level:1] 형식 파싱 (직접 레벨 설정)
+    for levelStr in message:gmatch("%[Level:(%d+)%]") do
+        local newLevel = tonumber(levelStr) or 1
+        local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+
+        if newLevel ~= currentLevel then
+            setState(triggerId, "player_level", newLevel)
+            setChatVar(triggerId, "player_level", tostring(newLevel))
+
+            -- 스냅샷도 즉시 업데이트 (리롤 시 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_player_level", tostring(newLevel))
+
+            log(string.format("⭐ 레벨 설정: %d → %d", currentLevel, newLevel))
+        end
+    end
+end
+
+-- 전투력 회복 파싱
+function parseHeal(triggerId, message)
+    for amountStr in message:gmatch("%[Heal:(%d+)%]") do
+        local healAmount = tonumber(amountStr) or 0
+
+        -- 현재 전투력과 최대 전투력
+        local maxPower = calculateCombatPower(triggerId)
+        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+
+        -- 회복 적용 (최대값 초과 불가)
+        local newPower = math.min(maxPower, currentPower + healAmount)
+        local actualHeal = newPower - currentPower
+
+        setChatVar(triggerId, "player_combat_power", tostring(newPower))
+        setState(triggerId, "player_combat_power", newPower)
+
+        log(string.format("💚 전투력 회복 +%d | 현재: %d/%d", actualHeal, newPower, maxPower))
+
+        -- 회복 후 부상 상태 업데이트
+        updateInjuryEffect(triggerId)
+    end
+end
+
+-- 전투력 피해 파싱
+function parseDamage(triggerId, message)
+    for amountStr in message:gmatch("%[Damage:(%d+)%]") do
+        local damageAmount = tonumber(amountStr) or 0
+
+        -- 현재 전투력과 최대 전투력
+        local maxPower = calculateCombatPower(triggerId)
+        local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+
+        -- 피해 적용 (0 미만 불가)
+        local newPower = math.max(0, currentPower - damageAmount)
+        local actualDamage = currentPower - newPower
+
+        setChatVar(triggerId, "player_combat_power", tostring(newPower))
+        setState(triggerId, "player_combat_power", newPower)
+
+        log(string.format("💔 전투력 손실 -%d | 현재: %d/%d", actualDamage, newPower, maxPower))
+
+        -- 피해 후 부상 상태 업데이트
+        updateInjuryEffect(triggerId)
+    end
+end
+
+-- ============================================
+-- 주식 시스템 (Stock Market System)
+-- ============================================
+
+-- 종목 기준가 데이터 (새 패러디 종목)
+local STOCK_BASE_PRICES = {
+    -- 핵심 종목 (캐릭터 연결)
+    GOLDMANE = 280,   -- 황금갈기 금고 (Goldman Sachs) - 미라벨
+    LUXORIA = 220,    -- 사치의 성채 (LVMH) - 코델리아
+    PFIZARA = 120,    -- 연금술 제약 (Pfizer) - 네펜테스
+    -- 마도공학 (Tech)
+    TESLAM = 180,     -- 뇌전 마도공학 (Tesla)
+    NVIDIUM = 300,    -- 성스러운 연산석 (Nvidia)
+    ARCMED = 95,      -- 마도 연산 공방 (AMD)
+    INTELLUM = 140,   -- 지성의 결정체 (Intel)
+    -- 대상회 (Commerce)
+    AMAZONIA = 160,   -- 대삼림 물류 길드 (Amazon)
+    APPELLE = 250,    -- 금단의 사과 상회 (Apple)
+    -- 환상술 (Entertainment)
+    METARIX = 110,    -- 환상계 마법진 (Meta)
+    NETHRYX = 130,    -- 수정구 영상술 (Netflix)
+    -- 제약/바이오
+    MUTAGEN = 75,     -- 변이 연구소 (Moderna)
+    VITALIS = 100,    -- 생명력 영약 (J&J)
+    -- 금융
+    MORGANITE = 320,  -- 보석 금융단 (JP Morgan)
+    -- 방산/제조
+    AEGIS = 150,      -- 방패의 공방 (Lockheed Martin)
+    IRONFORGE = 135,  -- 철의 대장간 (Boeing)
+    -- 럭셔리/소비재
+    GUCCIEL = 190,    -- 천사의 직물 (Gucci)
+    STARBREW = 85,    -- 별빛 양조장 (Starbucks)
+    HARVESTIA = 90,   -- 수확의 축복 (Nestle)
+    -- 건설
+    STONECRAFT = 105  -- 석공 길드 (Caterpillar)
+}
+
+-- 종목 이름 데이터
+local STOCK_NAMES = {
+    GOLDMANE = "황금갈기 금고", LUXORIA = "사치의 성채", PFIZARA = "연금술 제약",
+    TESLAM = "뇌전 마도공학", NVIDIUM = "성스러운 연산석", ARCMED = "마도 연산 공방", INTELLUM = "지성의 결정체",
+    AMAZONIA = "대삼림 물류 길드", APPELLE = "금단의 사과 상회",
+    METARIX = "환상계 마법진", NETHRYX = "수정구 영상술",
+    MUTAGEN = "변이 연구소", VITALIS = "생명력 영약",
+    MORGANITE = "보석 금융단",
+    AEGIS = "방패의 공방", IRONFORGE = "철의 대장간",
+    GUCCIEL = "천사의 직물", STARBREW = "별빛 양조장", HARVESTIA = "수확의 축복",
+    STONECRAFT = "석공 길드"
+}
+
+-- 종목 목록 (순서 보장용)
+local STOCK_TICKERS = {
+    -- 핵심 (캐릭터 연결)
+    "GOLDMANE", "LUXORIA", "PFIZARA",
+    -- 마도공학
+    "TESLAM", "NVIDIUM", "ARCMED", "INTELLUM",
+    -- 대상회
+    "AMAZONIA", "APPELLE",
+    -- 환상술
+    "METARIX", "NETHRYX",
+    -- 제약/바이오
+    "MUTAGEN", "VITALIS",
+    -- 금융
+    "MORGANITE",
+    -- 방산/제조
+    "AEGIS", "IRONFORGE",
+    -- 럭셔리/소비재
+    "GUCCIEL", "STARBREW", "HARVESTIA",
+    -- 건설
+    "STONECRAFT"
+}
+
+-- 종목 상세 정보 (기업 정보, 재무 상태)
+local STOCK_INFO = {
+    GOLDMANE = {
+        sector = "금융",
+        desc = "황금갈기 금고. 대륙 최대 금융 그룹. 미라벨 家 소유.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "금리 인상, 대출 수요, M&A",
+        downFactors = "금융 위기, 규제 강화",
+        insider = "미라벨"
+    },
+    LUXORIA = {
+        sector = "럭셔리",
+        desc = "사치의 성채. 최고급 명품 브랜드 복합체. 코델리아 家 소유.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "사교 시즌, 황실 행사, 유행",
+        downFactors = "경기 침체, 검소 유행",
+        insider = "코델리아"
+    },
+    PFIZARA = {
+        sector = "제약",
+        desc = "연금술 제약. 포션 및 신약 개발. 네펜테스 家 연계.",
+        size = "중형",
+        financial = "성장",
+        volatility = "고",
+        upFactors = "신약 승인, 임상 성공, 전염병",
+        downFactors = "부작용 스캔들, 임상 실패",
+        insider = "네펜테스"
+    },
+    TESLAM = {
+        sector = "마도공학",
+        desc = "뇌전 마도공학. 혁신적 마법 에너지 기업. 변동성 높음.",
+        size = "대형",
+        financial = "성장",
+        volatility = "고",
+        upFactors = "신기술 발표, 수주 계약",
+        downFactors = "생산 차질, 경쟁사",
+        insider = "공학자"
+    },
+    NVIDIUM = {
+        sector = "마도공학",
+        desc = "성스러운 연산석. 마법 연산 장치 독점. 최고가주.",
+        size = "대형",
+        financial = "성장",
+        volatility = "중고",
+        upFactors = "AI 마법 붐, 신제품",
+        downFactors = "공급 부족, 규제",
+        insider = "연구원"
+    },
+    ARCMED = {
+        sector = "마도공학",
+        desc = "마도 연산 공방. NVIDIUM의 경쟁사. 가성비 노선.",
+        size = "중형",
+        financial = "성장",
+        volatility = "고",
+        upFactors = "시장 점유율 확대, 신제품",
+        downFactors = "기술 격차, 적자",
+        insider = "기술자"
+    },
+    INTELLUM = {
+        sector = "마도공학",
+        desc = "지성의 결정체. 범용 마법 칩 제조. 안정적 수익.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "수요 증가, 배당",
+        downFactors = "경쟁 심화, 구조조정",
+        insider = "간부"
+    },
+    AMAZONIA = {
+        sector = "상업/물류",
+        desc = "대삼림 물류 길드. 대륙 최대 배송망. 모든 것을 판다.",
+        size = "대형",
+        financial = "성장",
+        volatility = "중",
+        upFactors = "소비 증가, 물류 확장",
+        downFactors = "규제, 인건비 상승",
+        insider = "상단장"
+    },
+    APPELLE = {
+        sector = "마도공학",
+        desc = "금단의 사과 상회. 고급 마도 기기 제조. 프리미엄 브랜드.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "신제품 출시, 열성 팬층",
+        downFactors = "혁신 부재, 경쟁사",
+        insider = "직원"
+    },
+    METARIX = {
+        sector = "환상술",
+        desc = "환상계 마법진. 가상현실 플랫폼. 논란 많음.",
+        size = "대형",
+        financial = "위험",
+        volatility = "고",
+        upFactors = "메타버스 붐, 사용자 증가",
+        downFactors = "프라이버시 논란, 사용자 이탈",
+        insider = "개발자"
+    },
+    NETHRYX = {
+        sector = "환상술",
+        desc = "수정구 영상술. 환상 스트리밍 서비스. 콘텐츠가 핵심.",
+        size = "중형",
+        financial = "성장",
+        volatility = "중고",
+        upFactors = "인기 콘텐츠, 구독자 증가",
+        downFactors = "콘텐츠 실패, 경쟁 심화",
+        insider = "제작자"
+    },
+    MUTAGEN = {
+        sector = "제약/바이오",
+        desc = "변이 연구소. 최첨단 바이오 연구. 고위험 고수익.",
+        size = "중형",
+        financial = "위험",
+        volatility = "초고",
+        upFactors = "임상 성공, FDA 승인",
+        downFactors = "임상 실패, 자금 부족",
+        insider = "연구원"
+    },
+    VITALIS = {
+        sector = "제약",
+        desc = "생명력 영약. 대중적 치료제 생산. 안정적 배당.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "건강 관심 증가, 인구 고령화",
+        downFactors = "소송, 리콜",
+        insider = "치유사"
+    },
+    MORGANITE = {
+        sector = "금융",
+        desc = "보석 금융단. 투자은행 명가. GOLDMANE의 라이벌.",
+        size = "대형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "IB 실적, 금리 인상",
+        downFactors = "트레이딩 손실, 스캔들",
+        insider = "은행가"
+    },
+    AEGIS = {
+        sector = "방산",
+        desc = "방패의 공방. 최첨단 방어 마법 장비 제조.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "전쟁, 군비 확장, 수주",
+        downFactors = "평화 조약, 예산 삭감",
+        insider = "장군"
+    },
+    IRONFORGE = {
+        sector = "제조",
+        desc = "철의 대장간. 대형 운송 수단 및 장비 제조.",
+        size = "대형",
+        financial = "위험",
+        volatility = "중고",
+        upFactors = "대형 수주, 신모델",
+        downFactors = "품질 문제, 사고",
+        insider = "대장장이"
+    },
+    GUCCIEL = {
+        sector = "럭셔리",
+        desc = "천사의 직물. 고급 의류 및 잡화. 패션 아이콘.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "패션위크, 셀럽 착용",
+        downFactors = "트렌드 변화, 짝퉁",
+        insider = "디자이너"
+    },
+    STARBREW = {
+        sector = "소비재",
+        desc = "별빛 양조장. 마법 음료 체인. 어디서나 볼 수 있다.",
+        size = "중형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "신메뉴, 매장 확장",
+        downFactors = "경쟁사, 원자재 가격",
+        insider = "바리스타"
+    },
+    HARVESTIA = {
+        sector = "소비재",
+        desc = "수확의 축복. 식품 및 생활용품 대기업. 필수재.",
+        size = "대형",
+        financial = "안정",
+        volatility = "저",
+        upFactors = "소비 증가, 인수합병",
+        downFactors = "원자재 가격, 소송",
+        insider = "농장주"
+    },
+    STONECRAFT = {
+        sector = "건설",
+        desc = "석공 길드. 대형 건설 장비 및 인프라. 경기 민감.",
+        size = "중형",
+        financial = "안정",
+        volatility = "중",
+        upFactors = "인프라 투자, 재건 사업",
+        downFactors = "경기 침체, 금리 인상",
+        insider = "건축가"
+    }
+}
+
+-- ============================================
+-- 시장 지수 시스템 (릴리벨리 지수)
+-- ============================================
+
+-- 시장 지수 기준값
+local MARKET_BASE_INDEX = 1000
+
+-- 시장 레벨 정의
+local MARKET_LEVELS = {
+    { name = "Crisis", min = 0, max = 850, label = "폭락", color = "#dc3545" },
+    { name = "Bear", min = 850, max = 950, label = "약세", color = "#fd7e14" },
+    { name = "Stable", min = 950, max = 1050, label = "안정", color = "#6c757d" },
+    { name = "Bull", min = 1050, max = 1150, label = "강세", color = "#28a745" },
+    { name = "Boom", min = 1150, max = 9999, label = "호황", color = "#17a2b8" }
+}
+
+-- 시장 레벨 계산
+function getMarketLevel(index)
+    for _, level in ipairs(MARKET_LEVELS) do
+        if index >= level.min and index < level.max then
+            return level
+        end
+    end
+    return MARKET_LEVELS[3]  -- 기본: Stable
+end
+
+-- 시장 지수 초기화
+function initMarketIndex(triggerId)
+    local currentIndex = getState(triggerId, "market_index")
+    if not currentIndex then
+        setState(triggerId, "market_index", MARKET_BASE_INDEX)
+        setState(triggerId, "market_change", 0)
+        setState(triggerId, "market_news", "시장이 안정적으로 운영되고 있습니다.")
+        log("📊 시장 지수 초기화: " .. MARKET_BASE_INDEX)
+    end
+end
+
+-- 시장 지수 태그 파싱: [Market:1050:+2.5:뉴스 내용]
+function parseMarketIndex(triggerId, message)
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
+
+    for indexStr, changeStr, news in message:gmatch("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]") do
+        local index = tonumber(indexStr)
+        local change = tonumber(changeStr)
+
+        if index and change then
+            setState(triggerId, "market_index", index)
+            setState(triggerId, "market_index_change", change)  -- 변수명 수정: market_change → market_index_change
+            setState(triggerId, "market_news", news)
+            setState(triggerId, "market_update_time", os.time())
+
+            local level = getMarketLevel(index)
+            addDebugLog("Variable", string.format("시장 지수: %d (%+.1f%%) - %s", index, change, level.label))
+            log(string.format("📊 시장 지수: %d (%+.1f%%) - %s [%s]", index, change, level.label, news))
+        end
+    end
+end
+
+-- ============================================
+-- 주식 시스템 초기화
+-- ============================================
+
+function initStockSystem(triggerId)
+    -- 글로벌 변수
+    if not getChatVar(triggerId, "market_index") then
+        setChatVar(triggerId, "market_index", "1000")  -- 릴리벨리 지수 기본값
+        setState(triggerId, "market_index", "1000")
+    end
+    if not getChatVar(triggerId, "economic_cycle") then
+        setChatVar(triggerId, "economic_cycle", "stable")  -- stable, bull, bear, boom, crisis
+        setState(triggerId, "economic_cycle", "stable")
+    end
+
+    -- 모든 주식 가격 초기화 (로어북 변수 접근용)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        if not getState(triggerId, "stock_" .. ticker .. "_price") then
+            local basePrice = STOCK_BASE_PRICES[ticker] or 100
+            setState(triggerId, "stock_" .. ticker .. "_price", basePrice)
+            setState(triggerId, "stock_" .. ticker .. "_change", 0)
+            -- 가격 히스토리 초기화
+            initStockHistory(triggerId, ticker)
+            log(string.format("📊 %s 주가 초기화: %dG", ticker, basePrice))
+        end
+    end
+
+    -- 핵심 3개 기업 경영 변수 초기화
+    local companies = {"GOLDMANE", "LUXORIA", "PFIZARA"}
+    for _, ticker in ipairs(companies) do
+        -- 재무 변수
+        if not getChatVar(triggerId, ticker .. "_revenue") then
+            setChatVar(triggerId, ticker .. "_revenue", "1000")  -- 매출
+            setState(triggerId, ticker .. "_revenue", "1000")
+        end
+        if not getChatVar(triggerId, ticker .. "_profit") then
+            setChatVar(triggerId, ticker .. "_profit", "200")  -- 이익
+            setState(triggerId, ticker .. "_profit", "200")
+        end
+        if not getChatVar(triggerId, ticker .. "_cash") then
+            setChatVar(triggerId, ticker .. "_cash", "500")  -- 현금
+            setState(triggerId, ticker .. "_cash", "500")
+        end
+        if not getChatVar(triggerId, ticker .. "_debt") then
+            setChatVar(triggerId, ticker .. "_debt", "300")  -- 부채
+            setState(triggerId, ticker .. "_debt", "300")
+        end
+
+        -- 시장 변수
+        if not getChatVar(triggerId, ticker .. "_market_share") then
+            setChatVar(triggerId, ticker .. "_market_share", "30")  -- 점유율
+            setState(triggerId, ticker .. "_market_share", "30")
+        end
+        if not getChatVar(triggerId, ticker .. "_brand_value") then
+            setChatVar(triggerId, ticker .. "_brand_value", "50")  -- 브랜드 가치
+            setState(triggerId, ticker .. "_brand_value", "50")
+        end
+
+        -- 운영 변수
+        if not getChatVar(triggerId, ticker .. "_employees") then
+            setChatVar(triggerId, ticker .. "_employees", "100")  -- 직원 수
+            setState(triggerId, ticker .. "_employees", "100")
+        end
+        if not getChatVar(triggerId, ticker .. "_rd_progress") then
+            setChatVar(triggerId, ticker .. "_rd_progress", "0")  -- R&D 진행도
+            setState(triggerId, ticker .. "_rd_progress", "0")
+        end
+
+        -- 플레이어 변수
+        if not getChatVar(triggerId, ticker .. "_player_share") then
+            setChatVar(triggerId, ticker .. "_player_share", "0")  -- 지분율
+            setState(triggerId, ticker .. "_player_share", "0")
+        end
+        if not getChatVar(triggerId, ticker .. "_influence") then
+            setChatVar(triggerId, ticker .. "_influence", "0")  -- 경영 영향력
+            setState(triggerId, ticker .. "_influence", "0")
+        end
+    end
+
+    log("📊 주식 시스템 초기화 완료 (20개 종목 가격 + 경영 변수 12개 × 3개 기업)")
+end
+
+-- ============================================
+-- 주식 태그 파싱
+-- ============================================
+
+-- 주식 시세 변동 인라인 티커 생성: [Stock:TICKER:PRICE:CHANGE|...] → 티커 디스플레이
+function generateStockTicker(stockData)
+    local items = {}
+
+    for entry in stockData:gmatch("([^|]+)") do
+        local ticker, price, change = entry:match("([A-Z]+):(%d+):([%+%-]?%d+)")
+        if ticker and price and change then
+            local changeNum = tonumber(change) or 0
+            local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
+            local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
+            local sign = changeNum > 0 and "+" or ""
+            local name = STOCK_NAMES[ticker] or ticker
+
+            table.insert(items, string.format(
+                '<span style="color:%s;font-weight:600">%s</span> <span style="color:#fff">%sG</span> <span style="color:%s">%s%s%d%%</span>',
+                "#58a6ff", ticker, price, color, arrow, sign, changeNum
+            ))
+        end
+    end
+
+    if #items == 0 then return "" end
+
+    local html = string.format([[
+<div style="background:#161b22;border-radius:8px;padding:10px 14px;margin:8px 0;border:1px solid #30363d;font-size:13px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+  <span style="color:#8b949e;font-size:11px">📊 시세</span>
+  %s
+</div>]], table.concat(items, ' <span style="color:#30363d">│</span> '))
+
+    return html
+end
+
+-- 주식 태그 파싱: [Stock:GOLDMANE:280:+5] 또는 [Stock:GOLDMANE:price:+10|market_share:+5]
+function parseStockChanges(triggerId, message)
+    -- 주식 또는 경영 시스템 활성화 여부 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
+
+    for stockData in message:gmatch("%[Stock:([^%]]+)%]") do
+        -- 티커 추출 (첫 번째 항목)
+        local ticker = stockData:match("^([A-Z]+)")
+        if not ticker then goto continue end
+
+        -- 형식 1: GOLDMANE:280:+5 (기존 형식 - 주가만)
+        local price, change = stockData:match("^[A-Z]+:(%d+):([%+%-]?%d+)")
+        if price and change then
+            local priceNum = tonumber(price)
+            local changeNum = tonumber(change)
+
+            setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+            setState(triggerId, "stock_" .. ticker .. "_change", changeNum)
+            addPriceToHistory(triggerId, ticker, priceNum)
+
+            log(string.format("📈 %s: %dG (%+d)", ticker, priceNum, changeNum))
+            goto continue
+        end
+
+        -- 형식 2: GOLDMANE:price:+10|market_share:+5|debt:+200 (새 형식 - 다중 변수)
+        for entry in stockData:gmatch("([^|]+)") do
+            local key, value = entry:match("([a-z_]+):([%+%-]?%d+)")
+            if key and value then
+                local valueNum = tonumber(value)
+                local varName = ticker .. "_" .. key
+
+                -- 현재 값 가져오기
+                local current = tonumber(getChatVar(triggerId, varName)) or 0
+
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")  -- +나 -로 시작하면 변화값
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                    addDebugLog("Parsing", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                    addDebugLog("Parsing", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
+                end
+
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    -- 점유율: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "brand_value" then
+                    -- 브랜드 가치: 0-100 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key == "rd_progress" then
+                    -- 연구개발: 0-100% 범위
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    -- 음수 방지 (부채와 순이익은 제외 - 적자 가능)
+                    newValue = 0
+                end
+
+                -- 변수 업데이트
+                setChatVar(triggerId, varName, tostring(newValue))
+                setState(triggerId, varName, tostring(newValue))
+
+                -- 변화량 저장 (경영 패널 표시용)
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
+
+                -- 주가는 히스토리에도 추가
+                if key == "price" then
+                    addPriceToHistory(triggerId, ticker, newValue)
+                end
+
+                log(string.format("📊 %s %s: %d → %d (%+d) [%s]", ticker, key, current, newValue, changeAmount, isDelta and "delta" or "absolute"))
+            end
+        end
+
+        ::continue::
+    end
+end
+
+-- 경영 태그 파싱: <Business:GOLDMANE:revenue:+200|profit:+50>
+function parseBusinessTags(triggerId, message)
+    -- 경영 시스템 활성화 여부 확인
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if businessEnabled ~= "1" then return message end
+
+    -- <Business:TICKER:var:value|var2:value2> 형식 파싱
+    local resultMessage = message:gsub("<Business:([A-Z%-]+):([^>]+)>", function(ticker, varsData)
+        addDebugLog("Business", string.format("태그 발견: %s", ticker))
+
+        -- 변수 파싱
+        for entry in varsData:gmatch("([^|]+)") do
+            local key, value = entry:match("([a-z_]+):([%+%-]?%d+)")
+            if key and value then
+                local valueNum = tonumber(value)
+                local varName = ticker .. "_" .. key
+
+                -- 현재 값 가져오기
+                local current = tonumber(getChatVar(triggerId, varName)) or 0
+
+                -- +/- 기호로 절대값/변화값 구분
+                local isDelta = value:match("^[%+%-]")
+                local newValue
+                local changeAmount
+
+                if isDelta then
+                    -- 변화값: 현재값에 더하기
+                    newValue = current + valueNum
+                    changeAmount = valueNum
+                    addDebugLog("Business", string.format("%s %s: %d + %d = %d (변화값)", ticker, key, current, valueNum, newValue))
+                else
+                    -- 절대값: 그 값으로 설정
+                    newValue = valueNum
+                    changeAmount = valueNum - current
+                    addDebugLog("Business", string.format("%s %s: %d → %d (절대값, 변화=%+d)", ticker, key, current, newValue, changeAmount))
+                end
+
+                -- 값 범위 제약 적용
+                if key == "market_share" or key == "player_share" then
+                    newValue = math.max(0, math.min(100, newValue))
+                elseif key ~= "debt" and key ~= "profit" and newValue < 0 then
+                    newValue = 0
+                end
+
+                -- 값 저장
+                setChatVar(triggerId, varName, tostring(newValue))
+                setState(triggerId, varName, tostring(newValue))
+
+                -- 변화량 저장
+                setChatVar(triggerId, varName .. "_change", tostring(changeAmount))
+                setState(triggerId, varName .. "_change", tostring(changeAmount))
+
+                log(string.format("💼 %s %s: %d → %d (%+d)", ticker, key, current, newValue, changeAmount))
+            end
+        end
+
+        -- 태그를 UI 카드로 변환
+        local companyName = STOCK_NAMES[ticker] or ticker
+        return string.format([[
+<div style='background:linear-gradient(135deg,#1a1f2e 0%%,#0d1117 100%%);border:1px solid #30363d;border-radius:8px;padding:12px 16px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,0.3)'>
+  <div style='display:flex;align-items:center;gap:8px;margin-bottom:8px'>
+    <span style='font-size:16px'>💼</span>
+    <span style='font-size:14px;font-weight:600;color:#fff'>%s</span>
+    <span style='font-size:11px;color:#8b949e'>경영 현황 업데이트</span>
+  </div>
+  <div style='font-size:12px;color:#c9d1d9'>회사 지표가 변경되었습니다. 경영 패널에서 확인하세요.</div>
+</div>]], companyName)
+    end)
+
+    return resultMessage
+end
+
+-- 주식 시스템 활성화 태그 파싱: [StockSystem:Enable]
+function parseStockSystemEnable(triggerId, message)
+    if message:match("%[StockSystem:Enable%]") then
+        local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if currentEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (보조 모델 감지)")
+        end
+    end
+end
+
+-- 경영 시스템 활성화 태그 파싱: [Business:Enable:TICKER]
+function parseBusinessEnable(triggerId, message)
+    -- 디버깅: 태그 검색 시작
+    if message:match("%[Business:Enable:") then
+        log("🔍 [Business:Enable:...] 태그 발견! 파싱 시작")
+    end
+
+    for ticker in message:gmatch("%[Business:Enable:([A-Z%-]+)%]") do
+        log(string.format("🔍 파싱된 티커: %s", ticker))
+
+        -- 티커별 캐릭터 매핑
+        local characterMap = {
+            GOLDMANE = "mirabel",
+            LUXORIA = "cordelia",
+            PFIZARA = "nepenthes"
+        }
+
+        local character = characterMap[ticker]
+        if character then
+            log(string.format("✅ 캐릭터 매핑 성공: %s -> %s", ticker, character))
+
+            -- 경영 시스템 활성화
+            local currentEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "business_system_enabled", "1")
+                setState(triggerId, "business_system_enabled", "1")
+                log("💼 경영 시스템 활성화")
+            else
+                log("💼 경영 시스템 이미 활성화됨")
+            end
+
+            -- 캐릭터별 회사 가입
+            local joinedVar = character .. "_company_joined"
+            setChatVar(triggerId, joinedVar, "1")
+            setState(triggerId, joinedVar, "1")
+            log(string.format("💼 %s 회사 경영진 합류", ticker))
+
+            -- 회사 변수 초기화
+            local revenueVar = ticker .. "_revenue"
+            local existingRevenue = getChatVar(triggerId, revenueVar)
+
+            log(string.format("🔍 기존 revenue 값: %s (타입: %s)", tostring(existingRevenue), type(existingRevenue)))
+
+            -- 초기화 조건: 변수가 없거나, 빈 문자열이거나, "0"이거나, "null"인 경우
+            local shouldInitialize = not existingRevenue or existingRevenue == "" or existingRevenue == "0" or existingRevenue == "null"
+
+            log(string.format("🔍 초기화 필요 여부: %s", tostring(shouldInitialize)))
+
+            if shouldInitialize then
+                -- 기본 회사 재무 상태 (티커별로 다름)
+                local defaults = {
+                    GOLDMANE = {revenue = 500, profit = 150, cash = 300, debt = 100, market_share = 22,
+                                brand_value = 85, employees = 450, rd_progress = 35, player_share = 15, influence = 20},
+                    LUXORIA = {revenue = 400, profit = 120, cash = 250, debt = 80, market_share = 18,
+                               brand_value = 90, employees = 380, rd_progress = 40, player_share = 15, influence = 20},
+                    PFIZARA = {revenue = 550, profit = 180, cash = 350, debt = 120, market_share = 25,
+                               brand_value = 80, employees = 520, rd_progress = 55, player_share = 15, influence = 20}
+                }
+
+                local vars = defaults[ticker]
+                if vars then
+                    log(string.format("🔍 기본값 로드 성공: revenue=%d", vars.revenue))
+                    for varName, value in pairs(vars) do
+                        local fullVar = ticker .. "_" .. varName
+                        setChatVar(triggerId, fullVar, tostring(value))
+                        setState(triggerId, fullVar, tostring(value))
+                        log(string.format("📝 변수 설정: %s = %s", fullVar, tostring(value)))
+                    end
+                    log(string.format("💼 %s 회사 변수 초기화 완료 (revenue=%d, profit=%d, cash=%d)", ticker, vars.revenue, vars.profit, vars.cash))
+                else
+                    log(string.format("❌ %s 기본값 로드 실패", ticker))
+                end
+            else
+                log(string.format("💼 %s 회사 변수 이미 존재 (revenue=%s), 초기화 생략", ticker, existingRevenue))
+            end
+        else
+            log(string.format("❌ 캐릭터 매핑 실패: %s", ticker))
+        end
+    end
+end
+
+-- 동아리 가입/탈퇴 태그 파싱: [Club:Join:stock] / [Club:Leave:stock]
+function parseClubChanges(triggerId, message)
+    -- 가입
+    for clubType in message:gmatch("%[Club:Join:([^%]]+)%]") do
+        if clubType == "stock" then
+            -- 동아리 가입 변수 설정
+            setChatVar(triggerId, "club_stock_joined", "1")
+            setState(triggerId, "club_stock_joined", "1")
+            log("📈 주식투자 동아리 가입 (태그)")
+
+            -- 주식 시스템도 자동 활성화
+            local currentEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+            if currentEnabled ~= "1" then
+                setChatVar(triggerId, "stock_system_enabled", "1")
+                setState(triggerId, "stock_system_enabled", "1")
+                log("📈 주식 시스템 자동 활성화 (동아리 가입)")
+            end
+        end
+    end
+
+    -- 탈퇴
+    for clubType in message:gmatch("%[Club:Leave:([^%]]+)%]") do
+        if clubType == "stock" then
+            setChatVar(triggerId, "club_stock_joined", "0")
+            setState(triggerId, "club_stock_joined", "0")
+            log("📉 주식투자 동아리 탈퇴 (태그)")
+        end
+    end
+end
+
+-- 주식 매매 태그 파싱: [StockBuy:TICKER:PRICE:QTY] / [StockSell:TICKER:PRICE:QTY]
+function parseStockTrades(triggerId, message)
+    -- 거래 태그가 있으면 주식 시스템 자동 활성화
+    if message:match("%[Stock[BS][ue][yl]l?:") then
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+        if stockEnabled ~= "1" then
+            setChatVar(triggerId, "stock_system_enabled", "1")
+            setState(triggerId, "stock_system_enabled", "1")
+            log("📈 주식 시스템 자동 활성화 (거래 태그 감지)")
+        end
+    end
+
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled ~= "1" then return end
+
+    -- 매수: [StockBuy:GOLDMANE:280:10]
+    for ticker, price, qty in message:gmatch("%[StockBuy:([A-Z%-]+):(%d+):(%d+)%]") do
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+        local cost = priceNum * qtyNum
+
+        -- 거래 가격을 시장가로 업데이트 (매수/매도 가격 = 현재 시장가)
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
+
+        if gold >= cost then
+            -- 골드 차감 (state + chatVar 동기화)
+            local newGold = gold - cost
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
+
+            -- 보유량 업데이트
+            local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+            local currentAvg = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
+            local totalCost = (currentQty * currentAvg) + cost
+            local newQty = currentQty + qtyNum
+            local newAvg = math.floor(totalCost / newQty)
+
+            -- state + chatVar 동기화
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
+            setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+            setState(triggerId, "stock_" .. ticker .. "_avg", newAvg)
+            setChatVar(triggerId, "stock_" .. ticker .. "_avg", tostring(newAvg))
+
+            log(string.format("📈 매수: %s %d주 @ %dG (평단: %dG)", ticker, qtyNum, priceNum, newAvg))
+        else
+            -- 골드 부족 실패 (로그만 기록, 사용자 알림 없음)
+            log(string.format("❌ 매수 실패: 골드 부족 (%dG 필요, %dG 보유)", cost, gold))
+        end
+    end
+
+    -- 매도: [StockSell:GOLDMANE:290:5]
+    for ticker, price, qty in message:gmatch("%[StockSell:([A-Z%-]+):(%d+):(%d+)%]") do
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        local currentQty = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+
+        -- 거래 가격을 시장가로 업데이트
+        setState(triggerId, "stock_" .. ticker .. "_price", priceNum)
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(priceNum))
+
+        if currentQty >= qtyNum then
+            -- 보유량 차감 (state + chatVar 동기화)
+            local newQty = currentQty - qtyNum
+            setState(triggerId, "stock_" .. ticker .. "_qty", newQty)
+            setChatVar(triggerId, "stock_" .. ticker .. "_qty", tostring(newQty))
+
+            -- 골드 추가 (state + chatVar 동기화)
+            local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+            local revenue = priceNum * qtyNum
+            local newGold = gold + revenue
+            setState(triggerId, "player_gold", newGold)
+            setChatVar(triggerId, "player_gold", tostring(newGold))
+
+            -- 전량 매도시 평단가 초기화 (state + chatVar 동기화)
+            if newQty == 0 then
+                setState(triggerId, "stock_" .. ticker .. "_avg", 0)
+                setChatVar(triggerId, "stock_" .. ticker .. "_avg", "0")
+            end
+
+            log(string.format("📉 매도: %s %d주 @ %dG (+%dG)", ticker, qtyNum, priceNum, revenue))
+        else
+            -- 보유량 부족 실패 (로그만 기록, 사용자 알림 없음)
+            log(string.format("❌ 매도 실패: 보유량 부족 (%d주 필요, %d주 보유)", qtyNum, currentQty))
+        end
+    end
+end
+
+-- 주가 차트 업데이트 태그 파싱: <StockChart:TICKER:±value />
+function parseStockChartUpdate(triggerId, message)
+    -- 주식 또는 경영 시스템 활성화 확인
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then return end
+
+    -- <StockChart:TICKER:±value /> 또는 <StockChart:TICKER:value /> 파싱
+    for ticker, change in message:gmatch("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)") do
+        local changeNum = tonumber(change)
+        if not changeNum then
+            log("⚠️ StockChart 파싱 실패: 잘못된 값 형식 (" .. change .. ")")
+            goto continue
+        end
+
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price")) or STOCK_BASE_PRICES[ticker] or 100
+        local newPrice = currentPrice + changeNum
+
+        -- 가격이 0 미만으로 떨어지지 않도록
+        if newPrice < 0 then
+            newPrice = 0
+        end
+
+        -- 가격 업데이트 (state + chatVar 동기화)
+        setState(triggerId, "stock_" .. ticker .. "_price", math.floor(newPrice))
+        setChatVar(triggerId, "stock_" .. ticker .. "_price", tostring(math.floor(newPrice)))
+
+        -- 변화값 저장 (차트 표시용)
+        setState(triggerId, "stock_" .. ticker .. "_change", math.floor(changeNum))
+        setChatVar(triggerId, "stock_" .. ticker .. "_change", tostring(math.floor(changeNum)))
+
+        log(string.format("📊 %s 차트 업데이트: %dG → %dG (%+dG)",
+            ticker, currentPrice, math.floor(newPrice), math.floor(changeNum)))
+
+        ::continue::
+    end
+end
+
+-- 주가 히스토리 초기화 (12개 캔들용 기본값 생성)
+function initStockHistory(triggerId, ticker)
+    local historyKey = "stock_" .. ticker .. "_history"
+    local existingChat = getChatVar(triggerId, historyKey)
+    local existingState = getState(triggerId, historyKey)
+
+    -- 이미 히스토리가 있으면 스킵 (chatVar와 state 둘 다 체크)
+    if (existingChat and existingChat ~= "") or (existingState and existingState ~= "") then
+        -- chatVar에만 있으면 state로 복사
+        if existingChat and existingChat ~= "" and (not existingState or existingState == "") then
+            setState(triggerId, historyKey, existingChat)
+        end
+        -- state에만 있으면 chatVar로 복사
+        if existingState and existingState ~= "" and (not existingChat or existingChat == "") then
+            setChatVar(triggerId, historyKey, existingState)
+        end
+        return
+    end
+
+    local basePrice = STOCK_BASE_PRICES[ticker] or 100
+
+    -- 시드 생성 (티커 기반 + 시간)
+    local seed = os.time()
+    for i = 1, #ticker do
+        seed = seed + string.byte(ticker, i) * i * 17
+    end
+
+    -- 파동 패턴 결정
+    seed = (seed * 1103515245 + 12345) % 2147483648
+    local pattern = seed % 6
+    -- 0: 상승 후 하락, 1: 하락 후 상승, 2: 급등, 3: 급락, 4: 횡보 후 급등, 5: 횡보 후 급락
+
+    -- 20개 데이터 포인트 생성 (더 풍부한 차트)
+    local prices = {}
+    local price = basePrice
+
+    for i = 1, 20 do
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand = ((seed % 1000) / 1000) - 0.5  -- -0.5 ~ 0.5
+
+        -- 패턴별 변동률 (기준가 대비 % 변동)
+        local changePercent = 0
+
+        if pattern == 0 then  -- 상승 후 하락
+            if i <= 10 then
+                changePercent = 2 + rand * 2  -- +1% ~ +3%
+            else
+                changePercent = -2.5 + rand * 2  -- -3.5% ~ -1.5%
+            end
+        elseif pattern == 1 then  -- 하락 후 상승
+            if i <= 10 then
+                changePercent = -2 + rand * 2
+            else
+                changePercent = 2.5 + rand * 2
+            end
+        elseif pattern == 2 then  -- 급등
+            changePercent = 1.5 + rand * 1.5 + (i * 0.15)  -- 점점 가속
+        elseif pattern == 3 then  -- 급락
+            changePercent = -1.5 + rand * 1.5 - (i * 0.15)
+        elseif pattern == 4 then  -- 횡보 후 급등
+            if i <= 14 then
+                changePercent = rand * 1.5
+            else
+                changePercent = 3 + rand * 2
+            end
+        elseif pattern == 5 then  -- 횡보 후 급락
+            if i <= 14 then
+                changePercent = rand * 1.5
+            else
+                changePercent = -3 + rand * 2
+            end
+        end
+
+        -- 가격 변동 적용 (기준가 기반 %)
+        local change = math.floor(basePrice * changePercent / 100)
+        price = price + change
+        price = math.max(math.floor(basePrice * 0.6), price)  -- 최소 60% (더 넓은 범위)
+        price = math.min(math.floor(basePrice * 1.5), price)  -- 최대 150%
+
+        table.insert(prices, tostring(price))
+    end
+
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
+    log("📊 주가 히스토리 초기화: " .. ticker .. " 패턴=" .. pattern .. " (20개 데이터)")
+end
+
+-- 주가 히스토리에 새 가격 추가 (20개 유지)
+function addPriceToHistory(triggerId, ticker, newPrice)
+    local historyKey = "stock_" .. ticker .. "_history"
+    local history = getChatVar(triggerId, historyKey) or getState(triggerId, historyKey) or ""
+    local prices = {}
+
+    -- 기존 히스토리 파싱
+    for price in history:gmatch("([^,]+)") do
+        table.insert(prices, price)
+    end
+
+    -- 새 가격 추가
+    table.insert(prices, tostring(newPrice))
+
+    -- 20개만 유지
+    while #prices > 20 do
+        table.remove(prices, 1)
+    end
+
+    local historyStr = table.concat(prices, ",")
+    setChatVar(triggerId, historyKey, historyStr)
+    setState(triggerId, historyKey, historyStr)  -- state에도 동기화
+end
+
+-- 주가 히스토리 가져오기 (없으면 초기화, 부족하면 재생성)
+function getStockHistory(triggerId, ticker)
+    local historyKey = "stock_" .. ticker .. "_history"
+    -- state 우선, chatVar 폴백
+    local history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
+    local prices = {}
+
+    for price in history:gmatch("([^,]+)") do
+        table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+    end
+
+    -- 히스토리가 없거나 20개 미만이면 강제 재생성
+    if #prices < 20 then
+        -- 기존 데이터 삭제
+        setChatVar(triggerId, historyKey, "")
+        setState(triggerId, historyKey, "")
+
+        -- 새로 생성
+        initStockHistory(triggerId, ticker)
+
+        -- 다시 읽기
+        history = getState(triggerId, historyKey) or getChatVar(triggerId, historyKey) or ""
+        prices = {}
+        for price in history:gmatch("([^,]+)") do
+            table.insert(prices, tonumber(price) or STOCK_BASE_PRICES[ticker] or 100)
+        end
+
+        log("📊 주가 히스토리 재생성: " .. ticker .. " (" .. #prices .. "개)")
+    end
+
+    return prices
+end
+
+-- 레벨업 체크 및 처리
+function checkLevelUp(triggerId)
+    local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 1
+    local currentExp = tonumber(getChatVar(triggerId, "player_exp")) or 0
+
+    local nextLevel = currentLevel + 1
+
+    -- 최대 레벨 체크 (레벨 20)
+    if nextLevel > 20 then
+        setChatVar(triggerId, "player_exp_to_next", "MAX")
+        return
+    end
+
+    local expRequired = expTable[nextLevel]
+
+    if currentExp >= expRequired then
+        -- 레벨업!
+        setChatVar(triggerId, "player_level", tostring(nextLevel))
+
+        -- 다음 레벨 경험치 계산
+        if nextLevel < 20 then
+            local nextExpRequired = expTable[nextLevel + 1]
+            setChatVar(triggerId, "player_exp_to_next", tostring(nextExpRequired - currentExp))
+        else
+            setChatVar(triggerId, "player_exp_to_next", "MAX")
+        end
+
+        log(string.format("🎉 레벨 업! %d → %d", currentLevel, nextLevel))
+
+        -- 재귀 호출로 다중 레벨업 처리
+        if nextLevel < 20 then
+            checkLevelUp(triggerId)
+        end
+    else
+        -- 다음 레벨까지 남은 경험치
+        setChatVar(triggerId, "player_exp_to_next", tostring(expRequired - currentExp))
+    end
+end
+
+-- 아이템 리스트 파싱 (문자열 → 테이블)
+function parseItemList(itemsStr)
+    local items = {}
+    if not itemsStr or itemsStr == "" then return items end
+
+    for entry in itemsStr:gmatch("[^,]+") do
+        local name, count = entry:match("([^:]+):(%d+)")
+        if name and count then
+            items[name] = tonumber(count)
+        end
+    end
+    return items
+end
+
+-- 아이템 리스트 직렬화 (테이블 → 문자열)
+function serializeItemList(items)
+    local parts = {}
+    for name, count in pairs(items) do
+        if count > 0 then
+            table.insert(parts, name .. ":" .. count)
+        end
+    end
+    table.sort(parts)
+    return table.concat(parts, ",")
+end
+
+-- 아이템 슬롯 변수 업데이트 (버튼 텍스트용)
+function updateItemSlotVars(triggerId)
+    local itemsStr = getChatVar(triggerId, "player_items") or ""
+    local items = parseItemList(itemsStr)
+
+    -- 아이템을 정렬된 배열로 변환
+    local sortedItems = {}
+    for name, count in pairs(items) do
+        if count > 0 then
+            table.insert(sortedItems, {name = name, count = count})
+        end
+    end
+    table.sort(sortedItems, function(a, b) return a.name < b.name end)
+
+    -- 각 슬롯 변수 설정 (최대 15개)
+    for i = 1, 15 do
+        if sortedItems[i] then
+            local itemName = sortedItems[i].name
+            local itemCount = sortedItems[i].count
+            setChatVar(triggerId, "player_item_slot_" .. i .. "_name", itemName)
+            setState(triggerId, "player_item_slot_" .. i .. "_name", itemName)
+            setChatVar(triggerId, "player_item_slot_" .. i .. "_count", tostring(itemCount))
+            setState(triggerId, "player_item_slot_" .. i .. "_count", tostring(itemCount))
+        else
+            -- 빈 슬롯
+            setChatVar(triggerId, "player_item_slot_" .. i .. "_name", "")
+            setState(triggerId, "player_item_slot_" .. i .. "_name", "")
+            setChatVar(triggerId, "player_item_slot_" .. i .. "_count", "0")
+            setState(triggerId, "player_item_slot_" .. i .. "_count", "0")
+        end
+    end
+end
+
+-- 아이템 추가
+function addItem(triggerId, itemName, quantity, effect)
+    local itemsStr = getChatVar(triggerId, "player_items") or ""
+    local items = parseItemList(itemsStr)
+
+    items[itemName] = (items[itemName] or 0) + quantity
+
+    setChatVar(triggerId, "player_items", serializeItemList(items))
+
+    -- 슬롯 변수 업데이트
+    updateItemSlotVars(triggerId)
+
+    -- AI가 생성한 아이템 효과 저장
+    if effect and effect ~= "" then
+        setChatVar(triggerId, "item_effect_" .. itemName, effect)
+        log(string.format("📦 아이템 획득: %s x%d (효과: %s)", itemName, quantity, effect))
+    else
+        log(string.format("📦 아이템 획득: %s x%d", itemName, quantity))
+    end
+end
+
+-- 아이템 제거
+function removeItem(triggerId, itemName, quantity)
+    local itemsStr = getChatVar(triggerId, "player_items") or ""
+    local items = parseItemList(itemsStr)
+
+    local currentCount = items[itemName] or 0
+    if currentCount >= quantity then
+        items[itemName] = currentCount - quantity
+        setChatVar(triggerId, "player_items", serializeItemList(items))
+
+        -- 슬롯 변수 업데이트
+        updateItemSlotVars(triggerId)
+
+        log(string.format("🗑️ 아이템 제거: %s x%d", itemName, quantity))
+        return true
+    else
+        log(string.format("❌ 아이템 부족: %s (보유: %d, 필요: %d)", itemName, currentCount, quantity))
+        return false
+    end
+end
+
+-- 아이템 사용은 로어북 기반 시스템으로 처리됨
+-- /use 명령어 → using_item 설정 → 로어북 활성화 → AI 응답 → 시스템 처리
+
+-- 아이템 태그 파싱
+function parseItems(triggerId, message)
+    -- 형식: [Item:Add:name:qty:type:value:duration:desc] 또는 [Item:Remove:name:qty]
+    -- AI가 아이템 생성 시 효과를 정의: [Item:Add:힘의물약:1:str_bonus:10:3:근육이 불끈]
+    for itemTag in message:gmatch("%[Item:[^%]]+%]") do
+        local action, name, qty, effect = itemTag:match("%[Item:([^:]+):([^:]+):(%d+):?([^%]]*)%]")
+
+        if action and name and qty then
+            qty = tonumber(qty) or 1
+
+            if action == "Add" then
+                addItem(triggerId, name, qty, effect)  -- AI 생성 효과 전달
+            elseif action == "Remove" then
+                removeItem(triggerId, name, qty)
+            end
+            -- 주의: Item:Use 액션은 더 이상 지원하지 않음
+            -- 아이템 사용은 /use 명령어 + 로어북으로 처리
+        end
+    end
+end
+
+-- Trait ID 목록 파싱
+function parseTraitIdList(traitsStr)
+    local traitIds = {}
+    if not traitsStr or traitsStr == "" then return traitIds end
+
+    for traitId in traitsStr:gmatch("[^,]+") do
+        table.insert(traitIds, traitId)
+    end
+    return traitIds
+end
+
+-- Trait ID 목록 직렬화
+function serializeTraitIdList(traitIds)
+    table.sort(traitIds)
+    return table.concat(traitIds, ",")
+end
+
+-- Trait 추가
+function addTrait(triggerId, traitName, traitDesc)
+    -- Trait ID 생성 (이름 기반)
+    local traitId = traitName:gsub("%s+", "_"):lower()
+
+    local traitsStr = getChatVar(triggerId, "player_traits") or ""
+    local traitIds = parseTraitIdList(traitsStr)
+
+    -- 중복 체크
+    for _, existingId in ipairs(traitIds) do
+        if existingId == traitId then
+            log(string.format("⚠️ Trait 이미 보유: %s", traitName))
+            return false
+        end
+    end
+
+    -- Trait 추가
+    table.insert(traitIds, traitId)
+    setChatVar(triggerId, "player_traits", serializeTraitIdList(traitIds))
+
+    -- Trait 세부 정보 저장 (이름, 설명만)
+    setChatVar(triggerId, "trait_" .. traitId .. "_name", traitName)
+    setChatVar(triggerId, "trait_" .. traitId .. "_desc", traitDesc)
+
+    log(string.format("🏆 Trait 획득: %s - %s", traitName, traitDesc))
+
+    -- Display 변수 자동 업데이트
+    updateTraitsDisplay(triggerId)
+
+    return true
+end
+
+-- Trait 제거
+function removeTrait(triggerId, traitId)
+    local traitsStr = getChatVar(triggerId, "player_traits") or ""
+    local traitIds = parseTraitIdList(traitsStr)
+
+    local found = false
+    local newTraitIds = {}
+
+    for _, existingId in ipairs(traitIds) do
+        if existingId == traitId then
+            found = true
+        else
+            table.insert(newTraitIds, existingId)
+        end
+    end
+
+    if found then
+        setChatVar(triggerId, "player_traits", serializeTraitIdList(newTraitIds))
+
+        local traitName = getChatVar(triggerId, "trait_" .. traitId .. "_name") or traitId
+        log(string.format("🗑️ Trait 제거: %s", traitName))
+
+        -- Display 변수 자동 업데이트
+        updateTraitsDisplay(triggerId)
+
+        return true
+    else
+        log(string.format("⚠️ Trait 미보유: %s", traitId))
+        return false
+    end
+end
+
+-- Trait Display 변수 업데이트
+function updateTraitsDisplay(triggerId)
+    local traitsStr = getChatVar(triggerId, "player_traits") or ""
+    local traitIds = parseTraitIdList(traitsStr)
+
+    -- 특성이 없으면 빈 문자열
+    if #traitIds == 0 then
+        setChatVar(triggerId, "player_traits_display", "")
+        setState(triggerId, "player_traits_display", "")
+        setChatVar(triggerId, "player_traits_html", "<span style='color: #666; font-style: italic;'>특성 없음</span>")
+        setState(triggerId, "player_traits_html", "<span style='color: #666; font-style: italic;'>특성 없음</span>")
+        return
+    end
+
+    -- 평문 리스트 생성 (하위 호환성 유지)
+    local parts = {}
+    for _, traitId in ipairs(traitIds) do
+        local traitName = getChatVar(triggerId, "trait_" .. traitId .. "_name") or traitId
+        local traitDesc = getChatVar(triggerId, "trait_" .. traitId .. "_desc") or ""
+
+        if traitDesc ~= "" then
+            table.insert(parts, traitName .. ": " .. traitDesc)
+        else
+            table.insert(parts, traitName)
+        end
+    end
+
+    -- 평문으로 저장 (하위 호환성)
+    local displayText = table.concat(parts, "\n")
+    setChatVar(triggerId, "player_traits_display", displayText)
+    setState(triggerId, "player_traits_display", displayText)
+
+    -- HTML 생성
+    local traitsHtml = ""
+    for _, traitId in ipairs(traitIds) do
+        local traitName = getChatVar(triggerId, "trait_" .. traitId .. "_name") or traitId
+        local traitDesc = getChatVar(triggerId, "trait_" .. traitId .. "_desc") or ""
+
+        if traitDesc ~= "" then
+            traitsHtml = traitsHtml .. string.format(
+                "<div style='margin-bottom: 8px; padding: 8px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; border-radius: 4px;'><div style='color: #00d4ff; font-weight: 600; margin-bottom: 4px;'>%s</div><div style='color: #aaa; font-size: 0.9em;'>%s</div></div>",
+                traitName, traitDesc
+            )
+        else
+            traitsHtml = traitsHtml .. string.format(
+                "<div style='margin-bottom: 8px; padding: 8px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #00d4ff; border-radius: 4px;'><div style='color: #00d4ff; font-weight: 600;'>%s</div></div>",
+                traitName
+            )
+        end
+    end
+
+    setChatVar(triggerId, "player_traits_html", traitsHtml)
+    setState(triggerId, "player_traits_html", traitsHtml)
+end
+
+-- 단일 Trait 파싱
+function parseTrait(triggerId, traitTag)
+    -- 형식 1: [Trait:Add:Name:Description] 또는 [Trait:Name:Description] (하위 호환)
+    -- 형식 2: [Trait:Merge:OldName1+OldName2→NewName:NewDescription]
+
+    -- Merge 형식 먼저 체크
+    local mergePart, newName, newDesc = traitTag:match("%[Trait:Merge:([^→]+)→([^:]+):([^%]]+)%]")
+
+    if mergePart and newName and newDesc then
+        -- 합성할 특성 이름들 추출 (+ 또는 x로 구분)
+        local oldNames = {}
+        for name in mergePart:gmatch("[^+x]+") do
+            local trimmed = name:match("^%s*(.-)%s*$")  -- 공백 제거
+            if trimmed and trimmed ~= "" then
+                table.insert(oldNames, trimmed)
+            end
+        end
+
+        -- 기존 특성들 제거 (이름을 ID로 변환해서 제거)
+        local removed = {}
+        for _, oldName in ipairs(oldNames) do
+            local oldTraitId = oldName:gsub("%s+", "_"):lower()
+            if removeTrait(triggerId, oldTraitId) then
+                table.insert(removed, oldName)
+            end
+        end
+
+        -- 새 특성 추가
+        addTrait(triggerId, newName, newDesc)
+
+        if #removed > 0 then
+            log(string.format("🔄 Trait 합성: [%s] → %s", table.concat(removed, " + "), newName))
+        end
+        return
+    end
+
+    -- Add 형식 또는 기존 형식
+    local action, traitName, traitDesc = traitTag:match("%[Trait:([^:]+):([^:]+):([^%]]+)%]")
+
+    if action == "Add" and traitName and traitDesc then
+        addTrait(triggerId, traitName, traitDesc)
+        return
+    end
+
+    -- 하위 호환: [Trait:Name:Description]
+    local name, desc = traitTag:match("%[Trait:([^:]+):([^%]]+)%]")
+    if name and desc then
+        addTrait(triggerId, name, desc)
+    end
+end
+
+-- Trait 태그 파싱
+function parseTraits(triggerId, message)
+    for traitTag in message:gmatch("%[Trait:[^%]]+%]") do
+        parseTrait(triggerId, traitTag)
+    end
+end
+
+-- Exam 태그 파싱
+function parseExams(triggerId, message)
+    -- 형식: [Exam:midterm:87:23] or [Exam:final:92:15]
+    for examType, score, rank in message:gmatch("%[Exam:(%w+):(%d+):(%d+)%]") do
+        -- 시험 결과 저장
+        setChatVar(triggerId, "exam_" .. examType .. "_score", score)
+        setChatVar(triggerId, "exam_" .. examType .. "_rank", rank)
+
+        log(string.format("📝 %s 시험 결과: %s점 (120명 중 %s위)",
+            examType == "midterm" and "중간고사" or "기말고사", score, rank))
+    end
+end
+
+-- ============================================
+-- 효과 태그 파싱
+-- ============================================
+
+-- 새 형식: [Effect:Add:Name:StatBonus] 또는 [Effect:Remove:Name]
+-- 예: [Effect:Add:미라벨의 축복:str+15], [Effect:Remove:독]
+function parseEffects(triggerId, message)
+    for effectTag in message:gmatch("%[Effect:[^%]]+%]") do
+        parseEffect(triggerId, effectTag)
+    end
+end
+
+function parseEffect(triggerId, tag)
+    -- [Effect:Merge:Old→New:StatType:Value:Duration:Desc] 전체 형식 먼저 체크
+    local mergeMatch = tag:match("%[Effect:Merge:([^→]+)→(.+)%]")
+
+    if mergeMatch then
+        local mergePart = mergeMatch
+        local afterArrow = tag:match("→(.+)%]")
+
+        if afterArrow then
+            -- ':'로 분할하여 파라미터 추출
+            local params = {}
+            for param in afterArrow:gmatch("[^:]+") do
+                table.insert(params, param:match("^%s*(.-)%s*$"))
+            end
+
+            -- 전체 형식: Name:StatType:Value:Duration:Desc
+            if #params >= 5 then
+                local newName = params[1]
+                local effectType = params[2]
+                local value = tonumber(params[3]) or 0
+                local duration = tonumber(params[4]) or 0
+                local desc = params[5]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- 새 효과 추가
+                addEffect(triggerId, newName, effectType, value, duration, desc)
+
+                if #removed > 0 then
+                    log(string.format("🔄 Effect 합성: [%s] → %s (%s %+d, %d턴)",
+                        table.concat(removed, " + "), newName, effectType, value, duration))
+                end
+                return
+            end
+
+            -- 간략 형식 (하위 호환): Name:StatBonus
+            if #params >= 2 then
+                local newName = params[1]
+                local statBonus = params[2]:gsub("%]$", "")
+
+                -- 합성할 효과 이름들 추출
+                local oldNames = {}
+                for name in mergePart:gmatch("[^+x]+") do
+                    local trimmed = name:match("^%s*(.-)%s*$")
+                    if trimmed and trimmed ~= "" then
+                        table.insert(oldNames, trimmed)
+                    end
+                end
+
+                -- 기존 효과들 제거
+                local removed = {}
+                for _, oldName in ipairs(oldNames) do
+                    if removeEffect(triggerId, oldName) then
+                        table.insert(removed, oldName)
+                    end
+                end
+
+                -- StatBonus 파싱
+                local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+
+                if stat and sign and valueStr then
+                    local value = tonumber(valueStr) or 0
+                    if sign == "-" then value = -value end
+
+                    local effectType = stat:lower() .. "_bonus"
+                    addEffect(triggerId, newName, effectType, value, 0, newName)
+
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (간략): [%s] → %s (%s %+d)",
+                            table.concat(removed, " + "), newName, stat:upper(), value))
+                    end
+                else
+                    addEffect(triggerId, newName, "display", 0, 0, statBonus)
+                    if #removed > 0 then
+                        log(string.format("🔄 Effect 합성 (표시용): [%s] → %s",
+                            table.concat(removed, " + "), newName))
+                    end
+                end
+                return
+            end
+        end
+    end
+
+    -- [Effect:Add:Name:StatType:Value:Duration:Desc] 전체 형식 (우선 시도)
+    local parts = {}
+    for part in tag:gmatch("[^:]+") do
+        table.insert(parts, part:match("^%s*(.-)%s*$"))  -- 공백 제거
+    end
+
+    if parts[1] == "[Effect" and parts[2] == "Add" and #parts >= 7 then
+        -- 전체 형식: [Effect:Add:Name:StatType:Value:Duration:Desc]
+        local name = parts[3]
+        local effectType = parts[4]
+        local value = tonumber(parts[5]) or 0
+        local duration = tonumber(parts[6]) or 0
+        local desc = parts[7]:gsub("%]$", "")  -- 마지막 ] 제거
+
+        addEffect(triggerId, name, effectType, value, duration, desc)
+        log(string.format("✨ Effect 추가: %s (%s %+d, %d턴)", name, effectType, value, duration))
+        return
+    end
+
+    -- [Effect:Add:Name:StatBonus] 간략 형식 (하위 호환)
+    local actionAdd, name, statBonus = tag:match("%[Effect:(Add):([^:]+):([^%]]+)%]")
+
+    if actionAdd == "Add" and name and statBonus then
+        -- StatBonus 파싱 시도: "str+15" → type="str_bonus", value=15
+        local stat, sign, valueStr = statBonus:match("(%w+)([%+%-])(%d+)")
+
+        if stat and sign and valueStr then
+            -- 스탯 보너스 형식 (str+15, vit-5 등)
+            local value = tonumber(valueStr) or 0
+            if sign == "-" then
+                value = -value
+            end
+
+            local effectType = stat:lower() .. "_bonus"  -- str → str_bonus
+            local desc = name  -- 효과 이름을 설명으로 사용
+            local duration = 0  -- 영구 효과 (나중에 Remove로 제거)
+
+            addEffect(triggerId, name, effectType, value, duration, desc)
+            log(string.format("✨ Effect 추가 (간략): %s (%s %+d)", name, stat:upper(), value))
+        else
+            -- 스탯 보너스 없는 순수 표시용 Effect
+            addEffect(triggerId, name, "display", 0, 0, statBonus)
+            log(string.format("✨ Effect 추가 (표시용): %s (%s)", name, statBonus))
+        end
+        return
+    end
+
+    -- [Effect:Remove:Name] 형식 파싱
+    local actionRemove, removeName = tag:match("%[Effect:(Remove):([^%]]+)%]")
+
+    if actionRemove == "Remove" and removeName then
+        removeEffect(triggerId, removeName)
+        log(string.format("💫 Effect 제거: %s", removeName))
+    end
+end
+
+-- ============================================
+-- 전투 시스템 (Combat System)
+-- ============================================
+
+-- 플레이어 전투력 계산
+function calculateCombatPower(triggerId)
+    local str = getStatWithEffects(triggerId, "str")
+    local dex = getStatWithEffects(triggerId, "dex")
+    local int = getStatWithEffects(triggerId, "int")
+    local luk = getStatWithEffects(triggerId, "luk")
+
+    local power = (str * 2) + (dex * 2) + int + luk
+
+    return power
+end
+
+-- 난이도 판정 (비율 기반) - 엄격한 밸런싱
+function getDifficulty(statPower, enemyPower)
+    if enemyPower == 0 then
+        return "Very Easy"
+    end
+
+    local ratio = statPower / enemyPower
+
+    if ratio >= 2.5 then
+        return "Very Easy"
+    elseif ratio >= 2.0 then
+        return "Easy"
+    elseif ratio >= 1.3 then
+        return "Normal"
+    elseif ratio >= 0.9 then
+        return "Hard"
+    else
+        return "Very Hard"
+    end
+end
+
+-- 전투 특성 찾기
+function findCombatTrait(triggerId)
+    local traitsDisplay = getChatVar(triggerId, "player_traits_display") or ""
+
+    -- 전투 관련 키워드 목록 (우선순위 순)
+    local combatKeywords = {
+        -- 근접 전투
+        {pattern = "검술", difficulty = "Easy", type = "melee"},
+        {pattern = "격투", difficulty = "Easy", type = "melee"},
+        {pattern = "무술", difficulty = "Easy", type = "melee"},
+        {pattern = "전사", difficulty = "Easy", type = "melee"},
+
+        -- 마법
+        {pattern = "마법", difficulty = "Normal", type = "magic"},
+        {pattern = "화염", difficulty = "Normal", type = "magic"},
+        {pattern = "냉기", difficulty = "Normal", type = "magic"},
+        {pattern = "번개", difficulty = "Normal", type = "magic"},
+        {pattern = "치유", difficulty = "Easy", type = "magic"},
+
+        -- 은신/기습
+        {pattern = "은신", difficulty = "Easy", type = "stealth"},
+        {pattern = "암살", difficulty = "Normal", type = "stealth"},
+        {pattern = "그림자", difficulty = "Easy", type = "stealth"},
+
+        -- 지식/전술
+        {pattern = "전술", difficulty = "Easy", type = "tactical"},
+        {pattern = "지식", difficulty = "Normal", type = "tactical"},
+        {pattern = "공학", difficulty = "Normal", type = "tactical"},
+
+        -- 특수
+        {pattern = "야수", difficulty = "Normal", type = "special"},
+        {pattern = "변신", difficulty = "Hard", type = "special"},
+        {pattern = "정령", difficulty = "Normal", type = "special"}
+    }
+
+    -- 특성 목록을 줄 단위로 분리
+    for line in traitsDisplay:gmatch("[^\n]+") do
+        -- 각 키워드 확인
+        for _, keywordData in ipairs(combatKeywords) do
+            if line:find(keywordData.pattern) then
+                -- 특성 이름 추출 (콜론 앞 부분 또는 첫 단어)
+                local traitName = line:match("^([^:]+)") or line:match("^(%S+)")
+
+                if traitName then
+                    traitName = traitName:gsub("^%s*", ""):gsub("%s*$", "")  -- 공백 제거
+
+                    return {
+                        name = traitName,
+                        difficulty = keywordData.difficulty,
+                        traitType = keywordData.type,
+                        fullDescription = line
+                    }
+                end
+            end
+        end
+    end
+
+    return nil  -- 전투 관련 특성 없음
+end
+
+-- 전투 선택지 준비 (난이도 계산)
+function prepareCombatChoices(triggerId, enemyPower)
+    local str = getStatWithEffects(triggerId, "str")
+    local dex = getStatWithEffects(triggerId, "dex")
+    local int = getStatWithEffects(triggerId, "int")
+    local cha = getStatWithEffects(triggerId, "cha")
+    local luk = getStatWithEffects(triggerId, "luk")
+
+    -- 플레이어 전투력
+    local playerPower = calculateCombatPower(triggerId)
+
+    -- 각 스탯별 난이도 계산
+    setChatVar(triggerId, "combat_str_difficulty", getDifficulty(str * 2, enemyPower))
+    setChatVar(triggerId, "combat_dex_difficulty", getDifficulty(dex * 2, enemyPower * 1.3))
+    setChatVar(triggerId, "combat_int_difficulty", getDifficulty(int * 2, enemyPower * 0.7))
+    setChatVar(triggerId, "combat_cha_difficulty", getDifficulty(cha, enemyPower * 0.5))
+    setChatVar(triggerId, "combat_luk_difficulty", "Very Hard")  -- 항상 Very Hard
+
+    setState(triggerId, "combat_str_difficulty", getChatVar(triggerId, "combat_str_difficulty"))
+    setState(triggerId, "combat_dex_difficulty", getChatVar(triggerId, "combat_dex_difficulty"))
+    setState(triggerId, "combat_int_difficulty", getChatVar(triggerId, "combat_int_difficulty"))
+    setState(triggerId, "combat_cha_difficulty", getChatVar(triggerId, "combat_cha_difficulty"))
+    setState(triggerId, "combat_luk_difficulty", "Very Hard")
+
+    -- 특성 확인 및 6번 선택지 생성
+    local traitChoice = findCombatTrait(triggerId)
+
+    if traitChoice then
+        -- 특성이 있으면 특성 선택지
+        setChatVar(triggerId, "combat_6th_type", "trait")
+        setChatVar(triggerId, "combat_6th_name", traitChoice.name)
+        setChatVar(triggerId, "combat_6th_difficulty", traitChoice.difficulty)
+
+        setState(triggerId, "combat_6th_type", "trait")
+        setState(triggerId, "combat_6th_name", traitChoice.name)
+        setState(triggerId, "combat_6th_difficulty", traitChoice.difficulty)
+    else
+        -- 특성이 없으면 도망
+        setChatVar(triggerId, "combat_6th_type", "flee")
+        setChatVar(triggerId, "combat_6th_name", "도망")
+        setChatVar(triggerId, "combat_6th_difficulty", "Easy")
+
+        setState(triggerId, "combat_6th_type", "flee")
+        setState(triggerId, "combat_6th_name", "도망")
+        setState(triggerId, "combat_6th_difficulty", "Easy")
+    end
+
+    -- 전투 정보 저장
+    setChatVar(triggerId, "combat_player_power", playerPower)
+    setState(triggerId, "combat_player_power", playerPower)
+
+    log(string.format("⚔️ 전투 준비: 플레이어 파워 %d vs 적 파워 %d", playerPower, enemyPower))
+end
+
+-- 난이도에 따른 목표값 반환
+function getDifficultyTarget(difficulty)
+    if difficulty == "Very Easy" then
+        return 5
+    elseif difficulty == "Easy" then
+        return 10
+    elseif difficulty == "Normal" then
+        return 15
+    elseif difficulty == "Hard" then
+        return 20
+    else  -- Very Hard
+        return 25
+    end
+end
+
+-- 전투 선택지 버튼 클릭 시 실행되는 함수
+-- 선택지 주사위 굴림 (combat_active와 독립적으로 작동)
+function rollChoiceDice(triggerId, choiceNum, stat, desc, diff)
+    log(string.format("🎲 선택: %d번 - [%s] %s (%s)", choiceNum, stat, desc, diff))
+
+    -- 능력치 이름 표준화
+    local statName = stat:lower()
+
+    -- Escape/Flee는 LUK으로 처리
+    if statName == "escape" or statName == "flee" or statName == "run" or statName == "도망" then
+        statName = "luk"
+    elseif statName == "str" or statName == "dex" or statName == "int" or
+           statName == "cha" or statName == "luk" or statName == "vit" then
+        -- 표준 능력치
+    else
+        -- 기타 미인식 능력치 -> LUK으로 처리
+        log(string.format("⚠️ 미인식 능력치 '%s' → LUK으로 처리", stat))
+        statName = "luk"
+    end
+
+    -- 주사위 굴림
+    local success, critical, fumble, roll, total = rollCombatCheck(triggerId, statName, diff)
+
+    -- 결과 변수 저장 (메인 AI가 읽을 변수)
+    setChatVar(triggerId, "combat_last_choice_num", tostring(choiceNum))
+    setChatVar(triggerId, "combat_last_choice_stat", stat)
+    setChatVar(triggerId, "combat_last_choice_desc", desc)
+    setChatVar(triggerId, "combat_last_choice_diff", diff)
+    setChatVar(triggerId, "combat_last_roll", tostring(roll))
+
+    local statValue = getStatWithEffects(triggerId, statName)
+    local bonus = math.floor((statValue - 10) / 2)
+    bonus = math.max(-3, math.min(10, bonus))
+
+    setChatVar(triggerId, "combat_last_bonus", tostring(bonus))
+    setChatVar(triggerId, "combat_last_total", tostring(total))
+    setChatVar(triggerId, "combat_last_target", tostring(getDifficultyTarget(diff)))
+    setChatVar(triggerId, "combat_last_result", success and "성공" or "실패")
+    setChatVar(triggerId, "combat_last_critical", critical and "true" or "false")
+    setChatVar(triggerId, "combat_last_fumble", fumble and "true" or "false")
+
+    -- 적 추적 시스템이 활성화되어 있으면 전투 결과 처리
+    local combatActive = getChatVar(triggerId, "combat_active")
+    if combatActive == "true" then
+        local enemyPower = tonumber(getChatVar(triggerId, "combat_enemy_power")) or 0
+        processCombatResult(triggerId, success, critical, fumble, diff, enemyPower)
+    end
+
+    log(string.format("✅ 주사위 결과: %d + %d = %d → %s", roll, bonus, total, success and "성공" or "실패"))
+
+    return true
+end
+
+-- (Legacy) 전투 시스템용 주사위 - 적 추적 시스템 사용 시
+function rollCombat(triggerId, choiceNum)
+    -- 전투 활성 여부 확인
+    local combatActive = getChatVar(triggerId, "combat_active")
+    if combatActive ~= "true" then
+        log("⚠️ 전투가 활성화되지 않음")
+        return false
+    end
+
+    -- 선택지 정보 가져오기
+    local stat = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_stat")
+    local desc = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_desc")
+    local diff = getChatVar(triggerId, "combat_choice_" .. choiceNum .. "_diff")
+
+    if not stat or stat == "" then
+        log("⚠️ 유효하지 않은 선택지: " .. choiceNum)
+        return false
+    end
+
+    -- 새 함수로 위임
+    return rollChoiceDice(triggerId, choiceNum, stat, desc, diff)
+end
+
+-- 주사위 굴림 및 체크
+function rollCombatCheck(triggerId, statName, difficulty)
+    -- 1d20 주사위
+    local roll = math.random(1, 20)
+
+    -- 스탯 보너스 (D&D 방식)
+    local statValue = getStatWithEffects(triggerId, statName)
+    local bonus = math.floor((statValue - 10) / 2)
+
+    -- 보너스 제한 (-3 ~ +10)
+    bonus = math.max(-3, math.min(10, bonus))
+
+    -- 총합
+    local total = roll + bonus
+
+    -- 난이도별 목표값
+    local target = getDifficultyTarget(difficulty)
+
+    -- 성공 판정
+    local success = (total >= target)
+
+    -- 크리티컬/대실패
+    local critical = (roll == 20)
+    local fumble = (roll == 1)
+
+    -- 크리티컬은 자동 성공, 대실패는 자동 실패
+    if critical then
+        success = true
+    elseif fumble then
+        success = false
+    end
+
+    log(string.format("🎲 주사위: %d + 보너스 %d = %d vs 목표 %d (%s) [%s]",
+        roll, bonus, total, target, difficulty, success and "성공" or "실패"))
+
+    return success, critical, fumble, roll, total
+end
+
+-- 몬스터 파워에 따른 보상 계산
+function getCombatRewards(enemyPower)
+    local gold, exp
+
+    if enemyPower < 60 then
+        -- 약함
+        gold = 50
+        exp = 20
+    elseif enemyPower < 90 then
+        -- 보통
+        gold = 100
+        exp = 50
+    elseif enemyPower < 120 then
+        -- 강함
+        gold = 200
+        exp = 100
+    elseif enemyPower < 160 then
+        -- 정예
+        gold = 400
+        exp = 200
+    else
+        -- 보스
+        gold = 800
+        exp = 500
+    end
+
+    return gold, exp
+end
+
+-- 전투 결과 처리
+function processCombatResult(triggerId, success, critical, fumble, difficulty, enemyPower)
+    local playerDamage = 0  -- 플레이어가 받는 데미지
+    local enemyDamage = 0   -- 적이 받는 데미지
+    local combatState = "Neutral"
+    local combatEnded = false
+    local giveRewards = false
+
+    if critical then
+        -- 크리티컬: 적에게 큰 데미지, 플레이어 무상
+        enemyDamage = 150
+        playerDamage = 0
+        combatState = "Critical"
+        log("💥 크리티컬!")
+
+    elseif fumble then
+        -- 대실패: 플레이어가 큰 데미지
+        playerDamage = 120
+        enemyDamage = 0
+        combatState = "Fumble"
+        log("💀 대실패!")
+
+    elseif success then
+        -- 성공 - 난이도별 데미지
+        if difficulty == "Very Easy" or difficulty == "Easy" then
+            enemyDamage = 80
+            playerDamage = 20
+            combatState = "Advantageous"
+            log("✅ 성공! 큰 타격!")
+
+        elseif difficulty == "Normal" then
+            enemyDamage = 60
+            playerDamage = 40
+            combatState = "Neutral"
+            log("✅ 성공!")
+
+        elseif difficulty == "Hard" then
+            enemyDamage = 50
+            playerDamage = 60
+            combatState = "Neutral"
+            log("⚡ 성공! 하지만 피해도 입음")
+
+        else  -- Very Hard
+            enemyDamage = 40
+            playerDamage = 80
+            combatState = "Disadvantageous"
+            log("😰 간신히 성공...")
+        end
+
+    else
+        -- 실패 - 적만 데미지 줌
+        playerDamage = 100
+        enemyDamage = 0
+        combatState = "Disadvantageous"
+        log("❌ 실패!")
+    end
+
+    -- 적 HP 감소 및 승리 체크
+    local currentEnemyHp = tonumber(getChatVar(triggerId, "combat_enemy_hp")) or enemyPower
+    local newEnemyHp = math.max(0, currentEnemyHp - enemyDamage)
+
+    setChatVar(triggerId, "combat_enemy_hp", tostring(newEnemyHp))
+    setState(triggerId, "combat_enemy_hp", newEnemyHp)
+
+    if newEnemyHp <= 0 then
+        combatEnded = true
+        giveRewards = true
+        combatState = "Victory"
+        log(string.format("🏆 승리! 적 HP: %d → 0", currentEnemyHp))
+    else
+        log(string.format("⚔️ 적 HP: %d → %d (-%d)", currentEnemyHp, newEnemyHp, enemyDamage))
+    end
+
+    -- 플레이어 전투력 감소 및 패배 체크
+    local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or calculateCombatPower(triggerId)
+    local newPower = math.max(0, currentPower - playerDamage)
+
+    setChatVar(triggerId, "player_combat_power", tostring(newPower))
+    setState(triggerId, "player_combat_power", newPower)
+
+    log(string.format("💪 플레이어 전투력: %d → %d (-%d)", currentPower, newPower, playerDamage))
+
+    if newPower <= 0 and not combatEnded then
+        combatEnded = true
+        giveRewards = false
+        combatState = "Defeat"
+        log("💔 패배! 전투력 0")
+    end
+
+    -- 전투 종료 시 부상 Effect 업데이트
+    if combatEnded then
+        updateInjuryEffect(triggerId)
+    end
+
+    -- 전투 상태 저장
+    setChatVar(triggerId, "combat_state", combatState)
+    setState(triggerId, "combat_state", combatState)
+
+    -- 데미지 정보 저장
+    setChatVar(triggerId, "combat_player_damage", tostring(playerDamage))
+    setState(triggerId, "combat_player_damage", playerDamage)
+    setChatVar(triggerId, "combat_enemy_damage", tostring(enemyDamage))
+    setState(triggerId, "combat_enemy_damage", enemyDamage)
+
+    -- 보상 지급
+    if giveRewards then
+        local baseGold, baseExp = getCombatRewards(enemyPower)
+
+        -- 크리티컬 보너스
+        if critical then
+            baseGold = math.floor(baseGold * 1.5)
+            baseExp = math.floor(baseExp * 1.5)
+        end
+
+        -- 골드 추가
+        local currentGold = getChatVar(triggerId, "player_gold") or 0
+        local newGold = currentGold + baseGold
+        setChatVar(triggerId, "player_gold", newGold)
+        setState(triggerId, "player_gold", newGold)
+
+        -- 경험치 추가
+        local currentExp = getChatVar(triggerId, "player_exp") or 0
+        local newExp = currentExp + baseExp
+        setChatVar(triggerId, "player_exp", newExp)
+        setState(triggerId, "player_exp", newExp)
+
+        -- 레벨업 체크
+        checkLevelUp(triggerId)
+
+        log(string.format("💰 보상: Gold +%d, EXP +%d", baseGold, baseExp))
+    end
+
+    -- 전투 종료 처리
+    if combatEnded then
+        setChatVar(triggerId, "combat_active", "false")
+        setState(triggerId, "combat_active", "false")
+
+        -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+        local maxPower = calculateCombatPower(triggerId)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
+        log(string.format("💚 전투력 회복: %d", maxPower))
+
+        -- 종료 묘사 유도용 OOC 메시지 자동 삽입 (메인 AI 다음 턴 컨텍스트)
+        local oocMessage
+        if combatState == "Victory" then
+            oocMessage = "<-OOC: 이 메시지는 전투력이 0이 되었을 때 자동으로 출력에 포함되는 메시지입니다. 적의 전투력이 0이 되어 전투가 종료되었습니다. 다음 출력에서 승리의 결과를 묘사하고 <CombatEnd>\nresult: victory\n</CombatEnd> 블록으로 마무리하세요.->"
+        elseif combatState == "Defeat" then
+            oocMessage = "<-OOC: 이 메시지는 전투력이 0이 되었을 때 자동으로 출력에 포함되는 메시지입니다. {{user}}의 전투력이 0이 되어 전투가 종료되었습니다. 다음 출력에서 패배의 결과를 묘사하고 <CombatEnd>\nresult: defeat\n</CombatEnd> 블록으로 마무리하세요.->"
+        end
+
+        -- [RESTORED 2026-05-25] race condition 가설 미검증이었으나, 진짜 원인은 L3362 currentPower typo로 확정됨.
+        -- 재도입 후 미호출 재발 시 race 가설 다시 검토.
+        if oocMessage then
+            addChat(triggerId, "user", oocMessage)
+            log("📜 종료 OOC 메시지 자동 삽입: " .. combatState)
+        end
+
+        log("🏁 전투 종료")
+    else
+        -- 난이도 조정
+        if combatState == "Advantageous" then
+            adjustCombatDifficulty(triggerId, -1)  -- 1단계 쉬워짐
+        elseif combatState == "Disadvantageous" then
+            adjustCombatDifficulty(triggerId, 1)   -- 1단계 어려워짐
+        end
+    end
+
+    return combatEnded, giveRewards
+end
+
+-- 난이도 조정 (유리/불리한 상황)
+function adjustCombatDifficulty(triggerId, adjustment)
+    local difficulties = {"Very Easy", "Easy", "Normal", "Hard", "Very Hard"}
+    local difficultyMap = {
+        ["Very Easy"] = 1,
+        ["Easy"] = 2,
+        ["Normal"] = 3,
+        ["Hard"] = 4,
+        ["Very Hard"] = 5
+    }
+
+    -- 각 스탯별 난이도 조정
+    local stats = {"str", "dex", "int", "cha", "luk"}
+    for _, stat in ipairs(stats) do
+        local varName = "combat_" .. stat .. "_difficulty"
+        local currentDiff = getChatVar(triggerId, varName) or "Normal"
+        local currentLevel = difficultyMap[currentDiff] or 3
+
+        local newLevel = math.max(1, math.min(5, currentLevel + adjustment))
+        local newDiff = difficulties[newLevel]
+
+        setChatVar(triggerId, varName, newDiff)
+        setState(triggerId, varName, newDiff)
+    end
+
+    -- 6번 특성 선택지도 조정 (도망 제외)
+    local sixthType = getChatVar(triggerId, "combat_6th_type") or "flee"
+    if sixthType == "trait" then
+        local currentDiff = getChatVar(triggerId, "combat_6th_difficulty") or "Normal"
+        local currentLevel = difficultyMap[currentDiff] or 3
+
+        local newLevel = math.max(1, math.min(5, currentLevel + adjustment))
+        local newDiff = difficulties[newLevel]
+
+        setChatVar(triggerId, "combat_6th_difficulty", newDiff)
+        setState(triggerId, "combat_6th_difficulty", newDiff)
+    end
+
+    if adjustment > 0 then
+        log(string.format("📈 난이도 상승 (%+d단계)", adjustment))
+    elseif adjustment < 0 then
+        log(string.format("📉 난이도 하락 (%d단계)", adjustment))
+    end
+end
+
+-- 부상 Effect 자동 업데이트
+function updateInjuryEffect(triggerId)
+    -- 최대 전투력 계산 (현재 스탯 기반)
+    local maxPower = calculateCombatPower(triggerId)
+
+    -- 현재 전투력 가져오기
+    local currentPower = tonumber(getChatVar(triggerId, "player_combat_power")) or maxPower
+
+    -- 손실 퍼센트 계산
+    local lossPct = 0
+    if maxPower > 0 then
+        lossPct = ((maxPower - currentPower) / maxPower) * 100
+    end
+
+    -- 기존 부상 Effect 제거
+    removeEffect(triggerId, "경상")
+    removeEffect(triggerId, "중상")
+    removeEffect(triggerId, "위급")
+
+    -- 손실 퍼센트에 따른 부상 상태 판정
+    if lossPct >= 60 then
+        -- 60% 이상 손실: 위급 (생명 위험)
+        addEffect(triggerId, "위급", "str_bonus", -10, 0, "생명이 위험한 상태")
+        addEffect(triggerId, "위급", "dex_bonus", -8, 0, "")
+        log(string.format("🩸 부상 상태: 위급 (전투력 손실 %.1f%%)", lossPct))
+
+    elseif lossPct >= 35 then
+        -- 35% 이상 손실: 중상 (심각한 부상)
+        addEffect(triggerId, "중상", "str_bonus", -5, 0, "심각한 부상")
+        addEffect(triggerId, "중상", "dex_bonus", -4, 0, "")
+        log(string.format("🩹 부상 상태: 중상 (전투력 손실 %.1f%%)", lossPct))
+
+    elseif lossPct >= 15 then
+        -- 15% 이상 손실: 경상 (가벼운 부상)
+        addEffect(triggerId, "경상", "str_bonus", -3, 0, "가벼운 부상")
+        addEffect(triggerId, "경상", "dex_bonus", -2, 0, "")
+        log(string.format("🏥 부상 상태: 경상 (전투력 손실 %.1f%%)", lossPct))
+
+    else
+        -- 15% 미만 손실: 건강
+        log(string.format("💚 건강 상태: 양호 (전투력 손실 %.1f%%)", lossPct))
+    end
+end
+
+-- <CombatStart> 블록 파싱 (메인모델이 직접 출력하는 새 양식)
+function parseCombatStart(triggerId, message)
+    local block = message:match("<CombatStart>(.-)</CombatStart>")
+    if not block then return false end
+
+    local enemyName = block:match("name:%s*([^\n\r]+)")
+    local enemyPowerStr = block:match("power:%s*(%d+)")
+
+    if enemyName then
+        enemyName = enemyName:gsub("^%s+", ""):gsub("%s+$", "")
+    end
+
+    local enemyPower = tonumber(enemyPowerStr) or 0
+
+    if not enemyName or enemyName == "" or enemyPower <= 0 then
+        log(string.format("⚠️ <CombatStart> 파싱 실패: name=%s, power=%s", tostring(enemyName), tostring(enemyPowerStr)))
+        return false
+    end
+
+    log(string.format("⚔️ 전투 발생 (CombatStart): %s (파워 %d)", enemyName, enemyPower))
+
+    -- 플레이어 전투력: 매 전투마다 max로 리셋 (부상 Effect는 영구라 max에 반영됨)
+    local maxPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+    setState(triggerId, "player_combat_power", maxPower)
+
+    -- 적 HP 초기화 (파워 = HP)
+    setChatVar(triggerId, "combat_enemy_hp", tostring(enemyPower))
+    setState(triggerId, "combat_enemy_hp", enemyPower)
+
+    -- 전투 활성화
+    setChatVar(triggerId, "combat_active", "true")
+    setChatVar(triggerId, "combat_enemy_name", enemyName)
+    setChatVar(triggerId, "combat_enemy_power", tostring(enemyPower))
+
+    setState(triggerId, "combat_active", "true")
+    setState(triggerId, "combat_enemy_name", enemyName)
+    setState(triggerId, "combat_enemy_power", enemyPower)
+
+    log(string.format("✅ 플레이어 전투력: %d", maxPower))
+    log(string.format("✅ 적 HP: %d", enemyPower))
+    log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
+
+    return true
+end
+
+-- <CombatEnd> 블록 파싱 (메인모델이 직접 출력하는 새 양식)
+function parseCombatEnd(triggerId, message)
+    local block = message:match("<CombatEnd>(.-)</CombatEnd>")
+    if not block then return false end
+
+    local result = block:match("result:%s*([^\n\r]+)")
+    if result then
+        result = result:gsub("^%s+", ""):gsub("%s+$", "")
+    else
+        result = "resolved"
+    end
+
+    log(string.format("⚔️ 전투 종료 (CombatEnd, result=%s)", result))
+
+    setChatVar(triggerId, "combat_active", "false")
+    setChatVar(triggerId, "combat_enemy_name", "")
+    setChatVar(triggerId, "combat_enemy_power", "0")
+    setChatVar(triggerId, "combat_enemy_hp", "0")
+    setChatVar(triggerId, "combat_state", "Neutral")
+
+    setState(triggerId, "combat_active", "false")
+    setState(triggerId, "combat_enemy_name", "")
+    setState(triggerId, "combat_enemy_power", 0)
+    setState(triggerId, "combat_enemy_hp", 0)
+    setState(triggerId, "combat_state", "Neutral")
+
+    -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+    local maxPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+    setState(triggerId, "player_combat_power", maxPower)
+    log(string.format("💚 전투력 회복: %d", maxPower))
+
+    log(string.format("✅ combat_active 설정: %s", getChatVar(triggerId, "combat_active")))
+    return true
+end
+
+-- Combat 태그 파싱 (구 양식 호환용)
+function parseCombat(triggerId, tag)
+    log(string.format("🔍 parseCombat 호출: %s", tag))
+
+    -- [Combat:End] 처리
+    if tag:match("%[Combat:End%]") then
+        log("⚔️ 전투 종료")
+        setChatVar(triggerId, "combat_active", "false")
+        setChatVar(triggerId, "combat_enemy_name", "")
+        setChatVar(triggerId, "combat_enemy_power", "0")
+        setChatVar(triggerId, "combat_enemy_hp", "0")
+        setChatVar(triggerId, "combat_state", "Neutral")
+
+        setState(triggerId, "combat_active", "false")
+        setState(triggerId, "combat_enemy_name", "")
+        setState(triggerId, "combat_enemy_power", 0)
+        setState(triggerId, "combat_enemy_hp", 0)
+        setState(triggerId, "combat_state", "Neutral")
+
+        -- 플레이어 전투력 회복 (부상 Effect는 max에 영구 반영됨)
+        local maxPower = calculateCombatPower(triggerId)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
+        log(string.format("💚 전투력 회복: %d", maxPower))
+
+        -- 선택지는 초기화하지 않음 (선택지 시스템은 전투와 독립적으로 작동)
+
+        log(string.format("✅ combat_active 설정: %s", getChatVar(triggerId, "combat_active")))
+        return
+    end
+
+    -- [Combat:EnemyName:Power] 형식 파싱
+    local enemyName, enemyPowerStr = tag:match("%[Combat:([^:]+):(%d+)%]")
+
+    if enemyName and enemyPowerStr then
+        local enemyPower = tonumber(enemyPowerStr) or 0
+
+        log(string.format("⚔️ 전투 발생: %s (파워 %d)", enemyName, enemyPower))
+
+        -- 플레이어 전투력: 매 전투마다 max로 리셋 (부상 Effect는 영구라 max에 반영됨)
+        local maxPower = calculateCombatPower(triggerId)
+        setChatVar(triggerId, "player_combat_power", tostring(maxPower))
+        setState(triggerId, "player_combat_power", maxPower)
+
+        -- 적 HP 초기화 (파워 = HP)
+        setChatVar(triggerId, "combat_enemy_hp", tostring(enemyPower))
+        setState(triggerId, "combat_enemy_hp", enemyPower)
+
+        -- 전투 활성화
+        setChatVar(triggerId, "combat_active", "true")
+        setChatVar(triggerId, "combat_enemy_name", enemyName)
+        setChatVar(triggerId, "combat_enemy_power", tostring(enemyPower))
+
+        setState(triggerId, "combat_active", "true")
+        setState(triggerId, "combat_enemy_name", enemyName)
+        setState(triggerId, "combat_enemy_power", enemyPower)
+
+        -- [FIX 2026-05-25] currentPower 미정의 변수 → maxPower로 수정.
+        -- 이게 보조모델 간헐적 미호출의 진짜 원인이었음. [Combat:Name:Power] 태그 파싱 시 throw.
+        log(string.format("✅ 플레이어 전투력: %d", maxPower))
+        log(string.format("✅ 적 HP: %d", enemyPower))
+        log(string.format("✅ combat_active 설정: '%s'", getChatVar(triggerId, "combat_active")))
+
+        -- 메인 AI가 <CombatChoice> 블록 생성, LUA는 parseCombatChoice로 파싱만 수행
+    else
+        log(string.format("⚠️ Combat 태그 파싱 실패: %s", tag))
+    end
+end
+
+function parseCombats(triggerId, message)
+    -- 새 양식 우선 처리: <CombatStart> / <CombatEnd> (메인모델 직접 선언)
+    parseCombatStart(triggerId, message)
+    parseCombatEnd(triggerId, message)
+
+    -- 구 양식 호환: [Combat:Name:Power] / [Combat:End] (보조모델 출력, 폴백)
+    for combatTag in message:gmatch("%[Combat:[^%]]+%]") do
+        parseCombat(triggerId, combatTag)
+    end
+end
+
+-- CombatChoice 태그 파싱 및 HTML 버튼 생성
+function parseCombatChoice(triggerId, choiceBlock)
+    -- <CombatChoice>...</CombatChoice> 내용 추출
+    local content = choiceBlock:match("<CombatChoice>(.-)</CombatChoice>")
+    if not content then return end
+
+    log("⚔️ 전투 선택지 파싱 시작")
+
+    -- 기존 선택지 초기화 (이전 전투 데이터 제거)
+    for i = 1, 6 do
+        setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+        setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+        setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+    end
+
+    -- 각 선택지 라인 파싱 ([STAT|Description|Difficulty] 형식)
+    local choiceIndex = 1
+    for line in content:gmatch("[^\r\n]+") do
+        local stat, desc, diff = line:match("%[([^|]+)|([^|]+)|([^%]]+)%]")
+        if stat and desc and diff then
+            setChatVar(triggerId, "combat_choice_" .. choiceIndex .. "_stat", stat)
+            setChatVar(triggerId, "combat_choice_" .. choiceIndex .. "_desc", desc)
+            setChatVar(triggerId, "combat_choice_" .. choiceIndex .. "_diff", diff)
+
+            log(string.format("  선택지 %d: [%s] %s - %s", choiceIndex, stat, desc, diff))
+
+            choiceIndex = choiceIndex + 1
+            if choiceIndex > 6 then break end
+        end
+    end
+
+    -- 6개 미만이면 경고
+    if choiceIndex <= 6 then
+        log(string.format("⚠️ 전투 선택지가 %d개만 파싱됨 (6개 필요)", choiceIndex - 1))
+    end
+
+    -- 난이도 영문 → 한글 라벨 매핑
+    local diffLabels = {
+        ["Very Easy"] = "매우 쉬움",
+        ["Easy"]      = "쉬움",
+        ["Normal"]    = "보통",
+        ["Hard"]      = "어려움",
+        ["Very Hard"] = "매우 어려움",
+    }
+
+    -- HTML 버튼 생성 (Tarot v3 톤, 난이도 색깔 분기 제거)
+    local html = [[<div style="max-width:560px;margin:14px auto;padding:0 8px;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif">]]
+    for i = 1, 6 do
+        local stat = getChatVar(triggerId, "combat_choice_" .. i .. "_stat") or ""
+        local desc = getChatVar(triggerId, "combat_choice_" .. i .. "_desc") or ""
+        local diff = getChatVar(triggerId, "combat_choice_" .. i .. "_diff") or ""
+
+        if stat ~= "" then
+            -- 능력치별 이모지
+            local emoji = "⚔️"
+            local statUpper = stat:upper()
+            local statLower = stat:lower()
+
+            if statUpper == "STR" then emoji = "💪"
+            elseif statUpper == "DEX" then emoji = "⚡"
+            elseif statUpper == "INT" then emoji = "🧠"
+            elseif statUpper == "CHA" then emoji = "💬"
+            elseif statUpper == "LUK" then emoji = "🍀"
+            elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
+                emoji = "🏃"
+            else
+                emoji = "⚔️"
+            end
+
+            -- 난이도 한글 라벨 (매칭 없으면 원문 그대로)
+            local diffLabel = diffLabels[diff] or diff
+
+            html = html .. string.format(
+                [[<button type="button" risu-trigger="combat_choice_%d" style="display:flex;align-items:center;gap:10px;width:100%%;margin:6px auto;padding:11px 14px;background:#1a1226;color:#ebe2d0;border:1px solid rgba(184,150,92,0.45);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.35"><span style="font-size:16px;line-height:1;flex-shrink:0">%s</span><span style="font-family:Georgia,serif;font-size:10px;letter-spacing:0.3em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">%s</span><span style="flex:1;min-width:0">%s</span><span style="font-family:Georgia,serif;font-style:italic;font-size:11px;color:#c98da0;letter-spacing:0.05em;flex-shrink:0">%s</span></button>]],
+                i, emoji, stat, desc, diffLabel
+            )
+        end
+    end
+    html = html .. "</div>"
+
+    setChatVar(triggerId, "combat_choices_html", html)
+    log("✅ 전투 선택지 HTML 버튼 생성 완료")
+end
+
+function parseCombatChoices(triggerId, message)
+    -- <CombatChoice>...</CombatChoice> 블록 찾기
+    local choiceBlock = message:match("(<CombatChoice>.-</CombatChoice>)")
+    if choiceBlock then
+        parseCombatChoice(triggerId, choiceBlock)
+    else
+        -- 전투 선택지 태그가 없으면 버튼 초기화 (이전 전투 데이터 제거)
+        for i = 1, 6 do
+            setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+        end
+        setChatVar(triggerId, "combat_choices_html", "")
+    end
+end
+
+-- ============================================
+-- 보조모델 호출
+-- ============================================
+
+-- 보조모델용 4개 메시지 구조 생성 (system, user, user prefill, assistant prefill)
+function buildAuxiliaryMessages(triggerId, mainResponse)
+    -- 플레이어 특성 정보 가져오기
+    local traitsDisplay = getChatVar(triggerId, "player_traits_display") or ""
+
+    -- 특성 섹션 생성
+    local traitsSection = ""
+    if traitsDisplay ~= "" then
+        traitsSection = "**Current Player Traits:**\n" .. traitsDisplay
+    else
+        traitsSection = "(No traits yet)"
+    end
+
+    -- 활성 효과 정보 가져오기
+    local effects = getActiveEffects(triggerId)
+    local effectsSection = ""
+
+    if #effects > 0 then
+        effectsSection = "**Current Active Effects:**\n"
+        for i, effect in ipairs(effects) do
+            -- [HARDENED 2026-05-25] type 방어 + tostring/tonumber 명시 캐스팅
+            if type(effect) ~= "table" then
+                log("⚠️ buildAuxiliaryMessages effect[" .. tostring(i) .. "] not table: " .. type(effect))
+            else
+                local effectName = tostring(effect.name or "Unknown")
+                local effectType = tostring(effect.type or "display")
+                local effectValue = tonumber(effect.value) or 0
+                local effectDesc = tostring(effect.desc or "")
+
+                if effectType == "display" then
+                    effectsSection = effectsSection .. string.format("- %s: %s\n", effectName, effectDesc)
+                else
+                    local statName = effectType:gsub("_bonus", ""):upper()
+                    effectsSection = effectsSection .. string.format("- %s: %s %+d\n", effectName, statName, effectValue)
+                end
+            end
+        end
+    else
+        effectsSection = "(No active effects)"
+    end
+
+    -- SYSTEM 메시지: AUXILIARY_BASE_PROMPT (규칙)
+    local systemPrompt = AUXILIARY_BASE_PROMPT
+
+    -- Stock 또는 Business 시스템이 활성화되어 있으면 관련 프롬프트 추가
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or "0"
+    if stockEnabled == "1" or businessEnabled == "1" then
+        systemPrompt = systemPrompt .. AUXILIARY_STOCK_MANAGEMENT_PROMPT
+    end
+
+    -- 플레이어 특성/효과 섹션 삽입
+    systemPrompt = systemPrompt:gsub("{{PLAYER_TRAITS_SECTION}}", traitsSection)
+    systemPrompt = systemPrompt:gsub("{{PLAYER_EFFECTS_SECTION}}", effectsSection)
+
+    -- USER 메시지: 게임 상태 + 메인 AI 응답
+    local userPrompt = "## Current Game State\n"
+    userPrompt = userPrompt .. "===========================================\n"
+
+    -- 현재 게임 상태 정보 수집
+    local location = getChatVar(triggerId, "current_location") or "Unknown"
+    local time = getChatVar(triggerId, "current_time") or "Unknown"
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = getChatVar(triggerId, "week_of_season") or "1"
+    local dayName = getChatVar(triggerId, "day_of_week_name") or "월요일"
+    local weather = getChatVar(triggerId, "current_weather") or ""
+
+    local playerLevel = getState(triggerId, "player_level") or "1"
+    local playerExp = getState(triggerId, "player_exp") or "0"
+    local playerExpMax = getState(triggerId, "player_exp_max") or "100"
+    local playerGold = getState(triggerId, "player_gold") or "0"
+    local activeEffects = getChatVar(triggerId, "active_effects") or ""
+
+    -- 환경 정보
+    userPrompt = userPrompt .. "Environment:\n"
+    userPrompt = userPrompt .. string.format("- Season: %s Week %s | Day: %s %s\n", season, week, dayName, time)
+    userPrompt = userPrompt .. string.format("- Location: %s\n", location)
+    if weather ~= "" then
+        userPrompt = userPrompt .. string.format("- Weather: %s\n", weather)
+    end
+
+    -- 전투 정보 (전투 중일 때만 표시)
+    local combatActive = getChatVar(triggerId, "combat_active") or "false"
+    if combatActive == "true" then
+        local enemyName = getChatVar(triggerId, "combat_enemy_name") or "Unknown"
+        local enemyHp = getChatVar(triggerId, "combat_enemy_hp") or "0"
+        local enemyPower = getChatVar(triggerId, "combat_enemy_power") or "0"
+        local playerCp = getChatVar(triggerId, "player_combat_power") or "0"
+        local playerCpMax = getChatVar(triggerId, "player_combat_power_max") or "0"
+
+        userPrompt = userPrompt .. "\n⚔️ Combat Status: ACTIVE\n"
+        userPrompt = userPrompt .. string.format("- Enemy: %s (HP: %s / %s)\n", enemyName, enemyHp, enemyPower)
+        userPrompt = userPrompt .. string.format("- Player CP: %s / %s\n", playerCp, playerCpMax)
+    end
+
+    -- 플레이어 정보
+    userPrompt = userPrompt .. "\nPlayer Status:\n"
+    userPrompt = userPrompt .. string.format("- Level: %s | EXP: %s / %s\n", playerLevel, playerExp, playerExpMax)
+    userPrompt = userPrompt .. string.format("- Gold: %s\n", playerGold)
+    if activeEffects ~= "" then
+        userPrompt = userPrompt .. string.format("- Active Effects: %s\n", activeEffects)
+    end
+
+    -- 주식 시스템 활성화 정보
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or "0"
+    if stockEnabled == "1" then
+        userPrompt = userPrompt .. "- 📈 Stock System: ENABLED (output [Stock:...] tags when <Stock> appears)\n"
+    end
+
+    userPrompt = userPrompt .. "===========================================\n"
+
+    -- 메인 AI 응답 추가
+    local cleanedResponse = mainResponse
+
+    -- 주식 거래 태그 제거 (메인 모델이 이미 출력했으므로 보조 모델에게 전달하지 않음)
+    cleanedResponse = cleanedResponse:gsub("%[StockBuy:[^%]]+%]", "")
+    cleanedResponse = cleanedResponse:gsub("%[StockSell:[^%]]+%]", "")
+
+    userPrompt = userPrompt .. "\n## Main AI Response to Analyze:\n"
+    userPrompt = userPrompt .. cleanedResponse
+
+    -- 캐시 무효화용 고유 ID
+    local uniqueId = tostring(os.time()) .. "_" .. tostring(math.random(1000000))
+    userPrompt = userPrompt .. "\n\n<!-- Request ID: " .. uniqueId .. " -->"
+
+    -- USER PREFILL: OOC 지시
+    local userPrefill = "(OOC: Analyze the Main AI Response and output only the relevant tags based on the narrative context. Always end with <Panel>■★)"
+
+    -- ASSISTANT PREFILL: 응답 시작
+    local assistantPrefill = "[Affinity:"
+
+    -- 4개 메시지 구조 반환
+    return {
+        { role = "system", content = systemPrompt },
+        { role = "user", content = userPrompt },
+        { role = "user", content = userPrefill },
+        { role = "assistant", content = assistantPrefill }
+    }
+end
+
+-- 보조모델 호출 및 태그 반환
+function callAuxiliaryModel(triggerId, mainResponse)
+    -- 모델 선택: State 우선, 없으면 ChatVar, 그래도 없으면 기본값 "0" (Off 모드 = 로어북)
+    local mode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    log("🔍 보조모델 호출 - mode: " .. tostring(mode))
+
+    -- Off 모드일 때는 보조모델을 호출하지 않음 (로어북에서 처리)
+    if mode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드")
+        return "<Panel>■★"
+    end
+
+    -- 4개 메시지 구조로 프롬프트 생성
+    local success, messages = pcall(buildAuxiliaryMessages, triggerId, mainResponse)
+
+    if not success then
+        log("⚠️ buildAuxiliaryMessages 에러: " .. tostring(messages))
+        return "<Panel>■★"
+    end
+
+    local modelType = (mode == "1") and "메인모델" or "보조모델"
+    log("📤 " .. modelType .. " 호출 시작 (mode=" .. mode .. ")")
+
+    -- [SAFETY 2026-05-25] LLM/axLLM 호출 자체가 throw할 수 있음 (네트워크/타임아웃/JSON 등)
+    -- pcall로 감싸 throw 시에도 fallback 마커 보장
+    local llmOk, response = pcall(function()
+        return (mode == "1") and LLM(triggerId, messages) or axLLM(triggerId, messages)
+    end)
+    if not llmOk then
+        log("⚠️ LLM/axLLM 호출 throw: " .. tostring(response))
+        return "<Panel>■★"
+    end
+
+    -- 에러 체크
+    if not response then
+        log("⚠️ 보조모델 호출 실패: response is nil")
+        return "<Panel>■★"
+    end
+
+    if response.success == false then
+        log("⚠️ 보조모델 호출 실패: " .. tostring(response.result))
+        return "<Panel>■★"
+    end
+
+    -- 응답 추출 (assistant prefill "[Affinity:"로 시작했으므로 앞에 붙여줌)
+    local result = response.result or ""
+
+    if type(result) == "string" and result ~= "" then
+        -- assistant prefill을 앞에 붙임
+        result = "[Affinity:" .. result
+
+        -- <Panel> 태그가 있는지 확인 (guard 체크를 위해 필수)
+        if not result:find("<Panel>") then
+            log("⚠️ 보조모델 응답에 <Panel> 태그 없음, 추가함")
+            result = result .. "\n<Panel>■★"
+        end
+
+        -- 중복 태그 블록 제거: 첫 번째 <Panel>■★ 이후 모든 내용 삭제
+        local panelPos = result:find("<Panel>■★", 1, true)
+        if panelPos then
+            -- "<Panel>■★"의 실제 바이트 길이: <Panel>(7) + ■(3) + ★(3) = 13
+            local markerEnd = panelPos + 12  -- 마커의 마지막 바이트 위치 (0-indexed)
+            local afterPanel = result:sub(markerEnd + 1)  -- 마커 이후 내용
+
+            -- 마커 뒤에 어떤 내용이든 있으면 제거 (공백, 텍스트, 태그 등)
+            if afterPanel and #afterPanel > 0 and afterPanel:match("%S") then
+                result = result:sub(1, markerEnd)  -- "<Panel>■★"까지만 포함
+                log("⚠️ <Panel>■★ 이후 불필요한 내용 제거: " .. afterPanel:sub(1, 50))
+            end
+        end
+
+        log("✅ 보조모델 응답 수신 완료")
+        return result
+    else
+        log("⚠️ 보조모델 응답이 비어있거나 잘못된 타입: " .. tostring(result))
+        return "<Panel>■★"
+    end
+end
+
+-- ============================================
+-- 스냅샷 시스템
+-- ============================================
+
+function takeSnapshot(triggerId, char)
+    local aff = getChatVar(triggerId, char.storage .. "_affinity") or "0"
+    setChatVar(triggerId, char.storage .. "_snapshot_affinity", aff)
+
+    if char.is_main then
+        local pos = getChatVar(triggerId, char.storage .. "_sin_pos") or "0"
+        local neg = getChatVar(triggerId, char.storage .. "_sin_neg") or "0"
+        local pos_count = getChatVar(triggerId, char.storage .. "_sin_pos_count") or "0"
+        local neg_count = getChatVar(triggerId, char.storage .. "_sin_neg_count") or "0"
+
+        setChatVar(triggerId, char.storage .. "_snapshot_sin_pos", pos)
+        setChatVar(triggerId, char.storage .. "_snapshot_sin_neg", neg)
+        setChatVar(triggerId, char.storage .. "_snapshot_sin_pos_count", pos_count)
+        setChatVar(triggerId, char.storage .. "_snapshot_sin_neg_count", neg_count)
+    end
+end
+
+function restoreSnapshot(triggerId, char)
+    local aff = getChatVar(triggerId, char.storage .. "_snapshot_affinity") or "0"
+    setChatVar(triggerId, char.storage .. "_affinity", aff)
+
+    if char.is_main then
+        local pos = getChatVar(triggerId, char.storage .. "_snapshot_sin_pos") or "0"
+        local neg = getChatVar(triggerId, char.storage .. "_snapshot_sin_neg") or "0"
+        local pos_count = getChatVar(triggerId, char.storage .. "_snapshot_sin_pos_count") or "0"
+        local neg_count = getChatVar(triggerId, char.storage .. "_snapshot_sin_neg_count") or "0"
+
+        setChatVar(triggerId, char.storage .. "_sin_pos", pos)
+        setChatVar(triggerId, char.storage .. "_sin_neg", neg)
+        setChatVar(triggerId, char.storage .. "_sin_pos_count", pos_count)
+        setChatVar(triggerId, char.storage .. "_sin_neg_count", neg_count)
+
+        local affinity = tonumber(aff) or 0
+        setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(affinity)))
+    end
+
+    updatePercent(triggerId, char)
+
+    log(string.format("🔄 %s %s 스냅샷 복원 (호감: %s)",
+        char.icon, char.display, aff))
+end
+
+function clearChanges(triggerId, char)
+    setChatVar(triggerId, char.storage .. "_change_affinity", "0")
+
+    if char.is_main then
+        setChatVar(triggerId, char.storage .. "_change_sin_pos", "0")
+        setChatVar(triggerId, char.storage .. "_change_sin_neg", "0")
+    end
+end
+
+-- RPG 변수 스냅샷
+function takeRpgSnapshot(triggerId)
+    -- Player Stats
+    for _, stat in ipairs(playerStats) do
+        local key = "player_" .. stat
+        local value = getChatVar(triggerId, key) or tostring(STAT_DEFAULT)
+        setChatVar(triggerId, "snapshot_" .. key, value)
+    end
+
+    -- Gold, EXP, Level
+    setChatVar(triggerId, "snapshot_player_gold", getChatVar(triggerId, "player_gold") or "0")
+    setChatVar(triggerId, "snapshot_player_exp", getChatVar(triggerId, "player_exp") or "0")
+    setChatVar(triggerId, "snapshot_player_level", getChatVar(triggerId, "player_level") or "1")
+    setChatVar(triggerId, "snapshot_player_exp_to_next", getChatVar(triggerId, "player_exp_to_next") or "100")
+
+    -- Items
+    setChatVar(triggerId, "snapshot_player_items", getChatVar(triggerId, "player_items") or "")
+
+    -- Traits
+    setChatVar(triggerId, "snapshot_player_traits", getChatVar(triggerId, "player_traits") or "")
+
+    -- Ability Eval Status
+    setChatVar(triggerId, "snapshot_ability_eval_status", getChatVar(triggerId, "ability_eval_status") or "0")
+
+    -- Active Effects
+    setChatVar(triggerId, "snapshot_active_effects", getChatVar(triggerId, "active_effects") or "")
+
+    -- Season, Week, Time, Location
+    setChatVar(triggerId, "snapshot_current_season", getChatVar(triggerId, "current_season") or "봄")
+    setChatVar(triggerId, "snapshot_week_of_season", getChatVar(triggerId, "week_of_season") or "1")
+    setChatVar(triggerId, "snapshot_current_time", getChatVar(triggerId, "current_time") or "오전")
+    setChatVar(triggerId, "snapshot_current_location", getChatVar(triggerId, "current_location") or "")
+
+    -- Combat Power
+    local currentPower = getChatVar(triggerId, "player_combat_power") or tostring(calculateCombatPower(triggerId))
+    setChatVar(triggerId, "snapshot_player_combat_power", currentPower)
+
+    -- Combat State
+    setChatVar(triggerId, "snapshot_combat_active", getChatVar(triggerId, "combat_active") or "false")
+    setChatVar(triggerId, "snapshot_combat_enemy_name", getChatVar(triggerId, "combat_enemy_name") or "")
+    setChatVar(triggerId, "snapshot_combat_enemy_power", getChatVar(triggerId, "combat_enemy_power") or "0")
+    setChatVar(triggerId, "snapshot_combat_state", getChatVar(triggerId, "combat_state") or "Neutral")
+
+    -- Stock Holdings (주식 보유량)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local qty = getChatVar(triggerId, "stock_" .. ticker .. "_qty") or "0"
+        local avg = getChatVar(triggerId, "stock_" .. ticker .. "_avg") or "0"
+        setChatVar(triggerId, "snapshot_stock_" .. ticker .. "_qty", qty)
+        setChatVar(triggerId, "snapshot_stock_" .. ticker .. "_avg", avg)
+    end
+end
+
+-- RPG 변수 복원
+function restoreRpgSnapshot(triggerId)
+    -- Player Stats
+    for _, stat in ipairs(playerStats) do
+        local key = "player_" .. stat
+        local snapshotValue = getChatVar(triggerId, "snapshot_" .. key) or tostring(STAT_DEFAULT)
+        setChatVar(triggerId, key, snapshotValue)
+        setState(triggerId, key, tonumber(snapshotValue))
+    end
+
+    -- Gold, EXP, Level
+    local gold = getChatVar(triggerId, "snapshot_player_gold") or "0"
+    setChatVar(triggerId, "player_gold", gold)
+    setState(triggerId, "player_gold", tonumber(gold))
+
+    local exp = getChatVar(triggerId, "snapshot_player_exp") or "0"
+    setChatVar(triggerId, "player_exp", exp)
+    setState(triggerId, "player_exp", tonumber(exp))
+
+    local level = getChatVar(triggerId, "snapshot_player_level") or "0"
+    setChatVar(triggerId, "player_level", level)
+    setState(triggerId, "player_level", tonumber(level))
+
+    local expToNext = getChatVar(triggerId, "snapshot_player_exp_to_next") or "100"
+    setChatVar(triggerId, "player_exp_to_next", expToNext)
+    setState(triggerId, "player_exp_to_next", tonumber(expToNext))
+
+    -- Items
+    local items = getChatVar(triggerId, "snapshot_player_items") or ""
+    setChatVar(triggerId, "player_items", items)
+    setState(triggerId, "player_items", items)
+
+    -- Traits
+    local traits = getChatVar(triggerId, "snapshot_player_traits") or ""
+    setChatVar(triggerId, "player_traits", traits)
+    setState(triggerId, "player_traits", traits)
+
+    -- Ability Eval Status
+    local evalStatus = getChatVar(triggerId, "snapshot_ability_eval_status") or "0"
+    setChatVar(triggerId, "ability_eval_status", evalStatus)
+    setState(triggerId, "ability_eval_status", tonumber(evalStatus))
+
+    -- Active Effects
+    local effects = getChatVar(triggerId, "snapshot_active_effects") or ""
+    setChatVar(triggerId, "active_effects", effects)
+    setState(triggerId, "active_effects", effects)
+
+    -- Season, Week, Time, Location
+    local season = getChatVar(triggerId, "snapshot_current_season") or "봄"
+    setChatVar(triggerId, "current_season", season)
+    setState(triggerId, "current_season", season)
+
+    local week = getChatVar(triggerId, "snapshot_week_of_season") or "1"
+    setChatVar(triggerId, "week_of_season", week)
+    setState(triggerId, "week_of_season", week)
+
+    local time = getChatVar(triggerId, "snapshot_current_time") or "오전"
+    setChatVar(triggerId, "current_time", time)
+    setState(triggerId, "current_time", time)
+
+    local location = getChatVar(triggerId, "snapshot_current_location") or ""
+    setChatVar(triggerId, "current_location", location)
+    setState(triggerId, "current_location", location)
+
+    -- Combat Power
+    local combatPower = getChatVar(triggerId, "snapshot_player_combat_power") or tostring(calculateCombatPower(triggerId))
+    setChatVar(triggerId, "player_combat_power", combatPower)
+    setState(triggerId, "player_combat_power", tonumber(combatPower))
+
+    -- Combat State
+    local combatActive = getChatVar(triggerId, "snapshot_combat_active") or "false"
+    setChatVar(triggerId, "combat_active", combatActive)
+    setState(triggerId, "combat_active", combatActive)
+
+    local combatEnemyName = getChatVar(triggerId, "snapshot_combat_enemy_name") or ""
+    setChatVar(triggerId, "combat_enemy_name", combatEnemyName)
+    setState(triggerId, "combat_enemy_name", combatEnemyName)
+
+    local combatEnemyPower = getChatVar(triggerId, "snapshot_combat_enemy_power") or "0"
+    setChatVar(triggerId, "combat_enemy_power", combatEnemyPower)
+    setState(triggerId, "combat_enemy_power", tonumber(combatEnemyPower))
+
+    local combatState = getChatVar(triggerId, "snapshot_combat_state") or "Neutral"
+    setChatVar(triggerId, "combat_state", combatState)
+    setState(triggerId, "combat_state", combatState)
+
+    -- Stock Holdings (주식 보유량)
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local qty = getChatVar(triggerId, "snapshot_stock_" .. ticker .. "_qty") or "0"
+        local avg = getChatVar(triggerId, "snapshot_stock_" .. ticker .. "_avg") or "0"
+        setChatVar(triggerId, "stock_" .. ticker .. "_qty", qty)
+        setChatVar(triggerId, "stock_" .. ticker .. "_avg", avg)
+    end
+
+    log("🔄 RPG 스냅샷 복원 완료")
+end
+
+-- RPG 변수 변경량 초기화
+function clearRpgChanges(triggerId)
+    for _, stat in ipairs(playerStats) do
+        setChatVar(triggerId, "player_" .. stat .. "_change", "0")
+    end
+
+    setChatVar(triggerId, "player_gold_change", "0")
+    setChatVar(triggerId, "player_exp_change", "0")
+end
+
+-- 경영/주식 변화량 초기화
+function clearBusinessChanges(triggerId)
+    -- 주식 시스템 변화량 초기화
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        setState(triggerId, "stock_" .. ticker .. "_change", 0)
+    end
+    setState(triggerId, "market_index_change", 0)
+
+    -- 경영 시스템 변화량 초기화
+    local businessTickers = {"GOLDMANE", "LUXORIA", "PFIZARA"}
+    local businessVars = {"revenue", "profit", "cash", "debt", "market_share", "brand_value", "employees", "rd_progress", "player_share", "influence"}
+
+    for _, ticker in ipairs(businessTickers) do
+        for _, var in ipairs(businessVars) do
+            setChatVar(triggerId, ticker .. "_" .. var .. "_change", "0")
+        end
+    end
+
+    addDebugLog("System", "경영/주식 변화량 초기화 완료")
+end
+
+-- ============================================
+-- 장소 별칭 시스템 (로어북 기준)
+-- ============================================
+
+local locationAliases = {
+    -- 7개 하우스
+    ["Lily Valley House"] = {"Lily Valley", "릴리 밸리", "백합곡", "Lily"},
+    ["Rose House"] = {"Rose House", "로즈 하우스", "로즈", "장미관", "Rose"},
+    ["Aconitum House"] = {"Aconitum", "아코니툼", "투구꽃"},
+    ["Poppy House"] = {"Poppy", "포피", "양귀비"},
+    ["Ivy House"] = {"Ivy", "아이비", "담쟁이"},
+    ["Rafflesia House"] = {"Rafflesia", "라플레시아", "래플레시아"},
+    ["Belladonna House"] = {"Belladonna", "벨라도나", "벨라돈나"},
+
+    -- 캠퍼스 시설
+    ["Library"] = {"Library", "도서관", "라이브러리", "Central Library"},
+    ["Central Plaza"] = {"Central Plaza", "중앙 광장", "광장", "Plaza"},
+    ["Student Council Room"] = {"Student Council", "학생회실", "학생회", "Council"},
+    ["Shopping District"] = {"Shopping District", "쇼핑가", "상점가"},
+    ["Café Street"] = {"Café Street", "카페 거리", "카페가", "Café"},
+    ["Dueling Grounds"] = {"Dueling Grounds", "결투장", "훈련장"},
+    ["Underground Archives"] = {"Underground Archives", "지하 기록실", "기록보관소"},
+
+    -- 대학가 (College Town)
+    ["Scarlet Street"] = {"Scarlet Street", "스칼렛 스트리트", "스칼렛", "대학가", "Boulevard", "메인 스트리트"},
+    ["Midnight Alley"] = {"Midnight Alley", "미드나잇 앨리", "미드나잇", "Food Alley", "뒷골목", "음식 골목"},
+
+    -- 유흥/상업 지구
+    ["Lotus Street"] = {"Lotus Street", "로터스 스트리트", "로터스", "연꽃가", "Club District", "클럽가"},
+    ["Ruby Row"] = {"Ruby Row", "루비 로우", "루비", "Luxury Club", "고급 유흥가"},
+    ["Mana Square"] = {"Mana Square", "마나 스퀘어", "마나", "Mana Stone Exchange", "거래소"},
+    ["Golden District"] = {"Golden District", "골든 디스트릭트", "황실 구역", "Imperial District"},
+
+    -- 기타
+    ["FamilyMart"] = {"FamilyMart", "패밀리마트", "편의점"},
+    ["Club Moonlight"] = {"Club Moonlight", "문라이트", "클럽 문라이트"},
+    ["Imperial Palace"] = {"Imperial Palace", "황궁", "궁전", "Twin Princesses Palace"},
+    ["Imperial Training Grounds"] = {"Imperial Training", "황실 훈련장", "Imperial Grounds"},
+    ["Imperial Hunting Grounds"] = {"Hunting Grounds", "사냥터", "수렵장"},
+    ["Aconitum Arena"] = {"Arena", "아레나", "경기장"},
+    ["Grand Ballroom"] = {"Ballroom", "무도회장", "연회장", "Opera House"}
+}
+
+local locationFlags = {
+    -- 하우스
+    ["Lily Valley House"] = "at_lily_house",
+    ["Rose House"] = "at_rose_house",
+    ["Aconitum House"] = "at_aconitum_house",
+    ["Poppy House"] = "at_poppy_house",
+    ["Ivy House"] = "at_ivy_house",
+    ["Rafflesia House"] = "at_rafflesia_house",
+    ["Belladonna House"] = "at_belladonna_house",
+
+    -- 캠퍼스
+    ["Library"] = "at_library",
+    ["Central Plaza"] = "at_plaza",
+    ["Student Council Room"] = "at_council_room",
+    ["Shopping District"] = "at_shopping",
+    ["Café Street"] = "at_cafe_street",
+
+    -- 외부 지역
+    ["Scarlet Street"] = "at_scarlet_street",
+    ["Midnight Alley"] = "at_midnight_alley",
+    ["Lotus Street"] = "at_lotus_street",
+    ["Ruby Row"] = "at_ruby_row",
+    ["Mana Square"] = "at_mana_square",
+    ["Golden District"] = "at_golden_district",
+    ["FamilyMart"] = "at_familymart",
+    ["Club Moonlight"] = "at_club_moonlight",
+    ["Imperial Palace"] = "at_imperial_palace",
+    ["Imperial Training Grounds"] = "at_imperial_training",
+    ["Imperial Hunting Grounds"] = "at_hunting_grounds",
+    ["Aconitum Arena"] = "at_aconitum_arena",
+    ["Grand Ballroom"] = "at_ballroom"
+}
+
+-- 유연한 장소 매칭
+function matchLocation(currentLoc, targetLoc)
+    if currentLoc:match(targetLoc) then return true end
+
+    if locationAliases[targetLoc] then
+        for _, alias in ipairs(locationAliases[targetLoc]) do
+            if currentLoc:match(alias) then return true end
+        end
+    end
+
+    return false
+end
+
+-- ============================================
+-- 캐릭터 스케줄 (로어북 기준 재조정)
+-- ============================================
+
+local schedules = {
+    mirabel = {
+        morning = {
+            location = "Lily Valley House",
+            text = "릴리 밸리 하우스 거래소 (Lily Valley House Trading Floor)"
+        },
+        afternoon = {
+            location = "Lily Valley House",
+            text = "릴리 밸리 하우스 강의실 (Lily Valley House Classroom)"
+        },
+        evening = {
+            location = "Scarlet Street",
+            text = "스칼렛 스트리트 쇼핑가 (Scarlet Street Shopping District)"
+        },
+        night = {
+            location = "Ruby Row",
+            text = "루비 로우 고급 라운지 (Ruby Row Luxury Lounge)"
+        }
+    },
+
+    celestia = {
+        morning = {
+            location = "Student Council Room",
+            alt_location = "Rose House",
+            text = "학생회실 / 로즈 하우스 훈련 (Student Council Room / Rose House Training)"
+        },
+        afternoon = {
+            location = "Rose House",
+            text = "로즈 하우스 강의실 (Rose House Classroom)"
+        },
+        evening = {
+            location = "Student Council Room",
+            alt_location = "Rose House",
+            text = "학생회실 / 로즈 하우스 (Student Council Room / Rose House)"
+        },
+        night = {
+            location = "Lotus Street",
+            text = "로터스 스트리트 유흥가 (Lotus Street Entertainment Quarter)"
+        }
+    },
+
+    lilith = {
+        morning = {
+            location = "Poppy House",
+            text = "포피 하우스 뒷자리 (Poppy House Back Row - rarely visible)"
+        },
+        afternoon = {
+            location = "NONE",
+            text = "출현 불가 (NOT AVAILABLE)"
+        },
+        evening = {
+            location = "FamilyMart",
+            text = "패밀리마트 앞 계단 (FamilyMart Front Steps)"
+        },
+        night = {
+            location = "FamilyMart",
+            alt_location = "{{user}}'s Room",
+            text = "패밀리마트 / {{user}} 방 (FamilyMart / {{user}}'s Room)"
+        }
+    },
+
+    cassandra = {
+        morning = {
+            location = "Aconitum House",
+            text = "아코니툼 하우스 훈련장 (Aconitum House Training Grounds)"
+        },
+        afternoon = {
+            location = "Aconitum House",
+            text = "아코니툼 하우스 전술실 (Aconitum House Tactics Room)"
+        },
+        evening = {
+            location = "Aconitum House",
+            alt_location = "Scarlet Street",
+            text = "아코니툼 무기고 / 스칼렛 무기상점 (Aconitum Armory / Scarlet Weapon Shop)"
+        },
+        night = {
+            location = "Aconitum House",
+            text = "아코니툼 개인 숙소 (Aconitum Personal Quarters)"
+        }
+    },
+
+    evangeline = {
+        morning = {
+            location = "NONE",
+            text = "출현 불가 (NOT AVAILABLE)"
+        },
+        afternoon = {
+            location = "Belladonna House",
+            alt_location = "Central Plaza",
+            text = "벨라도나 라운지 / 중앙 광장 카페 (Belladonna Lounge / Plaza Café)"
+        },
+        evening = {
+            location = "Lotus Street",
+            text = "로터스 스트리트 클럽가 (Lotus Street Club District)"
+        },
+        night = {
+            location = "Club Moonlight",
+            alt_location = "Lotus Street",
+            text = "클럽 문라이트 / 로터스 클럽가 (Club Moonlight / Lotus Clubs)"
+        }
+    },
+
+    amelia = {
+        morning = {
+            location = "NONE",
+            text = "출현 불가 (NOT AVAILABLE)"
+        },
+        afternoon = {
+            location = "Library",
+            alt_location = "Ivy House",
+            text = "도서관 예술 섹션 / 아이비 스튜디오 (Library Art Section / Ivy Studio)"
+        },
+        evening = {
+            location = "Ivy House",
+            text = "아이비 하우스 스튜디오 (Ivy House Studio)"
+        },
+        night = {
+            location = "Ivy House",
+            text = "아이비 개인 작업실 (Ivy House Personal Workspace)"
+        }
+    },
+
+    nepenthes = {
+        morning = {
+            location = "Rafflesia House",
+            alt_location = "Central Plaza",
+            text = "라플레시아 연구실 / 중앙 광장 정원 (Rafflesia Lab / Plaza Garden)"
+        },
+        afternoon = {
+            location = "Rafflesia House",
+            alt_location = "Library",
+            text = "라플레시아 연구실 / 도서관 연금술 섹션 (Rafflesia Lab / Library Alchemy)"
+        },
+        evening = {
+            location = "Rafflesia House",
+            alt_location = "Scarlet Street",
+            text = "라플레시아 다실 / 스칼렛 카페 (Rafflesia Tea Room / Scarlet Café)"
+        },
+        night = {
+            location = "Rafflesia House",
+            text = "라플레시아 비밀 연구실 (Rafflesia Secret Lab)"
+        }
+    },
+
+    aurelia = {
+        morning = {
+            location = "Rose House",
+            alt_location = "Imperial Training Grounds",
+            text = "로즈 하우스 / 황실 훈련장 (Rose House / Imperial Training Grounds)"
+        },
+        afternoon = {
+            location = "Rose House",
+            text = "로즈 하우스 전략실 (Rose House Strategy Room)"
+        },
+        evening = {
+            location = "Library",
+            alt_location = "Central Plaza",
+            text = "도서관 / 중앙 광장 (Library / Central Plaza)"
+        },
+        night = {
+            location = "Imperial Palace",
+            text = "황궁 별관 (Imperial Palace Wing)"
+        }
+    },
+
+    cordelia = {
+        morning = {
+            location = "Lily Valley House",
+            text = "릴리 밸리 하우스 (Lily Valley House)"
+        },
+        afternoon = {
+            location = "Lily Valley House",
+            text = "릴리 밸리 하우스 (Lily Valley House)"
+        },
+        evening = {
+            location = "Scarlet Street",
+            alt_location = "Mana Square",
+            text = "스칼렛 보석상가 / 마나 스퀘어 (Scarlet Jewelry / Mana Square)"
+        },
+        night = {
+            location = "Cordelia's Quarters",
+            text = "개인 숙소 (Personal Quarters)"
+        }
+    },
+
+    suah = {
+        morning = {
+            location = "NONE",
+            text = "출현 불가 - 외부인 (NOT AVAILABLE - Outsider)"
+        },
+        afternoon = {
+            location = "NONE",
+            text = "출현 불가 (NOT AVAILABLE)"
+        },
+        evening = {
+            location = "Lotus Street",
+            alt_location = "Midnight Alley",
+            text = "로터스 유흥가 / 미드나잇 뒷골목 (Lotus Red Light / Midnight Alley)"
+        },
+        night = {
+            location = "Lotus Street",
+            text = "로터스 스트리트 바 (Lotus Street Bar)"
+        }
+    },
+
+    adelheid = {
+        morning = {
+            location = "Aconitum House",
+            text = "아코니툼 훈련장 (Aconitum Training - when not cold)"
+        },
+        afternoon = {
+            location = "Aconitum House",
+            text = "아코니툼 전략실 (Aconitum Strategy Room)"
+        },
+        evening = {
+            location = "Library",
+            text = "도서관 만화/라노벨 섹션 (Library Manga/Light Novel Section)"
+        },
+        night = {
+            location = "Adelheid's Quarters",
+            text = "개인 숙소 (Personal Quarters)"
+        }
+    },
+
+    rosalie = {
+        morning = {
+            location = "Central Plaza",
+            alt_location = "Rose House",
+            text = "중앙 광장 정원 / 로즈 온실 (Plaza Garden / Rose Greenhouse)"
+        },
+        afternoon = {
+            location = "Central Plaza",
+            alt_location = "Rose House",
+            text = "중앙 광장 정원 / 로즈 온실 (Plaza Garden / Rose Greenhouse)"
+        },
+        evening = {
+            location = "Rose House",
+            text = "로즈 하우스 다실 (Rose House Tea Room)"
+        },
+        night = {
+            location = "Rosalie's Quarters",
+            text = "개인 숙소 (Personal Quarters)"
+        }
+    },
+
+    mika = {
+        morning = {
+            location = "NONE",
+            text = "출현 불가 (NOT AVAILABLE)"
+        },
+        afternoon = {
+            location = "Library",
+            alt_location = "Central Plaza",
+            text = "도서관 예술 섹션 / 광장 카페 (Library Art / Plaza Café)"
+        },
+        evening = {
+            location = "Lotus Street",
+            text = "로터스 스트리트 공연가 (Lotus Street Performance District)"
+        },
+        night = {
+            location = "Mika's Studio",
+            text = "개인 작업실 (Personal Studio)"
+        }
+    },
+
+    clover = {
+        morning = {
+            location = "Belladonna House",
+            alt_location = "Central Plaza",
+            text = "벨라도나 라운지 / 중앙 광장 (Belladonna Lounge / Plaza)"
+        },
+        afternoon = {
+            location = "Belladonna House",
+            alt_location = "Scarlet Street",
+            text = "벨라도나 라운지 / 스칼렛 거리 (Belladonna Lounge / Scarlet Street)"
+        },
+        evening = {
+            location = "Scarlet Street",
+            alt_location = "Midnight Alley",
+            text = "스칼렛 바자 / 미드나잇 시장 (Scarlet Bazaar / Midnight Market)"
+        },
+        night = {
+            location = "NONE",
+            text = "행방 불명 (Unknown Location)"
+        }
+    }
+}
+
+-- ============================================
+-- 이벤트 스케줄 (로어북 기준)
+-- ============================================
+
+local eventSchedules = {
+    ["봄"] = {
+        {
+            weeks = {3, 4, 5, 6},
+            name = "Foundation Festival (창립제)",
+            overrides = {
+                ["Central Plaza"] = {
+                    chars = {"celestia", "mirabel", "evangeline", "clover", "rosalie"},
+                    periods = {"afternoon", "evening"}
+                },
+                ["Rose House"] = {
+                    chars = {"celestia", "aurelia", "rosalie"},
+                    periods = {"morning"}
+                },
+                ["Scarlet Street"] = {
+                    chars = {"mirabel", "cordelia", "clover"},
+                    periods = {"afternoon", "evening"}
+                }
+            }
+        },
+        {
+            weeks = {7, 8, 9},
+            name = "Spring Ball Season (봄 무도회)",
+            overrides = {
+                ["Grand Ballroom"] = {
+                    chars = {"aurelia", "celestia", "rosalie", "evangeline"},
+                    periods = {"evening", "night"}
+                },
+                ["Central Plaza"] = {
+                    chars = {"rosalie", "clover"},
+                    periods = {"afternoon"}
+                },
+                ["Ruby Row"] = {
+                    chars = {"evangeline", "celestia"},
+                    periods = {"night"}
+                }
+            }
+        }
+    },
+
+    ["여름"] = {
+        {
+            weeks = {4, 5, 6, 7},
+            name = "Solstice Tournament (하지 토너먼트)",
+            overrides = {
+                ["Aconitum Arena"] = {
+                    chars = {"cassandra", "aurelia", "adelheid"},
+                    periods = {"afternoon", "evening"}
+                },
+                ["Central Plaza"] = {
+                    chars = {"celestia", "evangeline", "clover"},
+                    periods = {"afternoon"}
+                },
+                ["Scarlet Street"] = {
+                    chars = {"mirabel", "cordelia"},
+                    periods = {"afternoon", "evening"}
+                }
+            }
+        },
+        {
+            weeks = {8, 9, 10, 11, 12},
+            name = "Research Symposium (연구 심포지엄)",
+            overrides = {
+                ["Poppy House"] = {
+                    chars = {"lilith", "nepenthes"},
+                    periods = {"afternoon", "evening"}
+                },
+                ["Rafflesia House"] = {
+                    chars = {"nepenthes"},
+                    periods = {"afternoon", "evening"}
+                },
+                ["Library"] = {
+                    chars = {"amelia", "adelheid"},
+                    periods = {"afternoon"}
+                }
+            }
+        }
+    },
+
+    ["가을"] = {
+        {
+            weeks = {1, 2, 3, 4},
+            name = "Harvest Festival (수확제)",
+            overrides = {
+                ["Central Plaza"] = {
+                    chars = {"rosalie", "evangeline", "clover", "nepenthes", "celestia"},
+                    periods = {"afternoon", "evening"}
+                },
+                ["Scarlet Street"] = {
+                    chars = {"mirabel", "cordelia", "clover"},
+                    periods = {"afternoon", "evening"}
+                }
+            }
+        },
+        {
+            weeks = {8, 9, 10, 11, 12},
+            name = "Autumn Hunt (가을 사냥)",
+            overrides = {
+                ["Imperial Hunting Grounds"] = {
+                    chars = {"aurelia", "cassandra", "adelheid"},
+                    periods = {"morning", "afternoon"}
+                }
+            }
+        }
+    },
+
+    ["겨울"] = {
+        {
+            weeks = {5, 6, 7, 8},
+            name = "Winter Gala (겨울 갈라)",
+            overrides = {
+                ["Grand Ballroom"] = {
+                    chars = {"celestia", "aurelia", "mirabel", "nepenthes", "rosalie"},
+                    periods = {"evening", "night"}
+                },
+                ["Rose House"] = {
+                    chars = {"celestia", "aurelia"},
+                    periods = {"afternoon"}
+                },
+                ["Ruby Row"] = {
+                    chars = {"evangeline", "celestia"},
+                    periods = {"night"}
+                }
+            }
+        }
+    }
+}
+
+-- ============================================
+-- 시간대 판별
+-- ============================================
+
+function getCurrentPeriod(triggerId)
+    local time = getChatVar(triggerId, "current_time") or "오전"
+
+    if time:match("오전") or time:match("아침") or time:match("새벽") or time:match("Morning") or time:match("morning") then
+        return "morning"
+    elseif time:match("오후") or time:match("Afternoon") or time:match("afternoon") then
+        return "afternoon"
+    elseif time:match("저녁") or time:match("Evening") or time:match("evening") then
+        return "evening"
+    elseif time:match("밤") or time:match("심야") or time:match("Night") or time:match("night") then
+        return "night"
+    else
+        return "morning"
+    end
+end
+
+-- ============================================
+-- 스케줄 매칭
+-- ============================================
+
+function checkScheduleMatch(triggerId)
+    local currentLocation = getChatVar(triggerId, "current_location") or "중앙 광장"
+    local period = getCurrentPeriod(triggerId)
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = tonumber(getChatVar(triggerId, "week_of_season")) or 1
+
+    -- 초기화
+    for charStorage, _ in pairs(schedules) do
+        setChatVar(triggerId, charStorage .. "_available", "false")
+    end
+
+    -- 1. 이벤트 스케줄 우선 체크
+    local eventMatch = false
+    if eventSchedules[season] then
+        for _, event in ipairs(eventSchedules[season]) do
+            local inEventWeek = false
+            for _, eventWeek in ipairs(event.weeks) do
+                if week == eventWeek then
+                    inEventWeek = true
+                    break
+                end
+            end
+
+            if inEventWeek then
+                setChatVar(triggerId, "active_event", event.name)
+
+                for eventLocation, config in pairs(event.overrides) do
+                    if matchLocation(currentLocation, eventLocation) then
+                        local periodMatch = false
+                        for _, eventPeriod in ipairs(config.periods) do
+                            if period == eventPeriod then
+                                periodMatch = true
+                                break
+                            end
+                        end
+
+                        if periodMatch then
+                            for _, charStorage in ipairs(config.chars) do
+                                setChatVar(triggerId, charStorage .. "_available", "true")
+                                eventMatch = true
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if not eventMatch then
+        setChatVar(triggerId, "active_event", "none")
+    end
+
+    -- 2. 기본 스케줄 체크
+    for charStorage, schedule in pairs(schedules) do
+        if getChatVar(triggerId, charStorage .. "_available") == "true" then
+            goto continue
+        end
+
+        local periodData = schedule[period]
+
+        if periodData then
+            if periodData.location ~= "NONE" and matchLocation(currentLocation, periodData.location) then
+                setChatVar(triggerId, charStorage .. "_available", "true")
+            end
+
+            if periodData.alt_location and matchLocation(currentLocation, periodData.alt_location) then
+                setChatVar(triggerId, charStorage .. "_available", "true")
+            end
+        end
+
+        ::continue::
+    end
+end
+
+function initScheduleVars(triggerId)
+    for charStorage, schedule in pairs(schedules) do
+        setChatVar(triggerId, charStorage .. "_schedule_morning", schedule.morning.text)
+        setChatVar(triggerId, charStorage .. "_schedule_afternoon", schedule.afternoon.text)
+        setChatVar(triggerId, charStorage .. "_schedule_evening", schedule.evening.text)
+        setChatVar(triggerId, charStorage .. "_schedule_night", schedule.night.text)
+    end
+end
+
+-- ============================================
+-- 호감도 패널 트리거 (56개)
+-- ============================================
+
+for _, char in ipairs(characters) do
+    _G["adjust_" .. char.storage .. "_plus_100"] = function(triggerId)
+        local key = char.storage .. "_affinity"
+        local current = tonumber(getChatVar(triggerId, key)) or 0
+        local new = clampValue(current + 100, AFFINITY_MIN, AFFINITY_MAX)
+        setChatVar(triggerId, key, tostring(new))
+
+        if char.is_main then
+            setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+        end
+
+        updatePercent(triggerId, char)
+
+        log(string.format("%s %s 호감도: %d → %d (+100)",
+            char.icon, char.display, current, new))
+        return true
+    end
+
+    _G["adjust_" .. char.storage .. "_plus_50"] = function(triggerId)
+        local key = char.storage .. "_affinity"
+        local current = tonumber(getChatVar(triggerId, key)) or 0
+        local new = clampValue(current + 50, AFFINITY_MIN, AFFINITY_MAX)
+        setChatVar(triggerId, key, tostring(new))
+
+        if char.is_main then
+            setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+        end
+
+        updatePercent(triggerId, char)
+
+        log(string.format("%s %s 호감도: %d → %d (+50)",
+            char.icon, char.display, current, new))
+        return true
+    end
+
+    _G["adjust_" .. char.storage .. "_minus_50"] = function(triggerId)
+        local key = char.storage .. "_affinity"
+        local current = tonumber(getChatVar(triggerId, key)) or 0
+        local new = clampValue(current - 50, AFFINITY_MIN, AFFINITY_MAX)
+        setChatVar(triggerId, key, tostring(new))
+
+        if char.is_main then
+            setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+        end
+
+        updatePercent(triggerId, char)
+
+        log(string.format("%s %s 호감도: %d → %d (-50)",
+            char.icon, char.display, current, new))
+        return true
+    end
+
+    _G["adjust_" .. char.storage .. "_minus_100"] = function(triggerId)
+        local key = char.storage .. "_affinity"
+        local current = tonumber(getChatVar(triggerId, key)) or 0
+        local new = clampValue(current - 100, AFFINITY_MIN, AFFINITY_MAX)
+        setChatVar(triggerId, key, tostring(new))
+
+        if char.is_main then
+            setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+        end
+
+        updatePercent(triggerId, char)
+
+        log(string.format("%s %s 호감도: %d → %d (-100)",
+            char.icon, char.display, current, new))
+        return true
+    end
+end
+
+-- ============================================
+-- 죄악도 패널 트리거 (32개)
+-- ============================================
+
+for _, char in ipairs(characters) do
+    if char.is_main then
+        _G["adjust_" .. char.storage .. "_sin_pos_plus_15"] = function(triggerId)
+            local key = char.storage .. "_sin_pos"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + 15, 0, SIN_MAX)
+            setChatVar(triggerId, key, tostring(new))
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s %s 해소: %d → %d (+15)",
+                char.icon, char.display, char.sin_type, current, new))
+            return true
+        end
+
+        _G["adjust_" .. char.storage .. "_sin_pos_plus_5"] = function(triggerId)
+            local key = char.storage .. "_sin_pos"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + 5, 0, SIN_MAX)
+            setChatVar(triggerId, key, tostring(new))
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s %s 해소: %d → %d (+5)",
+                char.icon, char.display, char.sin_type, current, new))
+            return true
+        end
+
+        _G["adjust_" .. char.storage .. "_sin_neg_plus_15"] = function(triggerId)
+            local key = char.storage .. "_sin_neg"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + 15, 0, SIN_MAX)
+            setChatVar(triggerId, key, tostring(new))
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s %s 압력: %d → %d (+15)",
+                char.icon, char.display, char.sin_type, current, new))
+            return true
+        end
+
+        _G["adjust_" .. char.storage .. "_sin_neg_plus_5"] = function(triggerId)
+            local key = char.storage .. "_sin_neg"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + 5, 0, SIN_MAX)
+            setChatVar(triggerId, key, tostring(new))
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s %s 압력: %d → %d (+5)",
+                char.icon, char.display, char.sin_type, current, new))
+            return true
+        end
+    end
+end
+
+-- ============================================
+-- 자유 호감도 입력 (alertInput 방식)
+-- 16 캐릭터 × _G["affinity_input_<storage>"] 등록
+-- ============================================
+
+for _, char in ipairs(characters) do
+    _G["affinity_input_" .. char.storage] = async(function(triggerId)
+        local prompt = char.display .. "의 호감도를 변경할 수치를 입력하세요.\n(예: 10 또는 -20)"
+        local userInput = alertInput(triggerId, prompt):await()
+        if not userInput then return end
+        local change = tonumber(userInput)
+        if change then
+            local key = char.storage .. "_affinity"
+            local current = tonumber(getChatVar(triggerId, key)) or 0
+            local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+            setChatVar(triggerId, key, tostring(new))
+            setState(triggerId, key, new)
+
+            if char.is_main then
+                setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+            end
+
+            updatePercent(triggerId, char)
+
+            log(string.format("%s %s 호감도: %d → %d (%+d, 입력)",
+                char.icon, char.display, current, new, change))
+        else
+            alertError(triggerId, "잘못된 입력입니다. 숫자만 입력해주세요.")
+        end
+    end)
+end
+
+-- ============================================
+-- 유틸리티 함수
+-- ============================================
+
+-- 요일 이름 변환 함수 (숫자 → 한글)
+local function getDayName(dayNum)
+    local dayNames = {"월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"}
+    return dayNames[dayNum] or "알 수 없음"
+end
+
+-- 한글 요일명 → 숫자 변환 함수
+local function getDayNumber(dayName)
+    local dayMap = {
+        ["월요일"] = 1, ["화요일"] = 2, ["수요일"] = 3,
+        ["목요일"] = 4, ["금요일"] = 5, ["토요일"] = 6, ["일요일"] = 7
+    }
+    return dayMap[dayName] or 1
+end
+
+-- ============================================
+-- 상태창 파싱
+-- ============================================
+
+function parseStatusWindow(triggerId, message)
+    local time = message:match("%[Time:([^%]]+)%]")
+    if time then
+        setChatVar(triggerId, "current_time", time)
+        setState(triggerId, "current_time", time)
+    end
+
+    local location = message:match("%[Location:([^%]]+)%]")
+    if location then
+        setChatVar(triggerId, "current_location", location)
+        setState(triggerId, "current_location", location)
+
+        for _, flag in pairs(locationFlags) do
+            setChatVar(triggerId, flag, "false")
+        end
+
+        for locName, flag in pairs(locationFlags) do
+            if matchLocation(location, locName) then
+                setChatVar(triggerId, flag, "true")
+            end
+        end
+    end
+
+    local season = message:match("%[Season:([^%]]+)%]")
+    if season then
+        setChatVar(triggerId, "current_season", season)
+        setState(triggerId, "current_season", season)
+        setChatVar(triggerId, "is_spring", season == "봄" and "true" or "false")
+        setChatVar(triggerId, "is_summer", season == "여름" and "true" or "false")
+        setChatVar(triggerId, "is_autumn", season == "가을" and "true" or "false")
+        setChatVar(triggerId, "is_winter", season == "겨울" and "true" or "false")
+    end
+
+    local week = message:match("%[Week:(%d+)%]")
+    if week then
+        setChatVar(triggerId, "week_of_season", week)
+        setState(triggerId, "week_of_season", week)
+    end
+
+    -- Day 태그 파싱: 한글 요일명 지원
+    local day = message:match("%[Day:([^%]]+)%]")
+    if day then
+        local dayNum
+        -- 숫자 형식인 경우 (하위 호환성)
+        if tonumber(day) then
+            dayNum = tonumber(day)
+        else
+            -- 한글 요일명인 경우
+            dayNum = getDayNumber(day)
+        end
+
+        -- day_of_week에 숫자 저장
+        setChatVar(triggerId, "day_of_week", tostring(dayNum))
+        setState(triggerId, "day_of_week", tostring(dayNum))
+
+        -- day_of_week_name에 한글 저장
+        local dayName = getDayName(dayNum)
+        setChatVar(triggerId, "day_of_week_name", dayName)
+        setState(triggerId, "day_of_week_name", dayName)
+    end
+
+    local weather = message:match("%[Weather:([^%]]+)%]")
+    if weather then
+        setChatVar(triggerId, "current_weather", weather)
+    end
+
+    -- Combat 태그 파싱 (Combat 시작/종료만 - CombatChoice는 메인모델에서 처리)
+    parseCombats(triggerId, message)
+
+    if time or location then
+        checkScheduleMatch(triggerId)
+    end
+end
+
+
+-- ============================================
+-- 시나리오 트리거 (메인 16개 + 서브 30개 = 46개)
+-- ============================================
+
+-- 메인 캐릭터: greeting 1~16
+-- 서브 캐릭터: greeting 17~46
+for i = 1, 46 do
+    _G["greeting" .. i] = function(triggerId)
+        setChatVar(triggerId, "greeting", tostring(i))
+        setState(triggerId, "greeting", i)
+        log("Scenario " .. i)
+        return true
+    end
+end
+
+-- 공통 시작 옵션
+_G["entrance_ceremony"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "100")
+    setState(triggerId, "greeting", 100)
+    log("🎓 Entrance Ceremony Start")
+    return true
+end
+
+_G["year2_semester"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "101")
+    setState(triggerId, "greeting", 101)
+    log("📅 Year 2 Semester Start")
+    return true
+end
+
+_G["free_start"] = function(triggerId)
+    setChatVar(triggerId, "greeting", "102")
+    setState(triggerId, "greeting", 102)
+    log("✨ Free Start")
+    return true
+end
+
+-- 테스트용: 전투 강제 시작
+_G["test_combat"] = function(triggerId)
+    -- 보조 AI 출력을 시뮬레이션
+    local testMessage = "[Affinity:Cassandra:neutral][Sin:Cassandra:neutral][Combat:Ogre:110]\n<CombatChoice>\n[STR|곤봉을 피해 검으로 베어넘긴다|Normal]\n[DEX|재빠르게 옆으로 굴러 회피한다|Easy]\n[INT|약점을 분석하여 공격한다|Normal]\n[CHA|위협하여 물러서게 한다|Very Hard]\n[LUK|운에 맡긴다|Very Hard]\n[도주|재빠르게 도망친다|Easy]\n</CombatChoice>\n<Panel>■★"
+
+    log("🧪 테스트: 전투 시뮬레이션 시작")
+    parseStatusWindow(triggerId, testMessage)
+
+    log(string.format("✅ combat_active = %s", getChatVar(triggerId, "combat_active")))
+    log(string.format("✅ combat_enemy_name = %s", getChatVar(triggerId, "combat_enemy_name")))
+    log(string.format("✅ combat_enemy_power = %s", getChatVar(triggerId, "combat_enemy_power")))
+
+    return true
+end
+
+-- ============================================
+-- 메인 함수
+-- ============================================
+
+function onStart(triggerId)
+    log("=== Belladonna Academy v6.0 - Lorebook Edition ===")
+
+    for _, char in ipairs(characters) do
+        if not getChatVar(triggerId, char.storage .. "_affinity") then
+            setChatVar(triggerId, char.storage .. "_affinity", "0")
+        end
+
+        if char.is_main then
+            if not getChatVar(triggerId, char.storage .. "_sin_pos") then
+                setChatVar(triggerId, char.storage .. "_sin_pos", "0")
+            end
+            if not getChatVar(triggerId, char.storage .. "_sin_neg") then
+                setChatVar(triggerId, char.storage .. "_sin_neg", "0")
+            end
+            if not getChatVar(triggerId, char.storage .. "_sin_pos_count") then
+                setChatVar(triggerId, char.storage .. "_sin_pos_count", "0")
+            end
+            if not getChatVar(triggerId, char.storage .. "_sin_neg_count") then
+                setChatVar(triggerId, char.storage .. "_sin_neg_count", "0")
+            end
+            setChatVar(triggerId, char.storage .. "_route", "진행중")
+        end
+
+        updatePercent(triggerId, char)
+        takeSnapshot(triggerId, char)
+        clearChanges(triggerId, char)
+    end
+
+    initScheduleVars(triggerId)
+
+    -- 환경 변수 초기화 (최초 1회만)
+    if not getChatVar(triggerId, "current_season") then
+        setChatVar(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "is_spring", "true")
+        setChatVar(triggerId, "is_summer", "false")
+        setChatVar(triggerId, "is_autumn", "false")
+        setChatVar(triggerId, "is_winter", "false")
+    end
+    if not getChatVar(triggerId, "week_of_season") then
+        setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
+    end
+    if not getChatVar(triggerId, "day_of_week") then
+        setChatVar(triggerId, "day_of_week", "1")
+        setChatVar(triggerId, "day_of_week_name", "월요일")
+    end
+    if not getChatVar(triggerId, "current_time") then
+        setChatVar(triggerId, "current_time", "오전")
+    end
+    if not getChatVar(triggerId, "current_location") then
+        setChatVar(triggerId, "current_location", "중앙 광장")
+
+        -- 초기 위치 플래그 설정
+        for _, flag in pairs(locationFlags) do
+            setChatVar(triggerId, flag, "false")
+        end
+        setChatVar(triggerId, "at_plaza", "true")
+    end
+    if not getChatVar(triggerId, "current_weather") then
+        setChatVar(triggerId, "current_weather", "맑음")
+    end
+    if not getChatVar(triggerId, "active_event") then
+        setChatVar(triggerId, "active_event", "none")
+    end
+
+    -- 보조 AI 모드 초기화 (기본값: aux 모델 사용)
+    -- 유효한 값: "0" (off), "1" (main), "2" (aux)
+    local currentAuxMode = getState(triggerId, "auxiliary_mode")
+    if currentAuxMode ~= "0" and currentAuxMode ~= "1" and currentAuxMode ~= "2" then
+        -- nil이거나 유효하지 않은 값이면 기본값 "2"로 초기화
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "Aux")
+        log("🔧 보조 AI 모드 초기화: " .. tostring(currentAuxMode) .. " → 2 (Aux)")
+    else
+        -- 유효한 값이 있으면 chatVar도 동기화
+        setChatVar(triggerId, "auxiliary_mode", currentAuxMode)
+        log("🔧 보조 AI 모드 로드: " .. currentAuxMode)
+    end
+
+    -- 호감도 시스템 초기화 (기본값: 활성화)
+    local currentAffinitySystem = getState(triggerId, "affinity_system_enabled")
+    if currentAffinitySystem ~= "true" and currentAffinitySystem ~= "false" then
+        setState(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_text", "ON")
+        log("💕 호감도 시스템 초기화: ON")
+    else
+        setChatVar(triggerId, "affinity_system_enabled", currentAffinitySystem)
+        setChatVar(triggerId, "affinity_system_text", currentAffinitySystem == "true" and "ON" or "OFF")
+        log("💕 호감도 시스템 로드: " .. currentAffinitySystem)
+    end
+
+    -- 주간 스케줄 변수 초기화
+    if not getState(triggerId, "weekly_schedule_display") then
+        local defaultSchedule = "=== 이번 주 계획 ===\n\n아직 스케줄이 설정되지 않았습니다.\n'스케줄 조정' 버튼을 눌러 계획을 세워보세요!"
+        setState(triggerId, "weekly_schedule_display", defaultSchedule)
+        setChatVar(triggerId, "weekly_schedule_display", defaultSchedule)
+    end
+    if not getChatVar(triggerId, "current_curriculum") then
+        setChatVar(triggerId, "current_curriculum", "")
+    end
+    if not getChatVar(triggerId, "current_lifestyle") then
+        setChatVar(triggerId, "current_lifestyle", "")
+    end
+    if not getChatVar(triggerId, "player_house") then
+        setChatVar(triggerId, "player_house", "Serpent")
+    end
+
+    -- RPG 시스템 초기화
+    if getState(triggerId, "player_level") == nil then
+        -- 플레이어 레벨/경험치 (초기 레벨 0 = 능력평가 미완료)
+        setState(triggerId, "player_level", 0)
+        setChatVar(triggerId, "player_level", "0")
+        setState(triggerId, "player_exp", 0)
+        setChatVar(triggerId, "player_exp", "0")
+        setState(triggerId, "player_exp_to_next", 100)
+        setChatVar(triggerId, "player_exp_to_next", "100")
+
+        -- 플레이어 골드
+        setState(triggerId, "player_gold", 0)
+        setChatVar(triggerId, "player_gold", "0")
+
+        -- 주식 시스템 변수 초기화
+        initStockSystem(triggerId)
+
+        -- 플레이어 스탯 (기본값 40 = 평범한 일반인, 능력평가 전까지)
+        for _, stat in ipairs(playerStats) do
+            setState(triggerId, "player_" .. stat, STAT_DEFAULT)
+            setChatVar(triggerId, "player_" .. stat, tostring(STAT_DEFAULT))
+        end
+
+        -- 플레이어 아이템
+        setState(triggerId, "player_items", "")
+        setChatVar(triggerId, "player_items", "")
+
+        -- 플레이어 Trait
+        setState(triggerId, "player_traits", "")
+        setChatVar(triggerId, "player_traits", "")
+
+        -- Season, Week, Time, Location 초기값
+        setState(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "is_spring", "true")
+        setChatVar(triggerId, "is_summer", "false")
+        setChatVar(triggerId, "is_autumn", "false")
+        setChatVar(triggerId, "is_winter", "false")
+        setState(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
+        setChatVar(triggerId, "day_of_week", "1")
+        setChatVar(triggerId, "day_of_week_name", "월요일")
+        setState(triggerId, "current_time", "오전")
+        setChatVar(triggerId, "current_time", "오전")
+        setState(triggerId, "current_location", "")
+        setChatVar(triggerId, "current_location", "")
+
+        -- 능력평가 완료 플래그 (로어북용)
+        setState(triggerId, "ability_eval_status", 0)
+        setChatVar(triggerId, "ability_eval_status", "0")
+        setState(triggerId, "stats_evaluated", "false")
+        setChatVar(triggerId, "stats_evaluated", "false")
+
+        -- RPG 시스템 기본 활성화
+        setState(triggerId, "rpg_system_enabled", true)
+        setChatVar(triggerId, "rpg_system_enabled", "true")
+
+        -- 활성 효과 초기화
+        setState(triggerId, "active_effects", "")
+        setChatVar(triggerId, "active_effects", "")
+        setState(triggerId, "active_effects_display", "")
+        setChatVar(triggerId, "active_effects_display", "")
+
+        -- 아이템 사용 상태 초기화
+        setState(triggerId, "using_item", "")
+        setChatVar(triggerId, "using_item", "")
+        setState(triggerId, "using_item_effect", "")
+        setChatVar(triggerId, "using_item_effect", "")
+
+        -- 전투력 초기화 (스탯 기반 계산)
+        local initialCombatPower = calculateCombatPower(triggerId)
+        setState(triggerId, "player_combat_power", initialCombatPower)
+        setChatVar(triggerId, "player_combat_power", tostring(initialCombatPower))
+
+        -- 전투 시스템 초기화
+        setState(triggerId, "combat_active", "false")
+        setChatVar(triggerId, "combat_active", "false")
+        setState(triggerId, "combat_enemy_name", "")
+        setChatVar(triggerId, "combat_enemy_name", "")
+        setState(triggerId, "combat_enemy_power", 0)
+        setChatVar(triggerId, "combat_enemy_power", "0")
+        setState(triggerId, "combat_player_power", 0)
+        setChatVar(triggerId, "combat_player_power", "0")
+        setState(triggerId, "combat_state", "Neutral")
+        setChatVar(triggerId, "combat_state", "Neutral")
+
+        -- 전투 선택지 난이도 초기화
+        setState(triggerId, "combat_str_difficulty", "Normal")
+        setChatVar(triggerId, "combat_str_difficulty", "Normal")
+        setState(triggerId, "combat_dex_difficulty", "Normal")
+        setChatVar(triggerId, "combat_dex_difficulty", "Normal")
+        setState(triggerId, "combat_int_difficulty", "Normal")
+        setChatVar(triggerId, "combat_int_difficulty", "Normal")
+        setState(triggerId, "combat_cha_difficulty", "Normal")
+        setChatVar(triggerId, "combat_cha_difficulty", "Normal")
+        setState(triggerId, "combat_luk_difficulty", "Very Hard")
+        setChatVar(triggerId, "combat_luk_difficulty", "Very Hard")
+
+        -- 6번 선택지 초기화
+        setState(triggerId, "combat_6th_type", "flee")
+        setChatVar(triggerId, "combat_6th_type", "flee")
+        setState(triggerId, "combat_6th_name", "도망")
+        setChatVar(triggerId, "combat_6th_name", "도망")
+        setState(triggerId, "combat_6th_difficulty", "Easy")
+        setChatVar(triggerId, "combat_6th_difficulty", "Easy")
+
+        -- 전투 선택지 변수 초기화 (보조 AI 생성 선택지)
+        for i = 1, 6 do
+            setChatVar(triggerId, "combat_choice_" .. i .. "_stat", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_desc", "")
+            setChatVar(triggerId, "combat_choice_" .. i .. "_diff", "")
+        end
+        setChatVar(triggerId, "combat_choices_html", "")
+
+        -- 전투 결과 변수 초기화 (주사위 굴림 결과)
+        setChatVar(triggerId, "combat_last_choice_num", "0")
+        setChatVar(triggerId, "combat_last_choice_stat", "")
+        setChatVar(triggerId, "combat_last_choice_desc", "")
+        setChatVar(triggerId, "combat_last_choice_diff", "")
+        setChatVar(triggerId, "combat_last_roll", "0")
+        setChatVar(triggerId, "combat_last_bonus", "0")
+        setChatVar(triggerId, "combat_last_total", "0")
+        setChatVar(triggerId, "combat_last_target", "0")
+        setChatVar(triggerId, "combat_last_result", "")
+        setChatVar(triggerId, "combat_last_critical", "false")
+        setChatVar(triggerId, "combat_last_fumble", "false")
+
+        log("🎮 RPG 시스템 초기화 완료")
+        log("⚔️ 전투 시스템 초기화 완료")
+        log("🔧 초기화: ability_eval_status = " .. tostring(getState(triggerId, "ability_eval_status")))
+    end
+
+    -- RPG 스냅샷 및 변경량 초기화
+    takeRpgSnapshot(triggerId)
+    clearRpgChanges(triggerId)
+
+    checkScheduleMatch(triggerId)
+
+    -- 초기 디스플레이 변수 생성
+    updateTraitsDisplay(triggerId)
+    updateItemsDisplay(triggerId)
+
+    log("✅ 초기화 완료 (로어북 기준 + RPG 시스템)")
+end
+
+-- onOutput 중복 실행 방지 플래그
+local isProcessing = false
+
+-- onOutput 메인 처리 로직
+function processOutput(triggerId)
+    log("🔄 processOutput 시작")
+
+    local message = getCharacterLastMessage(triggerId)
+    if not message then
+        log("⚠️ processOutput: 메시지 없음")
+        return
+    end
+
+    -- 이미 최종 처리된 메시지인지 확인 (setChat() 재트리거 방지)
+    -- <Panel>■★ 마커가 있으면 이미 보조 출력이 추가된 메시지
+    if message:find("<Panel>■★", 1, true) then
+        log("⏭️ processOutput: 이미 처리된 메시지 - 스킵")
+        return
+    end
+
+    log("📨 새 턴 처리 (메시지 길이: " .. #message .. ")")
+
+    -- 메인 모델 출력에서 CombatChoice 파싱 (버튼 생성)
+    parseCombatChoices(triggerId, message)
+
+    -- 리롤 지원: 이전 스냅샷으로 복원 후 새 스냅샷 생성
+    for _, char in ipairs(characters) do
+        restoreSnapshot(triggerId, char)  -- 리롤 시 이전 상태로 복원
+        clearChanges(triggerId, char)
+        takeSnapshot(triggerId, char)     -- 현재 턴 시작 전 상태 저장
+    end
+
+    -- RPG 스냅샷 및 변경량 초기화 (RPG 활성화 시에만)
+    local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+    if rpgEnabled then
+        restoreRpgSnapshot(triggerId)  -- 리롤 시 이전 상태로 복원
+        clearRpgChanges(triggerId)
+        takeRpgSnapshot(triggerId)     -- 현재 턴 시작 전 상태 저장
+    end
+
+    -- 경영/주식 변화량 초기화 (시스템 활성화 여부 관계없이 항상 실행)
+    clearBusinessChanges(triggerId)
+
+    -- 보조모델 호출: 메인 모델 출력 분석 후 태그 생성
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, message)
+        log("📥 보조모델 응답 길이: " .. #auxiliaryMessage)
+    end
+
+    -- 메인과 보조 응답 모두에서 태그 파싱 (어디에 태그가 있든 파싱됨)
+    local combinedSource = message .. "\n" .. auxiliaryMessage
+
+    -- 태그 파싱
+    parseStatusWindow(triggerId, combinedSource)
+
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
+
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
+
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "해소" or "압력",
+                        currentCount, currentCount + 1))
+                    break
+                end
+            end
+        end
+    end
+
+    -- 호감도 파싱 (시스템 활성화 시에만)
+    local affinityEnabled = getChatVar(triggerId, "affinity_system_enabled")
+    if affinityEnabled ~= "false" then  -- 기본값은 활성화
+        for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+            for _, char in ipairs(characters) do
+                if char.display == charName and affinityChanges[feeling] then
+                    local key = char.storage .. "_affinity"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = affinityChanges[feeling]
+                    local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+
+                    setChatVar(triggerId, key, tostring(new))
+
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+
+                    if char.is_main then
+                        setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    end
+
+                    updatePercent(triggerId, char)
+
+                    log(string.format("%s %s 호감도 %+d (%s) | 현재: %d",
+                        char.icon, char.display, change, feeling, new))
+                    break
+                end
+            end
+        end
+    end
+
+    -- 죄악도 파싱
+    for charName, level in combinedSource:gmatch("%[Sin:(%w+):(%w+)%]") do
+        for _, char in ipairs(characters) do
+            if char.is_main and char.display == charName then
+                if sinPosChanges[level] then
+                    local key = char.storage .. "_sin_pos"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = sinPosChanges[level]
+                    local new = clampValue(current + change, 0, SIN_MAX)
+
+                    setChatVar(triggerId, key, tostring(new))
+
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_sin_pos")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_sin_pos", tostring(prevChange + change))
+
+                    updatePercent(triggerId, char)
+
+                    log(string.format("%s %s %s 해소 %+d (%s) | 현재: %d",
+                        char.icon, char.display, char.sin_type, change, level, new))
+                end
+
+                if sinNegChanges[level] then
+                    local key = char.storage .. "_sin_neg"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = sinNegChanges[level]
+                    local new = clampValue(current + change, 0, SIN_MAX)
+
+                    setChatVar(triggerId, key, tostring(new))
+
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_sin_neg")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_sin_neg", tostring(prevChange + change))
+
+                    updatePercent(triggerId, char)
+
+                    log(string.format("%s %s %s 압력 %+d (%s) | 현재: %d",
+                        char.icon, char.display, char.sin_type, change, level, new))
+                end
+
+                break
+            end
+        end
+    end
+
+    -- RPG 시스템 파싱 (태그 소스에서)
+    if rpgEnabled then
+        parseStatChanges(triggerId, combinedSource)
+        parseGoldChanges(triggerId, combinedSource)
+        parseExpChanges(triggerId, combinedSource)
+        parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
+        parseItems(triggerId, combinedSource)
+        parseTraits(triggerId, combinedSource)
+        parseEffects(triggerId, combinedSource)
+        parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
+        parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
+        parseStockChanges(triggerId, combinedSource)  -- 주식 시세
+        parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
+        parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
+
+        -- 턴마다 효과 duration 감소
+        updateEffectDurations(triggerId)
+
+        -- RPG 디스플레이 변수 업데이트 (HTML 템플릿용)
+        updateRpgDisplayVars(triggerId)
+    end
+
+    -- 로어북 이벤트 태그 파싱 (메인 AI 응답에서)
+    -- [StatsEvaluated] 태그 감지 → 능력평가 완료 처리
+    log("🔍 메시지 체크: " .. (message:find("%[StatsEvaluated%]") and "태그 발견!" or "태그 없음"))
+    if message:find("%[StatsEvaluated%]") then
+        local currentLevel = tonumber(getChatVar(triggerId, "player_level")) or 0
+        local statsEvaluated = getChatVar(triggerId, "stats_evaluated")
+        log("🔍 currentLevel = " .. currentLevel)
+
+        if statsEvaluated ~= "true" then
+            -- 능력평가 완료 플래그 설정
+            setState(triggerId, "stats_evaluated", "true")
+            setChatVar(triggerId, "stats_evaluated", "true")
+
+            -- 레벨이 0이면 1로 상승
+            if currentLevel == 0 then
+                setState(triggerId, "player_level", 1)
+                setChatVar(triggerId, "player_level", "1")
+                setState(triggerId, "player_exp", 0)
+                setChatVar(triggerId, "player_exp", "0")
+                setState(triggerId, "player_exp_to_next", 100)
+                setChatVar(triggerId, "player_exp_to_next", "100")
+            end
+
+            setState(triggerId, "ability_eval_status", 1)
+            setChatVar(triggerId, "ability_eval_status", "1")
+
+            -- 스냅샷 즉시 업데이트 (다음 턴에 복원되지 않도록)
+            setChatVar(triggerId, "snapshot_stats_evaluated", "true")
+            setChatVar(triggerId, "snapshot_ability_eval_status", "1")
+            if currentLevel == 0 then
+                setChatVar(triggerId, "snapshot_player_level", "1")
+            end
+
+            log("✅ 능력평가 완료!")
+            log("🔧 stats_evaluated = true")
+            log("🔧 ability_eval_status = " .. tostring(getState(triggerId, "ability_eval_status")))
+            if currentLevel == 0 then
+                log("🔧 player_level: 0 → 1")
+            end
+        end
+    end
+
+    -- 아이템 사용 완료 처리 (버튼 클릭 시 이미 차감됨)
+    local usingItem = getChatVar(triggerId, "using_item") or ""
+    if usingItem ~= "" then
+        log("🎒 아이템 사용 완료 처리: " .. usingItem)
+
+        -- AI가 아이템을 반환했는지 확인 (태그 소스에서)
+        local returnPattern = "%[Item:Add:" .. usingItem .. ":1[:%]]"
+        local wasReturned = combinedSource:find(returnPattern) ~= nil
+
+        if wasReturned then
+            -- 비소모품: 아이템 복원
+            local itemsStr = getChatVar(triggerId, "player_items") or ""
+            local items = parseItemList(itemsStr)
+
+            items[usingItem] = (items[usingItem] or 0) + 1
+            local newItemsStr = serializeItemList(items)
+            setChatVar(triggerId, "player_items", newItemsStr)
+            setState(triggerId, "player_items", newItemsStr)
+            setChatVar(triggerId, "snapshot_player_items", newItemsStr)
+
+            -- 슬롯 변수 업데이트 (버튼 텍스트 갱신)
+            updateItemSlotVars(triggerId)
+
+            log(string.format("♻️ %s 반환됨 (비소모품)", usingItem))
+        else
+            -- 소모품: 효과 적용 (아이템은 이미 차감됨)
+            local effectStr = getChatVar(triggerId, "using_item_effect") or ""
+            if effectStr ~= "" then
+                local parts = {}
+                for part in effectStr:gmatch("[^:]+") do
+                    table.insert(parts, part)
+                end
+
+                if #parts >= 3 then
+                    local effectType = parts[1]
+                    local effectValue = tonumber(parts[2]) or 0
+                    local effectDuration = tonumber(parts[3]) or 0
+                    local effectDesc = parts[4] or ""
+
+                    addEffect(triggerId, usingItem, effectType, effectValue, effectDuration, effectDesc)
+                    log(string.format("✅ %s 소모됨 - 효과 적용: %s", usingItem, effectDesc))
+                else
+                    log(string.format("✅ %s 소모됨", usingItem))
+                end
+            else
+                log(string.format("✅ %s 소모됨 (효과 없음)", usingItem))
+            end
+
+            -- 슬롯 변수 업데이트 (버튼 텍스트 갱신)
+            updateItemSlotVars(triggerId)
+        end
+
+        -- using_item 초기화
+        setChatVar(triggerId, "using_item", "")
+        setState(triggerId, "using_item", "")
+        setChatVar(triggerId, "using_item_effect", "")
+        setState(triggerId, "using_item_effect", "")
+    end
+
+    -- 보조모델 태그를 채팅에 추가 (RisuAI 정규식이 <Panel>■★를 처리)
+    -- 중복 태그 제거: 메인 응답에 이미 있는 태그를 보조 응답에서 제거
+    local filteredAuxiliary = removeDuplicateTags(message, auxiliaryMessage)
+
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입
+    local panelMarker = "<Panel>■★"
+    local panelPos = filteredAuxiliary:find(panelMarker, 1, true)
+    addDebugLog("System", string.format("보조 응답 길이: %d, Panel 마커 위치: %s", #filteredAuxiliary, tostring(panelPos)))
+    if panelPos then
+        filteredAuxiliary = filteredAuxiliary:sub(1, panelPos - 1) .. "<StockPanel />\n" .. filteredAuxiliary:sub(panelPos)
+        addDebugLog("System", "✅ <StockPanel /> 자동 삽입 완료")
+    else
+        addDebugLog("System", "⚠️ <Panel>■★ 마커를 찾을 수 없음 - 보조 응답: " .. filteredAuxiliary:sub(1, 100))
+    end
+
+    local finalMessage = message .. "\n\n" .. filteredAuxiliary
+
+    -- 마지막 메시지의 인덱스를 명시적으로 계산 (0-based index)
+    local chatLength = getChatLength(triggerId)
+    local lastIndex = chatLength - 1
+
+    setChat(triggerId, lastIndex, finalMessage)
+    log("✅ processOutput 완료 - 메시지 업데이트됨 (index: " .. lastIndex .. ")")
+end
+
+-- onOutput 이벤트 핸들러
+onOutput = async(function(triggerId)
+    -- 이미 처리 중이면 스킵 (전송 취소 후 재전송 등의 경우)
+    if isProcessing then
+        log("⚠️ 이미 처리 중 - 스킵")
+        return
+    end
+
+    isProcessing = true
+
+    -- [SAFETY 2026-05-25 v2] xpcall로 stack trace까지 캡처
+    -- (debug.traceback 미지원 환경 대비 fallback 처리)
+    local success, result = xpcall(
+        function() return processOutput(triggerId) end,
+        function(err)
+            local tb = ""
+            if debug and debug.traceback then
+                tb = "\n" .. debug.traceback("", 2)
+            end
+            return tostring(err) .. tb
+        end
+    )
+
+    isProcessing = false
+
+    if not success then
+        log("❌ onOutput 에러 발생: " .. tostring(result))
+
+        -- [SAFETY 2026-05-25] processOutput throw 시 마커 강제 보장 + 에러 노출
+        -- 보조모델 미호출 + 마커 누락 = setChat 미도달 확증됨.
+        -- 어디서 throw됐는지 채팅에 노출하여 콘솔 로그 안 보여도 진단 가능하게 함.
+        -- 디버깅 종료 후 에러 메시지 노출 부분만 제거하면 됨 (마커 보장은 유지 권장).
+        local safetyOk, safetyErr = pcall(function()
+            local msg = getCharacterLastMessage(triggerId) or ""
+            -- 이미 마커 있으면 중복 추가 안 함 (정상 스킵 케이스 보호)
+            if msg:find("<Panel>■★", 1, true) then
+                return
+            end
+            -- 에러 + traceback 노출 (800자로 확장)
+            local errText = tostring(result):sub(1, 800)
+            local errLine = "\n\n[⚠️ AUX SAFETY:\n" .. errText .. "\n]\n<Panel>■★"
+            local chatLength = getChatLength(triggerId)
+            setChat(triggerId, chatLength - 1, msg .. errLine)
+            log("🛡️ 마커 보장 setChat 완료 (에러+traceback 노출 포함)")
+        end)
+        if not safetyOk then
+            log("❌ 마커 보장 setChat 자체도 실패: " .. tostring(safetyErr))
+        end
+    else
+        log("✅ 턴 처리 완료")
+    end
+end)
+
+-- ============================================
+-- 치트 명령어
+-- ============================================
+
+listenEdit("editInput", function(triggerId, data)
+    -- 로어북 평가 전에 auxiliary_mode 변수 동기화
+    -- editInput은 메시지 전송 전에 실행되므로 로어북이 올바른 값을 읽을 수 있음
+    local currentAuxMode = getState(triggerId, "auxiliary_mode")
+    if currentAuxMode == "0" or currentAuxMode == "1" or currentAuxMode == "2" then
+        setChatVar(triggerId, "auxiliary_mode", currentAuxMode)
+        -- auxiliary_mode_text도 동기화
+        if currentAuxMode == "2" then
+            setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+        elseif currentAuxMode == "1" then
+            setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
+        else
+            setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+        end
+    else
+        -- 기본값 "2" (보조모델 사용)
+        setState(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode", "2")
+        setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+    end
+
+    -- 호감도 시스템 변수도 동기화
+    local currentAffinitySystem = getState(triggerId, "affinity_system_enabled")
+    if currentAffinitySystem == "true" or currentAffinitySystem == "false" then
+        setChatVar(triggerId, "affinity_system_enabled", currentAffinitySystem)
+        setChatVar(triggerId, "affinity_system_text", currentAffinitySystem == "true" and "ON" or "OFF")
+    else
+        setState(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_enabled", "true")
+        setChatVar(triggerId, "affinity_system_text", "ON")
+    end
+
+    -- 주식 동아리 가입 상태 동기화 (setChatVar와 setState 모두 확인)
+    local stockJoined = getState(triggerId, "club_stock_joined") or getChatVar(triggerId, "club_stock_joined")
+    if stockJoined then
+        setChatVar(triggerId, "club_stock_joined", stockJoined)
+        setState(triggerId, "club_stock_joined", stockJoined)
+    end
+
+    -- 주식 시스템 활성화 상태 동기화
+    local stockEnabled = getState(triggerId, "stock_system_enabled") or getChatVar(triggerId, "stock_system_enabled")
+    if stockEnabled then
+        setChatVar(triggerId, "stock_system_enabled", stockEnabled)
+        setState(triggerId, "stock_system_enabled", stockEnabled)
+    end
+
+    if data:match("^/reset") then
+        for _, char in ipairs(characters) do
+            setChatVar(triggerId, char.storage .. "_affinity", "0")
+
+            if char.is_main then
+                setChatVar(triggerId, char.storage .. "_sin_pos", "0")
+                setChatVar(triggerId, char.storage .. "_sin_neg", "0")
+                setChatVar(triggerId, char.storage .. "_sin_pos_count", "0")
+                setChatVar(triggerId, char.storage .. "_sin_neg_count", "0")
+                setChatVar(triggerId, char.storage .. "_route", "진행중")
+            end
+
+            updatePercent(triggerId, char)
+            takeSnapshot(triggerId, char)
+            clearChanges(triggerId, char)
+        end
+
+        setChatVar(triggerId, "week_of_season", "1")
+        setChatVar(triggerId, "is_exam_week", "false")
+        setChatVar(triggerId, "active_event", "none")
+
+        -- RPG 시스템 리셋
+        setChatVar(triggerId, "player_level", "1")
+        setChatVar(triggerId, "player_exp", "0")
+        setChatVar(triggerId, "player_exp_to_next", "100")
+        setChatVar(triggerId, "player_gold", "0")
+
+        for _, stat in ipairs(playerStats) do
+            setChatVar(triggerId, "player_" .. stat, tostring(STAT_DEFAULT))
+        end
+
+        setChatVar(triggerId, "player_items", "")
+        setChatVar(triggerId, "player_traits", "")
+
+        takeRpgSnapshot(triggerId)
+        clearRpgChanges(triggerId)
+
+        checkScheduleMatch(triggerId)
+        log("✅ 초기화 완료 (RPG 포함)")
+    end
+
+    if data:match("^/status") then
+        local msg = "📊 벨라도나 아카데미 현황\n\n"
+
+        msg = msg .. "[상태]\n"
+        msg = msg .. string.format("계절: %s Week %s | 시간: %s | 장소: %s\n",
+            getChatVar(triggerId, "current_season") or "봄",
+            getChatVar(triggerId, "week_of_season") or "1",
+            getChatVar(triggerId, "current_time") or "오전",
+            getChatVar(triggerId, "current_location") or "중앙 광장")
+
+        local activeEvent = getChatVar(triggerId, "active_event") or "none"
+        if activeEvent ~= "none" then
+            msg = msg .. string.format("🎪 이벤트: %s\n", activeEvent)
+        end
+        msg = msg .. "\n"
+
+        msg = msg .. "[출현 가능]\n"
+        for _, char in ipairs(characters) do
+            if (getChatVar(triggerId, char.storage .. "_available") or "false") == "true" then
+                msg = msg .. string.format("%s %s ✓\n", char.icon, char.display)
+            end
+        end
+        msg = msg .. "\n"
+
+        msg = msg .. "[메인 캐릭터]\n"
+        for _, char in ipairs(characters) do
+            if char.is_main then
+                local aff = getChatVar(triggerId, char.storage .. "_affinity") or "0"
+                local pos = getChatVar(triggerId, char.storage .. "_sin_pos") or "0"
+                local neg = getChatVar(triggerId, char.storage .. "_sin_neg") or "0"
+                local route = getChatVar(triggerId, char.storage .. "_route") or "진행중"
+                msg = msg .. string.format("%s %s: 호감 %s | 해소 %s | 압력 %s | %s\n",
+                    char.icon, char.display, aff, pos, neg, route)
+            end
+        end
+
+        msg = msg .. "\n[서브 캐릭터]\n"
+        for _, char in ipairs(characters) do
+            if not char.is_main then
+                local aff = getChatVar(triggerId, char.storage .. "_affinity") or "0"
+                msg = msg .. string.format("%s %s: 호감 %s\n", char.icon, char.display, aff)
+            end
+        end
+
+        -- RPG 상태
+        msg = msg .. "\n[플레이어 RPG]\n"
+        local level = getChatVar(triggerId, "player_level") or "1"
+        local exp = getChatVar(triggerId, "player_exp") or "0"
+        local expToNext = getChatVar(triggerId, "player_exp_to_next") or "100"
+        local gold = getChatVar(triggerId, "player_gold") or "0"
+
+        msg = msg .. string.format("레벨: %s | 경험치: %s/%s | 골드: %s\n", level, exp, expToNext, gold)
+        msg = msg .. "스탯: "
+
+        for _, stat in ipairs(playerStats) do
+            local value = getChatVar(triggerId, "player_" .. stat) or tostring(STAT_DEFAULT)
+            msg = msg .. string.format("%s:%s ", stat:upper(), value)
+        end
+        msg = msg .. "\n"
+
+        -- 아이템 정보
+        local itemsStr = getChatVar(triggerId, "player_items") or ""
+        if itemsStr ~= "" then
+            msg = msg .. "아이템: "
+            local items = parseItemList(itemsStr)
+            local itemList = {}
+            for name, count in pairs(items) do
+                table.insert(itemList, string.format("%s x%d", name, count))
+            end
+            table.sort(itemList)
+            msg = msg .. table.concat(itemList, ", ") .. "\n"
+        else
+            msg = msg .. "아이템: (없음)\n"
+        end
+
+        -- Trait 정보
+        local traitsStr = getChatVar(triggerId, "player_traits") or ""
+        if traitsStr ~= "" then
+            msg = msg .. "Trait:\n"
+            local traitIds = parseTraitIdList(traitsStr)
+            for _, traitId in ipairs(traitIds) do
+                local traitName = getChatVar(triggerId, "trait_" .. traitId .. "_name") or traitId
+                local traitDesc = getChatVar(triggerId, "trait_" .. traitId .. "_desc") or ""
+                if traitDesc ~= "" then
+                    msg = msg .. string.format("  - %s: %s\n", traitName, traitDesc)
+                else
+                    msg = msg .. string.format("  - %s\n", traitName)
+                end
+            end
+        else
+            msg = msg .. "Trait: (없음)\n"
+        end
+
+        log(msg)
+    end
+
+    if data:match("^/use ") then
+        local itemName = data:match("^/use (.+)")
+
+        if not itemName or itemName == "" then
+            log("⚠️ 사용법: /use 아이템명")
+            return
+        end
+
+        -- 아이템 소지 확인
+        local itemsStr = getChatVar(triggerId, "player_items") or ""
+        local items = parseItemList(itemsStr)
+
+        if not items[itemName] or items[itemName] <= 0 then
+            log(string.format("⚠️ %s을(를) 소지하고 있지 않습니다.", itemName))
+            return
+        end
+
+        -- 사용 중인 아이템 저장
+        setChatVar(triggerId, "using_item", itemName)
+        setState(triggerId, "using_item", itemName)
+
+        -- AI가 생성한 효과도 함께 저장
+        local effectStr = getChatVar(triggerId, "item_effect_" .. itemName) or ""
+        setChatVar(triggerId, "using_item_effect", effectStr)
+        setState(triggerId, "using_item_effect", effectStr)
+
+        -- 아이템 즉시 차감 (AI 응답에서 반환 태그 있으면 복원됨)
+        items[itemName] = items[itemName] - 1
+        local newItemsStr = serializeItemList(items)
+        setChatVar(triggerId, "player_items", newItemsStr)
+        setState(triggerId, "player_items", newItemsStr)
+
+        -- 스냅샷도 즉시 업데이트
+        setChatVar(triggerId, "snapshot_player_items", newItemsStr)
+
+        log(string.format("🎒 %s을(를) 꺼냈습니다 (즉시 차감). AI가 사용 장면을 묘사합니다...", itemName))
+    end
+
+    if data:match("^/resetstats") then
+        -- 모든 스탯을 50으로 설정
+        for _, stat in ipairs(playerStats) do
+            setChatVar(triggerId, "player_" .. stat, "50")
+            setState(triggerId, "player_" .. stat, 50)
+        end
+
+        -- 스냅샷 업데이트
+        takeRpgSnapshot(triggerId)
+        clearRpgChanges(triggerId)
+
+        log("✅ 모든 스탯을 50으로 설정했습니다 (STR, INT, DEX, CHA, LUK, VIT)")
+    end
+
+    if data:match("^/schedule") then
+        local location = getChatVar(triggerId, "current_location") or "중앙 광장"
+        local period = getCurrentPeriod(triggerId)
+        local activeEvent = getChatVar(triggerId, "active_event") or "none"
+
+        local msg = string.format("📍 현재: %s (%s)\n", location, period)
+
+        if activeEvent ~= "none" then
+            msg = msg .. string.format("🎪 이벤트: %s\n", activeEvent)
+        end
+
+        msg = msg .. "\n[출현 중]\n"
+
+        local hasChar = false
+        for _, char in ipairs(characters) do
+            if (getChatVar(triggerId, char.storage .. "_available") or "false") == "true" then
+                local scheduleText = getChatVar(triggerId, char.storage .. "_schedule_" .. period) or "???"
+                msg = msg .. string.format("%s %s - %s\n", char.icon, char.display, scheduleText)
+                hasChar = true
+            end
+        end
+
+        if not hasChar then msg = msg .. "(없음)\n" end
+
+        log(msg)
+    end
+
+    if data:match("^/test") then
+        setChatVar(triggerId, "mirabel_affinity", "125")
+        setChatVar(triggerId, "mirabel_sin_pos", "25")
+        setChatVar(triggerId, "mirabel_sin_neg", "15")
+        setChatVar(triggerId, "week_of_season", "5")
+        setChatVar(triggerId, "current_season", "봄")
+        setChatVar(triggerId, "current_location", "스칼렛 스트리트 쇼핑가")
+        setChatVar(triggerId, "current_time", "저녁")
+
+        -- 테스트 아이템 추가
+        addItem(triggerId, "힘의물약", 2, "STR+5")
+        addItem(triggerId, "마나물약", 1, "INT+3")
+        addItem(triggerId, "학생증", 1, "")
+
+        updatePercent(triggerId, characters[1])
+        takeSnapshot(triggerId, characters[1])
+        checkScheduleMatch(triggerId)
+
+        log("✅ 테스트 값 설정 (Week 5, 스칼렛 스트리트)")
+        log("✅ 테스트 아이템 추가 (힘의물약 x2, 마나물약 x1, 학생증 x1)")
+    end
+
+    -- RPG 시스템 온/오프
+    if data:match("^/rpg") then
+        local args = data:match("^/rpg%s+(.+)")
+
+        if args == "on" then
+            setChatVar(triggerId, "rpg_system_enabled", "true")
+            log("✅ RPG 시스템 활성화")
+        elseif args == "off" then
+            setChatVar(triggerId, "rpg_system_enabled", "false")
+            log("⏸️ RPG 시스템 비활성화")
+        elseif args == "status" then
+            local enabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+            local msg = "🎮 RPG 시스템 상태\n"
+            msg = msg .. string.format("활성화: %s", enabled and "✅ ON" or "❌ OFF")
+            log(msg)
+        else
+            log("사용법: /rpg [on|off|status]")
+        end
+    end
+end)
+
+-- ============================================
+-- 아이템 사용 버튼 함수 등록 (risu-trigger용)
+-- ============================================
+
+-- 슬롯 N번 아이템 사용 (1~15)
+for i = 1, 15 do
+    _G["use_item_" .. i] = function(triggerId)
+        local itemName = getChatVar(triggerId, "player_item_slot_" .. i .. "_name") or ""
+
+        if itemName == "" then
+            log(string.format("⚠️ 슬롯%d에 아이템이 없습니다", i))
+            return
+        end
+
+        local itemsStr = getChatVar(triggerId, "player_items") or ""
+        local items = parseItemList(itemsStr)
+
+        if (items[itemName] or 0) <= 0 then
+            log(string.format("⚠️ %s 아이템이 없습니다", itemName))
+            return
+        end
+
+        -- 사용 중인 아이템 저장
+        setChatVar(triggerId, "using_item", itemName)
+        setState(triggerId, "using_item", itemName)
+
+        -- AI가 생성한 효과도 함께 저장
+        local effectStr = getChatVar(triggerId, "item_effect_" .. itemName) or ""
+        setChatVar(triggerId, "using_item_effect", effectStr)
+        setState(triggerId, "using_item_effect", effectStr)
+
+        -- 아이템 즉시 차감 (AI 응답에서 반환 태그 있으면 복원됨)
+        items[itemName] = items[itemName] - 1
+        local newItemsStr = serializeItemList(items)
+        setChatVar(triggerId, "player_items", newItemsStr)
+        setState(triggerId, "player_items", newItemsStr)
+
+        -- 슬롯 변수 업데이트
+        updateItemSlotVars(triggerId)
+
+        -- 스냅샷도 즉시 업데이트
+        setChatVar(triggerId, "snapshot_player_items", newItemsStr)
+
+        log(string.format("🎒 슬롯%d 아이템 사용: %s (즉시 차감)", i, itemName))
+    end
+end
+
+-- 전투 선택지 버튼 등록 (combat_choice_1 ~ combat_choice_6)
+-- 선택지 데이터만 있으면 바로 처리 (적 추적 시스템과 독립적)
+for i = 1, 6 do
+    _G["combat_choice_" .. i] = function(triggerId)
+        log(string.format("🎮 전투 선택지 %d번 버튼 클릭", i))
+
+        -- 선택한 내용 가져오기
+        local stat = getChatVar(triggerId, "combat_choice_" .. i .. "_stat") or ""
+        local desc = getChatVar(triggerId, "combat_choice_" .. i .. "_desc") or ""
+        local diff = getChatVar(triggerId, "combat_choice_" .. i .. "_diff") or ""
+
+        if stat == "" then
+            log(string.format("⚠️ 선택지 %d번: 데이터 없음 (파싱 실패)", i))
+            return false
+        end
+
+        log(string.format("📋 선택지 데이터: stat=%s, desc=%s, diff=%s", stat, desc, diff))
+
+        -- 사용자 메시지로 추가
+        local message = string.format("[%s|%s|%s]", stat, desc, diff)
+        addChat(triggerId, "user", message)
+        log(string.format("💬 사용자 메시지 추가: %s", message))
+
+        -- 주사위 굴림 및 결과 반환
+        local success = rollChoiceDice(triggerId, i, stat, desc, diff)
+        log(string.format("🎲 주사위 결과: %s", success and "성공" or "실패"))
+        return success
+    end
+end
+
+-- 시간 진행 함수
+local function progressTime(triggerId, isFullRest)
+    local currentTime = getChatVar(triggerId, "current_time") or "오전"
+    local dayOfWeek = tonumber(getChatVar(triggerId, "day_of_week")) or 1
+    local weekOfSeason = tonumber(getChatVar(triggerId, "week_of_season")) or 1
+    local season = getChatVar(triggerId, "current_season") or "봄"
+
+    -- 주말 내내 쉬기: 일요일 오후로 점프
+    if isFullRest then
+        setChatVar(triggerId, "day_of_week", "7")
+        setChatVar(triggerId, "day_of_week_name", "일요일")
+        setChatVar(triggerId, "current_time", "오후")
+        log("⏰ 시간 진행: 주말 내내 휴식 → 일요일 오후")
+        return
+    end
+
+    -- 일반 시간 진행
+    if currentTime == "오전" then
+        -- 오전 → 오후
+        setChatVar(triggerId, "current_time", "오후")
+        log(string.format("⏰ 시간 진행: 오전 → 오후 (Day %d)", dayOfWeek))
+    else
+        -- 오후 → 다음날 오전
+        dayOfWeek = dayOfWeek + 1
+
+        -- 주차가 끝나면 다음 주로
+        if dayOfWeek > 7 then
+            dayOfWeek = 1
+            weekOfSeason = weekOfSeason + 1
+
+            -- 시즌이 끝나면 다음 시즌으로
+            if weekOfSeason > 12 then
+                weekOfSeason = 1
+                local seasons = {"봄", "여름", "가을", "겨울"}
+                local currentSeasonIdx = 1
+                for i, s in ipairs(seasons) do
+                    if s == season then
+                        currentSeasonIdx = i
+                        break
+                    end
+                end
+
+                local nextSeasonIdx = (currentSeasonIdx % 4) + 1
+                season = seasons[nextSeasonIdx]
+                setChatVar(triggerId, "current_season", season)
+                setState(triggerId, "current_season", season)
+
+                -- 시즌 플래그 업데이트
+                setChatVar(triggerId, "is_spring", season == "봄" and "true" or "false")
+                setChatVar(triggerId, "is_summer", season == "여름" and "true" or "false")
+                setChatVar(triggerId, "is_autumn", season == "가을" and "true" or "false")
+                setChatVar(triggerId, "is_winter", season == "겨울" and "true" or "false")
+
+                log(string.format("📅 시즌 변경: %s → %s", seasons[currentSeasonIdx], season))
+            end
+
+            setChatVar(triggerId, "week_of_season", tostring(weekOfSeason))
+            setState(triggerId, "week_of_season", tostring(weekOfSeason))
+
+            -- 시험 주차 체크 (4, 8, 12주)
+            if weekOfSeason == 4 or weekOfSeason == 8 or weekOfSeason == 12 then
+                setChatVar(triggerId, "is_exam_week", "true")
+                log(string.format("📝 Week %d 시작 - 시험 주차!", weekOfSeason))
+            else
+                setChatVar(triggerId, "is_exam_week", "false")
+                log(string.format("📅 Week %d 시작", weekOfSeason))
+            end
+        end
+
+        setChatVar(triggerId, "day_of_week", tostring(dayOfWeek))
+        setChatVar(triggerId, "day_of_week_name", getDayName(dayOfWeek))
+        setChatVar(triggerId, "current_time", "오전")
+
+        log(string.format("⏰ 시간 진행: 오후 → 다음날 오전 (%s, Day %d)", getDayName(dayOfWeek), dayOfWeek))
+    end
+end
+
+-- 활동 선택 버튼 함수 등록
+local activities = {
+    {id = "combat", message = "나는 결투장으로 향한다. 무기 거치대와 수련용 원형 경기장이 보이고, 강철이 부딪히는 소리와 함성이 들려온다."},
+    {id = "magic", message = "나는 강의실로 향한다. 칠판에는 복잡한 마법 공식이 가득하고, 오래된 책의 퀴퀴한 냄새가 난다."},
+    {id = "study", message = "나는 중앙 도서관으로 향한다. 여러 층으로 이루어진 거대한 서가와 곳곳의 조용한 독서 공간이 보인다."},
+    {id = "skip", message = "나는 기숙사로 돌아간다. 편안한 내 방, 부드러운 침대, 창문 너머의 풍경이 나를 반긴다."},
+    {id = "training", message = "나는 훈련장으로 향한다. 오전보다 한산한 분위기 속에서 자율적으로 단련할 수 있는 시간이다."},
+    {id = "cafe", message = "나는 스칼렛 거리의 카페로 향한다. 커피와 페이스트리 향기, 편안한 대화 소리와 컵이 부딪히는 소리가 들린다."},
+    {id = "shopping", message = "나는 루비 로우의 쇼핑가로 향한다. 북적이는 인파, 거리 공연자들, 상인들의 호객 소리가 활기차다."},
+    {id = "quest", message = "나는 미드나이트 앨리로 향한다. 그림자 깊은 뒷골목, 깜빡이는 가로등, 거친 분위기와 의뢰 게시판이 보인다."},
+    {id = "club", message = "나는 동아리실로 향한다. 같은 관심사를 가진 사람들과의 활동 시간이다."},
+    {id = "rest", message = "나는 기숙사로 돌아가 휴식을 취한다. 개인적이고 편안한 공간에서의 시간이다."},
+    {id = "date", message = "나는 데이트 약속 장소로 향한다. 설레는 마음으로 특별한 시간을 준비한다."},
+    {id = "dungeon", message = "나는 던전 탐험을 위해 출발한다. 어두운 복도, 함정, 몬스터, 보물이 기다리는 위험한 모험이다."},
+    {id = "fullrest", message = "나는 주말을 온전히 휴식에 할애하기로 한다. 완전한 휴식과 회복의 시간이다."}
+}
+
+for _, activity in ipairs(activities) do
+    _G["activity_" .. activity.id] = function(triggerId)
+        -- 사용자 메시지로 활동 추가
+        addChat(triggerId, "user", activity.message)
+        log(string.format("📅 활동 선택: %s", activity.message))
+
+        -- 시간 진행
+        local isFullRest = (activity.id == "fullrest")
+        progressTime(triggerId, isFullRest)
+    end
+end
+
+-- 주간 스케줄 조정 함수
+_G["set_weekly_schedule"] = function(triggerId)
+    log("주간 스케줄 조정 시작")
+
+    -- 선택지 구성
+    local morningOptions = {
+        "전투 훈련", "마법 이론", "도서관 자습", "수업 빼먹기", "자유시간"
+    }
+    local afternoonOptions = {
+        "훈련장", "카페", "쇼핑", "퀘스트", "동아리", "휴식", "자유시간"
+    }
+
+    local days = {"월요일", "화요일", "수요일", "목요일", "금요일"}
+    local schedule = {}
+
+    -- 각 날짜별로 활동 선택
+    for i, day in ipairs(days) do
+        -- 오전 활동 선택
+        local morningChoice = alertSelect(triggerId, morningOptions)
+        schedule[#schedule + 1] = morningChoice
+
+        -- 오후 활동 선택
+        local afternoonChoice = alertSelect(triggerId, afternoonOptions)
+        schedule[#schedule + 1] = afternoonChoice
+    end
+
+    -- 스케줄 표시용 텍스트 생성
+    local displayText = "=== 이번 주 계획 ===\n\n"
+    for i, day in ipairs(days) do
+        local amIdx = (i-1) * 2 + 1
+        local pmIdx = (i-1) * 2 + 2
+        displayText = displayText .. string.format("%s\n오전: %s\n오후: %s\n\n",
+            day, schedule[amIdx] or "미정", schedule[pmIdx] or "미정")
+    end
+
+    -- 보조 AI가 읽을 스케줄 데이터 생성
+    local scheduleData = ""
+    for i, day in ipairs(days) do
+        local amIdx = (i-1) * 2 + 1
+        local pmIdx = (i-1) * 2 + 2
+        scheduleData = scheduleData .. string.format("%s: 오전(%s), 오후(%s)\n",
+            day, schedule[amIdx] or "자유", schedule[pmIdx] or "자유")
+    end
+
+    -- 변수에 저장
+    setChatVar(triggerId, "weekly_schedule_plan", scheduleData)
+    setState(triggerId, "weekly_schedule_plan", scheduleData)
+    setChatVar(triggerId, "weekly_schedule_display", displayText)
+    setState(triggerId, "weekly_schedule_display", displayText)
+
+    -- 패널 새로고침
+    reloadDisplay(triggerId)
+
+    log("주간 스케줄 저장 완료")
+end
+
+-- 주간 스케줄 실행 함수
+_G["execute_weekly_schedule"] = function(triggerId)
+    log("주간 스케줄 실행 시작")
+
+    -- 저장된 스케줄 확인
+    local scheduleData = getState(triggerId, "weekly_schedule_plan")
+    if not scheduleData or scheduleData == "" then
+        alertError(triggerId, "먼저 '스케줄 조정' 버튼으로 이번 주 계획을 세워주세요!")
+        return
+    end
+
+    -- 현재 주차 저장
+    local currentWeek = getChatVar(triggerId, "week_of_season") or 1
+    local currentSeason = getChatVar(triggerId, "current_season") or "봄"
+
+    -- 시간을 다음 주 월요일 오전으로 이동
+    local newWeek = currentWeek + 1
+    if newWeek > 12 then
+        -- 계절 변경 로직
+        newWeek = 1
+        local seasons = {
+            ["봄"] = "여름",
+            ["여름"] = "가을",
+            ["가을"] = "겨울",
+            ["겨울"] = "봄"
+        }
+        currentSeason = seasons[currentSeason] or "봄"
+        setChatVar(triggerId, "current_season", currentSeason)
+        setState(triggerId, "current_season", currentSeason)
+    end
+
+    setChatVar(triggerId, "week_of_season", newWeek)
+    setState(triggerId, "week_of_season", newWeek)
+    setChatVar(triggerId, "day_of_week", 1)  -- 월요일
+    setState(triggerId, "day_of_week", 1)
+    setChatVar(triggerId, "current_time", "오전")
+    setState(triggerId, "current_time", "오전")
+
+    -- 패널 업데이트
+    updateTimePanel(triggerId)
+
+    log(string.format("시간 이동: %s 학기 제%d주차 월요일 오전", currentSeason, newWeek))
+
+    -- 시스템 메시지로 주간 리포트 요청
+    addChat(triggerId, "system", string.format([[한 주가 지나갔습니다. (%s 학기 제%d주차 -> 제%d주차)
+
+[주간 활동 계획이 설정되었습니다]
+
+보조 AI는 이제 주간 스케줄을 바탕으로 이번 주의 활동 결과를 판정하고, 주간 리포트를 생성해주세요.
+
+스케줄 정보는 {{getvar::weekly_schedule_plan}} 변수에 저장되어 있습니다.]],
+        currentSeason, currentWeek, newWeek))
+
+    log("주간 스케줄 실행 완료")
+end
+
+-- editRequest: 메인 AI 요청에서 보조모델 태그 모두 제거
+listenEdit("editRequest", function(triggerId, data)
+    -- <CombatChoice> 블록 제거
+    data = data:gsub("<CombatChoice>.-</CombatChoice>", "")
+
+    -- <WeeklyReport> 블록 제거
+    data = data:gsub("<WeeklyReport>.-</WeeklyReport>", "")
+
+    -- 보조모델의 모든 시스템 태그 제거
+    data = data:gsub("%[Affinity:[^%]]+%]", "")
+    data = data:gsub("%[Sin:[^%]]+%]", "")
+    data = data:gsub("%[Stat:[^%]]+%]", "")
+    data = data:gsub("%[Gold:[^%]]+%]", "")
+    data = data:gsub("%[Item:[^%]]+%]", "")
+    data = data:gsub("%[EXP:[^%]]+%]", "")
+    data = data:gsub("%[Heal:[^%]]+%]", "")
+    data = data:gsub("%[Damage:[^%]]+%]", "")
+    data = data:gsub("%[Effect:[^%]]+%]", "")
+    data = data:gsub("%[Trait:[^%]]+%]", "")
+    data = data:gsub("%[Combat:[^%]]+%]", "")
+    data = data:gsub("%[Season:[^%]]+%]", "")
+    data = data:gsub("%[Week:[^%]]+%]", "")
+    data = data:gsub("%[Time:[^%]]+%]", "")
+    data = data:gsub("%[Location:[^%]]+%]", "")
+    -- 주식/동아리/시장 태그 제거 (AI 요청에서 제거, 디스플레이 변환은 editDisplay에서)
+    data = data:gsub("%[Stock:[^%]]+%]", "")
+    -- StockBuy/StockSell은 인라인 디스플레이로 변환되므로 제거하지 않음
+    data = data:gsub("%[Club:[^%]]+%]", "")
+    data = data:gsub("%[StatsEvaluated%]", "")
+    data = data:gsub("%[Market:[^%]]+%]", "")
+
+    -- <Panel> 마커 제거
+    data = data:gsub("<Panel>[^<]*", "")
+
+    -- <StockPanel /> 제거
+    data = data:gsub("<StockPanel%s*/>", "")
+
+    return data
+end)
+
+-- editDisplay: <CombatChoice> 및 <ActivityChoice> 태그를 HTML 버튼으로 변환
+-- ============================================
+-- 디스플레이 변환 함수
+-- ============================================
+
+-- 주간 보고서 HTML 생성
+local function convertWeeklyReport(content)
+    -- 데이터 파싱
+    local data = {}
+    for pair in content:gmatch("([^|]+)") do
+        local key, value = pair:match("([^:]+):(.+)")
+        if key and value then
+            data[key:gsub("^%s*(.-)%s*$", "%1")] = value:gsub("^%s*(.-)%s*$", "%1")
+        end
+    end
+
+    -- 점수에 따른 등급 결정 (S/A/B/C/D) - 100점 만점
+    local score = tonumber(data.Score or "0")
+    local grade = "D"
+    local gradeEmoji = "📝"
+    local gradeText = "다음에 더 잘할 수 있어요"
+
+    if score >= 90 then
+        grade = "S"
+        gradeEmoji = "🏆"
+        gradeText = "완벽해요!"
+    elseif score >= 70 then
+        grade = "A"
+        gradeEmoji = "⭐"
+        gradeText = "훌륭해요!"
+    elseif score >= 50 then
+        grade = "B"
+        gradeEmoji = "✨"
+        gradeText = "잘했어요!"
+    elseif score >= 30 then
+        grade = "C"
+        gradeEmoji = "💫"
+        gradeText = "괜찮아요"
+    end
+
+    -- 스탯 변화 HTML 생성
+    local statsHTML = ""
+    local statIcons = {
+        INT = "🧠", CHA = "✨", STR = "💪",
+        DEX = "🏃", VIT = "❤️", LUK = "🍀"
+    }
+    local statNames = {
+        INT = "지능 (INT)", CHA = "매력 (CHA)", STR = "힘 (STR)",
+        DEX = "민첩 (DEX)", VIT = "체력 (VIT)", LUK = "행운 (LUK)"
+    }
+
+    for stat, change in content:gmatch("([A-Z]+):([%+%-]%d+)") do
+        if stat ~= "Score" and stat ~= "Week" then
+            local icon = statIcons[stat] or "⭐"
+            local name = statNames[stat] or stat
+
+            statsHTML = statsHTML .. string.format([[<div style="background:rgba(184,150,92,0.06);border:1px solid rgba(184,150,92,0.28);padding:8px 10px;display:flex;align-items:center;gap:8px"><span style="font-size:15px;line-height:1">%s</span><span style="flex:1;font-family:'Noto Serif KR',serif;font-size:11px;color:#ebe2d0;letter-spacing:0.02em">%s</span><span style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:14px;color:#d4b577;font-weight:500">%s</span></div>]], icon, name, change)
+        end
+    end
+
+    -- 스탯 변화 섹션 (비어있으면 생략)
+    local statsBlock = ""
+    if statsHTML ~= "" then
+        statsBlock = string.format([[<div style="position:relative;z-index:1;margin-top:14px"><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.45em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:8px;text-align:center">— Growth —</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">%s</div></div>]], statsHTML)
+    end
+
+    -- 완전한 HTML 생성 (Tarot v3 톤, 모바일 반응형)
+    local html = string.format([[<div style="max-width:520px;width:calc(100%% - 16px);margin:18px auto;position:relative;background:#150e1f;border:1.5px solid #b8965c;padding:22px 20px;color:#ebe2d0;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;box-shadow:0 10px 36px rgba(0,0,0,0.55);box-sizing:border-box"><div style="position:absolute;inset:5px;border:0.5px solid rgba(184,150,92,0.26);pointer-events:none"></div><div style="position:relative;z-index:1;text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(184,150,92,0.32)"><div style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #b8965c;border-radius:50%%;color:#c98da0;font-family:Georgia,serif;font-size:15px;margin-bottom:8px">✦</div><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.5em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:5px">Weekly Report</div><div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:500;font-size:clamp(18px, 4.5vw, 22px);color:#ebe2d0;line-height:1.2">%s · Week %s</div></div><div style="position:relative;z-index:1;display:flex;gap:8px;margin-bottom:12px"><div style="flex:1;background:#1a1226;border:1px solid rgba(184,150,92,0.35);padding:9px 8px;text-align:center"><div style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:4px">Curriculum</div><div style="font-family:'Noto Serif KR',serif;font-size:12px;color:#d4b577;font-weight:500;line-height:1.3">%s</div></div><div style="flex:1;background:#1a1226;border:1px solid rgba(184,150,92,0.35);padding:9px 8px;text-align:center"><div style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:4px">Lifestyle</div><div style="font-family:'Noto Serif KR',serif;font-size:12px;color:#d4b577;font-weight:500;line-height:1.3">%s</div></div></div><div style="position:relative;z-index:1;background:linear-gradient(180deg,#1a1226 0%%,#150e1f 100%%);border:1px solid rgba(184,150,92,0.5);padding:16px 12px;text-align:center"><div style="font-family:Georgia,serif;font-size:9px;letter-spacing:0.45em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;margin-bottom:6px">This Week's Mark</div><div style="font-size:clamp(28px, 7vw, 36px);margin:4px 0;line-height:1">%s</div><div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:500;font-size:clamp(34px, 9vw, 44px);color:#d4b577;letter-spacing:0.15em;line-height:1">%s</div><div style="font-family:'Noto Serif KR',serif;font-size:11px;color:#c98da0;margin-top:8px;letter-spacing:0.05em">%s</div></div>%s</div>]],
+        data.Season or "봄", data.Week or "1",
+        data.Curriculum or "—", data.Lifestyle or "—",
+        gradeEmoji, grade, gradeText, statsBlock)
+
+    return html
+end
+
+-- ============================================
+-- 경영 현황 뷰 생성 함수
+-- ============================================
+
+function generateBusinessView(triggerId)
+    -- 주식 시스템 활성화 여부
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
+
+    -- 경영 중인 회사 확인
+    local companies = {}
+    if getChatVar(triggerId, "mirabel_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "GOLDMANE",
+            name = "골든메인 금광",
+            sector = "Finance",
+            character = "Mirabel von Goldenrose"
+        })
+    end
+    if getChatVar(triggerId, "cordelia_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "LUXORIA",
+            name = "럭소리아 명품관",
+            sector = "Luxury",
+            character = "Cordelia von Edelstein"
+        })
+    end
+    if getChatVar(triggerId, "nepenthes_company_joined") == "1" then
+        table.insert(companies, {
+            ticker = "PFIZARA",
+            name = "파이자라 제약",
+            sector = "Pharma",
+            character = "Nepenthes von Dormien"
+        })
+    end
+
+    -- 상단 라벨
+    local html = string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:14px">The Reader's Ventures &middot; 경영 중인 회사 (%d)</div>]], #companies)
+
+    -- 빈 상태 (Press 톤)
+    if #companies == 0 then
+        html = html .. [[<div style="padding:44px 20px;text-align:center;background:#221b16;border:1px solid rgba(240,227,204,0.16);font-family:'Noto Serif KR',Georgia,serif"><div style="font-style:italic;font-size:14px;color:#f0e3cc;margin-bottom:8px">&mdash; No concerns under the reader's hand &mdash;</div><div style="font-size:11.5px;color:#9a8a72;line-height:1.6;font-style:italic">캐릭터 호감도 300+ 달성 시<br>회사 경영 파트너십을 제안받을 수 있습니다</div></div>]]
+        return html
+    end
+
+    -- Press 톤 변화량 포맷 (▲/▼ + warm red/ink blue)
+    local function formatChange(change, isPercent)
+        if change == 0 then
+            return [[<span style="color:#6e604c;font-size:10px;margin-left:4px;font-style:italic;font-family:'Noto Serif KR',Georgia,serif;font-variant-numeric:tabular-nums"> &rarr; 0</span>]]
+        end
+        local color = change > 0 and "#d94c47" or "#5e7a99"
+        local arrow = change > 0 and "▲" or "▼"
+        local sign = change > 0 and "+" or ""
+        local suffix = isPercent and "%" or ""
+        return string.format([[<span style="color:%s;font-size:10px;margin-left:4px;font-family:'Noto Serif KR',Georgia,serif;font-variant-numeric:tabular-nums">%s%s%d%s</span>]], color, arrow, sign, change, suffix)
+    end
+
+    -- 각 회사 루프
+    for idx, company in ipairs(companies) do
+        local ticker = company.ticker
+
+        log(string.format("🔍 [generateBusinessView] %s 정보 읽기 시작", ticker))
+
+        local revenueStr = getChatVar(triggerId, ticker .. "_revenue")
+        local profitStr = getChatVar(triggerId, ticker .. "_profit")
+        local cashStr = getChatVar(triggerId, ticker .. "_cash")
+
+        log(string.format("🔍 [generateBusinessView] %s_revenue = '%s' (타입: %s)", ticker, tostring(revenueStr), type(revenueStr)))
+        log(string.format("🔍 [generateBusinessView] %s_profit = '%s' (타입: %s)", ticker, tostring(profitStr), type(profitStr)))
+        log(string.format("🔍 [generateBusinessView] %s_cash = '%s' (타입: %s)", ticker, tostring(cashStr), type(cashStr)))
+
+        local revenue = tonumber(revenueStr) or 0
+        local profit = tonumber(profitStr) or 0
+        local cash = tonumber(cashStr) or 0
+        local debt = tonumber(getChatVar(triggerId, ticker .. "_debt")) or 0
+        local market_share = tonumber(getChatVar(triggerId, ticker .. "_market_share")) or 0
+        local brand_value = tonumber(getChatVar(triggerId, ticker .. "_brand_value")) or 0
+        local employees = tonumber(getChatVar(triggerId, ticker .. "_employees")) or 0
+        local rd_progress = tonumber(getChatVar(triggerId, ticker .. "_rd_progress")) or 0
+        local player_share = tonumber(getChatVar(triggerId, ticker .. "_player_share")) or 0
+        local influence = tonumber(getChatVar(triggerId, ticker .. "_influence")) or 0
+
+        log(string.format("🔍 [generateBusinessView] 변환 후: revenue=%d, profit=%d, cash=%d", revenue, profit, cash))
+
+        local revenue_change = tonumber(getChatVar(triggerId, ticker .. "_revenue_change")) or 0
+        local profit_change = tonumber(getChatVar(triggerId, ticker .. "_profit_change")) or 0
+        local cash_change = tonumber(getChatVar(triggerId, ticker .. "_cash_change")) or 0
+        local debt_change = tonumber(getChatVar(triggerId, ticker .. "_debt_change")) or 0
+        local market_share_change = tonumber(getChatVar(triggerId, ticker .. "_market_share_change")) or 0
+        local brand_value_change = tonumber(getChatVar(triggerId, ticker .. "_brand_value_change")) or 0
+        local influence_change = tonumber(getChatVar(triggerId, ticker .. "_influence_change")) or 0
+
+        -- 지표 계산
+        local profitMargin = revenue > 0 and math.floor((profit / revenue) * 100) or 0
+        local debtRatio = (cash + revenue) > 0 and math.floor((debt / (cash + revenue)) * 100) or 0
+
+        -- Press 톤 색상
+        local profitColor = (profit > 0) and "#d94c47" or ((profit < 0) and "#5e7a99" or "#ddc8a7")
+        local debtColor = (debtRatio > 70) and "#d94c47" or ((debtRatio > 40) and "#d4af6a" or "#ddc8a7")
+
+        -- 회사 카드 wrapper (회사 간 더블 룰 구분)
+        local cardWrapper = (idx < #companies) and "margin-bottom:26px;padding-bottom:22px;border-bottom:2px double rgba(240,227,204,0.16);" or "margin-bottom:6px;"
+        html = html .. string.format([[<div style="%s">]], cardWrapper)
+
+        -- ==================================
+        -- Headline (중앙 정렬 마스트헤드 풍)
+        -- ==================================
+        html = html .. string.format([[<div style="text-align:center;margin-bottom:14px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;color:#e8a679">%s &middot; %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;font-weight:600;font-style:italic;color:#f0e3cc;margin-top:6px;line-height:1.1">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;color:#9a8a72;margin-top:6px;font-style:italic">in partnership with <span style="color:#d4af6a;font-style:normal">%s</span></div></div>]], ticker, company.sector:upper(), company.name, company.character)
+
+        -- Rule
+        html = html .. [[<div style="height:1px;background:rgba(240,227,204,0.16);margin-bottom:12px"></div>]]
+
+        -- ==================================
+        -- Financial standing · 재무 현황 (2x2)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Financial standing &middot; 재무 현황 (단위: M)</div>]]
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">매출 Revenue</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:#f0e3cc;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">순이익 Profit &middot; %d%%</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:%s;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">현금 Cash</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">부채 Debt &middot; %d%%</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:19px;color:%s;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%sM%s</div></div></div>]], formatNumber(revenue), formatChange(revenue_change, false), profitMargin, profitColor, formatNumber(profit), formatChange(profit_change, false), formatNumber(cash), formatChange(cash_change, false), debtRatio, debtColor, formatNumber(debt), formatChange(debt_change, false))
+
+        -- ==================================
+        -- Market position · 시장 포지션 (stockEnabled 분기)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Market position &middot; 시장 포지션</div>]]
+        if stockEnabled == "1" then
+            local stockPrice = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_price"))
+                            or tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+                            or STOCK_BASE_PRICES[ticker] or 0
+            html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">시장점유율</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">브랜드가치</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">주가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d94c47;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s G</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">직원</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s 명</div></div></div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(stockPrice), formatNumber(employees))
+        else
+            html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">시장점유율</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">브랜드가치</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#d4af6a;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">직원</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s 명</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">업계 영향력</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div></div>]], market_share, formatChange(market_share_change, true), brand_value, formatChange(brand_value_change, false), formatNumber(employees), influence, formatChange(influence_change, false))
+        end
+
+        -- ==================================
+        -- Operations · 운영 현황 (R&D + 전략 기여도)
+        -- ==================================
+        html = html .. [[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Operations &middot; 운영 현황</div>]]
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:18px;row-gap:10px;margin-bottom:16px"><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">R&amp;D 진척도</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#e8a679;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%%</div></div><div style="border-top:1px solid rgba(240,227,204,0.08);padding-top:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.24em;color:#9a8a72">전략 기여도</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:#f4b88e;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%d%s</div></div></div>]], rd_progress, influence, formatChange(influence_change, false))
+
+        -- ==================================
+        -- Ownership · 진척바 + 하단 italic
+        -- ==================================
+        html = html .. string.format([[<div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:6px">Ownership &middot; the reader holds %d%%</div>]], player_share)
+        html = html .. string.format([[<div style="display:flex;height:14px;border:1px solid rgba(240,227,204,0.16);margin-top:4px"><div style="width:%d%%;background:#d4af6a"></div><div style="flex:1;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(240,227,204,0.08) 3px,rgba(240,227,204,0.08) 4px)"></div></div>]], player_share)
+        html = html .. string.format([[<div style="display:flex;justify-content:space-between;margin-top:6px;font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic"><span>독자 지분 <span style="color:#d4af6a;font-style:normal">%d%%</span></span><span>R&amp;D 진척 <span style="color:#e8a679;font-style:normal">%d%%</span></span></div>]], player_share, rd_progress)
+
+        -- 회사 카드 닫기
+        html = html .. [[</div>]]
+    end
+
+    return html
+end
+
+-- ============================================
+-- 디버그 패널 시스템
+-- ============================================
+
+-- 디버그 로그 저장 (최대 50개)
+local MAX_DEBUG_LOGS = 50
+local debugLogs = {}
+
+-- 디버그 로그 추가 함수
+function addDebugLog(category, message)
+    local timestamp = os.date("%H:%M:%S")
+    local logEntry = {
+        time = timestamp,
+        category = category,
+        message = message
+    }
+
+    table.insert(debugLogs, 1, logEntry)  -- 최신 로그를 맨 위에
+
+    -- 최대 개수 초과 시 오래된 로그 제거
+    while #debugLogs > MAX_DEBUG_LOGS do
+        table.remove(debugLogs)
+    end
+
+    -- 일반 로그도 출력
+    log(string.format("[%s] %s", category, message))
+end
+
+-- 디버그 패널 UI 생성
+function generateDebugPanel(triggerId)
+    local collapseState = getState(triggerId, "debug_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
+
+    local html = [[
+<div style='max-width:500px;width:calc(100% - 20px);margin:15px auto;background:#0d1117;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden'>]]
+
+    -- 헤더
+    local collapseIcon = isCollapsed and "▼" or "▲"
+    html = html .. string.format([[
+  <div style='display:flex;justify-content:space-between;align-items:center;padding:16px;background:#161b22;border-bottom:%s'>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>🐛</span>
+      <span style='font-size:15px;font-weight:600;color:#fff'>디버그 패널</span>
+      <span style='font-size:12px;color:#8b949e'>(%d개)</span>
+    </div>
+    <div style='display:flex;align-items:center;gap:8px'>
+      <button type='button' risu-btn='debug_clear' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:11px;cursor:pointer'>초기화</button>
+      <button type='button' risu-btn='debug_toggle_collapse' onclick='event.stopPropagation();' style='padding:4px 8px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;font-size:12px;cursor:pointer'>%s</button>
+    </div>
+  </div>]], isCollapsed and "none" or "1px solid #30363d", #debugLogs, collapseIcon)
+
+    -- 내용 (펼쳐져 있을 때만)
+    if not isCollapsed then
+        html = html .. [[
+  <div style='padding:16px;max-height:400px;overflow-y:auto;background:#0d1117'>]]
+
+        if #debugLogs == 0 then
+            html = html .. [[
+    <div style='text-align:center;padding:40px 20px;color:#8b949e'>
+      <div style='font-size:14px'>디버그 로그가 없습니다</div>
+      <div style='font-size:12px;margin-top:8px;color:#6e7681'>시스템 동작 시 로그가 여기에 표시됩니다</div>
+    </div>]]
+        else
+            for _, entry in ipairs(debugLogs) do
+                local categoryColor = "#58a6ff"
+                local categoryIcon = "📌"
+
+                if entry.category == "BusinessPanel" then
+                    categoryColor = "#d29922"
+                    categoryIcon = "💼"
+                elseif entry.category == "StockPanel" then
+                    categoryColor = "#3fb950"
+                    categoryIcon = "📈"
+                elseif entry.category == "StockChart" then
+                    categoryColor = "#a371f7"
+                    categoryIcon = "📊"
+                elseif entry.category == "Parsing" then
+                    categoryColor = "#f85149"
+                    categoryIcon = "🔍"
+                elseif entry.category == "Variable" then
+                    categoryColor = "#ffa657"
+                    categoryIcon = "💾"
+                end
+
+                html = html .. string.format([[
+    <div style='background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px;margin-bottom:8px'>
+      <div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>
+        <span style='font-size:12px'>%s</span>
+        <span style='font-size:11px;font-weight:600;color:%s'>%s</span>
+        <span style='font-size:10px;color:#6e7681;margin-left:auto'>%s</span>
+      </div>
+      <div style='font-size:12px;color:#c9d1d9;line-height:1.5;word-break:break-word'>%s</div>
+    </div>]], categoryIcon, categoryColor, entry.category, entry.time, entry.message)
+            end
+        end
+
+        html = html .. "</div>"
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- 디버그 패널 토글 버튼
+_G["debug_toggle_collapse"] = function(triggerId)
+    local current = getState(triggerId, "debug_panel_collapsed")
+    local newState = (current == "0") and "1" or "0"
+    setState(triggerId, "debug_panel_collapsed", newState)
+    addDebugLog("System", string.format("디버그 패널 %s", newState == "0" and "펼침" or "접음"))
+    return true
+end
+
+-- 디버그 로그 초기화 버튼
+_G["debug_clear"] = function(triggerId)
+    debugLogs = {}
+    addDebugLog("System", "디버그 로그 초기화됨")
+    return true
+end
+
+-- ============================================
+-- 주식 패널 UI 생성 함수
+-- ============================================
+
+-- 현재 뷰에 따른 주식 패널 HTML 생성
+function generateStockPanelUI(triggerId)
+    local stockEnabled = getChatVar(triggerId, "stock_system_enabled") or getState(triggerId, "stock_system_enabled")
+    local businessEnabled = getChatVar(triggerId, "business_system_enabled") or getState(triggerId, "business_system_enabled")
+
+    -- 주식 또는 경영 시스템 중 하나라도 활성화되어 있어야 패널 표시
+    if stockEnabled ~= "1" and businessEnabled ~= "1" then
+        return ""
+    end
+
+    -- 기본 뷰 결정: 주식 활성화 시 자산, 경영만 활성화 시 경영
+    local defaultView = (stockEnabled == "1") and "asset" or "business"
+    local currentView = getState(triggerId, "stock_current_view") or defaultView
+    local selectedTicker = getState(triggerId, "stock_selected_ticker") or "GOLDMANE"
+
+    -- 골드 읽기 및 동기화
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+    end
+
+    -- 기본값: 접힌 상태 (stock_panel_collapsed가 "0"일 때만 펼침)
+    local collapseState = getState(triggerId, "stock_panel_collapsed")
+    local isCollapsed = (collapseState ~= "0")
+
+    -- ============================================
+    -- V2 Dark Press · The Lilybelly Ledger
+    -- ============================================
+
+    -- 게임 시간 → 마스트헤드 Vol/No 매핑
+    local seasonVol = {["봄"]="I", ["여름"]="II", ["가을"]="III", ["겨울"]="IV"}
+    local season = getChatVar(triggerId, "current_season") or "봄"
+    local week = getChatVar(triggerId, "week_of_season") or "1"
+    local dayName = getChatVar(triggerId, "day_of_week_name") or "Friday"
+    local currentTime = getChatVar(triggerId, "current_time") or "오후"
+    local volRoman = seasonVol[season] or "I"
+    local edition = (currentTime == "오전") and "Morning Edition" or "Late Edition"
+
+    -- 컨테이너 시작
+    local html = [[<div style="max-width:540px;width:calc(100%% - 16px);margin:18px auto;background:#161210;background-image:radial-gradient(circle at 100%% 0%%,rgba(232,166,121,0.06),transparent 50%%);font-family:'Noto Serif KR',Georgia,'Times New Roman',serif;color:#ddc8a7;box-shadow:0 0 0 1px rgba(232,166,121,0.30),0 18px 40px rgba(0,0,0,0.55);overflow:hidden">]]
+
+    -- Masthead
+    html = html .. string.format([[<div style="padding:20px 22px 12px"><div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679;text-transform:uppercase">Vol. %s · No. %s</div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.24em;color:#9a8a72;text-transform:uppercase">%s · %s</div></div><div style="height:1px;background:rgba(240,227,204,0.16);margin:10px 0 14px"></div><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:34px;font-weight:600;color:#f0e3cc;letter-spacing:0.01em;line-height:1;font-style:italic">The Lilybelly <span style="color:#e8a679">Ledger</span></div><div style="margin-top:8px;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11.5px;color:#9a8a72;letter-spacing:0.04em">&ldquo;Fortunes told in figures, since the year of three suns&rdquo;</div></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:14px"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]], volRoman, week, dayName, edition)
+
+    -- Balance bar
+    local collapseIcon = isCollapsed and "▼ UNFOLD" or "▲ FOLD"
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:center;padding:0 22px 14px"><div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.34em;text-transform:uppercase;color:#e8a679;margin-bottom:5px">The Reader's Account</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#ddc8a7">Held in cash <span style="color:#d4af6a;font-weight:600;font-variant-numeric:tabular-nums">%s G</span></div></div><button type="button" risu-btn="stock_toggle_collapse" onclick="event.stopPropagation();" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.22em;color:#e8a679;background:transparent;padding:6px 12px;border:1px solid #e8a679;cursor:pointer">%s</button></div>]], formatNumber(gold), collapseIcon)
+
+    if isCollapsed then
+        html = html .. "</div>"
+        return html
+    end
+
+    -- Tab bar (dynamic)
+    local tabs = {}
+    if stockEnabled == "1" then
+        table.insert(tabs, {id = "board",    kor = "시세", eng = "Quotes",   no = "I"})
+        table.insert(tabs, {id = "chart",    kor = "차트", eng = "Chart",    no = "II"})
+        table.insert(tabs, {id = "asset",    kor = "자산", eng = "Holdings", no = "III"})
+    end
+    if businessEnabled == "1" then
+        local nextNo = (#tabs == 0) and "I" or (#tabs == 3 and "IV" or tostring(#tabs + 1))
+        table.insert(tabs, {id = "business", kor = "경영", eng = "Ventures", no = nextNo})
+    end
+
+    local cols = "repeat(" .. #tabs .. ",1fr)"
+    html = html .. string.format([[<div style="display:grid;grid-template-columns:%s;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);background:#1b1612">]], cols)
+
+    for i, tab in ipairs(tabs) do
+        local isActive = (currentView == tab.id)
+        local borderRight = (i < #tabs) and "border-right:1px solid rgba(240,227,204,0.08);" or ""
+        local bg          = isActive and "rgba(232,166,121,0.07)" or "transparent"
+        local kickerColor = isActive and "#e8a679" or "#6e604c"
+        local korColor    = isActive and "#f0e3cc" or "#ddc8a7"
+        local korStyle    = isActive and "italic" or "normal"
+        local korWeight   = isActive and "600" or "400"
+        local underline   = isActive and [[<div style="position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:#e8a679"></div>]] or ""
+        html = html .. string.format([[<button type="button" risu-btn="stock_view_%s" onclick="event.stopPropagation();" style="padding:14px 8px 12px;%sbackground:%s;text-align:center;position:relative;border:none;cursor:pointer;font-family:inherit"><div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:0.32em;color:%s">SECT. %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:16px;color:%s;font-style:%s;margin-top:4px;font-weight:%s">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">%s</div>%s</button>]], tab.id, borderRight, bg, kickerColor, tab.no, korColor, korStyle, korWeight, tab.kor, tab.eng, underline)
+    end
+    html = html .. "</div>"
+
+    -- View body
+    html = html .. [[<div style="padding:22px 22px 0">]]
+    if currentView == "board" then
+        html = html .. generateStockBoardView(triggerId)
+    elseif currentView == "chart" then
+        html = html .. generateStockChartView(triggerId, selectedTicker)
+    elseif currentView == "asset" then
+        html = html .. generateStockAssetView(triggerId)
+    elseif currentView == "business" then
+        html = html .. generateBusinessView(triggerId)
+    end
+    html = html .. "</div>"
+
+    -- Footer
+    html = html .. [[<div style="margin-top:24px;padding:14px 22px 18px;border-top:2px double rgba(240,227,204,0.16);background:#1b1612;display:flex;justify-content:space-between;align-items:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#6e604c;letter-spacing:0.06em">— End of session edition —</div><button type="button" risu-btn="stock_exit" onclick="event.stopPropagation();" style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;letter-spacing:0.16em;color:#e8a679;background:transparent;padding:8px 18px;border:1px solid #e8a679;font-variant:small-caps;cursor:pointer">거래 종료</button></div>]]
+
+    html = html .. "</div>"
+
+    return html
+end
+
+-- 숫자 포맷 (천 단위 콤마)
+function formatNumber(num)
+    local formatted = tostring(num)
+    while true do
+        formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
+        if k == 0 then break end
+    end
+    return formatted
+end
+
+-- 시세표 뷰
+function generateStockBoardView(triggerId)
+    local html = ""
+
+    -- 뉴스 섹션 (있으면 표시: Lead story + Secondary briefs)
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        -- 뉴스 항목 파싱: TICKER:direction:headline||...
+        local newsItems = {}
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
+            local ticker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if ticker and headline then
+                table.insert(newsItems, {ticker = ticker, direction = direction or "", headline = headline})
+            end
+        end
+
+        if #newsItems > 0 then
+            -- 섹션 라벨
+            html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Market Intelligence · 시장 동향</div>]]
+
+            -- Lead story (첫 번째 뉴스)
+            local lead = newsItems[1]
+            local leadIsUp = (lead.direction == "rising" or lead.direction == "up" or lead.direction == "crashing")
+            local leadColor = leadIsUp and "#d94c47" or "#5e7a99"
+            local leadArrow = leadIsUp and "▲" or "▼"
+            local leadDir = (lead.direction ~= "" and lead.direction:upper()) or "NEWS"
+
+            -- 헤드라인 split: " • " 첫번째 = 헤드라인, 나머지 = 본문
+            local parts = {}
+            for part in lead.headline:gmatch("[^•]+") do
+                part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                if part ~= "" then table.insert(parts, part) end
+            end
+            local leadHead = parts[1] or lead.headline
+            local leadBody = ""
+            if #parts > 1 then
+                local rest = {}
+                for i = 2, #parts do table.insert(rest, parts[i]) end
+                leadBody = table.concat(rest, " · ")
+            end
+
+            html = html .. string.format([[<div style="padding:16px 18px 18px;background:#221b16;border-left:3px double %s;margin-bottom:18px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.3em;color:%s;margin-bottom:8px">%s &nbsp; %s &nbsp;·&nbsp; %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;font-weight:600;color:#f0e3cc;line-height:1.35;letter-spacing:-0.005em"><span style="float:left;font-size:38px;line-height:0.95;margin-right:6px;color:#e8a679;font-style:italic;font-family:'Noto Serif KR',Georgia,serif">&ldquo;</span>%s</div>]], leadColor, leadColor, leadArrow, lead.ticker, leadDir, leadHead)
+
+            if leadBody ~= "" then
+                html = html .. string.format([[<div style="clear:both;margin-top:8px;font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.55;font-style:italic">%s</div>]], leadBody)
+            end
+
+            html = html .. [[<div style="clear:both;margin-top:12px;padding-top:8px;border-top:1px solid rgba(240,227,204,0.08);font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72">— By the Markets Desk</div></div>]]
+
+            -- Secondary briefs (2~3번째 뉴스, 2-col grid)
+            if #newsItems >= 2 then
+                html = html .. [[<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">]]
+                for i = 2, math.min(#newsItems, 3) do
+                    local n = newsItems[i]
+                    local nIsUp = (n.direction == "rising" or n.direction == "up" or n.direction == "crashing")
+                    local nColor = nIsUp and "#d94c47" or "#5e7a99"
+
+                    local nParts = {}
+                    for part in n.headline:gmatch("[^•]+") do
+                        part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                        if part ~= "" then table.insert(nParts, part) end
+                    end
+                    local nHead = nParts[1] or n.headline
+
+                    html = html .. string.format([[<div style="border-top:1px solid rgba(240,227,204,0.16);padding-top:8px"><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:8.5px;letter-spacing:0.28em;color:%s;margin-bottom:4px">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12.5px;line-height:1.45;color:#ddc8a7;font-weight:500">%s</div></div>]], nColor, n.ticker, nHead)
+                end
+                html = html .. [[</div>]]
+            end
+
+            -- DoubleRule (뉴스/시세 구분)
+            html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+        end
+    end
+
+    -- The Quotations Page 라벨
+    html = html .. [[<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;margin-bottom:10px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600">The Quotations Page</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72">Closing values, in gold</div></div>]]
+
+    -- 4-col 컬럼 헤더 (small-caps)
+    html = html .. [[<div style="display:grid;grid-template-columns:2fr 1fr 1fr 0.8fr;padding:6px 0;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);font-family:'Noto Serif KR',Georgia,serif;font-size:10px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72"><div>Issue</div><div style="text-align:right">Close</div><div style="text-align:right">Change</div><div style="text-align:right">Held</div></div>]]
+
+    -- 스크롤 컨테이너 (기존 max-height 350px 유지)
+    html = html .. [[<div style="max-height:350px;overflow-y:auto">]]
+
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                change = price - prevPrice
+            end
+        end
+
+        -- state 우선, chatVar 폴백
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+        local name = STOCK_NAMES[ticker] or ticker
+        local sector = (STOCK_INFO[ticker] and STOCK_INFO[ticker].sector) or "—"
+
+        -- 등락률 계산
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 한국식 색상: 상승 warm red / 하락 ink blue / 보합 flat
+        local dir = (changePercent > 0) and 1 or ((changePercent < 0) and -1 or 0)
+        local changeColor = (dir > 0) and "#d94c47" or ((dir < 0) and "#5e7a99" or "#9a8a72")
+        local arrowMark = (dir > 0) and "▲" or ((dir < 0) and "▼" or "—")
+        local pctText = (dir == 0) and "0.0%" or string.format("%+.1f%%", changePercent)
+
+        -- 보유: gold (qty>0) or em-dash italic textMute
+        local heldColor = (owned > 0) and "#d4af6a" or "#6e604c"
+        local heldStyle = (owned > 0) and "normal" or "italic"
+        local heldText = (owned > 0) and tostring(owned) or "—"
+
+        html = html .. string.format([[<button type="button" risu-btn="stock_select_%s" onclick="event.stopPropagation();" style="display:grid;grid-template-columns:2fr 1fr 1fr 0.8fr;gap:6px;width:100%%;padding:11px 0;align-items:baseline;border:none;border-bottom:1px dotted rgba(240,227,204,0.08);background:transparent;cursor:pointer;text-align:left;font-family:inherit"><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:14px;font-weight:600;color:#f0e3cc">%s</div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.18em;color:#9a8a72;margin-top:2px">%s · %s</div></div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:16px;font-weight:500;color:#f0e3cc;font-variant-numeric:tabular-nums">%s</div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="text-align:right;font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:%s;font-style:%s;font-variant-numeric:tabular-nums">%s</div></button>]], ticker, name, ticker, sector, formatNumber(price), changeColor, arrowMark, pctText, heldColor, heldStyle, heldText)
+    end
+
+    html = html .. "</div>"
+    return html
+end
+
+-- OHLC 캔들 데이터 생성 (실제 히스토리 기반)
+function generateCandleData(triggerId, ticker, currentPrice)
+    local candles = {}
+    local basePrice = STOCK_BASE_PRICES[ticker] or 100
+
+    -- 실제 가격 히스토리 가져오기
+    local history = getStockHistory(triggerId, ticker)
+
+    -- 히스토리가 부족하면 현재가로 채우기
+    while #history < 12 do
+        table.insert(history, 1, history[1] or currentPrice)
+    end
+
+    -- 변동성 계수 (심지 길이용) - 더 크게 조정
+    local volatility = {
+        MUTAGEN = 0.12, PFIZARA = 0.10, METARIX = 0.10,
+        TESLAM = 0.08, ARCMED = 0.07, NVIDIUM = 0.07,
+        GOLDMANE = 0.05, LUXORIA = 0.05, AEGIS = 0.05, IRONFORGE = 0.05, VITALIS = 0.06,
+        NETHRYX = 0.06, STONECRAFT = 0.04, MORGANITE = 0.04,
+        INTELLUM = 0.04, AMAZONIA = 0.04, HARVESTIA = 0.04, STARBREW = 0.04, GUCCIEL = 0.03, APPELLE = 0.04
+    }
+    local vol = volatility[ticker] or 0.06
+
+    -- 시드 생성 (일관성 있는 랜덤)
+    local seed = os.time() + (string.byte(ticker, 1) or 65) * 1000
+
+    -- 히스토리로 캔들 생성
+    for i = 1, math.min(#history, 12) do
+        local close = history[i]
+        local open = (i > 1) and history[i - 1] or close
+
+        -- 캔들 몸통 크기
+        local bodySize = math.abs(close - open)
+
+        -- 시드 기반 랜덤 (0~1)
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand1 = (seed % 1000) / 1000
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        local rand2 = (seed % 1000) / 1000
+
+        -- 심지 크기 계산 (더 다양하게)
+        -- 최소 심지: 기준가의 1%, 최대: 변동성의 2배
+        local minWick = basePrice * 0.01
+        local maxWick = basePrice * vol * 2
+
+        local upperWick = minWick + (maxWick - minWick) * rand1
+        local lowerWick = minWick + (maxWick - minWick) * rand2
+
+        -- 도지(십자형) 캔들: 시가=종가인 경우 심지만 있음
+        if bodySize < basePrice * 0.005 then
+            upperWick = upperWick * 1.5
+            lowerWick = lowerWick * 1.5
+        end
+
+        -- 고가/저가 계산
+        local high = math.max(open, close) + math.floor(upperWick)
+        local low = math.min(open, close) - math.floor(lowerWick)
+        low = math.max(1, low)  -- 최소 1G
+
+        table.insert(candles, {
+            open = math.floor(open),
+            high = math.floor(high),
+            low = math.floor(low),
+            close = math.floor(close)
+        })
+    end
+
+    return candles
+end
+
+-- 차트 뷰 (증권사 스타일 라인 그래프)
+function generateStockChartView(triggerId, ticker)
+    local name = STOCK_NAMES[ticker] or ticker
+    local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+    price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+
+    -- 변화량 계산: history 전체 기간 기준 (차트 방향과 일치)
+    local change = 0
+    local history = getStockHistory(triggerId, ticker)
+    if #history >= 2 then
+        change = history[#history] - history[1]
+    else
+        change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
+    end
+
+    -- 등락률 계산
+    local prevPrice = price - change
+    local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+    -- 한국식 색상 (상승 warm red / 하락 ink blue / 보합 flat)
+    local dir = (changePercent > 0) and 1 or ((changePercent < 0) and -1 or 0)
+    local changeColor = (dir > 0) and "#d94c47" or ((dir < 0) and "#5e7a99" or "#9a8a72")
+    local arrowMark = (dir > 0) and "▲" or ((dir < 0) and "▼" or "—")
+    local pctText = (dir == 0) and "0.00%" or string.format("%+.2f%%", changePercent)
+    local changeNumText = (change == 0) and "0" or string.format("%+d", math.floor(change))
+    local basePrice = STOCK_BASE_PRICES[ticker] or 100
+
+    -- 종목 메타정보
+    local info = STOCK_INFO[ticker]
+    local sectorLabel = (info and info.sector) or "—"
+
+    -- ==========================================
+    -- The Featured Issue · 종목 헤더
+    -- ==========================================
+    local html = [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Featured Issue · 종목 상세</div>]]
+
+    -- Issue header (ticker · 종목명 / 현재가 · 변화)
+    html = html .. string.format([[<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px;gap:12px"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679;margin-bottom:4px">%s · LILYBELLY %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:26px;font-weight:600;color:#f0e3cc;line-height:1.05;font-style:italic;letter-spacing:-0.005em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:28px;font-weight:600;color:%s;line-height:1;font-variant-numeric:tabular-nums">%s<span style="font-size:13px;color:#9a8a72;margin-left:4px;font-weight:400">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12.5px;color:%s;margin-top:2px;font-variant-numeric:tabular-nums">%s %s · %s</div></div></div>]], ticker, sectorLabel:upper(), name, changeColor, formatNumber(price), changeColor, arrowMark, changeNumText, pctText)
+
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+
+    -- ==========================================
+    -- Chart panel (해치 fill + 라인 + OHLC strip)
+    -- ==========================================
+    if #history >= 2 then
+        -- Y축 범위
+        local minPrice = history[1]
+        local maxPrice = history[1]
+        for _, p in ipairs(history) do
+            if p < minPrice then minPrice = p end
+            if p > maxPrice then maxPrice = p end
+        end
+        local padding = (maxPrice - minPrice) * 0.1
+        if padding < 5 then padding = 5 end
+        local rawMin = minPrice
+        local rawMax = maxPrice
+        minPrice = minPrice - padding
+        maxPrice = maxPrice + padding
+        local range = maxPrice - minPrice
+        if range == 0 then range = 1 end
+
+        local W = 420
+        local H = 150
+        local openPrice = history[1]
+        local closePrice = history[#history]
+
+        -- 라인 포인트
+        local points = {}
+        for i, p in ipairs(history) do
+            local x = (i - 1) * (W / (#history - 1))
+            local y = H - ((p - minPrice) / range * H)
+            table.insert(points, string.format("%.1f,%.1f", x, y))
+        end
+        local linePts = table.concat(points, " ")
+        local areaPoints = "0," .. H .. " " .. linePts .. " " .. W .. "," .. H
+
+        -- 라인 색 (한국식)
+        local lineColor = (closePrice >= openPrice) and "#d94c47" or "#5e7a99"
+        local openY = H - ((openPrice - minPrice) / range * H)
+        local closeY = H - ((closePrice - minPrice) / range * H)
+
+        -- 5단 Y축
+        local y0 = math.floor(maxPrice)
+        local y1 = math.floor(maxPrice - range * 0.25)
+        local y2 = math.floor(maxPrice - range * 0.5)
+        local y3 = math.floor(maxPrice - range * 0.75)
+        local y4 = math.floor(minPrice)
+
+        -- Chart panel frame open
+        html = html .. [[<div style="padding:14px 14px 12px;margin-top:14px;margin-bottom:16px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div style="display:flex">]]
+
+        -- Y axis
+        html = html .. string.format([[<div style="width:44px;display:flex;flex-direction:column;justify-content:space-between;padding-right:6px;font-family:'Noto Serif KR',Georgia,serif;font-size:10px;color:#9a8a72;font-variant-numeric:tabular-nums;text-align:right;font-style:italic"><span>%d</span><span>%d</span><span>%d</span><span>%d</span><span>%d</span></div>]], y0, y1, y2, y3, y4)
+
+        -- SVG container open + viewBox
+        html = html .. string.format([[<div style="flex:1;position:relative"><svg width="100%%" viewBox="0 0 %d %d" preserveAspectRatio="none" style="display:block;height:%dpx">]], W, H, H)
+
+        -- defs (해치 패턴)
+        html = html .. string.format([[<defs><pattern id="press-hatch-%s" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#e8a679" stroke-opacity="0.12" stroke-width="1"/></pattern></defs>]], ticker)
+
+        -- 3개 수평 룰 (top/mid/bottom)
+        html = html .. string.format([[<line x1="0" y1="0" x2="%d" y2="0" stroke="rgba(240,227,204,0.08)" stroke-width="1"/><line x1="0" y1="%.1f" x2="%d" y2="%.1f" stroke="rgba(240,227,204,0.08)" stroke-width="1"/><line x1="0" y1="%d" x2="%d" y2="%d" stroke="rgba(240,227,204,0.08)" stroke-width="1"/>]], W, H/2, W, H/2, H, W, H)
+
+        -- 시가 기준선 (dashed)
+        html = html .. string.format([[<line x1="0" y1="%.1f" x2="%d" y2="%.1f" stroke="#9a8a72" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>]], openY, W, openY)
+
+        -- 해치 fill area
+        html = html .. string.format([[<polygon points="%s" fill="url(#press-hatch-%s)"/>]], areaPoints, ticker)
+
+        -- 메인 라인 + end dot
+        html = html .. string.format([[<polyline points="%s" fill="none" stroke="%s" stroke-width="1.5"/><circle cx="%d" cy="%.1f" r="3" fill="%s"/></svg>]], linePts, lineColor, W, closeY, lineColor)
+
+        -- 현재가 라벨 (SVG 오른쪽 끝)
+        html = html .. string.format([[<div style="position:absolute;right:0;top:%.1fpx;transform:translateY(-50%%);font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9.5px;color:%s;background:#2b2219;padding:2px 6px;letter-spacing:0.04em">%d</div>]], closeY, lineColor, math.floor(closePrice))
+
+        -- SVG container 닫기 + flex 닫기
+        html = html .. [[</div></div>]]
+
+        -- 시간 라벨
+        html = html .. [[<div style="display:flex;justify-content:space-between;margin-top:8px;padding-left:50px;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10px;color:#6e604c"><span>09:00</span><span>12:00</span><span>15:00</span><span>close</span></div>]]
+
+        -- OHLC strip (시가 / 고가 warm red / 저가 ink blue / 기준 textDim)
+        html = html .. string.format([[<div style="display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;padding-top:10px;border-top:1px solid rgba(240,227,204,0.08);gap:8px"><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">시 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#ddc8a7;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">고 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#d94c47;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="border-right:1px solid rgba(240,227,204,0.08);padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">저 가</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#5e7a99;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div><div style="padding-right:4px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">기 준</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;color:#9a8a72;margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500">%s</div></div></div>]], formatNumber(math.floor(openPrice)), formatNumber(math.floor(rawMax)), formatNumber(math.floor(rawMin)), formatNumber(basePrice))
+
+        -- Chart panel frame close
+        html = html .. [[</div>]]
+    else
+        html = html .. [[<div style="padding:24px;margin-top:14px;margin-bottom:16px;background:#221b16;border:1px solid rgba(240,227,204,0.16);text-align:center;font-family:'Noto Serif KR',Georgia,serif;font-style:italic;color:#6e604c">— No data on record —</div>]]
+    end
+
+    -- ==========================================
+    -- The Issuer · An Editor's Note (Dossier + Tags + Up/Down + Insider)
+    -- ==========================================
+    if info then
+        -- 라벨
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Issuer &middot; An Editor's Note</div>]]
+
+        -- Dossier (드롭캡 "제" salmon italic + desc)
+        html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;line-height:1.65;color:#ddc8a7;margin-bottom:14px;overflow:auto"><span style="float:left;font-family:'Noto Serif KR',Georgia,serif;font-size:44px;line-height:0.85;color:#e8a679;font-style:italic;margin-right:8px;margin-top:2px">제</span>%s</div>]], info.desc)
+
+        -- Tag strip (부문/규모/재무/변동성)
+        html = html .. string.format([[<div style="display:flex;flex-wrap:wrap;gap:14px;padding:10px 0;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16);margin-bottom:14px"><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">부 문</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">규 모</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">재 무</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div><div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">변동성</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:13px;color:#f0e3cc;margin-top:2px;font-weight:500">%s</div></div></div>]], info.sector, info.size, info.financial, info.volatility)
+
+        -- Up/Down notes
+        html = html .. string.format([[<div style="margin-bottom:14px"><div style="display:flex;gap:10px;margin-bottom:8px"><span style="color:#d94c47;font-family:'Noto Serif KR',Georgia,serif;font-weight:700">▲</span><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;font-style:italic">%s</div></div><div style="display:flex;gap:10px"><span style="color:#5e7a99;font-family:'Noto Serif KR',Georgia,serif;font-weight:700">▼</span><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;font-style:italic">%s</div></div></div>]], info.upFactors, info.downFactors)
+
+        -- Insider quote (cardHi + 좌측 골드 2px + italic)
+        html = html .. string.format([[<div style="padding:10px 12px;background:#2b2219;border-left:2px solid #d4af6a;font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;font-style:italic;color:#ddc8a7;margin-bottom:18px">&mdash; Insider sources name <span style="color:#d4af6a;font-weight:600;font-style:normal">%s</span> as the issue's principal voice.</div>]], info.insider)
+    end
+
+    -- ==========================================
+    -- Related Dispatches · 관련 보도 (뉴스, 현재 종목 강조)
+    -- ==========================================
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Related Dispatches · 관련 보도</div>]]
+        html = html .. [[<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">]]
+
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
+            local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and headline then
+                local nIsUp = (direction == "rising" or direction == "up" or direction == "crashing")
+                local nIsDown = (direction == "falling" or direction == "down")
+                local nColor = nIsUp and "#d94c47" or (nIsDown and "#5e7a99" or "#9a8a72")
+                local nArrow = nIsUp and "▲" or (nIsDown and "▼" or "·")
+
+                -- 현재 종목 관련 여부에 따른 강조
+                local isRelated = (newsTicker == ticker)
+                local borderColor = isRelated and "#e8a679" or "rgba(240,227,204,0.16)"
+                local tickerColor = isRelated and "#f0e3cc" or "#9a8a72"
+                local borderWidth = isRelated and "2px" or "1px"
+
+                -- 헤드라인 split (" • " 첫 부분 = 헤드라인, 나머지 = body)
+                local nParts = {}
+                for part in headline:gmatch("[^•]+") do
+                    part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                    if part ~= "" then table.insert(nParts, part) end
+                end
+                local nHead = nParts[1] or headline
+                local nBody = ""
+                if #nParts > 1 then
+                    local rest = {}
+                    for i = 2, #nParts do table.insert(rest, nParts[i]) end
+                    nBody = table.concat(rest, " · ")
+                end
+
+                html = html .. string.format([[<div style="border-left:%s solid %s;padding:8px 0 8px 12px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><span style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.28em;color:%s">%s</span><span style="color:%s;font-family:'Noto Serif KR',Georgia,serif;font-size:11px">%s</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.45">%s</div>]], borderWidth, borderColor, tickerColor, newsTicker, nColor, nArrow, nHead)
+
+                if nBody ~= "" then
+                    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic;margin-top:2px">%s</div>]], nBody)
+                end
+
+                html = html .. [[</div>]]
+            end
+        end
+
+        html = html .. [[</div>]]
+    end
+
+    -- ==========================================
+    -- The Composite · 시장 지수 mini card (LBLY)
+    -- ==========================================
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketDir = (marketChange > 0) and 1 or ((marketChange < 0) and -1 or 0)
+    local marketColor = (marketDir > 0) and "#d94c47" or ((marketDir < 0) and "#5e7a99" or "#9a8a72")
+    local marketArrow = (marketDir > 0) and "▲" or ((marketDir < 0) and "▼" or "—")
+    local marketPctText = (marketDir == 0) and "0.00%" or string.format("%+.2f%%", marketChange)
+
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Composite · 시장 지수</div>]]
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:flex-end;padding:10px 14px;margin-bottom:18px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679">LBLY · COMPOSITE</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;font-weight:600;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:14px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10px;color:#9a8a72;margin-top:2px">compared with prior session</div></div></div>]], formatNumber(marketIndex), marketColor, marketArrow, marketPctText)
+
+    -- ==========================================
+    -- Other Issues · 종목 선택기 (가로 스크롤, 트리거 stock_chart_<TICKER> 보존)
+    -- ==========================================
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Other Issues · 다른 종목</div>]]
+    html = html .. [[<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px">]]
+
+    for _, t in ipairs(STOCK_TICKERS) do
+        local isSelected = (t == ticker)
+        local tPrice = tonumber(getState(triggerId, "stock_" .. t .. "_price"))
+        tPrice = (tPrice and tPrice > 0) and tPrice or STOCK_BASE_PRICES[t]
+        local tChange = tonumber(getState(triggerId, "stock_" .. t .. "_change")) or 0
+
+        if tChange == 0 then
+            local tHistory = getStockHistory(triggerId, t)
+            if #tHistory >= 2 then
+                tChange = tPrice - tHistory[#tHistory - 1]
+            end
+        end
+
+        local tPrev = tPrice - tChange
+        local tPct = (tPrev > 0 and tChange ~= 0) and ((tChange / tPrev) * 100) or 0
+        local tDir = (tPct > 0) and 1 or ((tPct < 0) and -1 or 0)
+        local tColor = (tDir > 0) and "#d94c47" or ((tDir < 0) and "#5e7a99" or "#9a8a72")
+        local tArrow = (tDir > 0) and "▲" or ((tDir < 0) and "▼" or "·")
+        local tPctTxt = (tDir == 0) and "0.0%" or string.format("%+.1f%%", tPct)
+
+        local cardBg = isSelected and "#2b2219" or "transparent"
+        local cardBorder = isSelected and "#e8a679" or "rgba(240,227,204,0.16)"
+        local nameColor = isSelected and "#f0e3cc" or "#ddc8a7"
+
+        html = html .. string.format([[<button type="button" risu-btn="stock_chart_%s" onclick="event.stopPropagation();" style="flex-shrink:0;padding:6px 10px;background:%s;border:1px solid %s;cursor:pointer;font-family:inherit;text-align:left"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11px;font-weight:600;color:%s">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10px;color:%s;font-variant-numeric:tabular-nums;margin-top:1px">%s %s</div></button>]], t, cardBg, cardBorder, nameColor, t, tColor, tArrow, tPctTxt)
+    end
+
+    html = html .. [[</div>]]
+    return html
+end
+
+-- 내 자산 뷰
+function generateStockAssetView(triggerId)
+    -- ==========================================
+    -- The Lilybelly Index · 시장 지수 큰 카드
+    -- ==========================================
+    local marketIndex = tonumber(getState(triggerId, "market_index")) or 1000
+    local marketChange = tonumber(getState(triggerId, "market_index_change")) or 0
+    local marketDir = (marketChange > 0) and 1 or ((marketChange < 0) and -1 or 0)
+    local marketColor = (marketDir > 0) and "#d94c47" or ((marketDir < 0) and "#5e7a99" or "#9a8a72")
+    local marketArrow = (marketDir > 0) and "▲" or ((marketDir < 0) and "▼" or "—")
+    local marketPctText = (marketDir == 0) and "0.00%" or string.format("%+.2f%%", marketChange)
+
+    local html = [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">The Lilybelly Index · 릴리벨리 지수</div>]]
+    html = html .. string.format([[<div style="display:flex;justify-content:space-between;align-items:flex-end;padding:14px 16px;margin-bottom:18px;background:#221b16;border:1px solid rgba(240,227,204,0.16)"><div><div style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.32em;color:#e8a679">LBLY · COMPOSITE</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:30px;font-weight:600;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:18px;color:%s;font-variant-numeric:tabular-nums">%s %s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">compared with prior session</div></div></div>]], formatNumber(marketIndex), marketColor, marketArrow, marketPctText)
+
+    -- ==========================================
+    -- Market Dispatches · 시장 보도 (뉴스 - 자산뷰 강조 없음)
+    -- ==========================================
+    local newsData = getState(triggerId, "stock_news")
+    if newsData and newsData ~= "" then
+        html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Market Dispatches · 시장 보도</div>]]
+        html = html .. [[<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">]]
+
+        for item in newsData:gmatch("[^|][^|]+") do
+            item = item:gsub("^|", "")
+            local newsTicker, direction, headline = item:match("([^:]+):([^:]+):(.+)")
+            if newsTicker and headline then
+                local nIsUp = (direction == "rising" or direction == "up" or direction == "crashing")
+                local nIsDown = (direction == "falling" or direction == "down")
+                local nColor = nIsUp and "#d94c47" or (nIsDown and "#5e7a99" or "#9a8a72")
+                local nArrow = nIsUp and "▲" or (nIsDown and "▼" or "·")
+
+                local nParts = {}
+                for part in headline:gmatch("[^•]+") do
+                    part = part:gsub("^%s+", ""):gsub("%s+$", "")
+                    if part ~= "" then table.insert(nParts, part) end
+                end
+                local nHead = nParts[1] or headline
+                local nBody = ""
+                if #nParts > 1 then
+                    local rest = {}
+                    for i = 2, #nParts do table.insert(rest, nParts[i]) end
+                    nBody = table.concat(rest, " · ")
+                end
+
+                html = html .. string.format([[<div style="border-left:1px solid rgba(240,227,204,0.16);padding:8px 0 8px 12px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px"><span style="font-family:'JetBrains Mono','IBM Plex Mono',Menlo,monospace;font-size:9px;letter-spacing:0.28em;color:#9a8a72">%s</span><span style="color:%s;font-family:'Noto Serif KR',Georgia,serif;font-size:11px">%s</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:12px;color:#ddc8a7;line-height:1.45">%s</div>]], newsTicker, nColor, nArrow, nHead)
+
+                if nBody ~= "" then
+                    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;color:#9a8a72;font-style:italic;margin-top:2px">%s</div>]], nBody)
+                end
+                html = html .. [[</div>]]
+            end
+        end
+        html = html .. [[</div>]]
+    end
+
+    -- ==========================================
+    -- 포트폴리오 계산 (gold + holdings)
+    -- ==========================================
+    local goldState = tonumber(getState(triggerId, "player_gold"))
+    local goldChat = tonumber(getChatVar(triggerId, "player_gold"))
+    local gold = goldState or goldChat or 0
+    if not goldState and goldChat then
+        setState(triggerId, "player_gold", goldChat)
+        log("💰 골드 state 동기화: " .. goldChat .. "G")
+    end
+
+    local stockValue = 0
+    local totalProfit = 0
+    local holdings = {}
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local owned = tonumber(getState(triggerId, "stock_" .. ticker .. "_qty")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_qty")) or 0
+        if owned > 0 then
+            local avgPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_avg")) or tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_avg")) or 0
+            local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
+            local value = currentPrice * owned
+            local profit = (currentPrice - avgPrice) * owned
+            stockValue = stockValue + value
+            totalProfit = totalProfit + profit
+            table.insert(holdings, {
+                ticker = ticker,
+                name = STOCK_NAMES[ticker] or ticker,
+                owned = owned,
+                avgPrice = avgPrice,
+                currentPrice = currentPrice,
+                value = value,
+                profit = profit,
+                profitPercent = avgPrice > 0 and ((currentPrice - avgPrice) / avgPrice * 100) or 0
+            })
+        end
+    end
+    local totalValue = gold + stockValue
+    local totalPct = (stockValue > 0 and (stockValue - totalProfit) > 0) and (totalProfit / (stockValue - totalProfit) * 100) or 0
+    local profitDir = (totalProfit > 0) and 1 or ((totalProfit < 0) and -1 or 0)
+    local profitColor = (profitDir > 0) and "#d94c47" or ((profitDir < 0) and "#5e7a99" or "#9a8a72")
+    local profitArrow = (profitDir > 0) and "▲" or ((profitDir < 0) and "▼" or "—")
+    local profitNumText = (totalProfit == 0) and "0" or string.format("%+d", math.floor(totalProfit))
+    local totalPctText = (totalPct == 0) and "0.00%" or string.format("%+.2f%%", totalPct)
+
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+
+    -- ==========================================
+    -- Net worth banner (중앙 정렬, 큰 숫자)
+    -- ==========================================
+    html = html .. string.format([[<div style="padding:18px 0;text-align:center;margin-bottom:6px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#9a8a72;font-variant:small-caps;letter-spacing:0.32em;margin-bottom:8px">The reader's estate, valued</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:44px;font-weight:600;color:#f0e3cc;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">%s<span style="color:#e8a679;font-size:22px;margin-left:6px;font-style:italic">G</span></div><div style="margin-top:14px;display:flex;justify-content:center;gap:36px"><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">총 손익</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:%s;margin-top:4px;font-variant-numeric:tabular-nums">%s %s G</div></div><div style="width:1px;background:rgba(240,227,204,0.16)"></div><div style="text-align:center"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">수익률</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:17px;color:%s;margin-top:4px;font-variant-numeric:tabular-nums">%s</div></div></div></div>]], formatNumber(totalValue), profitColor, profitArrow, profitNumText, profitColor, totalPctText)
+
+    -- DoubleRule
+    html = html .. [[<div style="padding:6px 0"><div style="height:1px;background:rgba(240,227,204,0.30)"></div><div style="height:1px;background:rgba(240,227,204,0.30);margin-top:2px"></div></div>]]
+
+    -- ==========================================
+    -- Composition · 자산 구성 (현금 / 주식 2 columns)
+    -- ==========================================
+    html = html .. [[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-top:14px;margin-bottom:10px">Composition · 자산 구성</div>]]
+
+    local goldPct = (totalValue > 0) and (gold / totalValue * 100) or 0
+    local stockPct = (totalValue > 0) and (stockValue / totalValue * 100) or 0
+    html = html .. string.format([[<div style="display:flex;gap:18px;margin-bottom:18px"><div style="flex:1;border-top:2px solid #d4af6a;padding-top:8px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">현금 · Cash</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:500">%s<span style="font-size:11px;color:#9a8a72;margin-left:4px">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#d4af6a;margin-top:2px">%.1f%% of estate</div></div><div style="flex:1;border-top:2px solid #e8a679;padding-top:8px"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:9.5px;font-variant:small-caps;letter-spacing:0.28em;color:#9a8a72">주식 · Equity</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:22px;color:#f0e3cc;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:500">%s<span style="font-size:11px;color:#9a8a72;margin-left:4px">G</span></div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:11px;color:#e8a679;margin-top:2px">%.1f%% of estate</div></div></div>]], formatNumber(gold), goldPct, formatNumber(stockValue), stockPct)
+
+    -- ==========================================
+    -- Holdings · N issues on the books (보유 종목 테이블)
+    -- ==========================================
+    html = html .. string.format([[<div style="font-family:'Noto Serif KR',Georgia,serif;font-size:10.5px;letter-spacing:0.32em;text-transform:uppercase;color:#e8a679;font-variant:small-caps;font-weight:600;margin-bottom:10px">Holdings · %d issues on the books</div>]], #holdings)
+
+    if #holdings > 0 then
+        html = html .. [[<div style="border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16)">]]
+        for i, h in ipairs(holdings) do
+            local pDir = (h.profit > 0) and 1 or ((h.profit < 0) and -1 or 0)
+            local pColor = (pDir > 0) and "#d94c47" or ((pDir < 0) and "#5e7a99" or "#9a8a72")
+            local pArrow = (pDir > 0) and "▲" or ((pDir < 0) and "▼" or "—")
+            local pNum = (h.profit == 0) and "0" or string.format("%+d", math.floor(h.profit))
+            local pPctText = (pDir == 0) and "0.0%" or string.format("%+.1f%%", h.profitPercent)
+            local rowBorder = (i < #holdings) and "1px dotted rgba(240,227,204,0.08)" or "none"
+
+            html = html .. string.format([[<button type="button" risu-btn="stock_select_%s" onclick="event.stopPropagation();" style="display:flex;width:100%%;padding:14px 0;align-items:baseline;border:0;border-bottom:%s;background:transparent;cursor:pointer;text-align:left;font-family:inherit"><div style="flex:1"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;font-weight:600;color:#f0e3cc;font-style:italic">%s</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:2px">%s · %d주 held at avg %s G</div></div><div style="text-align:right"><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:15px;font-weight:500;color:#f0e3cc;font-variant-numeric:tabular-nums">%s G</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-size:11.5px;color:%s;margin-top:2px;font-variant-numeric:tabular-nums">%s %s · %s</div></div></button>]], h.ticker, rowBorder, h.name, h.ticker, h.owned, formatNumber(h.avgPrice), formatNumber(h.value), pColor, pArrow, pNum, pPctText)
+        end
+        html = html .. [[</div>]]
+    else
+        html = html .. [[<div style="padding:32px 0;text-align:center;border-top:1px solid rgba(240,227,204,0.16);border-bottom:1px solid rgba(240,227,204,0.16)"><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:12px;color:#6e604c">— No issues on the reader's ledger —</div><div style="font-family:'Noto Serif KR',Georgia,serif;font-style:italic;font-size:10.5px;color:#9a8a72;margin-top:4px">시세표에서 종목을 선택해 매수하세요</div></div>]]
+    end
+
+    return html
+end
+
+listenEdit("editDisplay", function(triggerId, data, meta)
+    -- ============================================
+    -- 0단계: 시스템 활성화 태그 우선 처리 (HTML 변환 전)
+    -- ============================================
+
+    -- [Business:Enable:TICKER] 태그는 즉시 파싱 (메인 모델 출력일 때)
+    parseBusinessEnable(triggerId, data)
+
+    -- 메인 모델 전용 태그들 항상 파싱 (보조 모델 유무 관계없이)
+    parseStockSystemEnable(triggerId, data)
+    parseClubChanges(triggerId, data)
+    parseStockTrades(triggerId, data)
+    parseStockChartUpdate(triggerId, data)
+    parseMarketIndex(triggerId, data)
+
+    -- <Business:TICKER:var:value> 태그 파싱 및 UI 변환
+    data = parseBusinessTags(triggerId, data)
+
+    -- ============================================
+    -- 1단계: 변수 업데이트 (보조 모델이 처리할 때만)
+    -- ============================================
+
+    -- 보조 모델 출력인지 확인: 보조 모델은 주로 태그만 출력하고 스토리 텍스트가 적음
+    -- 또는 특정 마커를 확인
+    local isAuxiliaryOutput = false
+
+    -- 보조 모델 판별: [Affinity:, [Stat:, [Gold: 같은 태그가 있으면 보조 모델 출력
+    if data:match("%[Affinity:") or data:match("%[Stat:") or data:match("%[Gold:") or
+       data:match("%[Sin:") or data:match("%[Item:") or data:match("%[EXP:") then
+        isAuxiliaryOutput = true
+    end
+
+    -- 보조 모델 출력일 때 태그 파싱
+    if isAuxiliaryOutput then
+        -- 1단계: 보조 모델 자신의 출력에서 변수 업데이트 태그 파싱
+        -- parseStockChanges는 processOutput에서 이미 처리됨 (중복 방지)
+        parseStockTrades(triggerId, data)   -- 주식 매매 (보조 AI가 출력)
+        parseStockChartUpdate(triggerId, data)  -- 차트 업데이트 (가격 변화)
+
+        -- 2단계: 메인 모델 출력 찾기
+        local chatData = getChat(triggerId)
+        if chatData and chatData.message and #chatData.message > 0 then
+            local aiMessageCount = 0
+            for i = #chatData.message, 1, -1 do
+                local msg = chatData.message[i]
+                if msg.role == "assistant" or msg.role == "char" then
+                    aiMessageCount = aiMessageCount + 1
+
+                    -- 2번째 AI 메시지가 메인 모델 출력
+                    if aiMessageCount == 2 then
+                        local mainOutput = msg.data or ""
+
+                        -- 메인 모델 출력에서 관련 태그 파싱
+                        parseStockSystemEnable(triggerId, mainOutput)
+                        parseClubChanges(triggerId, mainOutput)
+                        parseStockTrades(triggerId, mainOutput)
+                        parseStockChartUpdate(triggerId, mainOutput)
+                        parseMarketIndex(triggerId, mainOutput)
+
+                        break  -- 메인 모델 메시지 처리 완료
+                    end
+                end
+            end
+        end
+    end
+
+    -- ============================================
+    -- 2단계: 현재 출력의 HTML 변환 (디스플레이용)
+    -- ============================================
+
+    -- 전투 선택지 변환 (Tarot v3 톤, 난이도 색깔 분기 제거) - 다른 태그보다 먼저 처리!
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치 (Lua에서 .는 줄바꿈 제외)
+    data = data:gsub("<CombatChoice>([%s%S]-)</CombatChoice>", function(content)
+        -- 난이도 영문 → 한글 라벨
+        local diffLabels = {
+            ["Very Easy"] = "매우 쉬움",
+            ["Easy"]      = "쉬움",
+            ["Normal"]    = "보통",
+            ["Hard"]      = "어려움",
+            ["Very Hard"] = "매우 어려움",
+        }
+
+        local html = [[<div style="max-width:560px;width:calc(100% - 16px);margin:14px auto;padding:0 8px;box-sizing:border-box;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif">]]
+        local choiceIndex = 1
+
+        for line in content:gmatch("[^\r\n]+") do
+            local stat, desc, diff = line:match("%[([^|]+)|([^|]+)|([^%]]+)%]")
+            if stat and desc and diff then
+                -- 능력치별 이모지
+                local emoji = "⚔️"
+                local statUpper = stat:upper()
+                local statLower = stat:lower()
+
+                if statUpper == "STR" then emoji = "💪"
+                elseif statUpper == "DEX" then emoji = "⚡"
+                elseif statUpper == "INT" then emoji = "🧠"
+                elseif statUpper == "CHA" then emoji = "💬"
+                elseif statUpper == "LUK" then emoji = "🍀"
+                elseif statLower == "escape" or statLower == "flee" or statLower == "run" or stat == "도망" then
+                    emoji = "🏃"
+                else
+                    emoji = "⚔️"
+                end
+
+                local diffLabel = diffLabels[diff] or diff
+
+                html = html .. string.format(
+                    [[<button type="button" risu-trigger="combat_choice_%d" style="display:flex;align-items:center;gap:10px;width:100%%;margin:6px auto;padding:11px 14px;background:#1a1226;color:#ebe2d0;border:1px solid rgba(184,150,92,0.45);font-family:inherit;font-size:clamp(12px, 3vw, 13px);font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.35;box-sizing:border-box"><span style="font-size:16px;line-height:1;flex-shrink:0">%s</span><span style="font-family:Georgia,serif;font-size:10px;letter-spacing:0.3em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">%s</span><span style="flex:1;min-width:0">%s</span><span style="font-family:Georgia,serif;font-style:italic;font-size:11px;color:#c98da0;letter-spacing:0.05em;flex-shrink:0">%s</span></button>]],
+                    choiceIndex, emoji, stat, desc, diffLabel
+                )
+
+                choiceIndex = choiceIndex + 1
+            end
+        end
+
+        html = html .. "</div>"
+        return html
+    end)
+
+    -- 주식 시세 태그 → 티커 디스플레이 변환
+    data = data:gsub("%[Stock:([^%]]+)%]", function(stockData)
+        return generateStockTicker(stockData)
+    end)
+
+    -- 주식 매수 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockBuy:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#2d1a1a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #ef5350'>
+  <span style='color:#ef5350'>💰</span>
+  <span style='color:#ef5350;font-weight:600'>매수</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
+    end)
+
+    -- 주식 매도 태그 → 간단한 인라인 표시
+    data = data:gsub("%[StockSell:([A-Z%-]+):(%d+%.?%d*):(%d+)%]", function(ticker, price, qty)
+        local priceNum = tonumber(price)
+        local qtyNum = tonumber(qty)
+        return string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#1a2d2a;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #26a69a'>
+  <span style='color:#26a69a'>💵</span>
+  <span style='color:#26a69a;font-weight:600'>매도</span>
+  <span style='color:#fff;font-weight:500'>%s</span>
+  <span style='color:#8b949e'>%s주 @ %sG</span>
+</span>]], ticker, qtyNum, formatNumber(priceNum))
+    end)
+
+    -- 동아리 가입/탈퇴 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[Club:Join:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#1a472a;border-left:4px solid #2ea043;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#7ee787">📋 <b>%s</b> 가입!</div>', clubName)
+    end)
+    data = data:gsub("%[Club:Leave:([^%]]+)%]", function(clubId)
+        local clubNames = {
+            stock = "주식투자 동아리",
+        }
+        local clubName = clubNames[clubId] or clubId
+        return string.format('<div style="background:#3d1f1f;border-left:4px solid #f85149;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#ffa198">📋 <b>%s</b> 탈퇴</div>', clubName)
+    end)
+
+    -- StatsEvaluated 태그 → 알림 디스플레이 변환
+    data = data:gsub("%[StatsEvaluated%]", '<div style="background:#2d1f3d;border-left:4px solid #a371f7;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#d2a8ff">✨ <b>능력 평가 완료!</b></div>')
+
+    -- 주식 매수/매도 태그는 디스플레이 변환하지 않음 (시스템 기능만 사용)
+    -- 태그는 나중에 일괄 제거됨
+
+    -- 경영 시스템 활성화 태그 → 환영 알림 디스플레이 변환 (먼저 처리!)
+    data = data:gsub("%[Business:Enable:([A-Z%-]+)%]", function(ticker)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1f2937 0%%,#111827 100%%);border:2px solid #fbbf24;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(251,191,36,0.3)">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="background:#fbbf24;color:#000;font-size:12px;font-weight:700;padding:4px 10px;border-radius:5px">💼 경영진 합류</span>
+    <span style="color:#fbbf24;font-size:16px;font-weight:700">%s</span>
+  </div>
+  <div style="color:#d1d5db;font-size:14px;line-height:1.6">
+    공동 경영 파트너십이 시작되었습니다.<br>
+    회사 경영 권한과 경영 패널 접근이 활성화되었습니다.
+  </div>
+</div>]], name)
+    end)
+
+    -- 경영 이벤트 태그 → 비즈니스 알림 디스플레이 변환
+    data = data:gsub("%[Business:([A-Z%-]+):([^%]]+)%]", function(ticker, event)
+        local companyNames = {
+            GOLDMANE = "골든메인 금광",
+            LUXORIA = "럭소리아 명품관",
+            PFIZARA = "파이자라 제약"
+        }
+        local name = companyNames[ticker] or ticker
+        return string.format([[
+<div style="background:linear-gradient(135deg,#1a1f35 0%%,#0d1117 100%%);border:1px solid #58a6ff;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(88,166,255,0.2)">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="background:#58a6ff;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px">경영</span>
+    <span style="color:#58a6ff;font-size:14px;font-weight:600">%s</span>
+  </div>
+  <div style="color:#c9d1d9;font-size:13px;line-height:1.6">%s</div>
+</div>]], name, event)
+    end)
+
+    -- 주식 거래 실패 메시지 표시 (비활성화 - 사용자 요청)
+    -- local tradeError = getChatVar(triggerId, "stock_trade_error") or ""
+    -- if tradeError ~= "" then
+    --     data = data .. string.format([[
+-- <div style="background:linear-gradient(135deg,#2d1a1a 0%%,#1a1215 100%%);border:1px solid #ef5350;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 2px 8px rgba(239,83,80,0.2)">
+--   <div style="color:#ef5350;font-size:14px;font-weight:600">%s</div>
+-- </div>]], tradeError)
+    -- end
+
+    -- Market 태그 → 시장 뉴스 디스플레이 변환
+    data = data:gsub("%[Market:(%d+):([%+%-]?[%d%.]+):([^%]]+)%]", function(index, change, news)
+        local changeNum = tonumber(change) or 0
+        local arrow = changeNum > 0 and "▲" or (changeNum < 0 and "▼" or "─")
+        local color = changeNum > 0 and "#ef5350" or (changeNum < 0 and "#42a5f5" or "#8b949e")
+        local sign = changeNum > 0 and "+" or ""
+        return string.format('<div style="background:#1a1f2e;border-left:4px solid #58a6ff;padding:8px 12px;margin:8px 0;border-radius:4px;font-size:13px;color:#c9d1d9">📰 <span style="color:#8b949e">릴리벨리 지수</span> <span style="color:#fff;font-weight:600">%s</span> <span style="color:%s">%s%s%.1f%%</span> │ %s</div>', index, color, arrow, sign, changeNum, news)
+    end)
+
+    -- ============================================
+    -- 기존 디스플레이 변환 (주식 패널 등)
+    -- ============================================
+
+    -- <Stock> 태그 파싱 및 뉴스 저장
+    -- [%s%S]는 줄바꿈 포함 모든 문자 매치
+    data = data:gsub("<Stock>([%s%S]-)</Stock>", function(content)
+        local newsItems = {}
+        local currentNews = nil
+
+        for line in content:gmatch("[^\r\n]+") do
+            line = line:gsub("^%s*(.-)%s*$", "%1")  -- trim
+            if line ~= "" then
+                -- 형식 1: TICKER: PRICEg, DIRECTION - REASON
+                local ticker1, price, direction, reason = line:match("([A-Z]+)[^:]*:%s*(%d+)[Gg]?,%s*(%w+)%s*%-%s*(.+)")
+                if ticker1 and reason then
+                    table.insert(newsItems, {
+                        ticker = ticker1,
+                        price = tonumber(price) or 0,
+                        direction = direction,
+                        headline = reason:gsub("^%s*(.-)%s*$", "%1"),
+                        details = {}
+                    })
+                else
+                    -- 형식 2: 뉴스 기사 형식
+                    -- 헤드라인: [속보] 골든메인(GOLDMANE), ...
+                    local ticker2, headline = line:match("%(([A-Z]+)%)%s*,?%s*(.+)")
+                    if ticker2 and headline then
+                        -- 새 뉴스 아이템 시작
+                        currentNews = {
+                            ticker = ticker2,
+                            price = 0,
+                            direction = "unknown",
+                            headline = headline,
+                            details = {}
+                        }
+                        table.insert(newsItems, currentNews)
+                    elseif currentNews and line:match("^%-") then
+                        -- 현재 뉴스의 상세 내용 (bullet point)
+                        local detail = line:gsub("^%-%s*", "")
+                        table.insert(currentNews.details, detail)
+
+                        -- 목표 주가에서 가격 추출 시도
+                        local targetPrice = detail:match("목표%s*주가[^:]*:%s*%d+[Gg]?%s*%-%>%s*(%d+)[Gg]?")
+                        if targetPrice and currentNews.price == 0 then
+                            currentNews.price = tonumber(targetPrice) or 0
+                        end
+                    end
+                end
+            end
+        end
+
+        -- 뉴스가 있으면 상태에 저장
+        if #newsItems > 0 then
+            -- JSON 형태로 저장 (개선된 형식)
+            local newsJson = ""
+            for i, item in ipairs(newsItems) do
+                if i > 1 then newsJson = newsJson .. "||" end  -- 뉴스 구분자
+
+                -- 헤드라인
+                local fullHeadline = item.headline
+                -- 상세 내용 추가 (최대 2개)
+                if #item.details > 0 then
+                    for j = 1, math.min(2, #item.details) do
+                        fullHeadline = fullHeadline .. " • " .. item.details[j]
+                    end
+                end
+
+                newsJson = newsJson .. item.ticker .. ":" .. (item.direction or "unknown") .. ":" .. fullHeadline
+            end
+            setState(triggerId, "stock_news", newsJson)
+            setState(triggerId, "stock_news_time", os.time())
+            log("📰 주식 뉴스 저장: " .. #newsItems .. "건")
+        end
+        return ""  -- 태그 제거
+    end)
+
+    -- 주식 패널: 태그 확인 후 UI 생성
+    local hasStockPanel = data:find("<StockPanel%s*/>")
+    data = data:gsub("<StockPanel%s*/>", "")
+
+    -- 태그가 있으면 패널 UI 생성
+    if hasStockPanel then
+        -- meta가 있으면 마지막 메시지 체크, 없으면 그냥 표시
+        local shouldShow = true
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            shouldShow = (meta.index >= chatLength - 1)
+        end
+        if shouldShow then
+            data = data .. generateStockPanelUI(triggerId)
+        end
+    end
+
+    -- 디버그 패널: 태그 확인 후 UI 생성
+    local hasDebugPanel = data:find("<DebugPanel%s*/>")
+    data = data:gsub("<DebugPanel%s*/>", "")
+    if hasDebugPanel then
+        data = data .. generateDebugPanel(triggerId)
+    end
+
+    -- 개별 종목 차트 카드 (변화값 있음): <StockChart:TICKER:±value />
+    data = data:gsub("<StockChart:([A-Z%-]+):([%+%-]?%d+%.?%d*)%s*/>", function(ticker, changeValue)
+        addDebugLog("StockChart", string.format("태그 발견: %s, 변화값: %s", ticker, changeValue))
+
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            addDebugLog("StockChart", "주식/경영 시스템 비활성화 - 태그 무시")
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화값 사용
+        local change = tonumber(changeValue) or 0
+        local updateNotice = ""
+
+        -- 업데이트 알림 표시
+        if change ~= 0 then
+            local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+            local changeSign = change > 0 and "+" or ""
+            updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터
+        local history = getStockHistory(triggerId, ticker)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
+        local miniChart = ""
+        if #history >= 2 then
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
+            for _, p in ipairs(history) do
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
+    </div>
+  </div>
+  %s
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
+
+        return html
+    end)
+
+    -- 개별 종목 차트 카드 (변화값 없음): <StockChart:TICKER />
+    data = data:gsub("<StockChart:([A-Z%-]+)%s*/>", function(ticker)
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화량 계산: changeValue가 제공되면 우선 사용, 아니면 history 기준
+        local change = 0
+        local updateNotice = ""
+        local history = getStockHistory(triggerId, ticker)  -- 항상 history 가져오기
+
+        if changeValue and changeValue ~= "" then
+            -- 태그에서 변화값이 제공된 경우
+            change = tonumber(changeValue) or 0
+            -- 업데이트 알림 표시
+            if change ~= 0 then
+                local changeColor = change > 0 and "#ef5350" or "#42a5f5"
+                local changeSign = change > 0 and "+" or ""
+                updateNotice = string.format([[
+<div style='background:#161b22;border-left:3px solid %s;padding:6px 10px;margin-top:8px;border-radius:4px'>
+  <span style='font-size:12px;color:#8b949e'>📊 Price Update: </span>
+  <span style='font-size:13px;font-weight:600;color:%s'>%s%.0fG</span>
+</div>]], changeColor, changeColor, changeSign, change)
+            end
+        else
+            -- history 전체 기간 기준 (차트 방향과 일치)
+            if #history >= 2 then
+                local openPrice = history[1]
+                local closePrice = history[#history]
+                change = closePrice - openPrice
+            else
+                -- history 없으면 저장된 change 사용
+                change = getState(triggerId, "stock_" .. ticker .. "_change") or 0
+            end
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        -- 색상 결정 (한국식: 상승 빨강, 하락 파랑)
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        -- 미니 차트 데이터 (history는 이미 위에서 가져옴)
+        local basePrice = STOCK_BASE_PRICES[ticker] or 100
+        local miniChart = ""
+        if #history >= 2 then
+            -- Y축 범위: 기준가 대비 ±20% 고정 (안정적인 시각화)
+            local minP = math.floor(basePrice * 0.80)
+            local maxP = math.floor(basePrice * 1.20)
+            -- 실제 데이터가 범위를 벗어나면 확장
+            for _, p in ipairs(history) do
+                if p < minP then minP = p - 5 end
+                if p > maxP then maxP = p + 5 end
+            end
+            local range = maxP - minP
+            if range == 0 then range = 1 end
+
+            -- SVG 미니 차트
+            local points = {}
+            local chartW, chartH = 120, 40
+            for i, p in ipairs(history) do
+                local x = (i - 1) * (chartW / (#history - 1))
+                local y = chartH - ((p - minP) / range * chartH)
+                table.insert(points, string.format("%.1f,%.1f", x, y))
+            end
+            local lineColor = changePercent >= 0 and "#ef5350" or "#42a5f5"
+            miniChart = string.format([[
+<svg width='%d' height='%d' style='margin-top:8px'>
+  <polyline points='%s' fill='none' stroke='%s' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+</svg>]], chartW, chartH, table.concat(points, " "), lineColor)
+        end
+
+        -- 카드 HTML
+        local html = string.format([[
+<div style='max-width:280px;margin:12px auto;background:#0d1117;border-radius:10px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid #30363d'>
+  <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+    <div>
+      <div style='font-size:16px;font-weight:700;color:#fff'>%s</div>
+      <div style='font-size:11px;color:#8b949e;margin-top:2px'>%s</div>
+    </div>
+    <div style='text-align:right'>
+      <div style='font-size:20px;font-weight:700;color:#fff'>%sG</div>
+      <div style='font-size:13px;color:%s;font-weight:600'>%s%.1f%% %s</div>
+    </div>
+  </div>
+  %s
+  %s
+</div>]], ticker, name, formatNumber(price), changeColor, changeSign, changePercent, arrow, miniChart, updateNotice)
+
+        return html
+    end)
+
+    -- 간단 시세 인라인: <StockQuote:TICKER />
+    data = data:gsub("<StockQuote:([A-Z%-]+)%s*/>", function(ticker)
+        -- 주식 또는 경영 시스템 활성화 체크
+        local stockEnabled = getChatVar(triggerId, "stock_system_enabled")
+        local businessEnabled = getChatVar(triggerId, "business_system_enabled")
+        if stockEnabled ~= "1" and businessEnabled ~= "1" then
+            return ""
+        end
+
+        local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        price = (price and price > 0) and price or (STOCK_BASE_PRICES[ticker] or 100)
+        local change = tonumber(getState(triggerId, "stock_" .. ticker .. "_change")) or 0
+        local name = STOCK_NAMES[ticker] or ticker
+
+        -- 변화량이 0이면 히스토리에서 계산
+        if change == 0 then
+            local history = getStockHistory(triggerId, ticker)
+            if #history >= 2 then
+                local prevPrice = history[#history - 1]
+                change = price - prevPrice
+            end
+        end
+
+        -- 등락률 계산: (변화량 / 이전가격) × 100
+        local prevPrice = price - change
+        local changePercent = (prevPrice > 0 and change ~= 0) and ((change / prevPrice) * 100) or 0
+
+        local changeColor = changePercent > 0 and "#ef5350" or (changePercent < 0 and "#42a5f5" or "#8b949e")
+        local changeSign = changePercent > 0 and "+" or ""
+        local arrow = changePercent > 0 and "▲" or (changePercent < 0 and "▼" or "─")
+
+        local html = string.format([[
+<span style='display:inline-flex;align-items:center;gap:6px;background:#161b22;padding:4px 10px;border-radius:6px;font-size:13px;border:1px solid #30363d'>
+  <span style='color:#fff;font-weight:600'>%s</span>
+  <span style='color:#8b949e'>%sG</span>
+  <span style='color:%s;font-weight:500'>%s%.1f%% %s</span>
+</span>]], ticker, formatNumber(price), changeColor, changeSign, changePercent, arrow)
+
+        return html
+    end)
+
+    -- ============================================
+    -- 시스템 메시지 디스플레이 변환
+    -- ============================================
+
+    -- 시스템 메시지를 감지하고 타입별로 스타일링 (Tarot v3 톤, 좌측 보더만 미세 분기)
+    data = data:gsub("`?(%-+%s*System Message:%s*)([^\n`]+)`?", function(prefix, content)
+        local icon = "✦"
+        local accentColor = "#b8965c"  -- general: 탁한 골드
+
+        -- 경영 이벤트 감지 (GOLDMANE, LUXORIA, PFIZARA)
+        if content:match("%[GOLDMANE%]") or content:match("%[LUXORIA%]") or content:match("%[PFIZARA%]") then
+            icon = "❖"
+            accentColor = "#d4b577"  -- business: 밝은 골드
+        -- 주식 거래 감지
+        elseif content:match("bought.*share") or content:match("sold.*share") or
+               content:match("매수") or content:match("매도") or
+               content:match("Buy") or content:match("Sell") then
+            icon = "◆"
+            accentColor = "#c98da0"  -- stock: 핑크
+        end
+
+        -- Tarot v3 톤 카드 (좌측 보더만 색 분기)
+        local html = string.format([[<div style="position:relative;max-width:560px;margin:10px auto;background:#1a1226;border:1px solid rgba(184,150,92,0.4);border-left:3px solid %s;padding:11px 16px;font-family:'Noto Serif KR','나눔명조','바탕',Batang,Georgia,serif;box-shadow:0 4px 14px rgba(0,0,0,0.35)"><div style="position:absolute;inset:3px;border:0.5px solid rgba(184,150,92,0.18);pointer-events:none"></div><div style="position:relative;z-index:1;display:flex;align-items:center;gap:10px"><span style="font-family:Georgia,serif;font-size:14px;color:%s;flex-shrink:0;line-height:1">%s</span><span style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.4em;color:#b8965c;text-transform:uppercase;font-variant:small-caps;flex-shrink:0">System</span><span style="flex:1;color:#ebe2d0;font-size:13px;line-height:1.55">%s</span></div></div>]], accentColor, accentColor, icon, content)
+
+        return html
+    end)
+
+    -- 주간 보고서 변환 (태그 사이 끼임 방지 — 원위치 제거 후 메시지 끝에 append)
+    local reportHTML = nil
+    data = data:gsub("<WeeklyReport>([^<]+)</WeeklyReport>", function(content)
+        reportHTML = convertWeeklyReport(content)
+        return ""
+    end)
+    if reportHTML then
+        data = data .. "\n\n" .. reportHTML
+    end
+
+    -- ============================================
+    -- 보조 AI 리롤 버튼 추가
+    -- ============================================
+
+    -- 보조모델이 꺼져있으면(0) 버튼 표시 안함
+    local auxiliaryMode = getChatVar(triggerId, "auxiliary_mode") or "0"
+    if auxiliaryMode ~= "0" then
+        -- meta 정보가 있고 마지막 메시지인지 확인
+        if meta and meta.index then
+            local chatLength = getChatLength(triggerId)
+            local position = meta.index - chatLength
+            if position == -1 then
+                -- 보조모델이 실행된 메시지인지 확인 (태그나 Panel이 있어야 함)
+                local hasAuxiliaryOutput = data:find("%[Affinity:", 1, false) or
+                                           data:find("%[Sin:", 1, false) or
+                                           data:find("%[Location:", 1, false) or
+                                           data:find("<Panel", 1, true)
+
+                -- 이미 리롤 버튼이 없고 보조 출력이 있으면 버튼 추가
+                if hasAuxiliaryOutput and not data:find('risu%-btn="reroll_auxiliary"', 1, true) then
+                    local rerollButton = [[
+
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e0d5c7;text-align:right;">
+<button type="button" risu-btn="reroll_auxiliary" style="background:#f5f1e8;border:1px solid #d4c4a8;border-radius:6px;padding:8px 20px;color:#8b7355;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.background='#ede9dd';this.style.borderColor='#8b7355'" onmouseout="this.style.background='#f5f1e8';this.style.borderColor='#d4c4a8'">🔄 보조 AI 리롤</button>
+</div>]]
+                    data = data .. rerollButton
+                end
+            end
+        end
+    end
+
+    return data
+end)
+
+-- ============================================
+-- 주간 스케줄 시스템
+-- ============================================
+
+-- 더미 데이터 (나중에 실제 데이터로 교체)
+local house_professors = {
+    Serpent = {
+        "Professor A (STR/DEX focus)",
+        "Professor B (INT/CHA focus)",
+        "Professor C (Balanced)"
+    },
+    Aconitum = {
+        "Professor D (STR focus)",
+        "Professor E (VIT focus)",
+        "Professor F (Combat Magic)"
+    },
+    Wisteria = {
+        "Professor G (INT focus)",
+        "Professor H (Theory)",
+        "Professor I (Practical)"
+    },
+    Lotus = {
+        "Professor J (Healing)",
+        "Professor K (Support)",
+        "Professor L (Balance)"
+    }
+}
+
+local lifestyles = {
+    "Social (사교/매력 향상)",
+    "Training (개인 훈련/자기계발)",
+    "Club (동아리 활동)",
+    "Adventure (교외 활동/퀘스트)",
+    "Rest (휴식/회복)"
+}
+
+-- 주간 커리큘럼 선택 함수
+_G["select_curriculum"] = function(triggerId)
+    -- 1. 소속 하우스 확인
+    local house = getChatVar(triggerId, "player_house") or "Serpent"
+
+    -- 2. 해당 하우스 교수 목록 가져오기
+    local professors = house_professors[house]
+    if not professors then
+        log("❌ 하우스 정보 없음: " .. house)
+        return
+    end
+
+    -- 3. 커리큘럼 선택
+    local curriculumIdx = alertSelect(triggerId, professors, "이번 주 담당 교수를 선택하세요")
+    if not curriculumIdx or curriculumIdx < 1 or curriculumIdx > #professors then
+        log("❌ 커리큘럼 선택 취소")
+        return
+    end
+    local curriculum = professors[curriculumIdx]
+
+    -- 4. 라이프스타일 선택
+    local lifestyleIdx = alertSelect(triggerId, lifestyles, "이번 주 방과후 라이프스타일을 선택하세요")
+    if not lifestyleIdx or lifestyleIdx < 1 or lifestyleIdx > #lifestyles then
+        log("❌ 라이프스타일 선택 취소")
+        return
+    end
+    local lifestyle = lifestyles[lifestyleIdx]
+
+    -- 5. 변수 저장 (AI에게 명령하지 않음!)
+    setChatVar(triggerId, "current_curriculum", curriculum)
+    setChatVar(triggerId, "current_lifestyle", lifestyle)
+
+    log("📚 Week " .. (getChatVar(triggerId, "week_of_season") or "?") .. " 선택 완료")
+    log("  커리큘럼: " .. curriculum)
+    log("  라이프스타일: " .. lifestyle)
+end
+
+-- ============================================
+-- 주간 스케줄 버튼 함수 (HTML 버튼용)
+-- ============================================
+
+-- 커리큘럼 선택 함수 (1~7)
+local curriculum_names = {
+    "Vivienne", "Robert", "Scar", "Margot", "Lydia", "Hemlock", "Margaret"
+}
+
+for i = 1, 7 do
+    _G["set_curriculum_" .. i] = function(triggerId)
+        setChatVar(triggerId, "current_curriculum", curriculum_names[i])
+        log("📚 커리큘럼 선택: " .. curriculum_names[i])
+    end
+end
+
+-- 라이프스타일 선택 함수 (1~5)
+local lifestyle_names = {
+    "Social", "Training", "Club", "Adventure", "Rest"
+}
+
+for i = 1, 5 do
+    _G["set_lifestyle_" .. i] = function(triggerId)
+        setChatVar(triggerId, "current_lifestyle", lifestyle_names[i])
+        log("🌟 라이프스타일 선택: " .. lifestyle_names[i])
+    end
+end
+
+-- 보조 AI 모델 선택 함수
+_G["set_aux_mode_auxiliary"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode", "2")
+    setChatVar(triggerId, "auxiliary_mode_text", "보조 모델")
+    alertNormal(triggerId, "보조 AI가 [보조 모델]을 사용하도록 설정되었습니다.")
+end
+
+_G["set_aux_mode_main"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode", "1")
+    setChatVar(triggerId, "auxiliary_mode_text", "메인 모델")
+    alertNormal(triggerId, "보조 AI가 [메인 모델]을 사용하도록 설정되었습니다.")
+end
+
+_G["set_aux_mode_off"] = function(triggerId)
+    setState(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode", "0")
+    setChatVar(triggerId, "auxiliary_mode_text", "Off (로어북)")
+    alertNormal(triggerId, "보조 AI가 [Off]로 설정되었습니다. 메인 모델이 로어북의 지시를 따라 태그를 출력합니다.")
+end
+
+-- 호감도 시스템 ON/OFF
+_G["set_affinity_on"] = function(triggerId)
+    setState(triggerId, "affinity_system_enabled", "true")
+    setChatVar(triggerId, "affinity_system_enabled", "true")
+    setChatVar(triggerId, "affinity_system_text", "ON")
+    alertNormal(triggerId, "호감도 시스템이 활성화되었습니다.")
+    log("💕 호감도 시스템 ON")
+end
+
+_G["set_affinity_off"] = function(triggerId)
+    setState(triggerId, "affinity_system_enabled", "false")
+    setChatVar(triggerId, "affinity_system_enabled", "false")
+    setChatVar(triggerId, "affinity_system_text", "OFF")
+    alertNormal(triggerId, "호감도 시스템이 비활성화되었습니다. 호감도 태그가 출력되지 않습니다.")
+    log("💔 호감도 시스템 OFF")
+end
+
+_G["reset_all_stats_to_50"] = function(triggerId)
+    local stats = {"str", "dex", "int", "cha", "luk", "vit"}
+
+    for _, stat in ipairs(stats) do
+        local key = "player_" .. stat
+        setChatVar(triggerId, key, "40")
+        setState(triggerId, key, 40)
+    end
+
+    -- 레벨도 1로 초기화
+    setChatVar(triggerId, "player_level", "1")
+    setState(triggerId, "player_level", 1)
+    setChatVar(triggerId, "player_exp", "0")
+    setState(triggerId, "player_exp", 0)
+
+    -- 스탯 평가 완료로 설정 (스탯이 할당되었으므로)
+    setChatVar(triggerId, "stats_evaluated", "true")
+    setState(triggerId, "stats_evaluated", "true")
+
+    -- 전투력 재계산
+    local maxCombatPower = calculateCombatPower(triggerId)
+    setChatVar(triggerId, "player_combat_power_max", tostring(maxCombatPower))
+    setChatVar(triggerId, "player_combat_power", tostring(maxCombatPower))
+    setState(triggerId, "player_combat_power_max", maxCombatPower)
+    setState(triggerId, "player_combat_power", maxCombatPower)
+
+    alertNormal(triggerId, "모든 스탯이 40으로 초기화되었습니다. (레벨 1, EXP 0)")
+    log("🔄 스탯 초기화: 모든 스탯 40, 레벨 1")
+    return true
+end
+
+-- 보조 AI 리롤 함수
+_G["reroll_auxiliary"] = function(triggerId)
+    log("🎲 보조 AI 리롤 시작")
+
+    -- 현재 메시지 가져오기
+    -- 주의: onButtonClick에서 "재생성 중..." 임시 메시지를 추가했으므로
+    -- 실제 AI 응답은 마지막에서 두 번째(-2) 위치에 있음
+    local full_chat = getFullChat(triggerId)
+    if not full_chat or #full_chat < 2 then
+        alertError(triggerId, "채팅 기록이 부족합니다.")
+        return false
+    end
+
+    -- 마지막은 임시 메시지, 그 앞이 실제 AI 응답
+    local chatIndex = #full_chat - 1
+    local lastMessage = full_chat[chatIndex]
+
+    -- AI 메시지인지 확인
+    if lastMessage.role ~= "char" then
+        alertError(triggerId, "대상 메시지가 AI 응답이 아닙니다.")
+        return false
+    end
+
+    local message = lastMessage.data
+
+    -- editDisplay에서 추가한 리롤 버튼 제거 (실제 데이터에는 없어야 하지만 안전을 위해)
+    local cleanMessage = message:gsub('<div style="margin%-top:20px.-</div>', "")
+
+    -- <Panel>■★ 위치 찾기 (메인 모델 응답과 보조 응답 구분)
+    local panelPos = cleanMessage:find("<Panel>■★", 1, true)
+    local mainResponse
+
+    if panelPos then
+        -- 마커가 있으면 기존 메인 응답 추출
+        mainResponse = cleanMessage:sub(1, panelPos - 1)
+    else
+        -- 마커가 없으면 "<Panel" 또는 첫 번째 태그까지만 추출
+        local partialPanelPos = cleanMessage:find("<Panel", 1, true)
+        local firstTagPos = cleanMessage:find("%[Affinity:", 1, false) or
+                           cleanMessage:find("%[Sin:", 1, false) or
+                           cleanMessage:find("%[Location:", 1, false)
+
+        local cutPos = nil
+        if partialPanelPos and firstTagPos then
+            cutPos = math.min(partialPanelPos, firstTagPos)
+        elseif partialPanelPos then
+            cutPos = partialPanelPos
+        elseif firstTagPos then
+            cutPos = firstTagPos
+        end
+
+        if cutPos then
+            mainResponse = cleanMessage:sub(1, cutPos - 1)
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 시작 위치에서 자름 (pos: " .. cutPos .. ")")
+        else
+            mainResponse = cleanMessage
+            log("⚠️ <Panel>■★ 마커 없음 - 태그 발견 안됨, 전체 사용")
+        end
+    end
+
+    -- 보조모델 태그 제거 (혹시 남아있을 수 있으니 한번 더 정리)
+    mainResponse = mainResponse:gsub("%[Affinity:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Sin:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Stat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Gold:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Item:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[EXP:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Heal:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Damage:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Effect:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Trait:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Combat:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Location:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Season:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Week:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[Day:[^%]]+%]", "")  -- 요일 태그
+    mainResponse = mainResponse:gsub("%[Time:[^%]]+%]", "")
+    mainResponse = mainResponse:gsub("%[SIN_RESET:[^%]]+%]", "")
+    -- 아래 태그들은 editDisplay에서 디스플레이 변환하므로 유지:
+    -- [Stock:...], [Club:...], [StatsEvaluated], [Market:...], [StockBuy:...], [StockSell:...]
+    mainResponse = mainResponse:gsub("<WeeklyReport>.-</WeeklyReport>", "")  -- 주간 보고서
+    mainResponse = mainResponse:gsub("<StockPanel%s*/>", "")  -- 주식 패널
+
+    -- 끝 공백 제거
+    mainResponse = mainResponse:gsub("%s+$", "")
+
+    log("📝 메인 응답 길이: " .. #mainResponse)
+
+    -- 스냅샷으로 복원 (이전 태그 효과 롤백)
+    for _, char in ipairs(characters) do
+        restoreSnapshot(triggerId, char)
+    end
+
+    local rpgEnabled = getChatVar(triggerId, "rpg_system_enabled") == "true"
+    if rpgEnabled then
+        restoreRpgSnapshot(triggerId)
+    end
+
+    log("↩️ 스냅샷 복원 완료")
+
+    -- 보조모델 다시 호출
+    local auxiliaryMode = getState(triggerId, "auxiliary_mode") or getChatVar(triggerId, "auxiliary_mode") or "0"
+    local auxiliaryMessage = ""
+
+    if auxiliaryMode == "0" then
+        log("⏭️ 보조모델 OFF - 로어북 모드 (호출 스킵)")
+        auxiliaryMessage = "<Panel>■★"
+    else
+        auxiliaryMessage = callAuxiliaryModel(triggerId, mainResponse)
+        log("🔄 보조모델 재호출 완료")
+    end
+
+    -- 태그 파싱 (메인 + 보조)
+    local combinedSource = mainResponse .. "\n" .. auxiliaryMessage
+
+    -- 상태창 태그 파싱
+    parseStatusWindow(triggerId, combinedSource)
+
+    -- SIN RESET 처리: [SIN_RESET:charStorage_pos] 또는 [SIN_RESET:charStorage_neg]
+    for match in combinedSource:gmatch("%[SIN_RESET:([^%]]+)%]") do
+        local charStorage, sinType = match:match("(%w+)_(pos)$")
+        if not charStorage then
+            charStorage, sinType = match:match("(%w+)_(neg)$")
+        end
+
+        if charStorage and sinType then
+            local countKey = charStorage .. "_sin_" .. sinType .. "_count"
+            local gaugeKey = charStorage .. "_sin_" .. sinType
+
+            local currentCount = tonumber(getChatVar(triggerId, countKey)) or 0
+
+            setChatVar(triggerId, countKey, tostring(currentCount + 1))
+            setChatVar(triggerId, gaugeKey, "0")
+
+            for _, char in ipairs(characters) do
+                if char.storage == charStorage then
+                    updatePercent(triggerId, char)
+                    log(string.format("🔄 %s %s %s 리셋! 카운트: %d → %d",
+                        char.icon, char.display, sinType == "pos" and "해소" or "압력",
+                        currentCount, currentCount + 1))
+                    break
+                end
+            end
+        end
+    end
+
+    -- 호감도 파싱 (시스템 활성화 시에만)
+    local affinityEnabled = getChatVar(triggerId, "affinity_system_enabled")
+    if affinityEnabled ~= "false" then
+        for charName, feeling in combinedSource:gmatch("%[Affinity:(%w+):(%w+)%]") do
+            for _, char in ipairs(characters) do
+                if char.display == charName and affinityChanges[feeling] then
+                    local key = char.storage .. "_affinity"
+                    local current = tonumber(getChatVar(triggerId, key)) or 0
+                    local change = affinityChanges[feeling]
+                    local new = clampValue(current + change, AFFINITY_MIN, AFFINITY_MAX)
+
+                    setChatVar(triggerId, key, tostring(new))
+
+                    local prevChange = tonumber(getChatVar(triggerId, char.storage .. "_change_affinity")) or 0
+                    setChatVar(triggerId, char.storage .. "_change_affinity", tostring(prevChange + change))
+
+                    if char.is_main then
+                        setChatVar(triggerId, char.storage .. "_route", getRouteText(checkEnding(new)))
+                    end
+
+                    updatePercent(triggerId, char)
+                    log(string.format("💕 %s 호감도: %d → %d (%s, %+d)",
+                        char.display, current, new, feeling, change))
+                    break
+                end
+            end
+        end
+    end
+
+    -- Sin 변화 파싱
+    for charName, sinType, change in combinedSource:gmatch("%[Sin:(%w+):(pos|neg):([%+%-]?%d+)%]") do
+        for _, char in ipairs(characters) do
+            if char.display == charName and char.has_sin then
+                local key = char.storage .. "_sin_" .. sinType
+                local current = tonumber(getChatVar(triggerId, key)) or 0
+                local delta = tonumber(change) or 0
+                local new = clampValue(current + delta, SIN_MIN, SIN_MAX)
+
+                setChatVar(triggerId, key, tostring(new))
+
+                local changeKey = char.storage .. "_change_sin_" .. sinType
+                local prevChange = tonumber(getChatVar(triggerId, changeKey)) or 0
+                setChatVar(triggerId, changeKey, tostring(prevChange + delta))
+
+                updatePercent(triggerId, char)
+                log(string.format("😈 %s %s: %d → %d (%+d)",
+                    char.display, sinType == "pos" and "해소" or "압력",
+                    current, new, delta))
+                break
+            end
+        end
+    end
+
+    -- RPG 태그 파싱
+    if rpgEnabled then
+        parseStatChanges(triggerId, combinedSource)
+        parseGoldChanges(triggerId, combinedSource)
+        parseExpChanges(triggerId, combinedSource)
+        parseHeal(triggerId, combinedSource)
+        parseDamage(triggerId, combinedSource)
+        parseItems(triggerId, combinedSource)
+        parseTraits(triggerId, combinedSource)
+        parseEffects(triggerId, combinedSource)
+        parseExams(triggerId, combinedSource)
+        parseStockSystemEnable(triggerId, combinedSource)  -- 주식 시스템 자동 활성화
+        parseClubChanges(triggerId, combinedSource)   -- 동아리 가입/탈퇴
+        parseStockChanges(triggerId, combinedSource)  -- 주식 시세
+        parseStockTrades(triggerId, combinedSource)   -- 주식 매매
+        parseStockChartUpdate(triggerId, combinedSource)  -- 차트 업데이트 (가격 변화)
+        parseMarketIndex(triggerId, combinedSource)   -- 시장 지수
+    end
+
+    -- UI 업데이트
+    for _, char in ipairs(characters) do
+        updatePercent(triggerId, char)
+    end
+
+    if rpgEnabled then
+        updateRpgDisplayVars(triggerId)
+    end
+
+    -- <StockPanel /> 자동 추가: <Panel>■★ 직전에 삽입 (리롤용)
+    local panelMarker = "<Panel>■★"
+    local panelPos = auxiliaryMessage:find(panelMarker, 1, true)
+    if panelPos then
+        auxiliaryMessage = auxiliaryMessage:sub(1, panelPos - 1) .. "<StockPanel />\n" .. auxiliaryMessage:sub(panelPos)
+        addDebugLog("System", "리롤: <StockPanel /> 자동 삽입 완료")
+    end
+
+    -- 메시지 업데이트 (음수 인덱스 사용)
+    -- -2 = 임시 메시지(-1) 앞의 실제 AI 응답
+    local finalMessage = mainResponse .. "\n\n" .. auxiliaryMessage
+    setChat(triggerId, -2, finalMessage)
+
+    alertNormal(triggerId, "🎲 보조 AI 리롤 완료!")
+    log("✅ 보조 AI 리롤 완료")
+    return true
+end
+
+-- 스케줄 시작 함수
+_G["start_weekly_schedule"] = function(triggerId)
+    local curriculum = getChatVar(triggerId, "current_curriculum") or "선택 안 함"
+    local lifestyle = getChatVar(triggerId, "current_lifestyle") or "선택 안 함"
+
+    local message = string.format(
+        "<-OOC: {{user}}는 선택한 커리큘럼(%s)과 라이프스타일(%s)로 주간 활동을 진행한다. 현재 요일부터 금요일까지의 주간 요약을 작성하세요.->",
+        curriculum, lifestyle
+    )
+
+    addChat(triggerId, "user", message)
+    log("📅 주간 스케줄 시작: " .. curriculum .. " + " .. lifestyle)
+
+    -- AI 응답 후 초기화하기 위한 플래그 설정
+    setState(triggerId, "schedule_needs_reset", true)
+end
+
+-- AI 턴 종료 후 스케줄 선택값 초기화
+function onEndOfTurn(e)
+    local triggerId = e.scriptId
+
+    if getState(triggerId, "schedule_needs_reset") == true then
+        setChatVar(triggerId, "current_curriculum", "")
+        setState(triggerId, "current_curriculum", "")
+        setChatVar(triggerId, "current_lifestyle", "")
+        setState(triggerId, "current_lifestyle", "")
+        setState(triggerId, "schedule_needs_reset", false)
+        log("🔄 주간 스케줄 선택값 초기화 완료")
+    end
+end
+
+log("🥀 Belladonna Academy v7.3 - Optimized System")
+log("✅ 로어북 기준 장소명 정리 + RPG 시스템 통합")
+log("📍 Scarlet Street, Midnight Alley, Lotus Street, Ruby Row 등")
+log("🌐 한영 병기 출력 텍스트")
+log("🎮 RPG: Stats, Gold, Items, Traits (서술용), EXP/Level")
+log("👨‍⚖️ 보조모델: STATUS_OUTPUT_INSTRUCTIONS_v2.0.md 참조")
+log("🔄 명령어: /status, /schedule, /reset, /resetstats, /test")
+log("🎒 아이템: 슬롯 기반 HTML 생성, 접을 수 있는 인벤토리, 최대 15개 표시")
+log("🌟 특성: 동적 HTML 생성, 접을 수 있는 특성 목록")
+log("🔘 아이템 버튼: use_item_1~15 등록 완료")
+log("⚔️ 전투 버튼: combat_choice_1~6 등록 완료")
+log("📅 활동 버튼: activity_combat, activity_magic 등 13개 등록 완료")
+log("📺 editDisplay 리스너: <CombatChoice>, <WeeklyReport> 태그를 HTML로 변환")
+log("🚫 editRequest 리스너: 메인 AI 요청에서 보조모델 태그 모두 제거 (Affinity/Sin/Stat/Gold/Item/EXP/Heal/Effect/Trait/Combat/Season/Week/Time/Location/Panel/WeeklyReport)")
+
+-- ============================================
+-- 보조 AI 리롤 버튼 표시 (editDisplay)
+-- ============================================
+
+-- ============================================
+-- 보조 AI 리롤 버튼 클릭 핸들러
+-- ============================================
+
+onButtonClick = async(function(triggerId, code)
+    if code == "reroll_auxiliary" then
+        -- 재생성 중 표시
+        addChat(triggerId, 'char', '<div style="padding:20px;text-align:center;color:#3498db;font-weight:600;">🎲 보조 AI 재생성 중...</div>')
+
+        -- reroll_auxiliary 함수 호출
+        local success, result = pcall(_G["reroll_auxiliary"], triggerId)
+
+        -- 임시 메시지 제거
+        removeChat(triggerId, -1)
+
+        if not success then
+            alertError(triggerId, "리롤 실패: " .. tostring(result))
+            log("❌ 리롤 실패: " .. tostring(result))
+        end
+    end
+
+    -- 호가 가격 선택 핸들러
+    local selectedPrice = code:match("^stock_price_(%d+)$")
+    if selectedPrice then
+        local price = tonumber(selectedPrice)
+        setState(triggerId, "stock_selected_price", price)
+        log("💰 거래 가격 선택: " .. price .. "G")
+    end
+
+    -- 주식 매수 핸들러
+    local buyTicker, buyQty = code:match("^stock_buy_([A-Z]+)_(%d+)$")
+    if buyTicker and buyQty then
+        stockBuy(triggerId, buyTicker, tonumber(buyQty))
+    end
+
+    -- 주식 매도 핸들러
+    local sellTicker, sellQty = code:match("^stock_sell_([A-Z]+)_(%d+)$")
+    if sellTicker and sellQty then
+        stockSell(triggerId, sellTicker, tonumber(sellQty))
+    end
+
+    -- 주식 전량 매도 핸들러
+    local sellAllTicker = code:match("^stock_sell_([A-Z]+)_all$")
+    if sellAllTicker then
+        stockSell(triggerId, sellAllTicker, -1)
+    end
+
+    -- 주식 탭 전환 핸들러
+    local viewId = code:match("^stock_view_(%a+)$")
+    if viewId then
+        setState(triggerId, "stock_current_view", viewId)
+        -- 거래 메시지 초기화 (탭 전환시)
+        setState(triggerId, "stock_last_trade_msg", "")
+        log("📊 주식 탭 전환: " .. viewId)
+    end
+
+    -- 주식 종목 선택 핸들러 (시세표에서 클릭 - 거래 화면으로 이동)
+    local selectTicker = code:match("^stock_select_([A-Z]+)$")
+    if selectTicker then
+        setState(triggerId, "stock_selected_ticker", selectTicker)
+        setState(triggerId, "stock_current_view", "order")
+        -- 거래 메시지 초기화
+        setState(triggerId, "stock_last_trade_msg", "")
+        log("📌 종목 선택 (거래): " .. selectTicker)
+    end
+
+    -- 차트 종목 선택 핸들러 (차트에서 클릭 - 차트만 변경)
+    local chartTicker = code:match("^stock_chart_([A-Z]+)$")
+    if chartTicker then
+        setState(triggerId, "stock_selected_ticker", chartTicker)
+        -- 차트 뷰 유지, 거래 화면으로 이동하지 않음
+        log("📊 차트 종목 변경: " .. chartTicker)
+    end
+
+    -- 주식 패널 종료 핸들러
+    if code == "stock_exit" then
+        setState(triggerId, "stock_current_view", "asset")
+        setState(triggerId, "stock_last_trade_msg", "")
+        log("📈 주식 패널 종료")
+    end
+
+    -- 주식 패널 접기/펼치기 토글
+    if code == "stock_toggle_collapse" then
+        local currentState = getState(triggerId, "stock_panel_collapsed")
+        -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+        local newState = (currentState == "0") and "1" or "0"
+        setState(triggerId, "stock_panel_collapsed", newState)
+        log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
+    end
+end)
+
+log("🎲 보조 AI 리롤 버튼: editDisplay + onButtonClick 등록 완료")
+
+-- ============================================
+-- 주식 시스템 버튼 핸들러
+-- ============================================
+
+-- 뷰 전환 버튼
+_G["stock_view_board"] = function(triggerId)
+    setState(triggerId, "stock_current_view", "board")
+    log("📊 주식 뷰 전환: 시세표")
+end
+
+_G["stock_view_chart"] = function(triggerId)
+    setState(triggerId, "stock_current_view", "chart")
+    log("📈 주식 뷰 전환: 차트")
+end
+
+
+_G["stock_view_asset"] = function(triggerId)
+    setState(triggerId, "stock_current_view", "asset")
+    log("💼 주식 뷰 전환: 내 자산")
+end
+
+-- 주식 패널 접기/펼치기 토글
+_G["stock_toggle_collapse"] = function(triggerId)
+    local currentState = getState(triggerId, "stock_panel_collapsed")
+    -- 현재 펼쳐져 있으면(currentState == "0") 접고("1"), 아니면 펼침("0")
+    local newState = (currentState == "0") and "1" or "0"
+    setState(triggerId, "stock_panel_collapsed", newState)
+    log("📊 주식 패널 접기 토글: " .. (newState == "1" and "접힘" or "펼침"))
+end
+
+-- 거래 종료 버튼 (스토리 진행)
+_G["stock_exit"] = function(triggerId)
+    -- 포트폴리오 요약 생성
+    local gold = tonumber(getChatVar(triggerId, "player_gold")) or 0
+    local totalValue = gold
+    local holdings = {}
+
+    for _, ticker in ipairs(STOCK_TICKERS) do
+        local owned = tonumber(getChatVar(triggerId, "stock_" .. ticker .. "_owned")) or 0
+        if owned > 0 then
+            local price = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+            price = (price and price > 0) and price or STOCK_BASE_PRICES[ticker]
+            local value = owned * price
+            totalValue = totalValue + value
+            table.insert(holdings, string.format("%s %d주", ticker, owned))
+        end
+    end
+
+    local summary = string.format("거래를 마쳤다. (총 자산: %dG", totalValue)
+    if #holdings > 0 then
+        summary = summary .. ", 보유: " .. table.concat(holdings, ", ")
+    end
+    summary = summary .. ")"
+
+    -- OOC 메시지로 스토리 진행 유도
+    addChat(triggerId, "user", "<-OOC: " .. summary .. " 유저가 거래소에서 나와 다음 활동을 진행한다.->")
+    log("🚪 주식 거래 종료: " .. summary)
+end
+
+-- 종목 선택 버튼 (20개 종목)
+local stockTickers = {
+    "GOLDMANE", "LUXORIA", "PFIZARA",
+    "TESLAM", "NVIDIUM", "ARCMED", "INTELLUM",
+    "AMAZONIA", "APPELLE",
+    "METARIX", "NETHRYX",
+    "MUTAGEN", "VITALIS",
+    "MORGANITE",
+    "AEGIS", "IRONFORGE",
+    "GUCCIEL", "STARBREW", "HARVESTIA",
+    "STONECRAFT"
+}
+
+for _, ticker in ipairs(stockTickers) do
+    _G["stock_select_" .. ticker] = function(triggerId)
+        setState(triggerId, "stock_selected_ticker", ticker)
+        -- 선택 가격을 해당 종목 현재가로 초기화
+        local currentPrice = tonumber(getState(triggerId, "stock_" .. ticker .. "_price"))
+        currentPrice = (currentPrice and currentPrice > 0) and currentPrice or STOCK_BASE_PRICES[ticker]
+        setState(triggerId, "stock_selected_price", currentPrice)
+        -- 차트 뷰로 자동 전환
+        local currentView = getState(triggerId, "stock_current_view") or "asset"
+        if currentView == "asset" then
+            setState(triggerId, "stock_current_view", "chart")
+        end
+        log("📌 종목 선택: " .. ticker .. " @ " .. currentPrice .. "G")
+    end
+end
+
+-- 동아리 가입 버튼 (테스트용)
+_G["join_stock_club"] = function(triggerId)
+    setChatVar(triggerId, "club_stock_joined", "1")
+    setState(triggerId, "club_stock_joined", "1")
+    -- 주식 시스템도 활성화
+    setChatVar(triggerId, "stock_system_enabled", "1")
+    setState(triggerId, "stock_system_enabled", "1")
+    alertNormal(triggerId, "📈 주식투자 동아리에 가입했습니다!")
+    log("📈 주식투자 동아리 가입 완료")
+end
+
+_G["leave_stock_club"] = function(triggerId)
+    setChatVar(triggerId, "club_stock_joined", "0")
+    setState(triggerId, "club_stock_joined", "0")
+    -- 주식 시스템 비활성화
+    setChatVar(triggerId, "stock_system_enabled", "0")
+    setState(triggerId, "stock_system_enabled", "0")
+    -- 경영 시스템은 독립적으로 유지 (회사 경영 중이면 계속 활성화)
+    alertNormal(triggerId, "📉 주식투자 동아리에서 탈퇴했습니다.")
+    log("📉 주식투자 동아리 탈퇴 완료")
+end
+
+log("📈 주식 시스템 버튼 핸들러 등록 완료 (20종목 선택 + 뷰3개)")
+
+-- Shop system code removed 2026-05-25 due to repeated end-of-file truncation.
+-- Original shop code was inside an 'if false then' block (disabled stub).
+-- Will be reimplemented from scratch in Sub-step 1.5 (dynamic lineup redesign).
+-- EOF MARKER do not remove
